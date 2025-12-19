@@ -36,7 +36,7 @@ public final class GemsKeybinds {
         MODIFIER = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.gems.modifier",
                 InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_LEFT_CONTROL,
+                GLFW.GLFW_KEY_LEFT_ALT,
                 CATEGORY
         ));
 

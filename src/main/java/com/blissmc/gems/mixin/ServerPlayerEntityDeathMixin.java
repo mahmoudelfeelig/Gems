@@ -1,6 +1,7 @@
 package com.blissmc.gems.mixin;
 
 import com.blissmc.gems.item.ModItems;
+import com.blissmc.gems.item.GemItemGlint;
 import com.blissmc.gems.net.GemStateSync;
 import com.blissmc.gems.power.GemPowers;
 import com.blissmc.gems.state.GemPlayerState;
@@ -23,6 +24,7 @@ public abstract class ServerPlayerEntityDeathMixin {
 
         int victimEnergyBefore = GemPlayerState.getEnergy(victim);
         GemPlayerState.addEnergy(victim, -1);
+        GemItemGlint.sync(victim);
 
         int victimHeartsBefore = GemPlayerState.getMaxHearts(victim);
         if (victimHeartsBefore > GemPlayerState.MIN_MAX_HEARTS) {
@@ -36,6 +38,7 @@ public abstract class ServerPlayerEntityDeathMixin {
             int killerEnergyBefore = GemPlayerState.getEnergy(killer);
             GemPlayerState.addEnergy(killer, 1);
             GemPowers.sync(killer);
+            GemItemGlint.sync(killer);
             GemStateSync.send(killer);
 
             if (killerEnergyBefore >= GemPlayerState.MAX_ENERGY && victimEnergyBefore > 0) {

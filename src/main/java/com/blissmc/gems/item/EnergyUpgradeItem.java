@@ -35,6 +35,7 @@ public final class EnergyUpgradeItem extends Item {
         GemPlayerState.setEnergy(player, before + 1);
         GemPowers.sync(player);
         GemStateSync.send(player);
+        GemItemGlint.sync(player);
         stack.decrement(1);
         return TypedActionResult.success(stack);
     }

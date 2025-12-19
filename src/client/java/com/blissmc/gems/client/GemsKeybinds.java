@@ -4,6 +4,7 @@ import com.blissmc.gems.core.GemDefinition;
 import com.blissmc.gems.core.GemEnergyState;
 import com.blissmc.gems.core.GemRegistry;
 import com.blissmc.gems.net.ActivateAbilityPayload;
+import com.blissmc.gems.net.SoulReleasePayload;
 import com.blissmc.gems.power.GemAbility;
 import com.blissmc.gems.power.ModAbilities;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -36,6 +37,13 @@ public final class GemsKeybinds {
             CATEGORY
     ));
 
+    private static final KeyBinding SOUL_RELEASE = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+            "key.gems.soul_release",
+            InputUtil.Type.KEYSYM,
+            GLFW.GLFW_KEY_B,
+            CATEGORY
+    ));
+
     private static int selectedAbilityIndex = 0;
 
     private GemsKeybinds() {
@@ -48,6 +56,9 @@ public final class GemsKeybinds {
             }
             while (ACTIVATE_ABILITY.wasPressed()) {
                 activateSelected(client);
+            }
+            while (SOUL_RELEASE.wasPressed()) {
+                soulRelease(client);
             }
         });
     }
@@ -77,6 +88,14 @@ public final class GemsKeybinds {
             return;
         }
         ClientPlayNetworking.send(new ActivateAbilityPayload(selectedAbilityIndex));
+    }
+
+    private static void soulRelease(MinecraftClient client) {
+        if (client.getNetworkHandler() == null) {
+            sendActionBar(client, Text.literal("Not connected."));
+            return;
+        }
+        ClientPlayNetworking.send(SoulReleasePayload.INSTANCE);
     }
 
     private static List<Identifier> unlockedAbilities() {

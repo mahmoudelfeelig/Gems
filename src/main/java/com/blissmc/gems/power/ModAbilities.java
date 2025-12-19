@@ -11,17 +11,17 @@ public final class ModAbilities {
 
     static {
         // Astra
-        register(new DimensionalDriftAbility());
+        register(new ShadowAnchorAbility());
         register(new DimensionalVoidAbility());
         register(new AstralDaggersAbility());
         register(new UnboundedAbility());
-        register(new AstralProjectionAbility());
+        register(new AstralCameraAbility());
         register(new SpookAbility());
         register(new TagAbility());
 
         // Fire
         register(new CosyCampfireAbility());
-        register(new CrispAbility());
+        register(new HeatHazeZoneAbility());
         register(new FireballAbility());
         register(new MeteorShowerAbility());
 
@@ -42,7 +42,7 @@ public final class ModAbilities {
         register(new GroupBreezyBashAbility());
 
         // Speed
-        register(new BlurAbility());
+        register(new ArcShotAbility());
         register(new SpeedStormAbility());
         register(new TerminalVelocityAbility());
 
@@ -54,8 +54,8 @@ public final class ModAbilities {
 
         // Wealth
         register(new PocketsAbility());
-        register(new UnfortunateAbility());
-        register(new ItemLockAbility());
+        register(new FumbleAbility());
+        register(new HotbarLockAbility());
         register(new AmplificationAbility());
         register(new RichRushAbility());
     }

@@ -13,7 +13,6 @@ import com.blissmc.gems.power.GemPassive;
 import com.blissmc.gems.power.GemPowers;
 import com.blissmc.gems.power.ModAbilities;
 import com.blissmc.gems.power.ModPassives;
-import com.blissmc.gems.power.SoulSystem;
 import com.blissmc.gems.state.GemPlayerState;
 import com.blissmc.gems.trust.GemTrust;
 import com.mojang.brigadier.CommandDispatcher;
@@ -54,8 +53,6 @@ public final class GemsCommands {
                                 .executes(ctx -> untrust(ctx.getSource().getPlayerOrThrow(), EntityArgumentType.getPlayer(ctx, "player")))))
                 .then(CommandManager.literal("trustlist")
                         .executes(ctx -> trustList(ctx.getSource().getPlayerOrThrow())))
-                .then(CommandManager.literal("soulrelease")
-                        .executes(ctx -> soulRelease(ctx.getSource().getPlayerOrThrow())))
                 .then(CommandManager.literal("trade")
                         .then(CommandManager.argument("gem", StringArgumentType.word())
                                 .suggests((ctx, builder) -> suggestGems(builder))
@@ -119,10 +116,6 @@ public final class GemsCommands {
             owner.sendMessage(Text.literal("- " + uuid), false);
         }
         return 1;
-    }
-
-    private static int soulRelease(ServerPlayerEntity player) {
-        return SoulSystem.release(player) ? 1 : 0;
     }
 
     private static String passiveName(Identifier id) {

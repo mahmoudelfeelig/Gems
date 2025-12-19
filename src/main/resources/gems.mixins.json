@@ -18,6 +18,7 @@
     "LivingEntityFallDamageMixin",
     "LivingEntityFluxDamageStoreMixin",
     "LivingEntityRichRushLootMixin",
+    "ServerPlayNetworkHandlerHotbarLockMixin",
     "ServerPlayerInteractionManagerRestrictionsMixin"
   ],
   "injectors": {

@@ -21,11 +21,11 @@ public final class GemRegistry {
                         PowerIds.SOUL_HEALING
                 ),
                 List.of(
-                        PowerIds.DIMENSIONAL_DRIFT,
+                        PowerIds.SHADOW_ANCHOR,
                         PowerIds.DIMENSIONAL_VOID,
                         PowerIds.ASTRAL_DAGGERS,
                         PowerIds.UNBOUNDED,
-                        PowerIds.ASTRAL_PROJECTION,
+                        PowerIds.ASTRAL_CAMERA,
                         PowerIds.SPOOK,
                         PowerIds.TAG
                 )
@@ -40,7 +40,7 @@ public final class GemRegistry {
                 ),
                 List.of(
                         PowerIds.COSY_CAMPFIRE,
-                        PowerIds.CRISP,
+                        PowerIds.HEAT_HAZE_ZONE,
                         PowerIds.FIREBALL,
                         PowerIds.METEOR_SHOWER
                 )
@@ -96,7 +96,7 @@ public final class GemRegistry {
                         PowerIds.SPEED_I
                 ),
                 List.of(
-                        PowerIds.BLUR,
+                        PowerIds.ARC_SHOT,
                         PowerIds.SPEED_STORM,
                         PowerIds.TERMINAL_VELOCITY
                 )
@@ -130,8 +130,8 @@ public final class GemRegistry {
                 ),
                 List.of(
                         PowerIds.POCKETS,
-                        PowerIds.UNFORTUNATE,
-                        PowerIds.ITEM_LOCK,
+                        PowerIds.FUMBLE,
+                        PowerIds.HOTBAR_LOCK,
                         PowerIds.AMPLIFICATION,
                         PowerIds.RICH_RUSH
                 )

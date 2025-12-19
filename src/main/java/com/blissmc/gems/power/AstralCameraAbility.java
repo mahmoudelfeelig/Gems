@@ -4,32 +4,31 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-public final class CrispAbility implements GemAbility {
+public final class AstralCameraAbility implements GemAbility {
     @Override
     public Identifier id() {
-        return PowerIds.CRISP;
+        return PowerIds.ASTRAL_CAMERA;
     }
 
     @Override
     public String name() {
-        return "Crisp";
+        return "Astral Camera";
     }
 
     @Override
     public String description() {
-        return "Evaporates water in an area for a short duration.";
+        return "Astral camera: scout in Spectator mode, then return to your original position.";
     }
 
     @Override
     public int cooldownTicks() {
-        return 90 * 20;
+        return 60 * 20;
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startCrisp(player, 10 * 20);
-        player.sendMessage(Text.literal("Crisp active."), true);
+        AbilityRuntime.startAstralCamera(player, 8 * 20);
+        player.sendMessage(Text.literal("Astral Camera active."), true);
         return true;
     }
 }
-

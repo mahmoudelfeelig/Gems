@@ -40,16 +40,16 @@ public final class PowerIds {
     public static final Identifier DOUBLE_DEBRIS = id("double_debris");
 
     // Abilities
-    public static final Identifier DIMENSIONAL_DRIFT = id("dimensional_drift");
+    public static final Identifier SHADOW_ANCHOR = id("shadow_anchor");
     public static final Identifier DIMENSIONAL_VOID = id("dimensional_void");
     public static final Identifier ASTRAL_DAGGERS = id("astral_daggers");
     public static final Identifier UNBOUNDED = id("unbounded");
-    public static final Identifier ASTRAL_PROJECTION = id("astral_projection");
+    public static final Identifier ASTRAL_CAMERA = id("astral_camera");
     public static final Identifier SPOOK = id("spook");
     public static final Identifier TAG = id("tag");
 
     public static final Identifier COSY_CAMPFIRE = id("cosy_campfire");
-    public static final Identifier CRISP = id("crisp");
+    public static final Identifier HEAT_HAZE_ZONE = id("heat_haze_zone");
     public static final Identifier FIREBALL = id("fireball");
     public static final Identifier METEOR_SHOWER = id("meteor_shower");
 
@@ -66,7 +66,7 @@ public final class PowerIds {
     public static final Identifier BREEZY_BASH = id("breezy_bash");
     public static final Identifier GROUP_BREEZY_BASH = id("group_breezy_bash");
 
-    public static final Identifier BLUR = id("blur");
+    public static final Identifier ARC_SHOT = id("arc_shot");
     public static final Identifier SPEED_STORM = id("speed_storm");
     public static final Identifier TERMINAL_VELOCITY = id("terminal_velocity");
 
@@ -76,8 +76,8 @@ public final class PowerIds {
     public static final Identifier CHAD_STRENGTH = id("chad_strength");
 
     public static final Identifier POCKETS = id("pockets");
-    public static final Identifier UNFORTUNATE = id("unfortunate");
-    public static final Identifier ITEM_LOCK = id("item_lock");
+    public static final Identifier FUMBLE = id("fumble");
+    public static final Identifier HOTBAR_LOCK = id("hotbar_lock");
     public static final Identifier AMPLIFICATION = id("amplification");
     public static final Identifier RICH_RUSH = id("rich_rush");
 
@@ -88,4 +88,3 @@ public final class PowerIds {
         return Identifier.of(GemsMod.MOD_ID, path);
     }
 }
-

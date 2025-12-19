@@ -1,7 +1,8 @@
 package com.blissmc.gems.mixin;
 
 import com.blissmc.gems.power.AbilityRestrictions;
-import com.blissmc.gems.power.ItemLock;
+import com.blissmc.gems.power.WealthFumble;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
@@ -36,19 +37,26 @@ public abstract class ServerPlayerInteractionManagerRestrictionsMixin {
             cir.setReturnValue(ActionResult.FAIL);
             return;
         }
-        if (ItemLock.isLocked(player, stack)) {
-            cir.setReturnValue(ActionResult.FAIL);
+        if (WealthFumble.isActive(player)) {
+            if (hand == Hand.OFF_HAND || stack.contains(DataComponentTypes.FOOD)) {
+                cir.setReturnValue(ActionResult.FAIL);
+            }
+            return;
         }
     }
 
     @Inject(method = "interactBlock", at = @At("HEAD"), cancellable = true)
-    private void gems$stunOrLockBlock(ServerPlayerEntity player, World world, ItemStack stack, Hand hand, BlockHitResult hit, CallbackInfoReturnable<ActionResult> cir) {
+    private void gems$stunOrFumbleBlock(ServerPlayerEntity player, World world, ItemStack stack, Hand hand, BlockHitResult hit, CallbackInfoReturnable<ActionResult> cir) {
         if (AbilityRestrictions.isStunned(player)) {
             cir.setReturnValue(ActionResult.FAIL);
             return;
         }
-        if (ItemLock.isLocked(player, stack)) {
-            cir.setReturnValue(ActionResult.FAIL);
+        if (WealthFumble.isActive(player)) {
+            if (hand == Hand.OFF_HAND || stack.contains(DataComponentTypes.FOOD)) {
+                cir.setReturnValue(ActionResult.FAIL);
+            }
+            return;
         }
     }
+
 }

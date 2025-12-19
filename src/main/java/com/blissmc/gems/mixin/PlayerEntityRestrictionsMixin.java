@@ -1,7 +1,6 @@
 package com.blissmc.gems.mixin;
 
 import com.blissmc.gems.power.AbilityRestrictions;
-import com.blissmc.gems.power.ItemLock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -20,11 +19,6 @@ public abstract class PlayerEntityRestrictionsMixin {
         }
         if (AbilityRestrictions.isStunned(player)) {
             ci.cancel();
-            return;
-        }
-        if (ItemLock.isLocked(player, player.getMainHandStack())) {
-            ci.cancel();
         }
     }
 }
-

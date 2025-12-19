@@ -2,7 +2,9 @@ package com.blissmc.gems.power;
 
 import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -40,6 +42,8 @@ public final class HeartLockAbility implements GemAbility {
         }
 
         AbilityRuntime.startHeartLock(player, other, GemsBalance.v().life().heartLockDurationTicks());
+        AbilityFeedback.sound(player, SoundEvents.BLOCK_CHAIN_PLACE, 0.8F, 0.9F);
+        AbilityFeedback.burstAt(other.getServerWorld(), other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ENCHANT, 18, 0.25D);
         player.sendMessage(Text.literal("Heart Lock applied."), true);
         return true;
     }

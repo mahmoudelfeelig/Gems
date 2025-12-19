@@ -6,9 +6,12 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Vec3d;
 
 public final class FluxBeamAbility implements GemAbility {
     @Override
@@ -54,6 +57,7 @@ public final class FluxBeamAbility implements GemAbility {
 
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other) && GemPowers.isPassiveActive(player, PowerIds.FLUX_ALLY_INVERSION)) {
             repairArmor(other, durabilityDamage);
+            beamFx(player, other.getPos().add(0.0D, 1.0D, 0.0D), true);
             player.sendMessage(Text.literal("Flux Beam: repaired ally armor (" + charge + "%)"), true);
             return true;
         }
@@ -63,8 +67,18 @@ public final class FluxBeamAbility implements GemAbility {
         if (target instanceof ServerPlayerEntity victim) {
             damageArmor(victim, durabilityDamage);
         }
+        beamFx(player, target.getPos().add(0.0D, 1.0D, 0.0D), false);
         player.sendMessage(Text.literal("Flux Beam: " + charge + "%"), true);
         return true;
+    }
+
+    private static void beamFx(ServerPlayerEntity player, Vec3d hitPos, boolean healing) {
+        var world = player.getServerWorld();
+        Vec3d from = player.getEyePos();
+        var particle = healing ? ParticleTypes.HAPPY_VILLAGER : ParticleTypes.ELECTRIC_SPARK;
+        AbilityFeedback.beam(world, from, hitPos, particle, 16);
+        AbilityFeedback.burstAt(world, hitPos, particle, 10, 0.25D);
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_GUARDIAN_ATTACK, 0.8F, healing ? 1.6F : 1.2F);
     }
 
     private static void damageArmor(ServerPlayerEntity player, int amount) {

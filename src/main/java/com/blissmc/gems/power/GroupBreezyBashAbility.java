@@ -9,6 +9,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.particle.ParticleTypes;
 
 public final class GroupBreezyBashAbility implements GemAbility {
     @Override
@@ -45,8 +46,10 @@ public final class GroupBreezyBashAbility implements GemAbility {
             Vec3d away = other.getPos().subtract(player.getPos()).normalize();
             other.addVelocity(away.x * kb, up, away.z * kb);
             other.velocityModified = true;
+            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.GUST, 12, 0.35D);
             affected++;
         }
+        AbilityFeedback.ring(world, player.getPos().add(0.0D, 0.2D, 0.0D), Math.min(6.0D, radius), ParticleTypes.GUST, 28);
         world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_BREEZE_WIND_BURST, SoundCategory.PLAYERS, 1.0F, 1.0F);
         player.sendMessage(Text.literal("Bashed " + affected + " players."), true);
         return true;

@@ -2,8 +2,10 @@ package com.blissmc.gems.power;
 
 import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -38,8 +40,10 @@ public final class FumbleAbility implements GemAbility {
                 continue;
             }
             WealthFumble.apply(other, GemsBalance.v().wealth().fumbleDurationTicks());
+            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SMOKE, 10, 0.25D);
             affected++;
         }
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_WITCH_THROW, 0.8F, 1.1F);
         player.sendMessage(Text.literal("Fumble affected " + affected + " players."), true);
         return true;
     }

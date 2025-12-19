@@ -5,6 +5,7 @@ import com.blissmc.gems.screen.PocketsStorage;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -44,6 +45,7 @@ public final class PocketsAbility implements GemAbility {
             }
         };
         player.openHandledScreen(factory);
+        AbilityFeedback.sound(player, SoundEvents.BLOCK_CHEST_OPEN, 0.8F, 1.1F);
         return true;
     }
 }

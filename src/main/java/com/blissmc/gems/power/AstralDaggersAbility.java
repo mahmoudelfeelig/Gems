@@ -4,6 +4,7 @@ import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -40,6 +41,8 @@ public final class AstralDaggersAbility implements GemAbility {
 
         Vec3d direction = player.getRotationVec(1.0F);
         Vec3d spawnPos = player.getEyePos().add(direction.multiply(1.2D));
+
+        AbilityFeedback.burstAt(player.getServerWorld(), spawnPos, ParticleTypes.END_ROD, Math.min(24, count * 3), 0.12D);
 
         for (int i = 0; i < count; i++) {
             ArrowEntity arrow = new ArrowEntity(player.getWorld(), player, new ItemStack(Items.ARROW), ItemStack.EMPTY);

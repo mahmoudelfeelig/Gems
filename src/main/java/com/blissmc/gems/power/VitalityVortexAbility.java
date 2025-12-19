@@ -6,8 +6,10 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -66,8 +68,21 @@ public final class VitalityVortexAbility implements GemAbility {
             }
         }
 
+        AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_POWER_SELECT, 0.8F, 1.1F);
+        AbilityFeedback.burst(player, particleFor(mode), 20, 0.35D);
         player.sendMessage(Text.literal("Vitality Vortex: " + mode.label), true);
         return true;
+    }
+
+    private static net.minecraft.particle.ParticleEffect particleFor(VortexMode mode) {
+        return switch (mode) {
+            case AQUATIC -> ParticleTypes.BUBBLE;
+            case INFERNAL -> ParticleTypes.FLAME;
+            case SCULK -> ParticleTypes.SCULK_SOUL;
+            case VERDANT -> ParticleTypes.HAPPY_VILLAGER;
+            case END -> ParticleTypes.PORTAL;
+            default -> ParticleTypes.HEART;
+        };
     }
 
     private static void applyAlly(VortexMode mode, ServerPlayerEntity player, int duration) {

@@ -31,6 +31,10 @@ import java.util.Optional;
 public abstract class BlockAutoSmeltMixin {
     private static final Object2ObjectOpenHashMap<Item, ItemStack> SMELT_CACHE = new Object2ObjectOpenHashMap<>();
 
+    public static void gems$clearSmeltCache() {
+        SMELT_CACHE.clear();
+    }
+
     @Inject(
             method = "getDroppedStacks(Lnet/minecraft/block/BlockState;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;)Ljava/util/List;",
             at = @At("RETURN"),

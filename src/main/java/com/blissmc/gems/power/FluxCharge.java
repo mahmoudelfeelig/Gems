@@ -92,6 +92,7 @@ public final class FluxCharge {
         int next = Math.min(200, charge + GemsBalance.v().flux().overchargePerSecond());
         set(player, next);
         player.damage(player.getDamageSources().magic(), GemsBalance.v().flux().overchargeSelfDamagePerSecond());
+        com.blissmc.gems.net.GemExtraStateSync.send(player);
     }
 
     public static void clearIfBelow100(ServerPlayerEntity player) {

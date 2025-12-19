@@ -33,5 +33,11 @@ public final class ClientGemState {
         ClientGemState.maxHearts = maxHearts;
         ClientGemState.initialized = true;
     }
-}
 
+    public static void reset() {
+        initialized = false;
+        activeGem = GemId.ASTRA;
+        energy = 0;
+        maxHearts = 10;
+    }
+}

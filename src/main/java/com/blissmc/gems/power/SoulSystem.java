@@ -4,6 +4,8 @@ import com.blissmc.gems.state.GemsPersistentDataHolder;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.Registries;
@@ -12,6 +14,10 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.sound.SoundEvents;
+
+import java.util.UUID;
 
 public final class SoulSystem {
     private static final String KEY_SOUL_TYPE = "soulType";
@@ -23,6 +29,9 @@ public final class SoulSystem {
         if (killed instanceof ServerPlayerEntity) {
             return;
         }
+        if (SoulSummons.isSoul(killed)) {
+            return;
+        }
         if (!GemPowers.isPassiveActive(player, PowerIds.SOUL_CAPTURE)) {
             return;
         }
@@ -32,6 +41,8 @@ public final class SoulSystem {
             return;
         }
         persistent(player).putString(KEY_SOUL_TYPE, typeId.toString());
+        com.blissmc.gems.net.GemExtraStateSync.send(player);
+        AbilityFeedback.burst(player, ParticleTypes.SCULK_SOUL, 8, 0.25D);
 
         if (GemPowers.isPassiveActive(player, PowerIds.SOUL_HEALING)) {
             player.heal(2.0F);
@@ -71,15 +82,46 @@ public final class SoulSystem {
             player.sendMessage(Text.literal("Cannot summon: " + id), true);
             return false;
         }
+        SoulSummons.mark(entity, player.getUuid());
+        if (entity instanceof LivingEntity living) {
+            living.disableExperienceDropping();
+        }
         entity.refreshPositionAndAngles(pos.x, pos.y, pos.z, player.getYaw(), player.getPitch());
         world.spawnEntity(entity);
 
+        if (entity instanceof HostileEntity hostile) {
+            addHostileTargeting(hostile, player.getUuid());
+        }
+
         nbt.remove(KEY_SOUL_TYPE);
+        com.blissmc.gems.net.GemExtraStateSync.send(player);
         if (GemPowers.isPassiveActive(player, PowerIds.SOUL_HEALING)) {
             player.heal(2.0F);
         }
+        AbilityFeedback.sound(player, SoundEvents.ITEM_TOTEM_USE, 0.8F, 1.4F);
+        AbilityFeedback.burstAt(world, pos.add(0.0D, 1.0D, 0.0D), ParticleTypes.SCULK_SOUL, 18, 0.35D);
         player.sendMessage(Text.literal("Released soul: " + id), true);
         return true;
+    }
+
+    private static void addHostileTargeting(HostileEntity mob, UUID ownerUuid) {
+        if (!(mob.getWorld() instanceof ServerWorld world)) {
+            return;
+        }
+        ServerPlayerEntity owner = world.getServer().getPlayerManager().getPlayer(ownerUuid);
+        if (owner == null) {
+            return;
+        }
+
+        // Best-effort: make hostile summons target untrusted players, while excluding the owner and trusted players.
+        ((com.blissmc.gems.mixin.accessor.MobEntitySelectorsAccessor) mob).gems$getTargetSelector().add(1,
+                new ActiveTargetGoal<>(mob, ServerPlayerEntity.class, true, candidate -> {
+                    if (!(candidate instanceof ServerPlayerEntity p)) {
+                        return false;
+                    }
+                    return !com.blissmc.gems.trust.GemTrust.isTrusted(owner, p);
+                })
+        );
     }
 
     private static NbtCompound persistent(ServerPlayerEntity player) {

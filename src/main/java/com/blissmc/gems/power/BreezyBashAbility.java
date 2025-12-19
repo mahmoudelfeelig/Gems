@@ -10,6 +10,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.particle.ParticleTypes;
 
 public final class BreezyBashAbility implements GemAbility {
     @Override
@@ -49,6 +50,7 @@ public final class BreezyBashAbility implements GemAbility {
         target.addVelocity(away.x * knockback, GemsBalance.v().puff().breezyBashUpVelocityY(), away.z * knockback);
         target.velocityModified = true;
         target.damage(player.getDamageSources().playerAttack(player), GemsBalance.v().puff().breezyBashInitialDamage());
+        AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.GUST, 16, 0.35D);
         if (target instanceof ServerPlayerEntity otherPlayer) {
             BreezyBashTracker.track(player, otherPlayer, GemsBalance.v().puff().breezyBashImpactWindowTicks());
         }

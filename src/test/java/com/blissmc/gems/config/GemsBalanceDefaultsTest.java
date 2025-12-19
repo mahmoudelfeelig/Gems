@@ -19,5 +19,19 @@ public class GemsBalanceDefaultsTest {
         GemsBalance.Values v = GemsBalance.Values.defaults();
         assertTrue(GemsPerformanceBudget.validate(v).isEmpty());
     }
-}
 
+    @Test
+    void clampsExtremeValues() {
+        GemsBalanceConfig cfg = new GemsBalanceConfig();
+        cfg.fire.heatHazeRadiusBlocks = 999;
+        cfg.life.vitalityVortexScanRadiusBlocks = 999;
+        cfg.astra.astralDaggersDamage = -100.0F;
+        cfg.fire.fireballMaxDistanceBlocks = 1;
+
+        GemsBalance.Values v = GemsBalance.Values.from(cfg);
+        assertEquals(32, v.fire().heatHazeRadiusBlocks());
+        assertEquals(6, v.life().vitalityVortexScanRadiusBlocks());
+        assertEquals(0.0F, v.astra().astralDaggersDamage());
+        assertEquals(10, v.fire().fireballMaxDistanceBlocks());
+    }
+}

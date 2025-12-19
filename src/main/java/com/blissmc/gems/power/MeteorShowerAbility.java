@@ -10,6 +10,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.particle.ParticleTypes;
 
 public final class MeteorShowerAbility implements GemAbility {
     @Override
@@ -37,6 +38,7 @@ public final class MeteorShowerAbility implements GemAbility {
         ServerWorld world = player.getServerWorld();
         HitResult hit = player.raycast(60.0D, 1.0F, false);
         BlockPos center = BlockPos.ofFloored(hit.getPos());
+        AbilityFeedback.ring(world, new Vec3d(center.getX() + 0.5D, center.getY() + 0.2D, center.getZ() + 0.5D), 3.0D, ParticleTypes.FLAME, 24);
 
         int count = GemsBalance.v().fire().meteorShowerCount();
         int spread = GemsBalance.v().fire().meteorShowerSpreadBlocks();
@@ -52,6 +54,7 @@ public final class MeteorShowerAbility implements GemAbility {
             FireballEntity meteor = new FireballEntity(world, player, dir, 1);
             meteor.refreshPositionAndAngles(spawn.x, spawn.y, spawn.z, 0.0F, 0.0F);
             meteor.setVelocity(dir.multiply(velocity));
+            meteor.addCommandTag("gems_meteor");
             world.spawnEntity(meteor);
         }
 

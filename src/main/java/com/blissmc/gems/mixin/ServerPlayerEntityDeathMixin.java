@@ -24,13 +24,17 @@ public abstract class ServerPlayerEntityDeathMixin {
 
         int victimEnergyBefore = GemPlayerState.getEnergy(victim);
         GemPlayerState.addEnergy(victim, -1);
-        GemItemGlint.sync(victim);
 
         int victimHeartsBefore = GemPlayerState.getMaxHearts(victim);
         if (victimHeartsBefore > GemPlayerState.MIN_MAX_HEARTS) {
             GemPlayerState.setMaxHearts(victim, victimHeartsBefore - 1);
             victim.dropStack(new ItemStack(ModItems.HEART));
         }
+
+        GemPlayerState.applyMaxHearts(victim);
+        GemPowers.sync(victim);
+        GemItemGlint.sync(victim);
+        GemStateSync.send(victim);
 
         Entity attacker = source.getAttacker();
         if (attacker instanceof ServerPlayerEntity killer && killer != victim) {

@@ -4,7 +4,9 @@ import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.state.GemsPersistentDataHolder;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -41,9 +43,17 @@ public final class ShadowAnchorAbility implements GemAbility {
         long now = player.getServerWorld().getTime();
 
         if (nbt.contains(KEY_ANCHOR_UNTIL, NbtElement.LONG_TYPE) && now <= nbt.getLong(KEY_ANCHOR_UNTIL)) {
+            if (player.isSneaking()) {
+                nbt.remove(KEY_ANCHOR_UNTIL);
+                nbt.remove(KEY_ANCHOR_DIM);
+                nbt.remove(KEY_ANCHOR_POS);
+                player.sendMessage(Text.literal("Anchor cleared."), true);
+                return true;
+            }
+
             String dim = nbt.getString(KEY_ANCHOR_DIM);
             if (dim.equals(player.getWorld().getRegistryKey().getValue().toString())
-                    && nbt.contains(KEY_ANCHOR_POS, NbtElement.COMPOUND_TYPE)) {
+                    && nbt.contains(KEY_ANCHOR_POS)) {
                 BlockPos pos = net.minecraft.nbt.NbtHelper.toBlockPos(nbt, KEY_ANCHOR_POS).orElse(null);
                 if (pos == null) {
                     nbt.remove(KEY_ANCHOR_UNTIL);
@@ -52,7 +62,11 @@ public final class ShadowAnchorAbility implements GemAbility {
                     player.sendMessage(Text.literal("Anchor was invalid."), true);
                     return true;
                 }
+                Vec3d from = player.getPos();
                 player.teleport(player.getServerWorld(), pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, player.getYaw(), player.getPitch());
+                AbilityFeedback.sound(player, SoundEvents.ENTITY_ENDERMAN_TELEPORT, 0.9F, 1.1F);
+                AbilityFeedback.burstAt(player.getServerWorld(), from.add(0.0D, 1.0D, 0.0D), ParticleTypes.PORTAL, 20, 0.4D);
+                AbilityFeedback.burst(player, ParticleTypes.PORTAL, 20, 0.4D);
                 nbt.remove(KEY_ANCHOR_UNTIL);
                 nbt.remove(KEY_ANCHOR_DIM);
                 nbt.remove(KEY_ANCHOR_POS);
@@ -66,6 +80,8 @@ public final class ShadowAnchorAbility implements GemAbility {
         nbt.putLong(KEY_ANCHOR_UNTIL, now + GemsBalance.v().astra().shadowAnchorWindowTicks());
         nbt.putString(KEY_ANCHOR_DIM, player.getWorld().getRegistryKey().getValue().toString());
         nbt.put(KEY_ANCHOR_POS, net.minecraft.nbt.NbtHelper.fromBlockPos(anchor));
+        AbilityFeedback.sound(player, SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 0.7F, 1.3F);
+        AbilityFeedback.burst(player, ParticleTypes.PORTAL, 12, 0.2D);
         player.sendMessage(Text.literal("Anchor set."), true);
         return true;
     }

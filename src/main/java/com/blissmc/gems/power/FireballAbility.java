@@ -14,6 +14,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.particle.ParticleTypes;
 
 public final class FireballAbility implements GemAbility {
     private static final String KEY_CHARGE_START = "fireballChargeStart";
@@ -52,6 +53,8 @@ public final class FireballAbility implements GemAbility {
         long start = nbt.getLong(KEY_CHARGE_START);
         if (start <= 0) {
             nbt.putLong(KEY_CHARGE_START, now);
+            AbilityFeedback.sound(player, SoundEvents.BLOCK_FIRE_AMBIENT, 0.7F, 1.2F);
+            AbilityFeedback.burst(player, ParticleTypes.SMALL_FLAME, 10, 0.2D);
             player.sendMessage(Text.literal("Charging Fireball..."), true);
             return true;
         }
@@ -60,6 +63,8 @@ public final class FireballAbility implements GemAbility {
         nbt.remove(KEY_CHARGE_START);
         nbt.putLong(KEY_LAST_FIRE, now);
         launch(player, charge);
+        AbilityFeedback.burst(player, ParticleTypes.FLAME, 14, 0.25D);
+        AbilityFeedback.burst(player, ParticleTypes.SMOKE, 10, 0.25D);
         player.sendMessage(Text.literal("Fireball: " + charge + "%"), true);
         return true;
     }
@@ -94,6 +99,9 @@ public final class FireballAbility implements GemAbility {
         int power = 1 + (chargePercent / 50);
         FireballEntity fireball = new FireballEntity(player.getWorld(), player, direction, power);
         fireball.refreshPositionAndAngles(spawnPos.x, spawnPos.y, spawnPos.z, player.getYaw(), player.getPitch());
+        if (fireball instanceof RangeLimitedProjectile limited) {
+            limited.gems$setRangeLimit(spawnPos, GemsBalance.v().fire().fireballMaxDistanceBlocks());
+        }
         player.getWorld().spawnEntity(fireball);
 
         player.getWorld().playSound(

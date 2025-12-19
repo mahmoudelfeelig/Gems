@@ -42,6 +42,9 @@ public final class GemItem extends Item {
                 && gemId == GemId.FLUX
                 && GemPlayerState.getActiveGem(player) == GemId.FLUX) {
             boolean ok = FluxCharge.tryConsumeChargeItem(player);
+            if (ok) {
+                GemStateSync.send(player);
+            }
             return ok ? TypedActionResult.success(stack) : TypedActionResult.fail(stack);
         }
 

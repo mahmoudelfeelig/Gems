@@ -1,19 +1,50 @@
 package com.blissmc.gems.client;
 
 import com.blissmc.gems.core.GemId;
+import com.blissmc.gems.net.AbilityCooldownPayload;
+import com.blissmc.gems.net.CooldownSnapshotPayload;
+import com.blissmc.gems.net.ExtraStatePayload;
 import com.blissmc.gems.net.StateSyncPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 
 public final class ClientNetworking {
     private ClientNetworking() {
     }
 
     public static void register() {
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> client.execute(() -> {
+            ClientGemState.reset();
+            ClientCooldowns.reset();
+            ClientExtraState.reset();
+            ClientAbilitySelection.reset();
+        }));
+
         ClientPlayNetworking.registerGlobalReceiver(StateSyncPayload.ID, (payload, context) ->
-                context.client().execute(() -> ClientGemState.update(
+                context.client().execute(() -> {
+                    GemId gem = safeGemId(payload.activeGemOrdinal());
+                    ClientGemState.update(gem, payload.energy(), payload.maxHearts());
+                    ClientCooldowns.clearIfGemChanged(gem);
+                }));
+
+        ClientPlayNetworking.registerGlobalReceiver(CooldownSnapshotPayload.ID, (payload, context) ->
+                context.client().execute(() -> ClientCooldowns.applySnapshot(
                         safeGemId(payload.activeGemOrdinal()),
-                        payload.energy(),
-                        payload.maxHearts()
+                        payload.remainingAbilityCooldownTicks()
+                )));
+
+        ClientPlayNetworking.registerGlobalReceiver(AbilityCooldownPayload.ID, (payload, context) ->
+                context.client().execute(() -> ClientCooldowns.setCooldown(
+                        safeGemId(payload.activeGemOrdinal()),
+                        payload.abilityIndex(),
+                        payload.cooldownTicks()
+                )));
+
+        ClientPlayNetworking.registerGlobalReceiver(ExtraStatePayload.ID, (payload, context) ->
+                context.client().execute(() -> ClientExtraState.update(
+                        payload.fluxChargePercent(),
+                        payload.hasSoul(),
+                        payload.soulTypeId()
                 )));
     }
 

@@ -7,6 +7,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.particle.ParticleTypes;
 
 public final class DoubleJumpAbility implements GemAbility {
     @Override
@@ -38,6 +39,7 @@ public final class DoubleJumpAbility implements GemAbility {
         Vec3d v = player.getVelocity();
         player.setVelocity(v.x, GemsBalance.v().puff().doubleJumpVelocityY(), v.z);
         player.velocityModified = true;
+        AbilityFeedback.burst(player, ParticleTypes.CLOUD, 12, 0.2D);
         player.getServerWorld().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, SoundCategory.PLAYERS, 0.7F, 1.5F);
         return true;
     }

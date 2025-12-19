@@ -79,25 +79,25 @@ public final class GemsBalance {
     ) {
         static Astra from(GemsBalanceConfig.Astra cfg) {
             return new Astra(
-                    sec(cfg.shadowAnchorWindowSeconds),
-                    sec(cfg.dimensionalVoidCooldownSeconds),
-                    sec(cfg.dimensionalVoidDurationSeconds),
-                    cfg.dimensionalVoidRadiusBlocks,
-                    sec(cfg.astralDaggersCooldownSeconds),
-                    cfg.astralDaggersCount,
-                    cfg.astralDaggersDamage,
-                    cfg.astralDaggersVelocity,
-                    cfg.astralDaggersSpread,
-                    sec(cfg.unboundedCooldownSeconds),
-                    sec(cfg.unboundedDurationSeconds),
-                    sec(cfg.astralCameraCooldownSeconds),
-                    sec(cfg.astralCameraDurationSeconds),
-                    sec(cfg.spookCooldownSeconds),
-                    cfg.spookRadiusBlocks,
-                    sec(cfg.spookDurationSeconds),
-                    sec(cfg.tagCooldownSeconds),
-                    cfg.tagRangeBlocks,
-                    sec(cfg.tagDurationSeconds)
+                    secClamped(cfg.shadowAnchorWindowSeconds, 1, 60),
+                    secClamped(cfg.dimensionalVoidCooldownSeconds, 0, 3600),
+                    secClamped(cfg.dimensionalVoidDurationSeconds, 0, 60),
+                    clampInt(cfg.dimensionalVoidRadiusBlocks, 0, 32),
+                    secClamped(cfg.astralDaggersCooldownSeconds, 0, 3600),
+                    clampInt(cfg.astralDaggersCount, 1, 30),
+                    clampFloat(cfg.astralDaggersDamage, 0.0F, 40.0F),
+                    clampFloat(cfg.astralDaggersVelocity, 0.1F, 8.0F),
+                    clampFloat(cfg.astralDaggersSpread, 0.0F, 0.5F),
+                    secClamped(cfg.unboundedCooldownSeconds, 0, 3600),
+                    secClamped(cfg.unboundedDurationSeconds, 0, 10),
+                    secClamped(cfg.astralCameraCooldownSeconds, 0, 3600),
+                    secClamped(cfg.astralCameraDurationSeconds, 0, 60),
+                    secClamped(cfg.spookCooldownSeconds, 0, 3600),
+                    clampInt(cfg.spookRadiusBlocks, 0, 32),
+                    secClamped(cfg.spookDurationSeconds, 0, 60),
+                    secClamped(cfg.tagCooldownSeconds, 0, 3600),
+                    clampInt(cfg.tagRangeBlocks, 0, 128),
+                    secClamped(cfg.tagDurationSeconds, 0, 120)
             );
         }
     }
@@ -115,6 +115,7 @@ public final class GemsBalance {
             int fireballChargeUpTicks,
             int fireballChargeDownTicks,
             int fireballInternalCooldownTicks,
+            int fireballMaxDistanceBlocks,
             int meteorShowerCooldownTicks,
             int meteorShowerCount,
             int meteorShowerSpreadBlocks,
@@ -123,23 +124,24 @@ public final class GemsBalance {
     ) {
         static Fire from(GemsBalanceConfig.Fire cfg) {
             return new Fire(
-                    sec(cfg.cosyCampfireCooldownSeconds),
-                    sec(cfg.cosyCampfireDurationSeconds),
-                    cfg.cosyCampfireRadiusBlocks,
-                    cfg.cosyCampfireRegenAmplifier,
-                    sec(cfg.heatHazeCooldownSeconds),
-                    sec(cfg.heatHazeDurationSeconds),
-                    cfg.heatHazeRadiusBlocks,
-                    cfg.heatHazeEnemyMiningFatigueAmplifier,
-                    cfg.heatHazeEnemyWeaknessAmplifier,
-                    sec(cfg.fireballChargeUpSeconds),
-                    sec(cfg.fireballChargeDownSeconds),
-                    sec(cfg.fireballInternalCooldownSeconds),
-                    sec(cfg.meteorShowerCooldownSeconds),
-                    cfg.meteorShowerCount,
-                    cfg.meteorShowerSpreadBlocks,
-                    cfg.meteorShowerHeightBlocks,
-                    cfg.meteorShowerVelocity
+                    secClamped(cfg.cosyCampfireCooldownSeconds, 0, 3600),
+                    secClamped(cfg.cosyCampfireDurationSeconds, 0, 120),
+                    clampInt(cfg.cosyCampfireRadiusBlocks, 0, 32),
+                    clampInt(cfg.cosyCampfireRegenAmplifier, 0, 10),
+                    secClamped(cfg.heatHazeCooldownSeconds, 0, 3600),
+                    secClamped(cfg.heatHazeDurationSeconds, 0, 120),
+                    clampInt(cfg.heatHazeRadiusBlocks, 0, 32),
+                    clampInt(cfg.heatHazeEnemyMiningFatigueAmplifier, 0, 10),
+                    clampInt(cfg.heatHazeEnemyWeaknessAmplifier, 0, 10),
+                    secClamped(cfg.fireballChargeUpSeconds, 0, 20),
+                    secClamped(cfg.fireballChargeDownSeconds, 0, 20),
+                    secClamped(cfg.fireballInternalCooldownSeconds, 0, 3600),
+                    clampInt(cfg.fireballMaxDistanceBlocks, 10, 256),
+                    secClamped(cfg.meteorShowerCooldownSeconds, 0, 3600),
+                    clampInt(cfg.meteorShowerCount, 0, 50),
+                    clampInt(cfg.meteorShowerSpreadBlocks, 0, 48),
+                    clampInt(cfg.meteorShowerHeightBlocks, 1, 256),
+                    clampFloat(cfg.meteorShowerVelocity, 0.1F, 6.0F)
             );
         }
     }
@@ -166,24 +168,24 @@ public final class GemsBalance {
     ) {
         static Flux from(GemsBalanceConfig.Flux cfg) {
             return new Flux(
-                    sec(cfg.fluxBeamCooldownSeconds),
-                    cfg.fluxBeamRangeBlocks,
-                    cfg.fluxBeamMinDamage,
-                    cfg.fluxBeamMaxDamageAt100,
-                    cfg.fluxBeamMaxDamageAt200,
-                    cfg.fluxBeamArmorDamageAt100,
-                    cfg.fluxBeamArmorDamagePerPercent,
-                    sec(cfg.staticBurstCooldownSeconds),
-                    cfg.staticBurstRadiusBlocks,
-                    cfg.staticBurstMaxDamage,
-                    sec(cfg.staticBurstStoreWindowSeconds),
-                    cfg.chargeDiamondBlock,
-                    cfg.chargeGoldBlock,
-                    cfg.chargeCopperBlock,
-                    cfg.chargeEnchantedDiamondItem,
-                    sec(cfg.overchargeDelaySeconds),
-                    cfg.overchargePerSecond,
-                    cfg.overchargeSelfDamagePerSecond
+                    secClamped(cfg.fluxBeamCooldownSeconds, 0, 3600),
+                    clampInt(cfg.fluxBeamRangeBlocks, 1, 256),
+                    clampFloat(cfg.fluxBeamMinDamage, 0.0F, 40.0F),
+                    clampFloat(cfg.fluxBeamMaxDamageAt100, 0.0F, 80.0F),
+                    clampFloat(cfg.fluxBeamMaxDamageAt200, 0.0F, 120.0F),
+                    clampInt(cfg.fluxBeamArmorDamageAt100, 0, 2000),
+                    clampInt(cfg.fluxBeamArmorDamagePerPercent, 0, 100),
+                    secClamped(cfg.staticBurstCooldownSeconds, 0, 3600),
+                    clampInt(cfg.staticBurstRadiusBlocks, 0, 32),
+                    clampFloat(cfg.staticBurstMaxDamage, 0.0F, 80.0F),
+                    secClamped(cfg.staticBurstStoreWindowSeconds, 0, 600),
+                    clampInt(cfg.chargeDiamondBlock, 0, 200),
+                    clampInt(cfg.chargeGoldBlock, 0, 200),
+                    clampInt(cfg.chargeCopperBlock, 0, 200),
+                    clampInt(cfg.chargeEnchantedDiamondItem, 0, 200),
+                    secClamped(cfg.overchargeDelaySeconds, 0, 60),
+                    clampInt(cfg.overchargePerSecond, 0, 100),
+                    clampFloat(cfg.overchargeSelfDamagePerSecond, 0.0F, 20.0F)
             );
         }
     }
@@ -208,22 +210,22 @@ public final class GemsBalance {
     ) {
         static Life from(GemsBalanceConfig.Life cfg) {
             return new Life(
-                    sec(cfg.vitalityVortexCooldownSeconds),
-                    cfg.vitalityVortexRadiusBlocks,
-                    sec(cfg.vitalityVortexDurationSeconds),
-                    cfg.vitalityVortexScanRadiusBlocks,
-                    cfg.vitalityVortexVerdantThreshold,
-                    cfg.vitalityVortexAllyHeal,
-                    sec(cfg.healthDrainCooldownSeconds),
-                    cfg.healthDrainRangeBlocks,
-                    cfg.healthDrainAmount,
-                    sec(cfg.lifeCircleCooldownSeconds),
-                    sec(cfg.lifeCircleDurationSeconds),
-                    cfg.lifeCircleRadiusBlocks,
-                    cfg.lifeCircleMaxHealthDelta,
-                    sec(cfg.heartLockCooldownSeconds),
-                    sec(cfg.heartLockDurationSeconds),
-                    cfg.heartLockRangeBlocks
+                    secClamped(cfg.vitalityVortexCooldownSeconds, 0, 3600),
+                    clampInt(cfg.vitalityVortexRadiusBlocks, 0, 32),
+                    secClamped(cfg.vitalityVortexDurationSeconds, 0, 120),
+                    clampInt(cfg.vitalityVortexScanRadiusBlocks, 1, 6),
+                    clampInt(cfg.vitalityVortexVerdantThreshold, 0, 64),
+                    clampFloat(cfg.vitalityVortexAllyHeal, 0.0F, 40.0F),
+                    secClamped(cfg.healthDrainCooldownSeconds, 0, 3600),
+                    clampInt(cfg.healthDrainRangeBlocks, 0, 128),
+                    clampFloat(cfg.healthDrainAmount, 0.0F, 40.0F),
+                    secClamped(cfg.lifeCircleCooldownSeconds, 0, 3600),
+                    secClamped(cfg.lifeCircleDurationSeconds, 0, 120),
+                    clampInt(cfg.lifeCircleRadiusBlocks, 0, 32),
+                    clampDouble(cfg.lifeCircleMaxHealthDelta, 0.0D, 40.0D),
+                    secClamped(cfg.heartLockCooldownSeconds, 0, 3600),
+                    secClamped(cfg.heartLockDurationSeconds, 0, 60),
+                    clampInt(cfg.heartLockRangeBlocks, 0, 128)
             );
         }
     }
@@ -249,23 +251,23 @@ public final class GemsBalance {
     ) {
         static Puff from(GemsBalanceConfig.Puff cfg) {
             return new Puff(
-                    sec(cfg.doubleJumpCooldownSeconds),
-                    cfg.doubleJumpVelocityY,
-                    sec(cfg.dashCooldownSeconds),
-                    cfg.dashVelocity,
-                    cfg.dashDamage,
-                    cfg.dashHitRangeBlocks,
-                    sec(cfg.breezyBashCooldownSeconds),
-                    cfg.breezyBashRangeBlocks,
-                    cfg.breezyBashUpVelocityY,
-                    cfg.breezyBashKnockback,
-                    cfg.breezyBashInitialDamage,
-                    cfg.breezyBashImpactDamage,
-                    sec(cfg.breezyBashImpactWindowSeconds),
-                    sec(cfg.groupBashCooldownSeconds),
-                    cfg.groupBashRadiusBlocks,
-                    cfg.groupBashKnockback,
-                    cfg.groupBashUpVelocityY
+                    secClamped(cfg.doubleJumpCooldownSeconds, 0, 3600),
+                    clampDouble(cfg.doubleJumpVelocityY, 0.0D, 3.0D),
+                    secClamped(cfg.dashCooldownSeconds, 0, 3600),
+                    clampDouble(cfg.dashVelocity, 0.0D, 5.0D),
+                    clampFloat(cfg.dashDamage, 0.0F, 40.0F),
+                    clampDouble(cfg.dashHitRangeBlocks, 0.5D, 16.0D),
+                    secClamped(cfg.breezyBashCooldownSeconds, 0, 3600),
+                    clampInt(cfg.breezyBashRangeBlocks, 0, 64),
+                    clampDouble(cfg.breezyBashUpVelocityY, 0.0D, 5.0D),
+                    clampDouble(cfg.breezyBashKnockback, 0.0D, 5.0D),
+                    clampFloat(cfg.breezyBashInitialDamage, 0.0F, 40.0F),
+                    clampFloat(cfg.breezyBashImpactDamage, 0.0F, 80.0F),
+                    secClamped(cfg.breezyBashImpactWindowSeconds, 0, 60),
+                    secClamped(cfg.groupBashCooldownSeconds, 0, 3600),
+                    clampInt(cfg.groupBashRadiusBlocks, 0, 64),
+                    clampDouble(cfg.groupBashKnockback, 0.0D, 5.0D),
+                    clampDouble(cfg.groupBashUpVelocityY, 0.0D, 5.0D)
             );
         }
     }
@@ -290,22 +292,22 @@ public final class GemsBalance {
     ) {
         static Speed from(GemsBalanceConfig.Speed cfg) {
             return new Speed(
-                    sec(cfg.arcShotCooldownSeconds),
-                    cfg.arcShotRangeBlocks,
-                    cfg.arcShotRadiusBlocks,
-                    cfg.arcShotMaxTargets,
-                    cfg.arcShotDamage,
-                    sec(cfg.speedStormCooldownSeconds),
-                    sec(cfg.speedStormDurationSeconds),
-                    cfg.speedStormRadiusBlocks,
-                    cfg.speedStormAllySpeedAmplifier,
-                    cfg.speedStormAllyHasteAmplifier,
-                    cfg.speedStormEnemySlownessAmplifier,
-                    cfg.speedStormEnemyMiningFatigueAmplifier,
-                    sec(cfg.terminalVelocityCooldownSeconds),
-                    sec(cfg.terminalVelocityDurationSeconds),
-                    cfg.terminalVelocitySpeedAmplifier,
-                    cfg.terminalVelocityHasteAmplifier
+                    secClamped(cfg.arcShotCooldownSeconds, 0, 3600),
+                    clampInt(cfg.arcShotRangeBlocks, 0, 256),
+                    clampDouble(cfg.arcShotRadiusBlocks, 0.0D, 16.0D),
+                    clampInt(cfg.arcShotMaxTargets, 1, 10),
+                    clampFloat(cfg.arcShotDamage, 0.0F, 40.0F),
+                    secClamped(cfg.speedStormCooldownSeconds, 0, 3600),
+                    secClamped(cfg.speedStormDurationSeconds, 0, 120),
+                    clampInt(cfg.speedStormRadiusBlocks, 0, 32),
+                    clampInt(cfg.speedStormAllySpeedAmplifier, 0, 10),
+                    clampInt(cfg.speedStormAllyHasteAmplifier, 0, 10),
+                    clampInt(cfg.speedStormEnemySlownessAmplifier, 0, 10),
+                    clampInt(cfg.speedStormEnemyMiningFatigueAmplifier, 0, 10),
+                    secClamped(cfg.terminalVelocityCooldownSeconds, 0, 3600),
+                    secClamped(cfg.terminalVelocityDurationSeconds, 0, 120),
+                    clampInt(cfg.terminalVelocitySpeedAmplifier, 0, 10),
+                    clampInt(cfg.terminalVelocityHasteAmplifier, 0, 10)
             );
         }
     }
@@ -325,17 +327,17 @@ public final class GemsBalance {
     ) {
         static Strength from(GemsBalanceConfig.Strength cfg) {
             return new Strength(
-                    sec(cfg.nullifyCooldownSeconds),
-                    cfg.nullifyRadiusBlocks,
-                    sec(cfg.frailerCooldownSeconds),
-                    cfg.frailerRangeBlocks,
-                    sec(cfg.frailerDurationSeconds),
-                    sec(cfg.bountyCooldownSeconds),
-                    sec(cfg.bountyDurationSeconds),
-                    sec(cfg.chadCooldownSeconds),
-                    sec(cfg.chadDurationSeconds),
-                    cfg.chadEveryHits,
-                    cfg.chadBonusDamage
+                    secClamped(cfg.nullifyCooldownSeconds, 0, 3600),
+                    clampInt(cfg.nullifyRadiusBlocks, 0, 32),
+                    secClamped(cfg.frailerCooldownSeconds, 0, 3600),
+                    clampInt(cfg.frailerRangeBlocks, 0, 128),
+                    secClamped(cfg.frailerDurationSeconds, 0, 120),
+                    secClamped(cfg.bountyCooldownSeconds, 0, 3600),
+                    secClamped(cfg.bountyDurationSeconds, 0, 3600),
+                    secClamped(cfg.chadCooldownSeconds, 0, 3600),
+                    secClamped(cfg.chadDurationSeconds, 0, 3600),
+                    clampInt(cfg.chadEveryHits, 1, 20),
+                    clampFloat(cfg.chadBonusDamage, 0.0F, 80.0F)
             );
         }
     }
@@ -354,18 +356,61 @@ public final class GemsBalance {
     ) {
         static Wealth from(GemsBalanceConfig.Wealth cfg) {
             return new Wealth(
-                    sec(cfg.fumbleCooldownSeconds),
-                    sec(cfg.fumbleDurationSeconds),
-                    cfg.fumbleRadiusBlocks,
-                    sec(cfg.hotbarLockCooldownSeconds),
-                    sec(cfg.hotbarLockDurationSeconds),
-                    cfg.hotbarLockRangeBlocks,
-                    sec(cfg.amplificationCooldownSeconds),
-                    sec(cfg.amplificationDurationSeconds),
-                    sec(cfg.richRushCooldownSeconds),
-                    sec(cfg.richRushDurationSeconds)
+                    secClamped(cfg.fumbleCooldownSeconds, 0, 3600),
+                    secClamped(cfg.fumbleDurationSeconds, 0, 120),
+                    clampInt(cfg.fumbleRadiusBlocks, 0, 32),
+                    secClamped(cfg.hotbarLockCooldownSeconds, 0, 3600),
+                    secClamped(cfg.hotbarLockDurationSeconds, 0, 120),
+                    clampInt(cfg.hotbarLockRangeBlocks, 0, 128),
+                    secClamped(cfg.amplificationCooldownSeconds, 0, 3600),
+                    secClamped(cfg.amplificationDurationSeconds, 0, 600),
+                    secClamped(cfg.richRushCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.richRushDurationSeconds, 0, 24 * 3600)
             );
         }
+    }
+
+    private static int secClamped(int seconds, int minSeconds, int maxSeconds) {
+        if (seconds <= 0) {
+            return 0;
+        }
+        return sec(clampInt(seconds, minSeconds, maxSeconds));
+    }
+
+    private static int clampInt(int value, int min, int max) {
+        if (value < min) {
+            return min;
+        }
+        if (value > max) {
+            return max;
+        }
+        return value;
+    }
+
+    private static float clampFloat(float value, float min, float max) {
+        if (Float.isNaN(value)) {
+            return min;
+        }
+        if (value < min) {
+            return min;
+        }
+        if (value > max) {
+            return max;
+        }
+        return value;
+    }
+
+    private static double clampDouble(double value, double min, double max) {
+        if (Double.isNaN(value)) {
+            return min;
+        }
+        if (value < min) {
+            return min;
+        }
+        if (value > max) {
+            return max;
+        }
+        return value;
     }
 
     private static int sec(int seconds) {
@@ -375,4 +420,3 @@ public final class GemsBalance {
         return Math.multiplyExact(seconds, TICKS_PER_SECOND);
     }
 }
-

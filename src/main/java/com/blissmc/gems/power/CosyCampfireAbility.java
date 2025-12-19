@@ -1,7 +1,9 @@
 package com.blissmc.gems.power;
 
 import com.blissmc.gems.config.GemsBalance;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -29,6 +31,8 @@ public final class CosyCampfireAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         AbilityRuntime.startCosyCampfire(player, GemsBalance.v().fire().cosyCampfireDurationTicks());
+        AbilityFeedback.sound(player, SoundEvents.BLOCK_CAMPFIRE_CRACKLE, 0.9F, 1.0F);
+        AbilityFeedback.burst(player, ParticleTypes.CAMPFIRE_COSY_SMOKE, 12, 0.25D);
         player.sendMessage(Text.literal("Cosy Campfire active."), true);
         return true;
     }

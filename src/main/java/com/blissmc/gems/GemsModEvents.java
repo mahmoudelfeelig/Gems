@@ -9,10 +9,13 @@ import com.blissmc.gems.power.AbilityRuntime;
 import com.blissmc.gems.power.BreezyBashTracker;
 import com.blissmc.gems.power.GemPowers;
 import com.blissmc.gems.power.SoulSystem;
+import com.blissmc.gems.trust.GemTrust;
+import com.blissmc.gems.mixin.BlockAutoSmeltMixin;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -41,6 +44,12 @@ public final class GemsModEvents {
             GemStateSync.send(player);
         });
 
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            ServerPlayerEntity player = handler.getPlayer();
+            AbilityRuntime.cleanupOnDisconnect(server, player);
+            GemTrust.clearRuntimeCache(player.getUuid());
+        });
+
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
             GemPlayerState.copy(oldPlayer, newPlayer);
             GemPlayerState.initIfNeeded(newPlayer);
@@ -50,6 +59,8 @@ public final class GemsModEvents {
             GemItemGlint.sync(newPlayer);
             GemStateSync.send(newPlayer);
         });
+
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> BlockAutoSmeltMixin.gems$clearSmeltCache());
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             tickCounter++;

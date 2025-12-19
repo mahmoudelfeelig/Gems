@@ -2,8 +2,10 @@ package com.blissmc.gems.power;
 
 import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -38,8 +40,11 @@ public final class NullifyAbility implements GemAbility {
                 continue;
             }
             other.clearStatusEffects();
+            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ENCHANT, 10, 0.25D);
             affected++;
         }
+        AbilityFeedback.sound(player, SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, 0.8F, 0.8F);
+        AbilityFeedback.burst(player, ParticleTypes.ENCHANT, 14, 0.35D);
         player.sendMessage(Text.literal("Nullified " + affected + " players."), true);
         return true;
     }

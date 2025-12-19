@@ -25,6 +25,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import net.minecraft.server.MinecraftServer;
 
 import java.util.UUID;
 
@@ -57,6 +58,8 @@ public final class AbilityRuntime {
     private static final String KEY_CHAD_HITS = "chadHits";
 
     private static final String KEY_RICH_RUSH_UNTIL = "richRushUntil";
+
+    private static final String KEY_AMPLIFICATION_UNTIL = "amplificationUntil";
 
     private static final String CUSTOM_DATA_KEY_AMPLIFY = "gemsAmplify";
     private static final String CUSTOM_DATA_KEY_OWNER = "gemsOwner";
@@ -155,6 +158,10 @@ public final class AbilityRuntime {
         persistent(player).putLong(KEY_RICH_RUSH_UNTIL, player.getServerWorld().getTime() + durationTicks);
     }
 
+    public static void startAmplification(ServerPlayerEntity player, int durationTicks) {
+        persistent(player).putLong(KEY_AMPLIFICATION_UNTIL, player.getServerWorld().getTime() + durationTicks);
+    }
+
     public static boolean isRichRushActive(ServerPlayerEntity player) {
         long now = player.getServerWorld().getTime();
         return persistent(player).getLong(KEY_RICH_RUSH_UNTIL) > now;
@@ -190,9 +197,11 @@ public final class AbilityRuntime {
         ServerWorld world = player.getServerWorld();
         int radius = GemsBalance.v().fire().cosyCampfireRadiusBlocks();
         int amp = GemsBalance.v().fire().cosyCampfireRegenAmplifier();
+        AbilityFeedback.ring(world, player.getPos().add(0.0D, 0.2D, 0.0D), Math.min(6.0D, radius), net.minecraft.particle.ParticleTypes.CAMPFIRE_COSY_SMOKE, 20);
         for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 40, amp, true, false, false));
+                AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.HEART, 1, 0.1D);
             }
         }
     }
@@ -206,12 +215,15 @@ public final class AbilityRuntime {
         int radius = GemsBalance.v().fire().heatHazeRadiusBlocks();
         int fatigueAmp = GemsBalance.v().fire().heatHazeEnemyMiningFatigueAmplifier();
         int weaknessAmp = GemsBalance.v().fire().heatHazeEnemyWeaknessAmplifier();
+        AbilityFeedback.ring(world, player.getPos().add(0.0D, 0.2D, 0.0D), Math.min(7.0D, radius), net.minecraft.particle.ParticleTypes.FLAME, 24);
         for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, duration, 0, true, false, false));
+                AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.FLAME, 1, 0.05D);
             } else {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, duration, fatigueAmp, true, false, false));
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, weaknessAmp, true, false, false));
+                AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.SMOKE, 1, 0.08D);
             }
         }
     }
@@ -226,13 +238,16 @@ public final class AbilityRuntime {
         int allyHaste = GemsBalance.v().speed().speedStormAllyHasteAmplifier();
         int enemySlow = GemsBalance.v().speed().speedStormEnemySlownessAmplifier();
         int enemyFatigue = GemsBalance.v().speed().speedStormEnemyMiningFatigueAmplifier();
+        AbilityFeedback.ring(world, player.getPos().add(0.0D, 0.2D, 0.0D), Math.min(7.0D, radius), net.minecraft.particle.ParticleTypes.CLOUD, 24);
         for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 40, allySpeed, true, false, false));
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, 40, allyHaste, true, false, false));
+                AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.CLOUD, 1, 0.1D);
             } else {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 40, enemySlow, true, false, false));
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, 40, enemyFatigue, true, false, false));
+                AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.SNOWFLAKE, 1, 0.1D);
             }
         }
     }
@@ -261,6 +276,7 @@ public final class AbilityRuntime {
 
         int radius = GemsBalance.v().life().lifeCircleRadiusBlocks();
         double deltaHealth = GemsBalance.v().life().lifeCircleMaxHealthDelta();
+        AbilityFeedback.ring(world, caster.getPos().add(0.0D, 0.2D, 0.0D), Math.min(7.0D, radius), net.minecraft.particle.ParticleTypes.HEART, 24);
         for (ServerPlayerEntity other : world.getPlayers()) {
             double distSq = other.squaredDistanceTo(caster);
             boolean inRange = distSq <= radius * (double) radius;
@@ -394,6 +410,13 @@ public final class AbilityRuntime {
     }
 
     private static void tickAmplificationCleanup(ServerPlayerEntity player, long now) {
+        long until = persistent(player).getLong(KEY_AMPLIFICATION_UNTIL);
+        if (until <= 0) {
+            return;
+        }
+        if (now < until) {
+            return;
+        }
         for (ItemStack stack : player.getInventory().main) {
             restoreAmplifiedIfExpired(player.getServerWorld(), stack, now);
         }
@@ -403,6 +426,8 @@ public final class AbilityRuntime {
         for (ItemStack stack : player.getInventory().armor) {
             restoreAmplifiedIfExpired(player.getServerWorld(), stack, now);
         }
+
+        persistent(player).remove(KEY_AMPLIFICATION_UNTIL);
     }
 
     private static void restoreAmplifiedIfExpired(ServerWorld world, ItemStack stack, long now) {
@@ -435,7 +460,7 @@ public final class AbilityRuntime {
         }
         maxHealth.removeModifier(id);
         if (deltaHealth != 0.0D) {
-            maxHealth.addPersistentModifier(new EntityAttributeModifier(id, deltaHealth, EntityAttributeModifier.Operation.ADD_VALUE));
+            maxHealth.addTemporaryModifier(new EntityAttributeModifier(id, deltaHealth, EntityAttributeModifier.Operation.ADD_VALUE));
         }
         float newMax = (float) maxHealth.getValue();
         if (player.getHealth() > newMax) {
@@ -465,6 +490,25 @@ public final class AbilityRuntime {
 
     private static Identifier heartLockModifierId(UUID caster) {
         return Identifier.of("gems", "heart_lock_" + caster);
+    }
+
+    public static void cleanupOnDisconnect(MinecraftServer server, ServerPlayerEntity caster) {
+        NbtCompound nbt = persistent(caster);
+        long until = nbt.getLong(KEY_LIFE_CIRCLE_UNTIL);
+        if (until <= 0) {
+            return;
+        }
+
+        UUID casterId = nbt.contains(KEY_LIFE_CIRCLE_CASTER, NbtElement.INT_ARRAY_TYPE) ? nbt.getUuid(KEY_LIFE_CIRCLE_CASTER) : caster.getUuid();
+        Identifier bonusId = lifeCircleBonusId(casterId);
+        Identifier penaltyId = lifeCirclePenaltyId(casterId);
+        for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+            removeMaxHealthModifier(p, bonusId);
+            removeMaxHealthModifier(p, penaltyId);
+        }
+
+        nbt.remove(KEY_LIFE_CIRCLE_UNTIL);
+        nbt.remove(KEY_LIFE_CIRCLE_CASTER);
     }
 
     private static GameMode parseGameMode(String name) {

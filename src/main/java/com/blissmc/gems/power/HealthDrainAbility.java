@@ -3,7 +3,9 @@ package com.blissmc.gems.power;
 import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -43,6 +45,11 @@ public final class HealthDrainAbility implements GemAbility {
         float amount = GemsBalance.v().life().healthDrainAmount();
         target.damage(player.getDamageSources().magic(), amount);
         player.heal(amount);
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 0.7F, 1.4F);
+        AbilityFeedback.burst(player, ParticleTypes.HEART, 10, 0.25D);
+        if (player.getServerWorld() != null) {
+            AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.DAMAGE_INDICATOR, 12, 0.25D);
+        }
         player.sendMessage(Text.literal("Drained " + amount + " health."), true);
         return true;
     }

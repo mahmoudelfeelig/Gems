@@ -7,6 +7,7 @@ public final class GemsClientMod implements ClientModInitializer {
     public void onInitializeClient() {
         ClientNetworking.register();
         GemsKeybinds.register();
+        com.blissmc.gems.client.hud.GemsHud.register();
+        com.blissmc.gems.client.hud.GemsTooltips.register();
     }
 }
-

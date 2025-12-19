@@ -4,6 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BlockAutoSmeltMixin",
+    "ExplosiveProjectileRangeLimitMixin",
+    "ExplosiveProjectileTrailMixin",
     "FarmlandTrampleImmunityMixin",
     "FurnaceOutputDoubleDebrisMixin",
     "CraftingResultSlotOwnerTagMixin",
@@ -15,11 +17,14 @@
     "PlayerEntityRestrictionsMixin",
     "SculkShriekerSilenceMixin",
     "ServerPlayerEntityDeathMixin",
+    "LivingEntitySoulNoDropsMixin",
     "LivingEntityFallDamageMixin",
     "LivingEntityFluxDamageStoreMixin",
     "LivingEntityRichRushLootMixin",
+    "MobEntitySoulTargetingMixin",
     "ServerPlayNetworkHandlerHotbarLockMixin",
-    "ServerPlayerInteractionManagerRestrictionsMixin"
+    "ServerPlayerInteractionManagerRestrictionsMixin",
+    "accessor.MobEntitySelectorsAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

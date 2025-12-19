@@ -5,7 +5,9 @@ import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -42,6 +44,10 @@ public final class TagAbility implements GemAbility {
             return true;
         }
         target.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, GemsBalance.v().astra().tagDurationTicks(), 0, true, false, false));
+        AbilityFeedback.sound(player, SoundEvents.BLOCK_NOTE_BLOCK_PLING, 0.8F, 1.6F);
+        if (player.getServerWorld() != null) {
+            AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.GLOW, 14, 0.2D);
+        }
         player.sendMessage(Text.literal("Tagged " + target.getName().getString()), true);
         return true;
     }

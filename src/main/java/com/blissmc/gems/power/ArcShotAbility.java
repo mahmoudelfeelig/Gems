@@ -14,6 +14,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.particle.ParticleTypes;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -86,10 +87,12 @@ public final class ArcShotAbility implements GemAbility {
         }
 
         int count = 0;
+        AbilityFeedback.burstAt(world, start, ParticleTypes.ELECTRIC_SPARK, 18, 0.2D);
         for (Hit hit : hits) {
             LivingEntity target = hit.target;
             spawnLightning(world, target.getPos());
             target.damage(player.getDamageSources().lightningBolt(), GemsBalance.v().speed().arcShotDamage());
+            AbilityFeedback.beam(world, start, target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ELECTRIC_SPARK, 12);
 
             Vec3d away = target.getPos().subtract(player.getPos()).normalize();
             target.addVelocity(away.x * 0.8D, 0.4D, away.z * 0.8D);

@@ -3,7 +3,9 @@ package com.blissmc.gems.power;
 import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -33,6 +35,8 @@ public final class TerminalVelocityAbility implements GemAbility {
         int duration = GemsBalance.v().speed().terminalVelocityDurationTicks();
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, duration, GemsBalance.v().speed().terminalVelocitySpeedAmplifier(), true, false, false));
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, duration, GemsBalance.v().speed().terminalVelocityHasteAmplifier(), true, false, false));
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, 0.9F, 1.3F);
+        AbilityFeedback.burst(player, ParticleTypes.CLOUD, 14, 0.35D);
         player.sendMessage(Text.literal("Terminal Velocity!"), true);
         return true;
     }

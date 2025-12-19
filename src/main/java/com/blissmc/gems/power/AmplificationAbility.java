@@ -1,7 +1,9 @@
 package com.blissmc.gems.power;
 
 import com.blissmc.gems.config.GemsBalance;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -28,7 +30,11 @@ public final class AmplificationAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        EnchantmentAmplification.apply(player, GemsBalance.v().wealth().amplificationDurationTicks());
+        int duration = GemsBalance.v().wealth().amplificationDurationTicks();
+        AbilityRuntime.startAmplification(player, duration);
+        EnchantmentAmplification.apply(player, duration);
+        AbilityFeedback.sound(player, SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, 0.9F, 1.2F);
+        AbilityFeedback.burst(player, ParticleTypes.ENCHANT, 18, 0.35D);
         player.sendMessage(Text.literal("Amplification active."), true);
         return true;
     }

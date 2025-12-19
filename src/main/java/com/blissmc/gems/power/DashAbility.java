@@ -12,6 +12,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.particle.ParticleTypes;
 
 public final class DashAbility implements GemAbility {
     @Override
@@ -41,6 +42,7 @@ public final class DashAbility implements GemAbility {
         double dashVel = GemsBalance.v().puff().dashVelocity();
         player.addVelocity(dir.x * dashVel, 0.1D, dir.z * dashVel);
         player.velocityModified = true;
+        AbilityFeedback.beam(world, player.getPos().add(0.0D, 1.0D, 0.0D), player.getPos().add(dir.multiply(3.0D)).add(0.0D, 1.0D, 0.0D), ParticleTypes.CLOUD, 10);
 
         Box box = player.getBoundingBox().stretch(dir.multiply(GemsBalance.v().puff().dashHitRangeBlocks())).expand(1.0D);
         for (Entity e : world.getOtherEntities(player, box, ent -> ent instanceof LivingEntity living && living.isAlive())) {
@@ -48,6 +50,7 @@ public final class DashAbility implements GemAbility {
                 continue;
             }
             ((LivingEntity) e).damage(player.getDamageSources().playerAttack(player), GemsBalance.v().puff().dashDamage());
+            AbilityFeedback.burstAt(world, e.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.GUST, 8, 0.25D);
         }
 
         world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ENDER_DRAGON_FLAP, SoundCategory.PLAYERS, 0.7F, 1.3F);

@@ -1,7 +1,9 @@
 package com.blissmc.gems.power;
 
 import com.blissmc.gems.config.GemsBalance;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -29,6 +31,8 @@ public final class RichRushAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         AbilityRuntime.startRichRush(player, GemsBalance.v().wealth().richRushDurationTicks());
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_PLAYER_LEVELUP, 0.8F, 1.1F);
+        AbilityFeedback.burst(player, ParticleTypes.HAPPY_VILLAGER, 14, 0.35D);
         player.sendMessage(Text.literal("Rich Rush active."), true);
         return true;
     }

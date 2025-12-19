@@ -18,5 +18,8 @@ public final class GemStateSync {
                 GemPlayerState.getEnergy(player),
                 GemPlayerState.getMaxHearts(player)
         ));
+
+        GemCooldownSync.send(player);
+        GemExtraStateSync.send(player);
     }
 }

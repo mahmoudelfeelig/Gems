@@ -4,10 +4,9 @@ import com.blissmc.gems.core.GemDefinition;
 import com.blissmc.gems.core.GemEnergyState;
 import com.blissmc.gems.core.GemId;
 import com.blissmc.gems.core.GemRegistry;
+import com.blissmc.gems.net.AbilityCooldownPayload;
 import com.blissmc.gems.state.GemPlayerState;
-import com.blissmc.gems.state.GemsPersistentDataHolder;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -15,8 +14,6 @@ import net.minecraft.util.Identifier;
 import java.util.List;
 
 public final class GemAbilities {
-    private static final String KEY_COOLDOWNS = "cooldowns";
-
     private GemAbilities() {
     }
 
@@ -59,7 +56,7 @@ public final class GemAbilities {
         }
 
         long now = player.getServerWorld().getTime();
-        long nextAllowed = cooldowns(player).getLong(abilityId.toString());
+        long nextAllowed = GemAbilityCooldowns.nextAllowedTick(player, abilityId);
         if (nextAllowed > now) {
             long remainingTicks = nextAllowed - now;
             player.sendMessage(Text.literal(ability.name() + " is on cooldown (" + ticksToSeconds(remainingTicks) + "s)"), true);
@@ -74,16 +71,9 @@ public final class GemAbilities {
 
         int cooldown = Math.max(0, ability.cooldownTicks());
         if (cooldown > 0) {
-            cooldowns(player).putLong(abilityId.toString(), now + cooldown);
+            GemAbilityCooldowns.setNextAllowedTick(player, abilityId, now + cooldown);
+            ServerPlayNetworking.send(player, new AbilityCooldownPayload(gemId.ordinal(), abilityIndex, cooldown));
         }
-    }
-
-    private static NbtCompound cooldowns(ServerPlayerEntity player) {
-        NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        if (!root.contains(KEY_COOLDOWNS, NbtElement.COMPOUND_TYPE)) {
-            root.put(KEY_COOLDOWNS, new NbtCompound());
-        }
-        return root.getCompound(KEY_COOLDOWNS);
     }
 
     private static int ticksToSeconds(long ticks) {

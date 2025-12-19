@@ -5,8 +5,10 @@ import com.blissmc.gems.state.GemsPersistentDataHolder;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -52,10 +54,13 @@ public final class StaticBurstAbility implements GemAbility {
                 continue;
             }
             other.damage(player.getDamageSources().magic(), damage);
+            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ELECTRIC_SPARK, 14, 0.35D);
             hits++;
         }
         nbt.putFloat(KEY_STORED_DAMAGE, 0.0F);
         nbt.putLong(KEY_STORED_AT, world.getTime());
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5F, 1.4F);
+        AbilityFeedback.burst(player, ParticleTypes.ELECTRIC_SPARK, 24, 0.5D);
         player.sendMessage(Text.literal("Static Burst hit " + hits + " players."), true);
         return true;
     }

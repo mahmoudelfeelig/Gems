@@ -1,7 +1,9 @@
 package com.blissmc.gems.power;
 
 import com.blissmc.gems.config.GemsBalance;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -29,6 +31,8 @@ public final class HeatHazeZoneAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         AbilityRuntime.startHeatHazeZone(player, GemsBalance.v().fire().heatHazeDurationTicks());
+        AbilityFeedback.sound(player, SoundEvents.ITEM_FIRECHARGE_USE, 0.9F, 1.0F);
+        AbilityFeedback.burst(player, ParticleTypes.FLAME, 20, 0.35D);
         player.sendMessage(Text.literal("Heat Haze Zone active."), true);
         return true;
     }

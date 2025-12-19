@@ -1,7 +1,9 @@
 package com.blissmc.gems.power;
 
 import com.blissmc.gems.config.GemsBalance;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -29,6 +31,8 @@ public final class LifeCircleAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         AbilityRuntime.startLifeCircle(player, GemsBalance.v().life().lifeCircleDurationTicks());
+        AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_ACTIVATE, 0.8F, 1.0F);
+        AbilityFeedback.burst(player, ParticleTypes.HEART, 16, 0.35D);
         player.sendMessage(Text.literal("Life Circle active."), true);
         return true;
     }

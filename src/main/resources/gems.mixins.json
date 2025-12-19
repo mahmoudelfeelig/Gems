@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.blissmc.gems.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PlayerEntityDataMixin",
+    "ServerPlayerEntityDeathMixin",
+    "LivingEntityFallDamageMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

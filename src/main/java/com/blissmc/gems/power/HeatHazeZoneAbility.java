@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -22,12 +23,12 @@ public final class HeatHazeZoneAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 90 * 20;
+        return GemsBalance.v().fire().heatHazeCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startHeatHazeZone(player, 10 * 20);
+        AbilityRuntime.startHeatHazeZone(player, GemsBalance.v().fire().heatHazeDurationTicks());
         player.sendMessage(Text.literal("Heat Haze Zone active."), true);
         return true;
     }

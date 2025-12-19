@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -47,16 +48,17 @@ public final class VitalityVortexAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 30 * 20;
+        return GemsBalance.v().life().vitalityVortexCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getServerWorld();
         VortexMode mode = detectMode(world, player);
-        int duration = 8 * 20;
+        int duration = GemsBalance.v().life().vitalityVortexDurationTicks();
+        int radius = GemsBalance.v().life().vitalityVortexRadiusBlocks();
 
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= 8.0D * 8.0D)) {
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 applyAlly(mode, other, duration);
             } else {
@@ -69,39 +71,40 @@ public final class VitalityVortexAbility implements GemAbility {
     }
 
     private static void applyAlly(VortexMode mode, ServerPlayerEntity player, int duration) {
+        float heal = GemsBalance.v().life().vitalityVortexAllyHeal();
         switch (mode) {
             case AQUATIC -> {
-                player.heal(2.0F);
+                player.heal(heal);
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 0, true, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.WATER_BREATHING, duration, 0, true, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.DOLPHINS_GRACE, duration, 0, true, false, false));
             }
             case INFERNAL -> {
-                player.heal(2.0F);
+                player.heal(heal);
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 0, true, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, duration, 0, true, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, duration, 0, true, false, false));
             }
             case SCULK -> {
-                player.heal(2.0F);
+                player.heal(heal);
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 0, true, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, duration, 0, true, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, duration, 0, true, false, false));
             }
             case VERDANT -> {
-                player.heal(2.0F);
+                player.heal(heal);
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 1, true, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, duration, 0, true, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, 40, 0, true, false, false));
             }
             case END -> {
-                player.heal(2.0F);
+                player.heal(heal);
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 0, true, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, duration, 0, true, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, duration, 0, true, false, false));
             }
             default -> {
-                player.heal(2.0F);
+                player.heal(heal);
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 1, true, false, false));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, duration, 0, true, false, false));
             }
@@ -153,7 +156,7 @@ public final class VitalityVortexAbility implements GemAbility {
         int sculk = 0;
         int verdant = 0;
 
-        int r = 3;
+        int r = GemsBalance.v().life().vitalityVortexScanRadiusBlocks();
         for (int dx = -r; dx <= r; dx++) {
             for (int dy = -r; dy <= r; dy++) {
                 for (int dz = -r; dz <= r; dz++) {
@@ -184,7 +187,7 @@ public final class VitalityVortexAbility implements GemAbility {
         if (sculk > 0) {
             return VortexMode.SCULK;
         }
-        if (verdant >= 10) {
+        if (verdant >= GemsBalance.v().life().vitalityVortexVerdantThreshold()) {
             return VortexMode.VERDANT;
         }
         return VortexMode.DEFAULT;

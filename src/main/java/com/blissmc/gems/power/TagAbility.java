@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -26,12 +27,12 @@ public final class TagAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 20 * 20;
+        return GemsBalance.v().astra().tagCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        LivingEntity target = Targeting.raycastLiving(player, 30.0D);
+        LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().astra().tagRangeBlocks());
         if (target == null) {
             player.sendMessage(Text.literal("No target."), true);
             return true;
@@ -40,9 +41,8 @@ public final class TagAbility implements GemAbility {
             player.sendMessage(Text.literal("Target is trusted."), true);
             return true;
         }
-        target.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 12 * 20, 0, true, false, false));
+        target.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, GemsBalance.v().astra().tagDurationTicks(), 0, true, false, false));
         player.sendMessage(Text.literal("Tagged " + target.getName().getString()), true);
         return true;
     }
 }
-

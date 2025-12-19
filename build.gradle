@@ -13,7 +13,7 @@ base {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven { url "https://maven.fabricmc.net/" }
+    maven { url = "https://maven.fabricmc.net/" }
 }
 
 loom {
@@ -45,6 +45,9 @@ java {
 
 tasks.withType(JavaCompile).configureEach {
     it.options.release = 21
+    if (project.hasProperty("lintDeprecation")) {
+        it.options.compilerArgs.addAll(["-Xlint:deprecation"])
+    }
 }
 
 processResources {

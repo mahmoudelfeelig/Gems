@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -22,14 +23,13 @@ public final class LifeCircleAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 60 * 20;
+        return GemsBalance.v().life().lifeCircleCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startLifeCircle(player, 12 * 20);
+        AbilityRuntime.startLifeCircle(player, GemsBalance.v().life().lifeCircleDurationTicks());
         player.sendMessage(Text.literal("Life Circle active."), true);
         return true;
     }
 }
-

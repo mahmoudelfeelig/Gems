@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -22,12 +23,12 @@ public final class AstralCameraAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 60 * 20;
+        return GemsBalance.v().astra().astralCameraCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startAstralCamera(player, 8 * 20);
+        AbilityRuntime.startAstralCamera(player, GemsBalance.v().astra().astralCameraDurationTicks());
         player.sendMessage(Text.literal("Astral Camera active."), true);
         return true;
     }

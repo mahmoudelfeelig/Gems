@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -26,15 +27,16 @@ public final class SpookAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 30 * 20;
+        return GemsBalance.v().astra().spookCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getServerWorld();
-        int duration = 6 * 20;
+        int duration = GemsBalance.v().astra().spookDurationTicks();
+        int radius = GemsBalance.v().astra().spookRadiusBlocks();
         int affected = 0;
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= 10.0D * 10.0D)) {
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 continue;
             }
@@ -46,4 +48,3 @@ public final class SpookAbility implements GemAbility {
         return true;
     }
 }
-

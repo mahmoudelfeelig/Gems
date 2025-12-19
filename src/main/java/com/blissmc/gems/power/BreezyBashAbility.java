@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -28,12 +29,12 @@ public final class BreezyBashAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 20 * 20;
+        return GemsBalance.v().puff().breezyBashCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        LivingEntity target = Targeting.raycastLiving(player, 10.0D);
+        LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().puff().breezyBashRangeBlocks());
         if (target == null) {
             player.sendMessage(Text.literal("No target."), true);
             return true;
@@ -44,11 +45,12 @@ public final class BreezyBashAbility implements GemAbility {
         }
 
         Vec3d away = target.getPos().subtract(player.getPos()).normalize();
-        target.addVelocity(away.x * 0.6D, 1.2D, away.z * 0.6D);
+        double knockback = GemsBalance.v().puff().breezyBashKnockback();
+        target.addVelocity(away.x * knockback, GemsBalance.v().puff().breezyBashUpVelocityY(), away.z * knockback);
         target.velocityModified = true;
-        target.damage(player.getDamageSources().playerAttack(player), 4.0F);
+        target.damage(player.getDamageSources().playerAttack(player), GemsBalance.v().puff().breezyBashInitialDamage());
         if (target instanceof ServerPlayerEntity otherPlayer) {
-            BreezyBashTracker.track(player, otherPlayer, 6 * 20);
+            BreezyBashTracker.track(player, otherPlayer, GemsBalance.v().puff().breezyBashImpactWindowTicks());
         }
 
         ServerWorld world = player.getServerWorld();

@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -24,18 +25,19 @@ public final class FumbleAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 30 * 20;
+        return GemsBalance.v().wealth().fumbleCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getServerWorld();
+        int radius = GemsBalance.v().wealth().fumbleRadiusBlocks();
         int affected = 0;
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= 10.0D * 10.0D)) {
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 continue;
             }
-            WealthFumble.apply(other, 8 * 20);
+            WealthFumble.apply(other, GemsBalance.v().wealth().fumbleDurationTicks());
             affected++;
         }
         player.sendMessage(Text.literal("Fumble affected " + affected + " players."), true);

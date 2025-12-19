@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -24,15 +25,16 @@ public final class DimensionalVoidAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 60 * 20;
+        return GemsBalance.v().astra().dimensionalVoidCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getServerWorld();
-        int duration = 8 * 20;
+        int duration = GemsBalance.v().astra().dimensionalVoidDurationTicks();
+        int radius = GemsBalance.v().astra().dimensionalVoidRadiusBlocks();
         int affected = 0;
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= 10.0D * 10.0D)) {
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 continue;
             }
@@ -43,4 +45,3 @@ public final class DimensionalVoidAbility implements GemAbility {
         return true;
     }
 }
-

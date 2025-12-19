@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -27,24 +28,29 @@ public final class AstralDaggersAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 8 * 20;
+        return GemsBalance.v().astra().astralDaggersCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
+        int count = GemsBalance.v().astra().astralDaggersCount();
+        float spreadAmount = GemsBalance.v().astra().astralDaggersSpread();
+        float velocity = GemsBalance.v().astra().astralDaggersVelocity();
+        float damage = GemsBalance.v().astra().astralDaggersDamage();
+
         Vec3d direction = player.getRotationVec(1.0F);
         Vec3d spawnPos = player.getEyePos().add(direction.multiply(1.2D));
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < count; i++) {
             ArrowEntity arrow = new ArrowEntity(player.getWorld(), player, new ItemStack(Items.ARROW), ItemStack.EMPTY);
             arrow.setPosition(spawnPos.x, spawnPos.y, spawnPos.z);
             Vec3d spread = direction.add(
-                    (player.getRandom().nextDouble() - 0.5D) * 0.05D,
-                    (player.getRandom().nextDouble() - 0.5D) * 0.05D,
-                    (player.getRandom().nextDouble() - 0.5D) * 0.05D
+                    (player.getRandom().nextDouble() - 0.5D) * spreadAmount,
+                    (player.getRandom().nextDouble() - 0.5D) * spreadAmount,
+                    (player.getRandom().nextDouble() - 0.5D) * spreadAmount
             );
-            arrow.setVelocity(spread.x, spread.y, spread.z, 3.5F, 0.0F);
-            arrow.setDamage(4.0D);
+            arrow.setVelocity(spread.x, spread.y, spread.z, velocity, 0.0F);
+            arrow.setDamage(damage);
             arrow.setCritical(false);
             arrow.pickupType = ArrowEntity.PickupPermission.DISALLOWED;
             player.getWorld().spawnEntity(arrow);

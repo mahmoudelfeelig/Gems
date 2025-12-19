@@ -1,5 +1,6 @@
 package com.blissmc.gems.mixin;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.power.AbilityRuntime;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.entity.Entity;
@@ -30,10 +31,10 @@ public abstract class PlayerEntityChadStrengthMixin {
         }
 
         int hit = AbilityRuntime.incrementChadHit(attacker);
-        if (hit % 4 != 0) {
+        int every = Math.max(1, GemsBalance.v().strength().chadEveryHits());
+        if (hit % every != 0) {
             return;
         }
-        living.damage(attacker.getDamageSources().playerAttack(attacker), 7.0F);
+        living.damage(attacker.getDamageSources().playerAttack(attacker), GemsBalance.v().strength().chadBonusDamage());
     }
 }
-

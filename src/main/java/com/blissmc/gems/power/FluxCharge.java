@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.state.GemsPersistentDataHolder;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ArmorItem;
@@ -78,7 +79,7 @@ public final class FluxCharge {
             nbt.putLong(KEY_AT_100, now);
             return;
         }
-        if (now - at100 < 5 * 20L) {
+        if (now - at100 < GemsBalance.v().flux().overchargeDelayTicks()) {
             return;
         }
 
@@ -88,9 +89,9 @@ public final class FluxCharge {
         }
         nbt.putLong(KEY_LAST_OVERCHARGE_TICK, now);
 
-        int next = Math.min(200, charge + 5);
+        int next = Math.min(200, charge + GemsBalance.v().flux().overchargePerSecond());
         set(player, next);
-        player.damage(player.getDamageSources().magic(), 1.0F);
+        player.damage(player.getDamageSources().magic(), GemsBalance.v().flux().overchargeSelfDamagePerSecond());
     }
 
     public static void clearIfBelow100(ServerPlayerEntity player) {
@@ -111,23 +112,23 @@ public final class FluxCharge {
             return 0;
         }
         if (stack.isOf(Items.DIAMOND_BLOCK)) {
-            return 25;
+            return GemsBalance.v().flux().chargeDiamondBlock();
         }
         if (stack.isOf(Items.GOLD_BLOCK)) {
-            return 15;
+            return GemsBalance.v().flux().chargeGoldBlock();
         }
         if (stack.isOf(Items.COPPER_BLOCK)) {
-            return 5;
+            return GemsBalance.v().flux().chargeCopperBlock();
         }
 
         if (!EnchantmentHelper.hasEnchantments(stack)) {
             return 0;
         }
         if (stack.getItem() instanceof ToolItem tool && tool.getMaterial() == ToolMaterials.DIAMOND) {
-            return 20;
+            return GemsBalance.v().flux().chargeEnchantedDiamondItem();
         }
         if (stack.getItem() instanceof ArmorItem armor && armor.getMaterial() == ArmorMaterials.DIAMOND) {
-            return 20;
+            return GemsBalance.v().flux().chargeEnchantedDiamondItem();
         }
         return 0;
     }

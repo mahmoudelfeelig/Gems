@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -22,14 +23,13 @@ public final class SpeedStormAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 60 * 20;
+        return GemsBalance.v().speed().speedStormCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startSpeedStorm(player, 8 * 20);
+        AbilityRuntime.startSpeedStorm(player, GemsBalance.v().speed().speedStormDurationTicks());
         player.sendMessage(Text.literal("Speed Storm active."), true);
         return true;
     }
 }
-

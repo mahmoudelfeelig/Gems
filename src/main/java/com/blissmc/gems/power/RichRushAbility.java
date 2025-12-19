@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -22,14 +23,13 @@ public final class RichRushAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 9 * 60 * 20;
+        return GemsBalance.v().wealth().richRushCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startRichRush(player, 3 * 60 * 20);
+        AbilityRuntime.startRichRush(player, GemsBalance.v().wealth().richRushDurationTicks());
         player.sendMessage(Text.literal("Rich Rush active."), true);
         return true;
     }
 }
-

@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -27,19 +28,22 @@ public final class GroupBreezyBashAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 45 * 20;
+        return GemsBalance.v().puff().groupBashCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getServerWorld();
+        int radius = GemsBalance.v().puff().groupBashRadiusBlocks();
+        double kb = GemsBalance.v().puff().groupBashKnockback();
+        double up = GemsBalance.v().puff().groupBashUpVelocityY();
         int affected = 0;
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= 10.0D * 10.0D)) {
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 continue;
             }
             Vec3d away = other.getPos().subtract(player.getPos()).normalize();
-            other.addVelocity(away.x * 1.2D, 0.8D, away.z * 1.2D);
+            other.addVelocity(away.x * kb, up, away.z * kb);
             other.velocityModified = true;
             affected++;
         }

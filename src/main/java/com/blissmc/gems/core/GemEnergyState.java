@@ -27,10 +27,22 @@ public final class GemEnergyState {
     }
 
     /**
-     * Ability budget scales down as energy drops: budget = max(0, energy - 1).
+     * Ability unlock progression:
+     * - Energy 0-1: no abilities.
+     * - Energy 2-4: unlock abilities in order, one per energy (energy-1 abilities).
+     * - Energy 5+: unlock all remaining abilities at once; overflow keeps all abilities.
      */
-    public int abilityBudget() {
-        return Math.max(0, energy - 1);
+    public int unlockedAbilityCount(int abilityCount) {
+        if (abilityCount <= 0) {
+            return 0;
+        }
+        if (energy <= 1) {
+            return 0;
+        }
+        if (energy <= 4) {
+            return Math.min(energy - 1, abilityCount);
+        }
+        return abilityCount;
     }
 
     public GemEnergyState gain(int delta) {

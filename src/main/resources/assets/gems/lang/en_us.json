@@ -1,0 +1,18 @@
+{
+  "category.gems": "Gems",
+  "key.gems.activate_ability": "Activate Ability",
+  "key.gems.next_ability": "Next Ability",
+
+  "item.gems.heart": "Heart",
+  "item.gems.energy_upgrade": "Energy Upgrade",
+  "item.gems.trader": "Gem Trader",
+
+  "item.gems.astra_gem": "Astra Gem",
+  "item.gems.fire_gem": "Fire Gem",
+  "item.gems.flux_gem": "Flux Gem",
+  "item.gems.life_gem": "Life Gem",
+  "item.gems.puff_gem": "Puff Gem",
+  "item.gems.speed_gem": "Speed Gem",
+  "item.gems.strength_gem": "Strength Gem",
+  "item.gems.wealth_gem": "Wealth Gem"
+}

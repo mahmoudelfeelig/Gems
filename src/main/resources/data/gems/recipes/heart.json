@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "NIN",
+    "IGI",
+    "NIN"
+  ],
+  "key": {
+    "N": "minecraft:netherite_scrap",
+    "G": "minecraft:gold_block",
+    "I": "minecraft:iron_block"
+  },
+  "result": {
+    "id": "gems:heart",
+    "count": 1
+  }
+}

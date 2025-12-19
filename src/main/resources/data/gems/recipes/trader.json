@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DBD",
+    "BWB",
+    "DBD"
+  ],
+  "key": {
+    "D": "minecraft:diamond_block",
+    "B": "minecraft:dragon_breath",
+    "W": "minecraft:wither_skeleton_skull"
+  },
+  "result": {
+    "id": "gems:trader",
+    "count": 1
+  }
+}

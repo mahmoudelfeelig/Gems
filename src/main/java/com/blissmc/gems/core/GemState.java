@@ -1,18 +1,18 @@
 package com.blissmc.gems.core;
 
+import net.minecraft.util.Identifier;
+
 import java.util.List;
 
 /**
- * Player-facing gem state: identity, level, and energy.
+ * Player-facing gem state: identity and energy.
  */
 public final class GemState {
     private final GemId id;
-    private final GemLevel level;
     private final GemEnergyState energy;
 
-    public GemState(GemId id, GemLevel level, GemEnergyState energy) {
+    public GemState(GemId id, GemEnergyState energy) {
         this.id = id;
-        this.level = level;
         this.energy = energy;
     }
 
@@ -20,20 +20,12 @@ public final class GemState {
         return id;
     }
 
-    public GemLevel level() {
-        return level;
-    }
-
     public GemEnergyState energy() {
         return energy;
     }
 
-    public GemState withLevel(GemLevel newLevel) {
-        return new GemState(id, newLevel, energy);
-    }
-
     public GemState withEnergy(GemEnergyState newEnergy) {
-        return new GemState(id, level, newEnergy);
+        return new GemState(id, newEnergy);
     }
 
     public GemState gainEnergy(int delta) {
@@ -44,13 +36,13 @@ public final class GemState {
         return withEnergy(energy.loseOne());
     }
 
-    public List<String> availablePassives() {
+    public List<Identifier> availablePassives() {
         GemDefinition def = GemRegistry.definition(id);
         return def.availablePassives(energy);
     }
 
-    public List<String> availableAbilities() {
+    public List<Identifier> availableAbilities() {
         GemDefinition def = GemRegistry.definition(id);
-        return def.availableAbilities(level, energy);
+        return def.availableAbilities(energy);
     }
 }

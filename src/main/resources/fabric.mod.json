@@ -12,8 +12,14 @@
   "entrypoints": {
     "main": [
       "com.blissmc.gems.GemsMod"
+    ],
+    "client": [
+      "com.blissmc.gems.client.GemsClientMod"
     ]
   },
+  "mixins": [
+    "gems.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.16.11",
     "fabric-api": ">=0.114.0+1.21.1",

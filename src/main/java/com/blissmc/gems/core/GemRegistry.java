@@ -1,5 +1,8 @@
 package com.blissmc.gems.core;
 
+import com.blissmc.gems.power.PowerIds;
+import net.minecraft.util.Identifier;
+
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -14,123 +17,123 @@ public final class GemRegistry {
         register(new GemDefinition(
                 GemId.ASTRA,
                 List.of(
-                        "Soul Capture: store the most recently killed mob for later release as a summon/resource.",
-                        "Soul Healing: heal the holder on successful soul capture or release (small regen pulse)."
+                        PowerIds.SOUL_CAPTURE,
+                        PowerIds.SOUL_HEALING
                 ),
                 List.of(
-                        "Dimensional Drift: spawn an invisible fast mount and render the rider invisible briefly.",
-                        "Dimensional Void: suppress enemy gem abilities in a radius for a short duration.",
-                        "Astral Daggers: fire rapid, accurate daggers that deal ranged damage.",
-                        "Unbounded: short-term spectator-like flight/phase through blocks.",
-                        "Astral Projection: create a controllable projection while the body is rooted.",
-                        "Spook: briefly disorients/knockback nearby enemies.",
-                        "Tag: mark a target so they remain tracked/visible through walls temporarily."
+                        PowerIds.DIMENSIONAL_DRIFT,
+                        PowerIds.DIMENSIONAL_VOID,
+                        PowerIds.ASTRAL_DAGGERS,
+                        PowerIds.UNBOUNDED,
+                        PowerIds.ASTRAL_PROJECTION,
+                        PowerIds.SPOOK,
+                        PowerIds.TAG
                 )
         ));
 
         register(new GemDefinition(
                 GemId.FIRE,
                 List.of(
-                        "Fire Resistance: permanent immunity to fire/lava damage.",
-                        "Auto-smelt: ores/blocks broken drop smelted results.",
-                        "Auto-enchant Fire Aspect: applies Fire Aspect to held melee weapons."
+                        PowerIds.FIRE_RESISTANCE,
+                        PowerIds.AUTO_SMELT,
+                        PowerIds.AUTO_ENCHANT_FIRE_ASPECT
                 ),
                 List.of(
-                        "Cosy Campfire: place a campfire aura granting allies Regeneration IV in range.",
-                        "Crisp: evaporate water in an area and swap nearby blocks to nether variants temporarily.",
-                        "Fireball: charge-and-release explosive fireball; charge decays unless standing on obsidian.",
-                        "Meteor Shower: rain multiple exploding meteors on a target zone."
+                        PowerIds.COSY_CAMPFIRE,
+                        PowerIds.CRISP,
+                        PowerIds.FIREBALL,
+                        PowerIds.METEOR_SHOWER
                 )
         ));
 
         register(new GemDefinition(
                 GemId.FLUX,
                 List.of(
-                        "Charge Storage: consume valuables (diamond/gold/copper blocks, enchanted diamond gear/tools) to charge the beam up to 100%.",
-                        "Ally Inversion: offensive beam effects on trusted players repair armor durability instead of dealing damage.",
-                        "Overcharge Ramp: once at 100% charge, after 5s begin charging toward 200% while dealing self-damage each second."
+                        PowerIds.FLUX_CHARGE_STORAGE,
+                        PowerIds.FLUX_ALLY_INVERSION,
+                        PowerIds.FLUX_OVERCHARGE_RAMP
                 ),
                 List.of(
-                        "Flux Beam: long-range beam whose damage/durability shred scales with stored charge (up to 200%).",
-                        "Static Burst: burst built from recent damage taken; legacy/optional ability."
+                        PowerIds.FLUX_BEAM,
+                        PowerIds.STATIC_BURST
                 )
         ));
 
         register(new GemDefinition(
                 GemId.LIFE,
                 List.of(
-                        "Auto-enchant Unbreaking: applies Unbreaking to held gear.",
-                        "Double Saturation: food restores twice the normal saturation."
+                        PowerIds.AUTO_ENCHANT_UNBREAKING,
+                        PowerIds.DOUBLE_SATURATION
                 ),
                 List.of(
-                        "Vitality Vortex: pulse that buffs/heals allies and debuffs enemies based on surroundings.",
-                        "Health Drain: siphon health from a target to heal the user.",
-                        "Life Circle: aura that lowers enemy max health while boosting trusted players' max health.",
-                        "Heart Lock: temporarily locks an enemy's max health to their current health."
+                        PowerIds.VITALITY_VORTEX,
+                        PowerIds.HEALTH_DRAIN,
+                        PowerIds.LIFE_CIRCLE,
+                        PowerIds.HEART_LOCK
                 )
         ));
 
         register(new GemDefinition(
                 GemId.PUFF,
                 List.of(
-                        "Fall Damage Immunity: negate fall damage.",
-                        "Auto-enchant Power: auto-applies Power to bows.",
-                        "Auto-enchant Punch: auto-applies Punch to bows.",
-                        "Sculk Silence: immune to triggering sculk shriekers.",
-                        "Crop-Trample Immunity: cannot trample farmland."
+                        PowerIds.FALL_DAMAGE_IMMUNITY,
+                        PowerIds.AUTO_ENCHANT_POWER,
+                        PowerIds.AUTO_ENCHANT_PUNCH,
+                        PowerIds.SCULK_SILENCE,
+                        PowerIds.CROP_TRAMPLE_IMMUNITY
                 ),
                 List.of(
-                        "Double Jump: midair jump reset with short cooldown.",
-                        "Dash: rapid dash that damages/knocks back targets passed through.",
-                        "Breezy Bash: launch a target upward then spike them downward.",
-                        "Group Breezy Bash: radial knock-up/knockback on all untrusted nearby."
+                        PowerIds.DOUBLE_JUMP,
+                        PowerIds.DASH,
+                        PowerIds.BREEZY_BASH,
+                        PowerIds.GROUP_BREEZY_BASH
                 )
         ));
 
         register(new GemDefinition(
                 GemId.SPEED,
                 List.of(
-                        "Speed I: permanent movement speed bonus (tuneable; previously Speed II)."
+                        PowerIds.SPEED_I
                 ),
                 List.of(
-                        "Blur: chain lightning strikes that damage and knock back targets along a path.",
-                        "Speed Storm: field that freezes enemies while granting speed/haste to allies.",
-                        "Terminal Velocity: short burst of Speed III + Haste II."
+                        PowerIds.BLUR,
+                        PowerIds.SPEED_STORM,
+                        PowerIds.TERMINAL_VELOCITY
                 )
         ));
 
         register(new GemDefinition(
                 GemId.STRENGTH,
                 List.of(
-                        "Strength I (intended II): flat damage buff.",
-                        "Auto-enchant Sharpness: Sharpness II at tier 1, V at tier 2."
+                        PowerIds.STRENGTH_I,
+                        PowerIds.AUTO_ENCHANT_SHARPNESS
                 ),
                 List.of(
-                        "Nullify: strip active potion/status effects from enemies.",
-                        "Frailer: apply Weakness to enemies.",
-                        "Bounty Hunting: track the owner of an input item for a limited time; item is consumed.",
-                        "Chad Strength: every fourth hit deals bonus (~3.5 hearts) damage."
+                        PowerIds.NULLIFY,
+                        PowerIds.FRAILER,
+                        PowerIds.BOUNTY_HUNTING,
+                        PowerIds.CHAD_STRENGTH
                 )
         ));
 
         register(new GemDefinition(
                 GemId.WEALTH,
                 List.of(
-                        "Auto-enchant Mending: applies Mending to tools/armor.",
-                        "Auto-enchant Fortune: applies Fortune to tools.",
-                        "Auto-enchant Looting: applies Looting to weapons.",
-                        "Luck: permanent Luck effect.",
-                        "Hero of the Village: permanent hero status.",
-                        "Durability chip: extra armor damage dealt to enemies per strike.",
-                        "Armor mending on hit: slowly repairs the holder's armor when hitting enemies.",
-                        "Double Debris: furnace outputs double netherite scrap."
+                        PowerIds.AUTO_ENCHANT_MENDING,
+                        PowerIds.AUTO_ENCHANT_FORTUNE,
+                        PowerIds.AUTO_ENCHANT_LOOTING,
+                        PowerIds.LUCK,
+                        PowerIds.HERO_OF_THE_VILLAGE,
+                        PowerIds.DURABILITY_CHIP,
+                        PowerIds.ARMOR_MEND_ON_HIT,
+                        PowerIds.DOUBLE_DEBRIS
                 ),
                 List.of(
-                        "Pockets: opens 9-slot extra inventory UI.",
-                        "Unfortunate: chance to cancel enemy actions (attacks, block place, eating, etc.).",
-                        "Item Lock: temporarily disables a target item for an enemy.",
-                        "Amplification: boosts all enchants on tools/armor for ~45 seconds (3-minute cooldown).",
-                        "Rich Rush: boosts mob drops and ore yields for ~3 minutes (9-minute cooldown)."
+                        PowerIds.POCKETS,
+                        PowerIds.UNFORTUNATE,
+                        PowerIds.ITEM_LOCK,
+                        PowerIds.AMPLIFICATION,
+                        PowerIds.RICH_RUSH
                 )
         ));
     }

@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -22,14 +23,13 @@ public final class AmplificationAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 180 * 20;
+        return GemsBalance.v().wealth().amplificationCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        EnchantmentAmplification.apply(player, 45 * 20);
+        EnchantmentAmplification.apply(player, GemsBalance.v().wealth().amplificationDurationTicks());
         player.sendMessage(Text.literal("Amplification active."), true);
         return true;
     }
 }
-

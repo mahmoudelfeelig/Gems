@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -24,12 +25,12 @@ public final class HotbarLockAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 30 * 20;
+        return GemsBalance.v().wealth().hotbarLockCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        LivingEntity target = Targeting.raycastLiving(player, 20.0D);
+        LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().wealth().hotbarLockRangeBlocks());
         if (!(target instanceof ServerPlayerEntity other)) {
             player.sendMessage(Text.literal("No player target."), true);
             return true;
@@ -39,7 +40,7 @@ public final class HotbarLockAbility implements GemAbility {
             return true;
         }
 
-        HotbarLock.lock(other, other.getInventory().selectedSlot, 6 * 20);
+        HotbarLock.lock(other, other.getInventory().selectedSlot, GemsBalance.v().wealth().hotbarLockDurationTicks());
         player.sendMessage(Text.literal("Hotbar locked."), true);
         return true;
     }

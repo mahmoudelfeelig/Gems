@@ -12,27 +12,38 @@ public final class WealthFumble {
     }
 
     public static void apply(ServerPlayerEntity target, int durationTicks) {
-        if (durationTicks <= 0) {
-            return;
-        }
-        persistent(target).putLong(KEY_UNTIL, target.getServerWorld().getTime() + durationTicks);
+        apply(persistent(target), target.getServerWorld().getTime(), durationTicks);
     }
 
     public static boolean isActive(ServerPlayerEntity player) {
         long now = player.getServerWorld().getTime();
-        return until(player) > now;
+        return until(persistent(player), now) > now;
     }
 
     public static long until(ServerPlayerEntity player) {
-        NbtCompound nbt = persistent(player);
+        return until(persistent(player), player.getServerWorld().getTime());
+    }
+
+    static void apply(NbtCompound nbt, long now, int durationTicks) {
+        if (durationTicks <= 0) {
+            return;
+        }
+        nbt.putLong(KEY_UNTIL, now + durationTicks);
+    }
+
+    static long until(NbtCompound nbt, long now) {
         if (!nbt.contains(KEY_UNTIL, NbtElement.LONG_TYPE)) {
             return 0L;
         }
-        return nbt.getLong(KEY_UNTIL);
+        long until = nbt.getLong(KEY_UNTIL);
+        if (until <= now) {
+            nbt.remove(KEY_UNTIL);
+            return 0L;
+        }
+        return until;
     }
 
     private static NbtCompound persistent(ServerPlayerEntity player) {
         return ((GemsPersistentDataHolder) player).gems$getPersistentData();
     }
 }
-

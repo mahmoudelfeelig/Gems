@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.state.GemPlayerState;
 import com.blissmc.gems.state.GemsPersistentDataHolder;
 import com.blissmc.gems.trust.GemTrust;
@@ -187,9 +188,11 @@ public final class AbilityRuntime {
             return;
         }
         ServerWorld world = player.getServerWorld();
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= 8.0D * 8.0D)) {
+        int radius = GemsBalance.v().fire().cosyCampfireRadiusBlocks();
+        int amp = GemsBalance.v().fire().cosyCampfireRegenAmplifier();
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
-                other.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 40, 3, true, false, false));
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 40, amp, true, false, false));
             }
         }
     }
@@ -200,12 +203,15 @@ public final class AbilityRuntime {
         }
         ServerWorld world = player.getServerWorld();
         int duration = 40;
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= 10.0D * 10.0D)) {
+        int radius = GemsBalance.v().fire().heatHazeRadiusBlocks();
+        int fatigueAmp = GemsBalance.v().fire().heatHazeEnemyMiningFatigueAmplifier();
+        int weaknessAmp = GemsBalance.v().fire().heatHazeEnemyWeaknessAmplifier();
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, duration, 0, true, false, false));
             } else {
-                other.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, duration, 0, true, false, false));
-                other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, duration, fatigueAmp, true, false, false));
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, weaknessAmp, true, false, false));
             }
         }
     }
@@ -215,13 +221,18 @@ public final class AbilityRuntime {
             return;
         }
         ServerWorld world = player.getServerWorld();
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= 10.0D * 10.0D)) {
+        int radius = GemsBalance.v().speed().speedStormRadiusBlocks();
+        int allySpeed = GemsBalance.v().speed().speedStormAllySpeedAmplifier();
+        int allyHaste = GemsBalance.v().speed().speedStormAllyHasteAmplifier();
+        int enemySlow = GemsBalance.v().speed().speedStormEnemySlownessAmplifier();
+        int enemyFatigue = GemsBalance.v().speed().speedStormEnemyMiningFatigueAmplifier();
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
-                other.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 40, 1, true, false, false));
-                other.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, 40, 1, true, false, false));
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 40, allySpeed, true, false, false));
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, 40, allyHaste, true, false, false));
             } else {
-                other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 40, 6, true, false, false));
-                other.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, 40, 2, true, false, false));
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 40, enemySlow, true, false, false));
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, 40, enemyFatigue, true, false, false));
             }
         }
     }
@@ -248,9 +259,11 @@ public final class AbilityRuntime {
             return;
         }
 
+        int radius = GemsBalance.v().life().lifeCircleRadiusBlocks();
+        double deltaHealth = GemsBalance.v().life().lifeCircleMaxHealthDelta();
         for (ServerPlayerEntity other : world.getPlayers()) {
             double distSq = other.squaredDistanceTo(caster);
-            boolean inRange = distSq <= 8.0D * 8.0D;
+            boolean inRange = distSq <= radius * (double) radius;
             if (!inRange) {
                 removeMaxHealthModifier(other, bonusId);
                 removeMaxHealthModifier(other, penaltyId);
@@ -258,10 +271,10 @@ public final class AbilityRuntime {
             }
 
             if (GemTrust.isTrusted(caster, other)) {
-                applyMaxHealthModifier(other, bonusId, 8.0D);
+                applyMaxHealthModifier(other, bonusId, deltaHealth);
                 removeMaxHealthModifier(other, penaltyId);
             } else {
-                applyMaxHealthModifier(other, penaltyId, -8.0D);
+                applyMaxHealthModifier(other, penaltyId, -deltaHealth);
                 removeMaxHealthModifier(other, bonusId);
             }
         }

@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.state.GemsPersistentDataHolder;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.nbt.NbtCompound;
@@ -30,7 +31,7 @@ public final class StaticBurstAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 30 * 20;
+        return GemsBalance.v().flux().staticBurstCooldownTicks();
     }
 
     @Override
@@ -44,8 +45,9 @@ public final class StaticBurstAbility implements GemAbility {
 
         ServerWorld world = player.getServerWorld();
         int hits = 0;
-        float damage = Math.min(20.0F, stored);
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= 8.0D * 8.0D)) {
+        float damage = Math.min(GemsBalance.v().flux().staticBurstMaxDamage(), stored);
+        int radius = GemsBalance.v().flux().staticBurstRadiusBlocks();
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 continue;
             }
@@ -68,7 +70,7 @@ public final class StaticBurstAbility implements GemAbility {
         NbtCompound nbt = persistent(player);
         long now = player.getServerWorld().getTime();
         long storedAt = nbt.getLong(KEY_STORED_AT);
-        if (storedAt <= 0 || now - storedAt > 120 * 20L) {
+        if (storedAt <= 0 || now - storedAt > GemsBalance.v().flux().staticBurstStoreWindowTicks()) {
             nbt.putFloat(KEY_STORED_DAMAGE, 0.0F);
             nbt.putLong(KEY_STORED_AT, now);
         }
@@ -79,4 +81,3 @@ public final class StaticBurstAbility implements GemAbility {
         return ((GemsPersistentDataHolder) player).gems$getPersistentData();
     }
 }
-

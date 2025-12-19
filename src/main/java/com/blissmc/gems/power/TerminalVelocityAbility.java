@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -24,16 +25,15 @@ public final class TerminalVelocityAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 30 * 20;
+        return GemsBalance.v().speed().terminalVelocityCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int duration = 10 * 20;
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, duration, 2, true, false, false));
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, duration, 1, true, false, false));
+        int duration = GemsBalance.v().speed().terminalVelocityDurationTicks();
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, duration, GemsBalance.v().speed().terminalVelocitySpeedAmplifier(), true, false, false));
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, duration, GemsBalance.v().speed().terminalVelocityHasteAmplifier(), true, false, false));
         player.sendMessage(Text.literal("Terminal Velocity!"), true);
         return true;
     }
 }
-

@@ -1,5 +1,6 @@
 package com.blissmc.gems;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ public final class GemsMod implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Gems mod");
+        GemsBalance.init();
         GemsPayloads.register();
         ModItems.init();
         ServerAbilityNetworking.register();

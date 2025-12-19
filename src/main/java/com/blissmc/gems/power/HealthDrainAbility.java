@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -24,12 +25,12 @@ public final class HealthDrainAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 12 * 20;
+        return GemsBalance.v().life().healthDrainCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        LivingEntity target = Targeting.raycastLiving(player, 20.0D);
+        LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().life().healthDrainRangeBlocks());
         if (target == null) {
             player.sendMessage(Text.literal("No target."), true);
             return true;
@@ -39,11 +40,10 @@ public final class HealthDrainAbility implements GemAbility {
             return true;
         }
 
-        float amount = 6.0F;
+        float amount = GemsBalance.v().life().healthDrainAmount();
         target.damage(player.getDamageSources().magic(), amount);
         player.heal(amount);
         player.sendMessage(Text.literal("Drained " + amount + " health."), true);
         return true;
     }
 }
-

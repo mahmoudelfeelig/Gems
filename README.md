@@ -4,8 +4,4 @@ a Minecraft mod that adds season-inspired gems with unique powers for each holde
 - Target: Fabric on modern Minecraft (1.21.1+; bump to latest Fabric API when available).
 - Design: composition-first, low-overhead systems; new gems should be easy to add.
 - Specs: see `checklist.md` for the exhaustive feature list (energy, leveling, items, recipes, per-gem passives/abilities).
-
-## Controls
-- `R`: activate selected ability
-- `V`: cycle selected ability
-- `B`: soul release
+- Balancing: edit `config/gems/balance.json` (generated on first run) and restart to apply changes.

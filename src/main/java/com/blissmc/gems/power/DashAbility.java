@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -30,26 +31,26 @@ public final class DashAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 6 * 20;
+        return GemsBalance.v().puff().dashCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getServerWorld();
         Vec3d dir = player.getRotationVec(1.0F).normalize();
-        player.addVelocity(dir.x * 1.8D, 0.1D, dir.z * 1.8D);
+        double dashVel = GemsBalance.v().puff().dashVelocity();
+        player.addVelocity(dir.x * dashVel, 0.1D, dir.z * dashVel);
         player.velocityModified = true;
 
-        Box box = player.getBoundingBox().stretch(dir.multiply(4.0D)).expand(1.0D);
+        Box box = player.getBoundingBox().stretch(dir.multiply(GemsBalance.v().puff().dashHitRangeBlocks())).expand(1.0D);
         for (Entity e : world.getOtherEntities(player, box, ent -> ent instanceof LivingEntity living && living.isAlive())) {
             if (e instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
                 continue;
             }
-            ((LivingEntity) e).damage(player.getDamageSources().playerAttack(player), 6.0F);
+            ((LivingEntity) e).damage(player.getDamageSources().playerAttack(player), GemsBalance.v().puff().dashDamage());
         }
 
         world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_ENDER_DRAGON_FLAP, SoundCategory.PLAYERS, 0.7F, 1.3F);
         return true;
     }
 }
-

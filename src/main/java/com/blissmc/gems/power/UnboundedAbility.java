@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -22,12 +23,12 @@ public final class UnboundedAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 60 * 20;
+        return GemsBalance.v().astra().unboundedCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startUnbounded(player, 3 * 20);
+        AbilityRuntime.startUnbounded(player, GemsBalance.v().astra().unboundedDurationTicks());
         player.sendMessage(Text.literal("Unbounded active."), true);
         return true;
     }

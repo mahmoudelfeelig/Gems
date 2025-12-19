@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -25,7 +26,7 @@ public final class BountyHuntingAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 60 * 20;
+        return GemsBalance.v().strength().bountyCooldownTicks();
     }
 
     @Override
@@ -51,9 +52,8 @@ public final class BountyHuntingAbility implements GemAbility {
         }
 
         stack.decrement(1);
-        AbilityRuntime.startBounty(player, owner, 60 * 20);
+        AbilityRuntime.startBounty(player, owner, GemsBalance.v().strength().bountyDurationTicks());
         player.sendMessage(Text.literal("Tracking " + target.getName().getString()), true);
         return true;
     }
 }
-

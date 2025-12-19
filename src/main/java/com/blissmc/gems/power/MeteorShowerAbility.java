@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.entity.projectile.FireballEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -28,7 +29,7 @@ public final class MeteorShowerAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 120 * 20;
+        return GemsBalance.v().fire().meteorShowerCooldownTicks();
     }
 
     @Override
@@ -37,15 +38,20 @@ public final class MeteorShowerAbility implements GemAbility {
         HitResult hit = player.raycast(60.0D, 1.0F, false);
         BlockPos center = BlockPos.ofFloored(hit.getPos());
 
-        for (int i = 0; i < 10; i++) {
-            double ox = (player.getRandom().nextDouble() - 0.5D) * 10.0D;
-            double oz = (player.getRandom().nextDouble() - 0.5D) * 10.0D;
-            Vec3d spawn = new Vec3d(center.getX() + 0.5D + ox, center.getY() + 25.0D + player.getRandom().nextDouble() * 10.0D, center.getZ() + 0.5D + oz);
+        int count = GemsBalance.v().fire().meteorShowerCount();
+        int spread = GemsBalance.v().fire().meteorShowerSpreadBlocks();
+        int height = GemsBalance.v().fire().meteorShowerHeightBlocks();
+        float velocity = GemsBalance.v().fire().meteorShowerVelocity();
+
+        for (int i = 0; i < count; i++) {
+            double ox = (player.getRandom().nextDouble() - 0.5D) * spread;
+            double oz = (player.getRandom().nextDouble() - 0.5D) * spread;
+            Vec3d spawn = new Vec3d(center.getX() + 0.5D + ox, center.getY() + height + player.getRandom().nextDouble() * 10.0D, center.getZ() + 0.5D + oz);
             Vec3d dir = new Vec3d(-ox, -25.0D, -oz).normalize();
 
             FireballEntity meteor = new FireballEntity(world, player, dir, 1);
             meteor.refreshPositionAndAngles(spawn.x, spawn.y, spawn.z, 0.0F, 0.0F);
-            meteor.setVelocity(dir.multiply(1.5D));
+            meteor.setVelocity(dir.multiply(velocity));
             world.spawnEntity(meteor);
         }
 
@@ -53,4 +59,3 @@ public final class MeteorShowerAbility implements GemAbility {
         return true;
     }
 }
-

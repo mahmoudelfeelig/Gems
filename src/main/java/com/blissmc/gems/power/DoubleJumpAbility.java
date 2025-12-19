@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -25,7 +26,7 @@ public final class DoubleJumpAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 2 * 20;
+        return GemsBalance.v().puff().doubleJumpCooldownTicks();
     }
 
     @Override
@@ -35,10 +36,9 @@ public final class DoubleJumpAbility implements GemAbility {
             return true;
         }
         Vec3d v = player.getVelocity();
-        player.setVelocity(v.x, 0.85D, v.z);
+        player.setVelocity(v.x, GemsBalance.v().puff().doubleJumpVelocityY(), v.z);
         player.velocityModified = true;
         player.getServerWorld().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, SoundCategory.PLAYERS, 0.7F, 1.5F);
         return true;
     }
 }
-

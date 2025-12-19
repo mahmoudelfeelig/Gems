@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -22,14 +23,13 @@ public final class CosyCampfireAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 45 * 20;
+        return GemsBalance.v().fire().cosyCampfireCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startCosyCampfire(player, 10 * 20);
+        AbilityRuntime.startCosyCampfire(player, GemsBalance.v().fire().cosyCampfireDurationTicks());
         player.sendMessage(Text.literal("Cosy Campfire active."), true);
         return true;
     }
 }
-

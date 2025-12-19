@@ -13,13 +13,7 @@ public final class HotbarLock {
     }
 
     public static void lock(ServerPlayerEntity target, int hotbarSlot, int durationTicks) {
-        if (durationTicks <= 0) {
-            return;
-        }
-        int slot = clamp(hotbarSlot, 0, 8);
-        NbtCompound nbt = persistent(target);
-        nbt.putLong(KEY_LOCK_UNTIL, target.getServerWorld().getTime() + durationTicks);
-        nbt.putInt(KEY_LOCK_SLOT, slot);
+        lock(persistent(target), target.getServerWorld().getTime(), hotbarSlot, durationTicks);
     }
 
     public static boolean isLocked(ServerPlayerEntity player) {
@@ -27,9 +21,20 @@ public final class HotbarLock {
     }
 
     public static int lockedSlot(ServerPlayerEntity player) {
-        NbtCompound nbt = persistent(player);
+        return lockedSlot(persistent(player), player.getServerWorld().getTime());
+    }
+
+    static void lock(NbtCompound nbt, long now, int hotbarSlot, int durationTicks) {
+        if (durationTicks <= 0) {
+            return;
+        }
+        int slot = clamp(hotbarSlot, 0, 8);
+        nbt.putLong(KEY_LOCK_UNTIL, now + durationTicks);
+        nbt.putInt(KEY_LOCK_SLOT, slot);
+    }
+
+    static int lockedSlot(NbtCompound nbt, long now) {
         long until = nbt.contains(KEY_LOCK_UNTIL, NbtElement.LONG_TYPE) ? nbt.getLong(KEY_LOCK_UNTIL) : 0L;
-        long now = player.getServerWorld().getTime();
         if (until <= now) {
             if (until != 0L) {
                 nbt.remove(KEY_LOCK_UNTIL);
@@ -51,4 +56,3 @@ public final class HotbarLock {
         return ((GemsPersistentDataHolder) player).gems$getPersistentData();
     }
 }
-

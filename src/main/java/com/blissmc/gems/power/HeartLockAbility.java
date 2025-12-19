@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -23,12 +24,12 @@ public final class HeartLockAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 45 * 20;
+        return GemsBalance.v().life().heartLockCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        var target = Targeting.raycastLiving(player, 20.0D);
+        var target = Targeting.raycastLiving(player, GemsBalance.v().life().heartLockRangeBlocks());
         if (!(target instanceof ServerPlayerEntity other)) {
             player.sendMessage(Text.literal("No player target."), true);
             return true;
@@ -38,9 +39,8 @@ public final class HeartLockAbility implements GemAbility {
             return true;
         }
 
-        AbilityRuntime.startHeartLock(player, other, 6 * 20);
+        AbilityRuntime.startHeartLock(player, other, GemsBalance.v().life().heartLockDurationTicks());
         player.sendMessage(Text.literal("Heart Lock applied."), true);
         return true;
     }
 }
-

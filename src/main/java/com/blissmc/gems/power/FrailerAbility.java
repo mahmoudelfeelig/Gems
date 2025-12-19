@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -9,8 +10,6 @@ import net.minecraft.util.Identifier;
 import com.blissmc.gems.trust.GemTrust;
 
 public final class FrailerAbility implements GemAbility {
-    private static final int WEAKNESS_DURATION_TICKS = 8 * 20;
-
     @Override
     public Identifier id() {
         return PowerIds.FRAILER;
@@ -28,12 +27,12 @@ public final class FrailerAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 20 * 20;
+        return GemsBalance.v().strength().frailerCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        var target = Targeting.raycastLiving(player, 20.0D);
+        var target = Targeting.raycastLiving(player, GemsBalance.v().strength().frailerRangeBlocks());
         if (target == null) {
             player.sendMessage(Text.literal("No target."), true);
             return true;
@@ -43,7 +42,7 @@ public final class FrailerAbility implements GemAbility {
             return true;
         }
 
-        target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, WEAKNESS_DURATION_TICKS, 0));
+        target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, GemsBalance.v().strength().frailerDurationTicks(), 0));
         player.sendMessage(Text.literal("Frailer: weakened " + target.getName().getString()), true);
         return true;
     }

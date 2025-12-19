@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.state.GemsPersistentDataHolder;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -62,10 +63,10 @@ public final class ShadowAnchorAbility implements GemAbility {
 
         Vec3d current = player.getPos();
         BlockPos anchor = BlockPos.ofFloored(current);
-        nbt.putLong(KEY_ANCHOR_UNTIL, now + 10 * 20L);
+        nbt.putLong(KEY_ANCHOR_UNTIL, now + GemsBalance.v().astra().shadowAnchorWindowTicks());
         nbt.putString(KEY_ANCHOR_DIM, player.getWorld().getRegistryKey().getValue().toString());
         nbt.put(KEY_ANCHOR_POS, net.minecraft.nbt.NbtHelper.fromBlockPos(anchor));
-        player.sendMessage(Text.literal("Anchor set (10s)."), true);
+        player.sendMessage(Text.literal("Anchor set."), true);
         return true;
     }
 

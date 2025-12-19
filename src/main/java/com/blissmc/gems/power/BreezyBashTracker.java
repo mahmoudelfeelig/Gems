@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -49,7 +50,7 @@ public final class BreezyBashTracker {
             if (onGround && !bash.wasOnGround) {
                 ServerPlayerEntity caster = server.getPlayerManager().getPlayer(bash.caster);
                 var source = caster != null ? caster.getDamageSources().playerAttack(caster) : target.getDamageSources().magic();
-                target.damage(source, 6.0F);
+                target.damage(source, GemsBalance.v().puff().breezyBashImpactDamage());
                 it.remove();
                 continue;
             }
@@ -70,4 +71,3 @@ public final class BreezyBashTracker {
         }
     }
 }
-

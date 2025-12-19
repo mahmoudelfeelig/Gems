@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.LivingEntity;
@@ -36,15 +37,15 @@ public final class ArcShotAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 20 * 20;
+        return GemsBalance.v().speed().arcShotCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getServerWorld();
-        double maxDistance = 40.0D;
-        double radius = 2.0D;
-        int maxTargets = 3;
+        double maxDistance = GemsBalance.v().speed().arcShotRangeBlocks();
+        double radius = GemsBalance.v().speed().arcShotRadiusBlocks();
+        int maxTargets = GemsBalance.v().speed().arcShotMaxTargets();
 
         Vec3d start = player.getCameraPosVec(1.0F);
         Vec3d dir = player.getRotationVec(1.0F).normalize();
@@ -88,7 +89,7 @@ public final class ArcShotAbility implements GemAbility {
         for (Hit hit : hits) {
             LivingEntity target = hit.target;
             spawnLightning(world, target.getPos());
-            target.damage(player.getDamageSources().lightningBolt(), 5.0F);
+            target.damage(player.getDamageSources().lightningBolt(), GemsBalance.v().speed().arcShotDamage());
 
             Vec3d away = target.getPos().subtract(player.getPos()).normalize();
             target.addVelocity(away.x * 0.8D, 0.4D, away.z * 0.8D);

@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -27,20 +28,29 @@ public final class FluxBeamAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return 4 * 20;
+        return GemsBalance.v().flux().fluxBeamCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        LivingEntity target = Targeting.raycastLiving(player, 60.0D);
+        LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().flux().fluxBeamRangeBlocks());
         if (target == null) {
             player.sendMessage(Text.literal("No target."), true);
             return true;
         }
 
         int charge = FluxCharge.get(player);
-        float damage = (float) (6.0D + (Math.min(charge, 100) / 100.0D) * 6.0D + (Math.max(0, charge - 100) / 100.0D) * 12.0D);
-        int durabilityDamage = charge >= 100 ? 200 + (charge - 100) * 2 : charge * 2;
+        float minDamage = GemsBalance.v().flux().fluxBeamMinDamage();
+        float max100 = GemsBalance.v().flux().fluxBeamMaxDamageAt100();
+        float max200 = GemsBalance.v().flux().fluxBeamMaxDamageAt200();
+        float t100 = Math.min(charge, 100) / 100.0F;
+        float tOver = Math.max(0, charge - 100) / 100.0F;
+        float damage = minDamage + t100 * (max100 - minDamage) + tOver * (max200 - max100);
+
+        int perPercent = GemsBalance.v().flux().fluxBeamArmorDamagePerPercent();
+        int durabilityDamage = charge >= 100
+                ? GemsBalance.v().flux().fluxBeamArmorDamageAt100() + (charge - 100) * perPercent
+                : charge * perPercent;
 
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other) && GemPowers.isPassiveActive(player, PowerIds.FLUX_ALLY_INVERSION)) {
             repairArmor(other, durabilityDamage);
@@ -81,4 +91,3 @@ public final class FluxBeamAbility implements GemAbility {
         }
     }
 }
-

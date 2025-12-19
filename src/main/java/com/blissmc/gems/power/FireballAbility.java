@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.state.GemsPersistentDataHolder;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.projectile.FireballEntity;
@@ -17,10 +18,6 @@ import net.minecraft.util.math.Vec3d;
 public final class FireballAbility implements GemAbility {
     private static final String KEY_CHARGE_START = "fireballChargeStart";
     private static final String KEY_LAST_FIRE = "fireballLastFire";
-
-    private static final int CHARGE_UP_TICKS = 3 * 20;
-    private static final int CHARGE_DOWN_TICKS = 3 * 20;
-    private static final int FIRE_COOLDOWN_TICKS = 4 * 20;
 
     @Override
     public Identifier id() {
@@ -47,7 +44,7 @@ public final class FireballAbility implements GemAbility {
         NbtCompound nbt = persistent(player);
         long now = player.getServerWorld().getTime();
         long lastFire = nbt.getLong(KEY_LAST_FIRE);
-        if (now - lastFire < FIRE_COOLDOWN_TICKS) {
+        if (now - lastFire < GemsBalance.v().fire().fireballInternalCooldownTicks()) {
             player.sendMessage(Text.literal("Fireball is on cooldown."), true);
             return true;
         }
@@ -68,9 +65,12 @@ public final class FireballAbility implements GemAbility {
     }
 
     private static int computeCharge(ServerWorld world, ServerPlayerEntity player, long start, long now) {
+        int chargeUpTicks = GemsBalance.v().fire().fireballChargeUpTicks();
+        int chargeDownTicks = GemsBalance.v().fire().fireballChargeDownTicks();
+
         long elapsed = now - start;
-        if (elapsed <= CHARGE_UP_TICKS) {
-            return (int) Math.round((elapsed * 100.0D) / CHARGE_UP_TICKS);
+        if (elapsed <= chargeUpTicks) {
+            return (int) Math.round((elapsed * 100.0D) / Math.max(1, chargeUpTicks));
         }
 
         BlockPos below = player.getBlockPos().down();
@@ -79,11 +79,11 @@ public final class FireballAbility implements GemAbility {
             return 100;
         }
 
-        long downElapsed = elapsed - CHARGE_UP_TICKS;
-        if (downElapsed >= CHARGE_DOWN_TICKS) {
+        long downElapsed = elapsed - chargeUpTicks;
+        if (downElapsed >= chargeDownTicks) {
             return 0;
         }
-        double remaining = 1.0D - (downElapsed / (double) CHARGE_DOWN_TICKS);
+        double remaining = 1.0D - (downElapsed / (double) Math.max(1, chargeDownTicks));
         return (int) Math.round(100.0D * remaining);
     }
 

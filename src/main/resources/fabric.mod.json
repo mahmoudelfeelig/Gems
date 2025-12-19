@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "gems",
+  "version": "${version}",
+  "name": "Gems",
+  "description": "Eight superpowered gems with energy and level progression.",
+  "authors": [
+    "BlissMC"
+  ],
+  "license": "LICENSE",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.blissmc.gems.GemsMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.11",
+    "fabric-api": ">=0.114.0+1.21.1",
+    "minecraft": ">=1.21.1"
+  }
+}

@@ -82,7 +82,7 @@ public final class GemsKeybinds {
         int abilityCount = def.abilities().size();
 
         // Soul release is always the key AFTER the gem's last ability (not "after unlocked abilities").
-        if (slotNumber == abilityCount + 1) {
+        if (ClientGemState.activeGem() == GemId.ASTRA && slotNumber == abilityCount + 1) {
             ClientPlayNetworking.send(SoulReleasePayload.INSTANCE);
             return;
         }

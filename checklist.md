@@ -1,0 +1,102 @@
+# Mod spec checklist
+
+- Core gems: Astra, Fire, Flux, Life, Puff, Speed, Strength, Wealth; default gem given to players.
+- Leveling: level 1 unlocks all passives. Levels 2-4 unlock abilities sequentially. Level 5 unlocks all remaining abilities (so if a gem has 5+ abilities, the extras all arrive at level 5; if it has fewer, you stop as soon as all are unlocked). Levels 6-10 are buffer levels with no new powers; max level 10.
+- Energy/life: start at 3 energy. Death (any cause) loses 1 energy. The tiers are Legendary 5 → Mythical 4 → Elite 3 → Rare 2 → Common 1 → Broken 0; overflow uses Legendary +1…+5 (6-10). The lower your energy tier, the fewer abilities stay enabled: ability budget = max(0, energy-1) (e.g., energy 3 → first two abilities stay active). Kills grant +1 energy up to Legendary +5 (10). Legendary +5 adds an enchant glint; if a Legendary +5 player kills a non-broken player, that victim also drops an upgrade item that anyone can consume to gain a level (not usable by a Legendary +5 player).
+- Energy gain overflow: above Legendary uses +1…+5 suffix; death reduces suffix before lowering tiers.
+- Gem swapping: a Trader item (craft: diamond blocks in the corners, wither skull center, dragon breath bottles on the edges) swaps your gem for another gem of your choice of the same level (you keep both gems but only one is active).
+- Level/energy upgrade items: craftable upgrade item (4 netherite scraps + diamond block) increases gem energy; crafting hearts (4 netherite scraps + gold block) adds a heart (up to 20 total hearts max).
+- Hearts on death: on death drop one consumable heart item (nether star texture). Right-click to gain max health. Cannot drop below 5 max hearts; if at 5, no heart drops and cannot increase past 20 max total hearts (including the original 10 you spawn as).
+- Textures: shared gem base texture with palette swaps per gem; custom textures for upgrade items and heart drops.
+- Performance/architecture: composition-first modular system; keep per-tick load minimal; abilities and passives should register/unregister cleanly; add tests/benchmarks as we go.
+
+## Gem abilities and passives (detailed)
+- Astra
+  - Passives:
+    - Soul Capture: stores the most recently killed mob; can be released later as a summon or resource.
+    - Soul Healing: heals the holder on successful soul capture or release; minor regen pulse.
+  - Abilities:
+    - Dimensional Drift: spawn an invisible fast mount and render the rider invisible for a short window.
+    - Dimensional Void: suppress gem abilities of enemies in a radius for a brief duration.
+    - Astral Daggers: fire rapid, accurate daggers that deal ranged damage.
+    - Unbounded: grants short-term spectator-like flight/phase through blocks.
+    - Astral Projection: create a controllable projection while the body is rooted.
+    - Spook: apply a brief fear/disorient effect to nearby enemies.
+    - Tag: mark a target so they remain tracked/visible through walls for a short time.
+- Fire
+  - Passives:
+    - Fire Resistance: permanent immunity to fire/lava damage.
+    - Auto-smelt: smelts broken blocks on drop (ores to ingots, etc.).
+    - Auto-enchant Fire Aspect: applies Fire Aspect to held melee weapons.
+  - Abilities:
+    - Cosy Campfire: place a campfire aura granting allies Regeneration IV in range.
+    - Crisp: evaporate water in an area and temporarily replace surrounding blocks with nether variants.
+    - Fireball: charge-and-release explosive fireball; charge decays unless standing on obsidian.
+    - Meteor Shower: call multiple meteors that explode on impact around a target zone.
+- Flux
+  - Passives:
+    - Charge Storage: consume valuables (diamond/gold/copper blocks, enchanted diamond gear/tools) to charge the beam up to 100%.
+    - Ally Inversion: offensive beam effects on trusted players repair their armor durability instead of dealing damage.
+    - Overcharge Ramp: once at 100%, after 5s begins charging toward 200% while dealing self-damage each second.
+  - Abilities:
+    - Flux Beam: long-range beam whose damage/durability shred scales with stored charge (up to 200% one-shot potential).
+    - Static Burst: burst built from recent damage taken (archival ability; can be disabled if unused).
+- Life
+  - Passives:
+    - Auto-enchant Unbreaking: applies Unbreaking to held gear.
+    - Double Saturation: food restores twice the normal saturation.
+  - Abilities:
+    - Vitality Vortex: area pulse that provides buffs/heals allies and debuffs enemies based on surroundings.
+    - Health Drain: siphon health from a target to heal the user.
+    - Life Circle: aura that lowers enemy max health while boosting the user's and trusted allies' max health.
+    - Heart Lock: temporarily locks an enemy's max health to their current health value.
+- Puff
+  - Passives:
+    - Fall Damage Immunity: negates fall damage entirely.
+    - Auto-enchant Power: auto-applies Power to bows.
+    - Auto-enchant Punch: auto-applies Punch to bows.
+    - Sculk Silence: immune to triggering sculk shriekers.
+    - Crop-Trample Immunity: cannot trample farmland.
+  - Abilities:
+    - Double Jump: midair jump reset with short cooldown.
+    - Dash: rapid dash that damages/knocks back targets passed through.
+    - Breezy Bash: launch a target upward then spike them downward.
+    - Group Breezy Bash: radial knock-up/knockback on all untrusted players nearby.
+- Speed
+  - Passives:
+    - Speed I: permanent movement speed bonus (tuneable; previously Speed II).
+  - Abilities:
+    - Blur: chain lightning strikes that damage and knock back targets along a path.
+    - Speed Storm: field that freezes enemies while granting speed/haste to allies.
+    - Terminal Velocity: short burst of Speed III + Haste II.
+- Strength
+  - Passives:
+    - Strength I (intended II): flat damage buff.
+    - Auto-enchant Sharpness: Sharpness II at tier 1, V at tier 2.
+  - Abilities:
+    - Nullify: strip active potion/status effects from enemies.
+    - Frailer: apply Weakness to enemies.
+    - Bounty Hunting: track the owner of an input item for a limited time; item consumed.
+    - Chad Strength: every fourth hit deals bonus (~3.5 hearts) damage.
+- Wealth
+  - Passives:
+    - Auto-enchant Mending: applies Mending to tools/armor.
+    - Auto-enchant Fortune: applies Fortune to tools.
+    - Auto-enchant Looting: applies Looting to weapons.
+    - Luck: permanent Luck effect.
+    - Hero of the Village: permanent hero status.
+    - Durability chip: extra armor damage dealt to enemies per strike.
+    - Armor mend on hit: slowly repairs the holder's armor when hitting enemies.
+    - Double Debris: furnace outputs double netherite scrap.
+  - Abilities:
+    - Pockets: opens 9-slot extra inventory UI.
+    - Unfortunate: chance to cancel enemy actions (attacks, block place, eating, etc.).
+    - Item Lock: temporarily disables a target item for an enemy.
+    - Amplification: boosts all enchants on tools/armor for ~45 seconds (3-minute cooldown).
+    - Rich Rush: boosts mob drops and ore yields for ~3 minutes (9-minute cooldown).
+
+## Level unlock mapping (per gem)
+- Level 1: all passives.
+- Levels 2-4: unlock abilities in gem-defined order.
+- Level 5: unlock any remaining abilities (if more than one remains, unlock them together here).
+- Levels 6-10: no new powers; buffer so deaths do not immediately remove abilities.

@@ -45,9 +45,28 @@ java {
 
 tasks.withType(JavaCompile).configureEach {
     it.options.release = 21
+
+    def lintEnabled = project.hasProperty("lint") || gradle.startParameter.taskNames.contains("lint")
+    if (lintEnabled) {
+        it.options.compilerArgs.addAll([
+                "-Xlint:all",
+                "-Werror",
+                "-Xlint:-deprecation",
+                "-Xlint:-removal",
+                "-Xlint:-processing",
+                "-Xlint:-serial"
+        ])
+    }
+
     if (project.hasProperty("lintDeprecation")) {
         it.options.compilerArgs.addAll(["-Xlint:deprecation"])
     }
+}
+
+tasks.register("lint") {
+    group = "verification"
+    description = "Compiles all source sets with strict Java compiler linting (warnings as errors)."
+    dependsOn("compileJava", "compileClientJava", "compileTestJava")
 }
 
 processResources {

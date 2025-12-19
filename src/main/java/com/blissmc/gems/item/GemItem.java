@@ -2,6 +2,7 @@ package com.blissmc.gems.item;
 
 import com.blissmc.gems.core.GemId;
 import com.blissmc.gems.net.GemStateSync;
+import com.blissmc.gems.power.FluxCharge;
 import com.blissmc.gems.power.GemPowers;
 import com.blissmc.gems.state.GemPlayerState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -36,9 +37,18 @@ public final class GemItem extends Item {
         }
 
         GemPlayerState.initIfNeeded(player);
+
+        if (player.isSneaking()
+                && gemId == GemId.FLUX
+                && GemPlayerState.getActiveGem(player) == GemId.FLUX) {
+            boolean ok = FluxCharge.tryConsumeChargeItem(player);
+            return ok ? TypedActionResult.success(stack) : TypedActionResult.fail(stack);
+        }
+
         GemPlayerState.setActiveGem(player, gemId);
         GemPowers.sync(player);
         GemStateSync.send(player);
+        GemItemGlint.sync(player);
         player.sendMessage(Text.literal("Active gem set to " + gemId.name()), true);
         return TypedActionResult.success(stack);
     }

@@ -23,6 +23,15 @@ public final class GemAbilities {
     public static void activateByIndex(ServerPlayerEntity player, int abilityIndex) {
         GemPlayerState.initIfNeeded(player);
 
+        if (AbilityRestrictions.isStunned(player)) {
+            player.sendMessage(Text.literal("You are stunned."), true);
+            return;
+        }
+        if (AbilityRestrictions.isSuppressed(player)) {
+            player.sendMessage(Text.literal("Your gem abilities are suppressed."), true);
+            return;
+        }
+
         GemId gemId = GemPlayerState.getActiveGem(player);
         int energy = GemPlayerState.getEnergy(player);
         if (energy <= 1) {

@@ -5,18 +5,23 @@ import com.blissmc.gems.core.GemEnergyState;
 import com.blissmc.gems.core.GemId;
 import com.blissmc.gems.core.GemRegistry;
 import com.blissmc.gems.item.ModItems;
+import com.blissmc.gems.item.GemItemGlint;
 import com.blissmc.gems.net.GemStateSync;
 import com.blissmc.gems.power.GemAbility;
+import com.blissmc.gems.power.FluxCharge;
 import com.blissmc.gems.power.GemPassive;
 import com.blissmc.gems.power.GemPowers;
 import com.blissmc.gems.power.ModAbilities;
 import com.blissmc.gems.power.ModPassives;
+import com.blissmc.gems.power.SoulSystem;
 import com.blissmc.gems.state.GemPlayerState;
+import com.blissmc.gems.trust.GemTrust;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.CommandManager;
@@ -41,6 +46,16 @@ public final class GemsCommands {
         dispatcher.register(CommandManager.literal("gems")
                 .then(CommandManager.literal("status")
                         .executes(ctx -> status(ctx.getSource().getPlayerOrThrow())))
+                .then(CommandManager.literal("trust")
+                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                .executes(ctx -> trust(ctx.getSource().getPlayerOrThrow(), EntityArgumentType.getPlayer(ctx, "player")))))
+                .then(CommandManager.literal("untrust")
+                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                .executes(ctx -> untrust(ctx.getSource().getPlayerOrThrow(), EntityArgumentType.getPlayer(ctx, "player")))))
+                .then(CommandManager.literal("trustlist")
+                        .executes(ctx -> trustList(ctx.getSource().getPlayerOrThrow())))
+                .then(CommandManager.literal("soulrelease")
+                        .executes(ctx -> soulRelease(ctx.getSource().getPlayerOrThrow())))
                 .then(CommandManager.literal("trade")
                         .then(CommandManager.argument("gem", StringArgumentType.word())
                                 .suggests((ctx, builder) -> suggestGems(builder))
@@ -66,7 +81,48 @@ public final class GemsCommands {
         player.sendMessage(Text.literal("Passives: " + (passives.isEmpty() ? "-" : passives.stream().map(GemsCommands::passiveName).reduce((a, b) -> a + ", " + b).orElse("-"))), false);
         player.sendMessage(Text.literal("Abilities: " + (abilities.isEmpty() ? "-" : abilities.stream().map(GemsCommands::abilityName).reduce((a, b) -> a + ", " + b).orElse("-"))), false);
         player.sendMessage(Text.literal("Owned: " + GemPlayerState.getOwnedGems(player)), false);
+        player.sendMessage(Text.literal("Trusted: " + GemTrust.getTrusted(player).size()), false);
+        if (active == GemId.FLUX) {
+            player.sendMessage(Text.literal("Flux charge: " + FluxCharge.get(player) + "%"), false);
+        }
         return 1;
+    }
+
+    private static int trust(ServerPlayerEntity owner, ServerPlayerEntity other) {
+        if (owner == other) {
+            owner.sendMessage(Text.literal("You are always trusted."), false);
+            return 1;
+        }
+        boolean changed = GemTrust.trust(owner, other.getUuid());
+        owner.sendMessage(Text.literal(changed ? "Trusted " + other.getName().getString() : other.getName().getString() + " is already trusted."), false);
+        return 1;
+    }
+
+    private static int untrust(ServerPlayerEntity owner, ServerPlayerEntity other) {
+        if (owner == other) {
+            owner.sendMessage(Text.literal("You cannot untrust yourself."), false);
+            return 0;
+        }
+        boolean changed = GemTrust.untrust(owner, other.getUuid());
+        owner.sendMessage(Text.literal(changed ? "Untrusted " + other.getName().getString() : other.getName().getString() + " was not trusted."), false);
+        return 1;
+    }
+
+    private static int trustList(ServerPlayerEntity owner) {
+        var trusted = GemTrust.getTrusted(owner);
+        if (trusted.isEmpty()) {
+            owner.sendMessage(Text.literal("Trusted: -"), false);
+            return 1;
+        }
+        owner.sendMessage(Text.literal("Trusted (" + trusted.size() + "):"), false);
+        for (var uuid : trusted) {
+            owner.sendMessage(Text.literal("- " + uuid), false);
+        }
+        return 1;
+    }
+
+    private static int soulRelease(ServerPlayerEntity player) {
+        return SoulSystem.release(player) ? 1 : 0;
     }
 
     private static String passiveName(Identifier id) {
@@ -103,6 +159,7 @@ public final class GemsCommands {
 
         GemPlayerState.setActiveGem(player, gemId);
         GemPowers.sync(player);
+        GemItemGlint.sync(player);
         GemStateSync.send(player);
         ensurePlayerHasItem(player, ModItems.gemItem(gemId));
         player.sendMessage(Text.literal(alreadyOwned ? "Switched active gem to " + gemId.name() : "Traded for " + gemId.name()), false);

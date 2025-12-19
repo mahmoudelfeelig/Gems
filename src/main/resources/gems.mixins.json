@@ -3,9 +3,22 @@
   "package": "com.blissmc.gems.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "BlockAutoSmeltMixin",
+    "FarmlandTrampleImmunityMixin",
+    "FurnaceOutputDoubleDebrisMixin",
+    "CraftingResultSlotOwnerTagMixin",
+    "ItemEntityOwnerTagMixin",
+    "PlayerEntityDoubleSaturationMixin",
     "PlayerEntityDataMixin",
+    "PlayerEntityWealthDurabilityMixin",
+    "PlayerEntityChadStrengthMixin",
+    "PlayerEntityRestrictionsMixin",
+    "SculkShriekerSilenceMixin",
     "ServerPlayerEntityDeathMixin",
-    "LivingEntityFallDamageMixin"
+    "LivingEntityFallDamageMixin",
+    "LivingEntityFluxDamageStoreMixin",
+    "LivingEntityRichRushLootMixin",
+    "ServerPlayerInteractionManagerRestrictionsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -8,3 +8,4 @@ a Minecraft mod that adds season-inspired gems with unique powers for each holde
 ## Controls
 - `R`: activate selected ability
 - `V`: cycle selected ability
+- `B`: soul release

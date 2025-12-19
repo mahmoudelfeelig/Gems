@@ -70,6 +70,9 @@ public final class GemPowers {
             if (passive instanceof StatusEffectPassive) {
                 passive.apply(player);
             }
+            if (passive instanceof GemMaintainedPassive maintained) {
+                maintained.maintain(player);
+            }
         }
     }
 
@@ -110,4 +113,3 @@ public final class GemPowers {
         root.put(key, list);
     }
 }
-

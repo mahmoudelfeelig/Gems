@@ -1,0 +1,39 @@
+package com.blissmc.gems.mixin;
+
+import com.blissmc.gems.power.AbilityRuntime;
+import com.blissmc.gems.trust.GemTrust;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(PlayerEntity.class)
+public abstract class PlayerEntityChadStrengthMixin {
+    @Inject(method = "attack", at = @At("TAIL"))
+    private void gems$chadStrength(Entity target, CallbackInfo ci) {
+        PlayerEntity self = (PlayerEntity) (Object) this;
+        if (!(self instanceof ServerPlayerEntity attacker)) {
+            return;
+        }
+        if (!AbilityRuntime.isChadStrengthActive(attacker)) {
+            return;
+        }
+        if (!(target instanceof LivingEntity living) || !living.isAlive()) {
+            return;
+        }
+        if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(attacker, other)) {
+            return;
+        }
+
+        int hit = AbilityRuntime.incrementChadHit(attacker);
+        if (hit % 4 != 0) {
+            return;
+        }
+        living.damage(attacker.getDamageSources().playerAttack(attacker), 7.0F);
+    }
+}
+

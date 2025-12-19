@@ -23,7 +23,7 @@ public final class BreezyBashAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Launches a target into the air.";
+        return "Uppercut + Impact: launches a target upward; if they land soon, they take bonus impact damage.";
     }
 
     @Override
@@ -47,10 +47,12 @@ public final class BreezyBashAbility implements GemAbility {
         target.addVelocity(away.x * 0.6D, 1.2D, away.z * 0.6D);
         target.velocityModified = true;
         target.damage(player.getDamageSources().playerAttack(player), 4.0F);
+        if (target instanceof ServerPlayerEntity otherPlayer) {
+            BreezyBashTracker.track(player, otherPlayer, 6 * 20);
+        }
 
         ServerWorld world = player.getServerWorld();
         world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_BREEZE_WIND_BURST, SoundCategory.PLAYERS, 1.0F, 1.0F);
         return true;
     }
 }
-

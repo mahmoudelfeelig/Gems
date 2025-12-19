@@ -17,7 +17,7 @@ public final class UnboundedAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Grants short-term flight.";
+        return "Briefly grants Spectator mode, then returns you to normal gameplay.";
     }
 
     @Override
@@ -27,9 +27,8 @@ public final class UnboundedAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startUnbounded(player, 6 * 20);
-        player.sendMessage(Text.literal("Unbounded flight enabled."), true);
+        AbilityRuntime.startUnbounded(player, 3 * 20);
+        player.sendMessage(Text.literal("Unbounded active."), true);
         return true;
     }
 }
-

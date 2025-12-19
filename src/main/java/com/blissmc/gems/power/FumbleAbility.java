@@ -6,42 +6,39 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-public final class UnfortunateAbility implements GemAbility {
+public final class FumbleAbility implements GemAbility {
     @Override
     public Identifier id() {
-        return PowerIds.UNFORTUNATE;
+        return PowerIds.FUMBLE;
     }
 
     @Override
     public String name() {
-        return "Unfortunate";
+        return "Fumble";
     }
 
     @Override
     public String description() {
-        return "Chance to stun nearby enemies, disabling attacks and interactions.";
+        return "Fumble: enemies cannot use their offhand and cannot eat for a short time.";
     }
 
     @Override
     public int cooldownTicks() {
-        return 20 * 20;
+        return 30 * 20;
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getServerWorld();
-        int stunned = 0;
+        int affected = 0;
         for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= 10.0D * 10.0D)) {
             if (GemTrust.isTrusted(player, other)) {
                 continue;
             }
-            if (player.getRandom().nextFloat() <= 0.35F) {
-                AbilityRestrictions.stun(other, 3 * 20);
-                stunned++;
-            }
+            WealthFumble.apply(other, 8 * 20);
+            affected++;
         }
-        player.sendMessage(Text.literal("Unfortunate: stunned " + stunned + " players."), true);
+        player.sendMessage(Text.literal("Fumble affected " + affected + " players."), true);
         return true;
     }
 }
-

@@ -6,20 +6,20 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-public final class ItemLockAbility implements GemAbility {
+public final class HotbarLockAbility implements GemAbility {
     @Override
     public Identifier id() {
-        return PowerIds.ITEM_LOCK;
+        return PowerIds.HOTBAR_LOCK;
     }
 
     @Override
     public String name() {
-        return "Item Lock";
+        return "Hotbar Lock";
     }
 
     @Override
     public String description() {
-        return "Locks an enemy from using their held item for a short time.";
+        return "Hotbar Lock: locks an enemy to their current hotbar slot for a short time.";
     }
 
     @Override
@@ -39,9 +39,8 @@ public final class ItemLockAbility implements GemAbility {
             return true;
         }
 
-        ItemLock.lock(other, other.getMainHandStack(), 6 * 20);
-        player.sendMessage(Text.literal("Item Lock applied."), true);
+        HotbarLock.lock(other, other.getInventory().selectedSlot, 6 * 20);
+        player.sendMessage(Text.literal("Hotbar locked."), true);
         return true;
     }
 }
-

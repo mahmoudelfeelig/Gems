@@ -1,7 +1,5 @@
 package com.blissmc.gems.power;
 
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.util.Identifier;
 
@@ -99,28 +97,26 @@ public final class ModPassives {
                 "Prevents trampling farmland."
         ));
 
-        register(new AttributeModifierPassive(
+        register(new StatusEffectPassive(
                 PowerIds.SPEED_I,
                 "Speed I",
-                "Permanent movement speed bonus.",
-                EntityAttributes.GENERIC_MOVEMENT_SPEED,
-                EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL,
-                0.2D
+                "Permanent Speed I effect.",
+                StatusEffects.SPEED,
+                0
         ));
 
-        register(new AttributeModifierPassive(
+        register(new StatusEffectPassive(
                 PowerIds.STRENGTH_I,
                 "Strength I",
-                "Flat attack damage bonus.",
-                EntityAttributes.GENERIC_ATTACK_DAMAGE,
-                EntityAttributeModifier.Operation.ADD_VALUE,
-                3.0D
+                "Permanent Strength I effect.",
+                StatusEffects.STRENGTH,
+                0
         ));
         register(AutoEnchantPassive.sharpness(
                 PowerIds.AUTO_ENCHANT_SHARPNESS,
                 "Auto-enchant Sharpness",
                 "Automatically applies Sharpness to melee weapons.",
-                2
+                3
         ));
 
         register(AutoEnchantPassive.mending(

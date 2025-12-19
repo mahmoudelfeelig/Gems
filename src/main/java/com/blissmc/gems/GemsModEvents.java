@@ -6,6 +6,7 @@ import com.blissmc.gems.item.GemItemGlint;
 import com.blissmc.gems.net.GemStateSync;
 import com.blissmc.gems.power.FluxCharge;
 import com.blissmc.gems.power.AbilityRuntime;
+import com.blissmc.gems.power.BreezyBashTracker;
 import com.blissmc.gems.power.GemPowers;
 import com.blissmc.gems.power.SoulSystem;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
@@ -71,6 +72,8 @@ public final class GemsModEvents {
                 }
             }
         });
+
+        ServerTickEvents.END_SERVER_TICK.register(BreezyBashTracker::tick);
     }
 
     private static void ensureActiveGemItem(ServerPlayerEntity player) {

@@ -16,11 +16,11 @@
     - Soul Capture: stores the most recently killed mob; can be released later as a summon or resource.
     - Soul Healing: heals the holder on successful soul capture or release; minor regen pulse.
   - Abilities:
-    - Dimensional Drift: spawn an invisible fast mount and render the rider invisible for a short window.
+    - Shadow Anchor: first activation places an anchor; second activation within a short window returns you to the anchor location.
     - Dimensional Void: suppress gem abilities of enemies in a radius for a brief duration.
     - Astral Daggers: fire rapid, accurate daggers that deal ranged damage.
-    - Unbounded: grants short-term spectator-like flight/phase through blocks.
-    - Astral Projection: create a controllable projection while the body is rooted.
+    - Unbounded: briefly enter Spectator mode, then return to normal gameplay automatically.
+    - Astral Camera: enter Spectator mode for scouting, then return to your original position automatically.
     - Spook: apply a brief fear/disorient effect to nearby enemies.
     - Tag: mark a target so they remain tracked/visible through walls for a short time.
 - Fire
@@ -30,7 +30,7 @@
     - Auto-enchant Fire Aspect: applies Fire Aspect to held melee weapons.
   - Abilities:
     - Cosy Campfire: place a campfire aura granting allies Regeneration IV in range.
-    - Crisp: evaporate water in an area and temporarily replace surrounding blocks with nether variants.
+    - Heat Haze Zone: for a short duration, allies in the radius gain Fire Resistance while enemies gain Mining Fatigue and Weakness (no block replacement).
     - Fireball: charge-and-release explosive fireball; charge decays unless standing on obsidian.
     - Meteor Shower: call multiple meteors that explode on impact around a target zone.
 - Flux
@@ -46,10 +46,10 @@
     - Auto-enchant Unbreaking: applies Unbreaking to held gear.
     - Double Saturation: food restores twice the normal saturation.
   - Abilities:
-    - Vitality Vortex: area pulse that provides buffs/heals allies and debuffs enemies based on surroundings.
+    - Vitality Vortex: area pulse that provides buffs/heals allies and debuffs enemies based on surroundings (Aquatic near water, Infernal in Nether/near lava, Sculk near sculk blocks, Verdant near plants/leaves, End in the End, otherwise Default).
     - Health Drain: siphon health from a target to heal the user.
     - Life Circle: aura that lowers enemy max health while boosting the user's and trusted allies' max health.
-    - Heart Lock: temporarily locks an enemy's max health to their current health value.
+    - Heart Lock: temporarily locks an enemy's max health to their health at cast time.
 - Puff
   - Passives:
     - Fall Damage Immunity: negates fall damage entirely.
@@ -60,19 +60,19 @@
   - Abilities:
     - Double Jump: midair jump reset with short cooldown.
     - Dash: rapid dash that damages/knocks back targets passed through.
-    - Breezy Bash: launch a target upward then spike them downward.
+    - Breezy Bash (Uppercut + Impact): launch a target upward; if they land within a short window, they take bonus impact damage.
     - Group Breezy Bash: radial knock-up/knockback on all untrusted players nearby.
 - Speed
   - Passives:
     - Speed I: permanent movement speed bonus (tuneable; previously Speed II).
   - Abilities:
-    - Blur: chain lightning strikes that damage and knock back targets along a path.
+    - Arc Shot: fire a lightning arc down a line that strikes up to several enemies along the path, dealing damage and knockback.
     - Speed Storm: field that freezes enemies while granting speed/haste to allies.
     - Terminal Velocity: short burst of Speed III + Haste II.
 - Strength
   - Passives:
     - Strength I (intended II): flat damage buff.
-    - Auto-enchant Sharpness: Sharpness II at tier 1, V at tier 2.
+    - Auto-enchant Sharpness: Sharpness III at tier 1.
   - Abilities:
     - Nullify: strip active potion/status effects from enemies.
     - Frailer: apply Weakness to enemies.
@@ -90,8 +90,8 @@
     - Double Debris: furnace outputs double netherite scrap.
   - Abilities:
     - Pockets: opens 9-slot extra inventory UI.
-    - Unfortunate: chance to cancel enemy actions (attacks, block place, eating, etc.).
-    - Item Lock: temporarily disables a target item for an enemy.
+    - Fumble: for a short duration, enemies cannot use their offhand and cannot eat (no other action-cancels).
+    - Hotbar Lock: lock an enemy to their current hotbar slot for a short duration (they can still act, but cannot switch away).
     - Amplification: boosts all enchants on tools/armor for ~45 seconds (3-minute cooldown).
     - Rich Rush: boosts mob drops and ore yields for ~3 minutes (9-minute cooldown).
 

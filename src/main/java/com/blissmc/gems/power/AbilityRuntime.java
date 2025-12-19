@@ -21,28 +21,33 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Box;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 
 import java.util.UUID;
 
 public final class AbilityRuntime {
     private static final String KEY_CAMPFIRE_UNTIL = "cosyCampfireUntil";
-    private static final String KEY_CRISP_UNTIL = "crispUntil";
+    private static final String KEY_HEAT_HAZE_UNTIL = "heatHazeUntil";
     private static final String KEY_SPEED_STORM_UNTIL = "speedStormUntil";
 
     private static final String KEY_UNBOUNDED_UNTIL = "unboundedUntil";
-    private static final String KEY_UNBOUNDED_ALLOW_FLY = "unboundedPrevAllowFly";
-    private static final String KEY_UNBOUNDED_FLYING = "unboundedPrevFlying";
+    private static final String KEY_UNBOUNDED_PREV_GAMEMODE = "unboundedPrevGamemode";
 
-    private static final String KEY_PROJECTION_UNTIL = "projectionUntil";
-    private static final String KEY_PROJECTION_PREV_GAMEMODE = "projectionPrevGamemode";
+    private static final String KEY_ASTRAL_CAMERA_UNTIL = "astralCameraUntil";
+    private static final String KEY_ASTRAL_CAMERA_PREV_GAMEMODE = "astralCameraPrevGamemode";
+    private static final String KEY_ASTRAL_CAMERA_RETURN_DIM = "astralCameraReturnDim";
+    private static final String KEY_ASTRAL_CAMERA_RETURN_POS = "astralCameraReturnPos";
+    private static final String KEY_ASTRAL_CAMERA_RETURN_YAW = "astralCameraReturnYaw";
+    private static final String KEY_ASTRAL_CAMERA_RETURN_PITCH = "astralCameraReturnPitch";
 
     private static final String KEY_LIFE_CIRCLE_UNTIL = "lifeCircleUntil";
     private static final String KEY_LIFE_CIRCLE_CASTER = "lifeCircleCaster";
 
     private static final String KEY_HEART_LOCK_UNTIL = "heartLockUntil";
     private static final String KEY_HEART_LOCK_CASTER = "heartLockCaster";
+    private static final String KEY_HEART_LOCK_LOCKED_MAX = "heartLockLockedMax";
 
     private static final String KEY_BOUNTY_UNTIL = "bountyUntil";
     private static final String KEY_BOUNTY_TARGET = "bountyTarget";
@@ -62,12 +67,12 @@ public final class AbilityRuntime {
         long now = player.getServerWorld().getTime();
 
         tickCosyCampfire(player, now);
-        tickCrisp(player, now);
+        tickHeatHazeZone(player, now);
         tickSpeedStorm(player, now);
         tickLifeCircle(player, now);
         tickHeartLock(player, now);
         tickUnbounded(player, now);
-        tickProjection(player, now);
+        tickAstralCamera(player, now);
         tickBounty(player, now);
         tickAmplificationCleanup(player, now);
     }
@@ -76,8 +81,8 @@ public final class AbilityRuntime {
         persistent(player).putLong(KEY_CAMPFIRE_UNTIL, player.getServerWorld().getTime() + durationTicks);
     }
 
-    public static void startCrisp(ServerPlayerEntity player, int durationTicks) {
-        persistent(player).putLong(KEY_CRISP_UNTIL, player.getServerWorld().getTime() + durationTicks);
+    public static void startHeatHazeZone(ServerPlayerEntity player, int durationTicks) {
+        persistent(player).putLong(KEY_HEAT_HAZE_UNTIL, player.getServerWorld().getTime() + durationTicks);
     }
 
     public static void startSpeedStorm(ServerPlayerEntity player, int durationTicks) {
@@ -87,19 +92,18 @@ public final class AbilityRuntime {
     public static void startUnbounded(ServerPlayerEntity player, int durationTicks) {
         NbtCompound nbt = persistent(player);
         nbt.putLong(KEY_UNBOUNDED_UNTIL, player.getServerWorld().getTime() + durationTicks);
-        nbt.putBoolean(KEY_UNBOUNDED_ALLOW_FLY, player.getAbilities().allowFlying);
-        nbt.putBoolean(KEY_UNBOUNDED_FLYING, player.getAbilities().flying);
-
-        player.getAbilities().allowFlying = true;
-        player.getAbilities().flying = true;
-        player.sendAbilitiesUpdate();
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, durationTicks, 0, true, false, false));
+        nbt.putString(KEY_UNBOUNDED_PREV_GAMEMODE, player.interactionManager.getGameMode().getName());
+        player.changeGameMode(GameMode.SPECTATOR);
     }
 
-    public static void startProjection(ServerPlayerEntity player, int durationTicks) {
+    public static void startAstralCamera(ServerPlayerEntity player, int durationTicks) {
         NbtCompound nbt = persistent(player);
-        nbt.putLong(KEY_PROJECTION_UNTIL, player.getServerWorld().getTime() + durationTicks);
-        nbt.putString(KEY_PROJECTION_PREV_GAMEMODE, player.interactionManager.getGameMode().getName());
+        nbt.putLong(KEY_ASTRAL_CAMERA_UNTIL, player.getServerWorld().getTime() + durationTicks);
+        nbt.putString(KEY_ASTRAL_CAMERA_PREV_GAMEMODE, player.interactionManager.getGameMode().getName());
+        nbt.putString(KEY_ASTRAL_CAMERA_RETURN_DIM, player.getWorld().getRegistryKey().getValue().toString());
+        nbt.put(KEY_ASTRAL_CAMERA_RETURN_POS, NbtHelper.fromBlockPos(player.getBlockPos()));
+        nbt.putFloat(KEY_ASTRAL_CAMERA_RETURN_YAW, player.getYaw());
+        nbt.putFloat(KEY_ASTRAL_CAMERA_RETURN_PITCH, player.getPitch());
         player.changeGameMode(GameMode.SPECTATOR);
     }
 
@@ -115,8 +119,9 @@ public final class AbilityRuntime {
         nbt.putUuid(KEY_HEART_LOCK_CASTER, caster.getUuid());
 
         double currentMax = target.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH);
-        double desiredMax = Math.max(2.0D, target.getHealth());
-        double delta = desiredMax - currentMax;
+        double lockedMax = Math.max(2.0D, target.getHealth());
+        nbt.putFloat(KEY_HEART_LOCK_LOCKED_MAX, (float) lockedMax);
+        double delta = lockedMax - currentMax;
         Identifier modifierId = heartLockModifierId(caster.getUuid());
         applyMaxHealthModifier(target, modifierId, delta);
     }
@@ -182,7 +187,6 @@ public final class AbilityRuntime {
             return;
         }
         ServerWorld world = player.getServerWorld();
-        Box box = new Box(player.getBlockPos()).expand(8.0D);
         for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= 8.0D * 8.0D)) {
             if (GemTrust.isTrusted(player, other)) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 40, 3, true, false, false));
@@ -190,11 +194,20 @@ public final class AbilityRuntime {
         }
     }
 
-    private static void tickCrisp(ServerPlayerEntity player, long now) {
-        if (persistent(player).getLong(KEY_CRISP_UNTIL) <= now) {
+    private static void tickHeatHazeZone(ServerPlayerEntity player, long now) {
+        if (persistent(player).getLong(KEY_HEAT_HAZE_UNTIL) <= now) {
             return;
         }
-        FireCrisp.apply(player.getServerWorld(), player.getBlockPos(), 8);
+        ServerWorld world = player.getServerWorld();
+        int duration = 40;
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= 10.0D * 10.0D)) {
+            if (GemTrust.isTrusted(player, other)) {
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, duration, 0, true, false, false));
+            } else {
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, duration, 0, true, false, false));
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
+            }
+        }
     }
 
     private static void tickSpeedStorm(ServerPlayerEntity player, long now) {
@@ -266,44 +279,81 @@ public final class AbilityRuntime {
             removeMaxHealthModifier(target, modifierId);
             nbt.remove(KEY_HEART_LOCK_UNTIL);
             nbt.remove(KEY_HEART_LOCK_CASTER);
+            nbt.remove(KEY_HEART_LOCK_LOCKED_MAX);
             return;
         }
 
         double currentMax = target.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH);
-        double desiredMax = Math.max(2.0D, target.getHealth());
-        double delta = desiredMax - currentMax;
+        float locked = nbt.contains(KEY_HEART_LOCK_LOCKED_MAX, NbtElement.FLOAT_TYPE) ? nbt.getFloat(KEY_HEART_LOCK_LOCKED_MAX) : (float) currentMax;
+        double lockedMax = Math.max(2.0D, locked);
+        double delta = lockedMax - currentMax;
         applyMaxHealthModifier(target, modifierId, delta);
     }
 
     private static void tickUnbounded(ServerPlayerEntity player, long now) {
         NbtCompound nbt = persistent(player);
         long until = nbt.getLong(KEY_UNBOUNDED_UNTIL);
-        if (until <= 0 || until > now) {
+        if (until <= 0) {
             return;
         }
-        boolean prevAllow = nbt.getBoolean(KEY_UNBOUNDED_ALLOW_FLY);
-        boolean prevFlying = nbt.getBoolean(KEY_UNBOUNDED_FLYING);
-        player.getAbilities().allowFlying = prevAllow;
-        player.getAbilities().flying = prevFlying && prevAllow;
-        player.sendAbilitiesUpdate();
+        if (until > now) {
+            return;
+        }
+
+        GameMode prev = parseGameMode(nbt.getString(KEY_UNBOUNDED_PREV_GAMEMODE));
+        if (prev == null || prev == GameMode.SPECTATOR) {
+            prev = GameMode.SURVIVAL;
+        }
+        player.changeGameMode(prev);
+        ensureNotStuck(player);
+
         nbt.remove(KEY_UNBOUNDED_UNTIL);
-        nbt.remove(KEY_UNBOUNDED_ALLOW_FLY);
-        nbt.remove(KEY_UNBOUNDED_FLYING);
+        nbt.remove(KEY_UNBOUNDED_PREV_GAMEMODE);
     }
 
-    private static void tickProjection(ServerPlayerEntity player, long now) {
+    private static void tickAstralCamera(ServerPlayerEntity player, long now) {
         NbtCompound nbt = persistent(player);
-        long until = nbt.getLong(KEY_PROJECTION_UNTIL);
-        if (until <= 0 || until > now) {
+        long until = nbt.getLong(KEY_ASTRAL_CAMERA_UNTIL);
+        if (until <= 0) {
             return;
         }
-        String name = nbt.getString(KEY_PROJECTION_PREV_GAMEMODE);
-        GameMode prev = parseGameMode(name);
-        if (prev != null) {
-            player.changeGameMode(prev);
+        if (until > now) {
+            return;
         }
-        nbt.remove(KEY_PROJECTION_UNTIL);
-        nbt.remove(KEY_PROJECTION_PREV_GAMEMODE);
+
+        GameMode prev = parseGameMode(nbt.getString(KEY_ASTRAL_CAMERA_PREV_GAMEMODE));
+        if (prev == null || prev == GameMode.SPECTATOR) {
+            prev = GameMode.SURVIVAL;
+        }
+
+        BlockPos returnPos = nbt.contains(KEY_ASTRAL_CAMERA_RETURN_POS, NbtElement.COMPOUND_TYPE)
+                ? NbtHelper.toBlockPos(nbt, KEY_ASTRAL_CAMERA_RETURN_POS).orElse(player.getBlockPos())
+                : player.getBlockPos();
+        float yaw = nbt.contains(KEY_ASTRAL_CAMERA_RETURN_YAW, NbtElement.FLOAT_TYPE) ? nbt.getFloat(KEY_ASTRAL_CAMERA_RETURN_YAW) : player.getYaw();
+        float pitch = nbt.contains(KEY_ASTRAL_CAMERA_RETURN_PITCH, NbtElement.FLOAT_TYPE) ? nbt.getFloat(KEY_ASTRAL_CAMERA_RETURN_PITCH) : player.getPitch();
+
+        ServerWorld returnWorld = player.getServerWorld();
+        if (nbt.contains(KEY_ASTRAL_CAMERA_RETURN_DIM, NbtElement.STRING_TYPE)) {
+            Identifier dimId = Identifier.tryParse(nbt.getString(KEY_ASTRAL_CAMERA_RETURN_DIM));
+            if (dimId != null) {
+                var key = net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.WORLD, dimId);
+                var resolved = player.getServer().getWorld(key);
+                if (resolved != null) {
+                    returnWorld = resolved;
+                }
+            }
+        }
+
+        player.changeGameMode(prev);
+        player.teleport(returnWorld, returnPos.getX() + 0.5D, returnPos.getY(), returnPos.getZ() + 0.5D, yaw, pitch);
+        ensureNotStuck(player);
+
+        nbt.remove(KEY_ASTRAL_CAMERA_UNTIL);
+        nbt.remove(KEY_ASTRAL_CAMERA_PREV_GAMEMODE);
+        nbt.remove(KEY_ASTRAL_CAMERA_RETURN_DIM);
+        nbt.remove(KEY_ASTRAL_CAMERA_RETURN_POS);
+        nbt.remove(KEY_ASTRAL_CAMERA_RETURN_YAW);
+        nbt.remove(KEY_ASTRAL_CAMERA_RETURN_PITCH);
     }
 
     private static void tickBounty(ServerPlayerEntity hunter, long now) {
@@ -416,8 +466,32 @@ public final class AbilityRuntime {
         return null;
     }
 
+    private static void ensureNotStuck(ServerPlayerEntity player) {
+        ServerWorld world = player.getServerWorld();
+        if (!world.getBlockCollisions(player, player.getBoundingBox()).iterator().hasNext()) {
+            return;
+        }
+
+        BlockPos base = player.getBlockPos();
+        BlockPos.Mutable p = new BlockPos.Mutable();
+        var box = player.getBoundingBox();
+
+        for (int dy = 0; dy <= 6; dy++) {
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    p.set(base.getX() + dx, base.getY() + dy, base.getZ() + dz);
+                    Vec3d candidate = new Vec3d(p.getX() + 0.5D, p.getY(), p.getZ() + 0.5D);
+                    var moved = box.offset(candidate.subtract(player.getPos()));
+                    if (!world.getBlockCollisions(player, moved).iterator().hasNext()) {
+                        player.teleport(world, candidate.x, candidate.y, candidate.z, player.getYaw(), player.getPitch());
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
     private static NbtCompound persistent(ServerPlayerEntity player) {
         return ((GemsPersistentDataHolder) player).gems$getPersistentData();
     }
 }
-

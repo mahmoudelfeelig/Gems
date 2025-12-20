@@ -12,6 +12,7 @@ import com.feel.gems.power.SoulSystem;
 import com.feel.gems.power.AutoSmeltCache;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.debug.GemsStressTest;
+import com.feel.gems.debug.GemsPerfMonitor;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -63,6 +64,8 @@ public final class GemsModEvents {
 
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> AutoSmeltCache.clear());
 
+        ServerTickEvents.START_SERVER_TICK.register(server -> GemsPerfMonitor.onTickStart());
+
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             tickCounter++;
             boolean doMaintain = tickCounter % 40 == 0;
@@ -87,6 +90,7 @@ public final class GemsModEvents {
 
         ServerTickEvents.END_SERVER_TICK.register(BreezyBashTracker::tick);
         ServerTickEvents.END_SERVER_TICK.register(GemsStressTest::tick);
+        ServerTickEvents.END_SERVER_TICK.register(server -> GemsPerfMonitor.onTickEnd());
     }
 
     private static void ensureActiveGemItem(ServerPlayerEntity player) {

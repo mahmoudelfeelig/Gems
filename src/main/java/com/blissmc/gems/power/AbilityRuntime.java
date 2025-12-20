@@ -70,6 +70,7 @@ public final class AbilityRuntime {
     public static void tickEverySecond(ServerPlayerEntity player) {
         long now = player.getServerWorld().getTime();
 
+        ShadowAnchorAbility.tick(player, now);
         tickCosyCampfire(player, now);
         tickHeatHazeZone(player, now);
         tickSpeedStorm(player, now);

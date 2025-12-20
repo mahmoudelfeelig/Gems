@@ -1,6 +1,7 @@
 package com.feel.gems.power;
 
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 public final class UnimplementedAbility implements GemAbility {
@@ -38,7 +39,7 @@ public final class UnimplementedAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
+        player.sendMessage(Text.literal(name + " is not implemented yet."), true);
         return false;
     }
 }
-

@@ -4,6 +4,7 @@ import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.ActivateAbilityPayload;
+import com.feel.gems.net.FluxChargePayload;
 import com.feel.gems.net.SoulReleasePayload;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -15,15 +16,12 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.List;
-import java.util.ArrayList;
-
 public final class GemsKeybinds {
     private static final String CATEGORY = "category.gems";
 
     private static boolean registered = false;
     private static KeyBinding MODIFIER;
-    private static final List<KeyBinding> CHORD_SLOTS = new ArrayList<>();
+    private static final boolean[] HOTBAR_PREV_DOWN = new boolean[9];
 
     private GemsKeybinds() {
     }
@@ -41,50 +39,41 @@ public final class GemsKeybinds {
                 CATEGORY
         ));
 
-        for (int slot = 1; slot <= 10; slot++) {
-            CHORD_SLOTS.add(KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                    "key.gems.chord_slot_" + slot,
-                    InputUtil.Type.KEYSYM,
-                    defaultChordKey(slot),
-                    CATEGORY
-            )));
-        }
-
-        // Prevent "modifier + number" from switching hotbar slots by draining the hotbar presses
-        // at the very start of the client tick (before vanilla input handling runs).
+        // Abilities use "Modifier + Hotbar key 1..9".
+        // We intentionally do NOT register per-slot 1..9 bindings, to avoid breaking vanilla hotbar selection.
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (client.currentScreen != null) {
+                clearHotbarPrev();
                 return;
             }
             if (!MODIFIER.isPressed()) {
+                clearHotbarPrev();
                 return;
             }
             GameOptions options = client.options;
             if (options == null || options.hotbarKeys == null) {
+                clearHotbarPrev();
                 return;
             }
-            for (KeyBinding hotbar : options.hotbarKeys) {
-                while (hotbar.wasPressed()) {
-                    // drain
+            int limit = Math.min(9, options.hotbarKeys.length);
+            for (int i = 0; i < limit; i++) {
+                KeyBinding hotbar = options.hotbarKeys[i];
+                boolean down = hotbar.isPressed();
+                if (down && !HOTBAR_PREV_DOWN[i]) {
+                    activateSlot(client, i + 1);
                 }
+                HOTBAR_PREV_DOWN[i] = down;
+            }
+            for (int i = limit; i < HOTBAR_PREV_DOWN.length; i++) {
+                HOTBAR_PREV_DOWN[i] = false;
             }
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.currentScreen != null) {
-                drainQueuedPresses();
                 return;
             }
-
-            boolean modifier = MODIFIER.isPressed();
-            for (int i = 0; i < CHORD_SLOTS.size(); i++) {
-                KeyBinding slot = CHORD_SLOTS.get(i);
-                while (slot.wasPressed()) {
-                    if (modifier) {
-                        activateSlot(client, i + 1);
-                    }
-                }
-            }
+            // Nothing: ability hotkeys are handled in START_CLIENT_TICK to preempt vanilla hotbar switching.
         });
     }
 
@@ -120,6 +109,12 @@ public final class GemsKeybinds {
 
         GemDefinition def = GemRegistry.definition(ClientGemState.activeGem());
         int abilityCount = def.abilities().size();
+
+        // Flux charging is always the key AFTER the gem's last ability (not "after unlocked abilities").
+        if (ClientGemState.activeGem() == GemId.FLUX && slotNumber == abilityCount + 1) {
+            ClientPlayNetworking.send(FluxChargePayload.INSTANCE);
+            return;
+        }
 
         // Soul release is always the key AFTER the gem's last ability (not "after unlocked abilities").
         if (ClientGemState.activeGem() == GemId.ASTRA && slotNumber == abilityCount + 1) {
@@ -159,39 +154,21 @@ public final class GemsKeybinds {
         client.player.sendMessage(text, true);
     }
 
-    private static void drainQueuedPresses() {
-        for (KeyBinding slot : CHORD_SLOTS) {
-            while (slot.wasPressed()) {
-                // drain
-            }
+    private static void clearHotbarPrev() {
+        for (int i = 0; i < HOTBAR_PREV_DOWN.length; i++) {
+            HOTBAR_PREV_DOWN[i] = false;
         }
     }
 
     private static String chordKeyLabel(int slotNumber) {
-        int idx = slotNumber - 1;
-        if (idx < 0 || idx >= CHORD_SLOTS.size()) {
+        if (slotNumber < 1 || slotNumber > 9) {
             return "";
         }
-        KeyBinding binding = CHORD_SLOTS.get(idx);
-        if (binding == null) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        GameOptions options = client.options;
+        if (options == null || options.hotbarKeys == null || options.hotbarKeys.length < slotNumber) {
             return "";
         }
-        return binding.getBoundKeyLocalizedText().getString();
-    }
-
-    private static int defaultChordKey(int slotNumber) {
-        return switch (slotNumber) {
-            case 1 -> GLFW.GLFW_KEY_1;
-            case 2 -> GLFW.GLFW_KEY_2;
-            case 3 -> GLFW.GLFW_KEY_3;
-            case 4 -> GLFW.GLFW_KEY_4;
-            case 5 -> GLFW.GLFW_KEY_5;
-            case 6 -> GLFW.GLFW_KEY_6;
-            case 7 -> GLFW.GLFW_KEY_7;
-            case 8 -> GLFW.GLFW_KEY_8;
-            case 9 -> GLFW.GLFW_KEY_9;
-            case 10 -> GLFW.GLFW_KEY_0;
-            default -> GLFW.GLFW_KEY_UNKNOWN;
-        };
+        return options.hotbarKeys[slotNumber - 1].getBoundKeyLocalizedText().getString();
     }
 }

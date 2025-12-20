@@ -1,6 +1,10 @@
 package com.feel.gems.power;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.core.GemDefinition;
+import com.feel.gems.core.GemId;
+import com.feel.gems.core.GemRegistry;
+import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -11,6 +15,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 public final class ShadowAnchorAbility implements GemAbility {
     private static final String KEY_ANCHOR_UNTIL = "shadowAnchorUntil";
@@ -48,6 +53,7 @@ public final class ShadowAnchorAbility implements GemAbility {
                 nbt.remove(KEY_ANCHOR_DIM);
                 nbt.remove(KEY_ANCHOR_POS);
                 player.sendMessage(Text.literal("Anchor cleared."), true);
+                startPostCooldown(player, now);
                 return true;
             }
 
@@ -60,6 +66,7 @@ public final class ShadowAnchorAbility implements GemAbility {
                     nbt.remove(KEY_ANCHOR_DIM);
                     nbt.remove(KEY_ANCHOR_POS);
                     player.sendMessage(Text.literal("Anchor was invalid."), true);
+                    startPostCooldown(player, now);
                     return true;
                 }
                 Vec3d from = player.getPos();
@@ -71,7 +78,19 @@ public final class ShadowAnchorAbility implements GemAbility {
                 nbt.remove(KEY_ANCHOR_DIM);
                 nbt.remove(KEY_ANCHOR_POS);
                 player.sendMessage(Text.literal("Returned to anchor."), true);
+                startPostCooldown(player, now);
                 return true;
+            }
+        }
+
+        // If an old anchor expired, clear it and apply post-cooldown.
+        if (nbt.contains(KEY_ANCHOR_UNTIL, NbtElement.LONG_TYPE)) {
+            long until = nbt.getLong(KEY_ANCHOR_UNTIL);
+            if (until > 0 && now > until) {
+                clearAnchor(nbt);
+                player.sendMessage(Text.literal("Anchor expired."), true);
+                startPostCooldown(player, now);
+                return false;
             }
         }
 
@@ -84,6 +103,40 @@ public final class ShadowAnchorAbility implements GemAbility {
         AbilityFeedback.burst(player, ParticleTypes.PORTAL, 12, 0.2D);
         player.sendMessage(Text.literal("Anchor set."), true);
         return true;
+    }
+
+    public static void tick(ServerPlayerEntity player, long now) {
+        NbtCompound nbt = persistent(player);
+        if (!nbt.contains(KEY_ANCHOR_UNTIL, NbtElement.LONG_TYPE)) {
+            return;
+        }
+        long until = nbt.getLong(KEY_ANCHOR_UNTIL);
+        if (until <= 0 || now <= until) {
+            return;
+        }
+        clearAnchor(nbt);
+        startPostCooldown(player, now);
+    }
+
+    private static void startPostCooldown(ServerPlayerEntity player, long now) {
+        int cooldown = GemsBalance.v().astra().shadowAnchorPostCooldownTicks();
+        if (cooldown <= 0) {
+            return;
+        }
+        GemAbilityCooldowns.setNextAllowedTick(player, PowerIds.SHADOW_ANCHOR, now + cooldown);
+
+        // Best-effort client HUD sync.
+        GemDefinition def = GemRegistry.definition(GemId.ASTRA);
+        int index = def.abilities().indexOf(PowerIds.SHADOW_ANCHOR);
+        if (index >= 0) {
+            ServerPlayNetworking.send(player, new AbilityCooldownPayload(GemId.ASTRA.ordinal(), index, cooldown));
+        }
+    }
+
+    private static void clearAnchor(NbtCompound nbt) {
+        nbt.remove(KEY_ANCHOR_UNTIL);
+        nbt.remove(KEY_ANCHOR_DIM);
+        nbt.remove(KEY_ANCHOR_POS);
     }
 
     private static NbtCompound persistent(ServerPlayerEntity player) {

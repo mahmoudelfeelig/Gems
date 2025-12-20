@@ -20,8 +20,13 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
 import com.feel.gems.core.GemId;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class GemsModEvents {
     private static int tickCounter = 0;
@@ -44,6 +49,7 @@ public final class GemsModEvents {
             GemPowers.sync(player);
             GemItemGlint.sync(player);
             GemStateSync.send(player);
+            unlockStartingRecipes(server, player);
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
@@ -60,6 +66,7 @@ public final class GemsModEvents {
             GemPowers.sync(newPlayer);
             GemItemGlint.sync(newPlayer);
             GemStateSync.send(newPlayer);
+            unlockStartingRecipes(newPlayer.getServer(), newPlayer);
         });
 
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> AutoSmeltCache.clear());
@@ -118,5 +125,25 @@ public final class GemsModEvents {
             }
         }
         return false;
+    }
+
+    private static void unlockStartingRecipes(net.minecraft.server.MinecraftServer server, ServerPlayerEntity player) {
+        if (server == null) {
+            return;
+        }
+        var manager = server.getRecipeManager();
+        List<Identifier> ids = List.of(
+                Identifier.of(GemsMod.MOD_ID, "heart"),
+                Identifier.of(GemsMod.MOD_ID, "energy_upgrade"),
+                Identifier.of(GemsMod.MOD_ID, "trader")
+        );
+
+        List<RecipeEntry<?>> entries = new ArrayList<>(ids.size());
+        for (Identifier id : ids) {
+            manager.get(id).ifPresent(entries::add);
+        }
+        if (!entries.isEmpty()) {
+            player.unlockRecipes(entries);
+        }
     }
 }

@@ -37,11 +37,11 @@ public final class FrailerAbility implements GemAbility {
         var target = Targeting.raycastLiving(player, GemsBalance.v().strength().frailerRangeBlocks());
         if (target == null) {
             player.sendMessage(Text.literal("No target."), true);
-            return true;
+            return false;
         }
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
             player.sendMessage(Text.literal("Target is trusted."), true);
-            return true;
+            return false;
         }
 
         target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, GemsBalance.v().strength().frailerDurationTicks(), 0));

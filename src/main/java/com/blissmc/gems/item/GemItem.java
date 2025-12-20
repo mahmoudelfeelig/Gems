@@ -38,14 +38,20 @@ public final class GemItem extends Item {
 
         GemPlayerState.initIfNeeded(player);
 
-        if (player.isSneaking()
-                && gemId == GemId.FLUX
-                && GemPlayerState.getActiveGem(player) == GemId.FLUX) {
-            boolean ok = FluxCharge.tryConsumeChargeItem(player);
-            if (ok) {
-                GemStateSync.send(player);
+        if (player.isSneaking() && gemId == GemId.FLUX) {
+            boolean changedGem = false;
+            if (GemPlayerState.getActiveGem(player) != GemId.FLUX) {
+                GemPlayerState.setActiveGem(player, GemId.FLUX);
+                GemPowers.sync(player);
+                changedGem = true;
             }
-            return ok ? TypedActionResult.success(stack) : TypedActionResult.fail(stack);
+
+            boolean charged = FluxCharge.tryConsumeChargeItem(player);
+            if (charged || changedGem) {
+                GemStateSync.send(player);
+                GemItemGlint.sync(player);
+            }
+            return TypedActionResult.success(stack);
         }
 
         GemPlayerState.setActiveGem(player, gemId);

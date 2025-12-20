@@ -52,7 +52,7 @@ jobs:
           chmod +x "$gradle_bin"
           "$gradle_bin" --no-daemon build
 
-      - name: Perf smoke (20 Carpet bots + force stress)
+      - name: Performance smoke (20 Carpet bots + force stress)
         id: perf
         shell: bash
         run: |

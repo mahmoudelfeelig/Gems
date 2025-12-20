@@ -34,11 +34,11 @@ public final class HeartLockAbility implements GemAbility {
         var target = Targeting.raycastLiving(player, GemsBalance.v().life().heartLockRangeBlocks());
         if (!(target instanceof ServerPlayerEntity other)) {
             player.sendMessage(Text.literal("No player target."), true);
-            return true;
+            return false;
         }
         if (GemTrust.isTrusted(player, other)) {
             player.sendMessage(Text.literal("Target is trusted."), true);
-            return true;
+            return false;
         }
 
         AbilityRuntime.startHeartLock(player, other, GemsBalance.v().life().heartLockDurationTicks());

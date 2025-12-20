@@ -36,11 +36,11 @@ public final class BreezyBashAbility implements GemAbility {
         LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().puff().breezyBashRangeBlocks());
         if (target == null) {
             player.sendMessage(Text.literal("No target."), true);
-            return true;
+            return false;
         }
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
             player.sendMessage(Text.literal("Target is trusted."), true);
-            return true;
+            return false;
         }
 
         Vec3d away = target.getPos().subtract(player.getPos()).normalize();

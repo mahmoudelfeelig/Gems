@@ -4,8 +4,6 @@ import com.blissmc.gems.config.GemsBalance;
 import com.blissmc.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -55,8 +53,7 @@ public final class BreezyBashAbility implements GemAbility {
             BreezyBashTracker.track(player, otherPlayer, GemsBalance.v().puff().breezyBashImpactWindowTicks());
         }
 
-        ServerWorld world = player.getServerWorld();
-        world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_BREEZE_WIND_BURST, SoundCategory.PLAYERS, 1.0F, 1.0F);
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 1.0F, 1.0F);
         return true;
     }
 }

@@ -27,11 +27,26 @@ public class GemsBalanceDefaultsTest {
         cfg.life.vitalityVortexScanRadiusBlocks = 999;
         cfg.astra.astralDaggersDamage = -100.0F;
         cfg.fire.fireballMaxDistanceBlocks = 1;
+        cfg.visual.particleScalePercent = 999;
+        cfg.visual.maxParticlesPerCall = 99999;
 
         GemsBalance.Values v = GemsBalance.Values.from(cfg);
         assertEquals(32, v.fire().heatHazeRadiusBlocks());
         assertEquals(6, v.life().vitalityVortexScanRadiusBlocks());
         assertEquals(0.0F, v.astra().astralDaggersDamage());
         assertEquals(10, v.fire().fireballMaxDistanceBlocks());
+        assertEquals(200, v.visual().particleScalePercent());
+        assertEquals(2048, v.visual().maxParticlesPerCall());
+    }
+
+    @Test
+    void missingConfigSectionsDoNotCrash() {
+        GemsBalanceConfig cfg = new GemsBalanceConfig();
+        cfg.visual = null;
+        cfg.fire = null;
+
+        GemsBalance.Values v = GemsBalance.Values.from(cfg);
+        assertNotNull(v.visual());
+        assertNotNull(v.fire());
     }
 }

@@ -2,7 +2,6 @@ package com.blissmc.gems.power;
 
 import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -40,7 +39,7 @@ public final class DoubleJumpAbility implements GemAbility {
         player.setVelocity(v.x, GemsBalance.v().puff().doubleJumpVelocityY(), v.z);
         player.velocityModified = true;
         AbilityFeedback.burst(player, ParticleTypes.CLOUD, 12, 0.2D);
-        player.getServerWorld().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, SoundCategory.PLAYERS, 0.7F, 1.5F);
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, 0.7F, 1.5F);
         return true;
     }
 }

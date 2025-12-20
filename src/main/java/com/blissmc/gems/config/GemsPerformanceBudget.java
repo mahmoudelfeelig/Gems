@@ -14,6 +14,22 @@ public final class GemsPerformanceBudget {
     public static List<String> validate(GemsBalance.Values v) {
         List<String> warnings = new ArrayList<>();
 
+        if (!v.visual().enableParticles()) {
+            warnings.add("Visual.enableParticles is disabled; ability VFX will be minimal.");
+        }
+        if (!v.visual().enableSounds()) {
+            warnings.add("Visual.enableSounds is disabled; ability audio feedback will be minimal.");
+        }
+        if (v.visual().particleScalePercent() > 150) {
+            warnings.add("Visual.particleScalePercent is high (" + v.visual().particleScalePercent() + "%); particles can become expensive on large servers.");
+        }
+        if (v.visual().maxParticlesPerCall() > 512) {
+            warnings.add("Visual.maxParticlesPerCall is high (" + v.visual().maxParticlesPerCall() + "); large particle packets can be expensive.");
+        }
+        if (v.visual().maxRingPoints() > 512) {
+            warnings.add("Visual.maxRingPoints is high (" + v.visual().maxRingPoints() + "); aura rings can become expensive.");
+        }
+
         if (v.life().vitalityVortexScanRadiusBlocks() > 6) {
             warnings.add("Life.vitalityVortexScanRadiusBlocks is very high (" + v.life().vitalityVortexScanRadiusBlocks() + "); scanning is O(r^3) on activation.");
         }
@@ -36,4 +52,3 @@ public final class GemsPerformanceBudget {
         return warnings;
     }
 }
-

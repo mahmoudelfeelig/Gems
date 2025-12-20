@@ -1,9 +1,11 @@
 package com.blissmc.gems.mixin;
 
+import com.blissmc.gems.power.AbilityFeedback;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.projectile.ExplosiveProjectileEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,9 +20,9 @@ public abstract class ExplosiveProjectileTrailMixin {
             return;
         }
         if (self.getCommandTags().contains("gems_meteor")) {
-            world.spawnParticles(ParticleTypes.FLAME, self.getX(), self.getY(), self.getZ(), 1, 0.05D, 0.05D, 0.05D, 0.0D);
-            world.spawnParticles(ParticleTypes.SMOKE, self.getX(), self.getY(), self.getZ(), 1, 0.05D, 0.05D, 0.05D, 0.0D);
+            Vec3d pos = self.getPos();
+            AbilityFeedback.burstAt(world, pos, ParticleTypes.FLAME, 1, 0.05D);
+            AbilityFeedback.burstAt(world, pos, ParticleTypes.SMOKE, 1, 0.05D);
         }
     }
 }
-

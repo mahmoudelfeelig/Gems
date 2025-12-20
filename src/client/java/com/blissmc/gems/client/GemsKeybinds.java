@@ -9,26 +9,21 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 public final class GemsKeybinds {
     private static final String CATEGORY = "category.gems";
 
     private static boolean registered = false;
     private static KeyBinding MODIFIER;
-    private static final List<KeyBinding> DIRECT_SLOTS = new ArrayList<>();
-    private static KeyBinding DIRECT_SOUL_RELEASE;
-
-    // "Modifier + number" uses raw GLFW polling (no keybind conflicts with hotbar).
-    // Slots 1..maxAbilityCount, and the slot after the last ability is Soul Release (Astra only).
-    private static final int MAX_CHORD_SLOTS = 10; // 1..9,0
-    private static final boolean[] CHORD_DOWN = new boolean[MAX_CHORD_SLOTS];
+    private static final List<KeyBinding> CHORD_SLOTS = new ArrayList<>();
 
     private GemsKeybinds() {
     }
@@ -46,22 +41,34 @@ public final class GemsKeybinds {
                 CATEGORY
         ));
 
-        int directCount = Math.min(10, maxAbilityCount());
-        for (int i = 1; i <= directCount; i++) {
-            DIRECT_SLOTS.add(KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                    "key.gems.ability_slot_" + i,
+        for (int slot = 1; slot <= 10; slot++) {
+            CHORD_SLOTS.add(KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                    "key.gems.chord_slot_" + slot,
                     InputUtil.Type.KEYSYM,
-                    GLFW.GLFW_KEY_UNKNOWN,
+                    defaultChordKey(slot),
                     CATEGORY
             )));
         }
 
-        DIRECT_SOUL_RELEASE = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.gems.soul_release",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_UNKNOWN,
-                CATEGORY
-        ));
+        // Prevent "modifier + number" from switching hotbar slots by draining the hotbar presses
+        // at the very start of the client tick (before vanilla input handling runs).
+        ClientTickEvents.START_CLIENT_TICK.register(client -> {
+            if (client.currentScreen != null) {
+                return;
+            }
+            if (!MODIFIER.isPressed()) {
+                return;
+            }
+            GameOptions options = client.options;
+            if (options == null || options.hotbarKeys == null) {
+                return;
+            }
+            for (KeyBinding hotbar : options.hotbarKeys) {
+                while (hotbar.wasPressed()) {
+                    // drain
+                }
+            }
+        });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.currentScreen != null) {
@@ -69,31 +76,14 @@ public final class GemsKeybinds {
                 return;
             }
 
-            for (int i = 0; i < DIRECT_SLOTS.size(); i++) {
-                KeyBinding slot = DIRECT_SLOTS.get(i);
+            boolean modifier = MODIFIER.isPressed();
+            for (int i = 0; i < CHORD_SLOTS.size(); i++) {
+                KeyBinding slot = CHORD_SLOTS.get(i);
                 while (slot.wasPressed()) {
-                    activateSlot(client, i + 1);
+                    if (modifier) {
+                        activateSlot(client, i + 1);
+                    }
                 }
-            }
-            while (DIRECT_SOUL_RELEASE.wasPressed()) {
-                activateSoulRelease(client);
-            }
-
-            if (!MODIFIER.isPressed()) {
-                clearChordDown();
-                return;
-            }
-
-            for (int i = 0; i < MAX_CHORD_SLOTS; i++) {
-                int keyCode = defaultDigitKey(i + 1);
-                if (keyCode == GLFW.GLFW_KEY_UNKNOWN) {
-                    continue;
-                }
-                boolean down = isDown(client, keyCode);
-                if (down && !CHORD_DOWN[i]) {
-                    activateSlot(client, i + 1);
-                }
-                CHORD_DOWN[i] = down;
             }
         });
     }
@@ -106,15 +96,15 @@ public final class GemsKeybinds {
     }
 
     public static String chordSlotLabel(int slotNumber) {
-        String digit = digitLabel(slotNumber);
-        if (digit.isEmpty()) {
+        String key = chordKeyLabel(slotNumber);
+        if (key.isEmpty()) {
             return "";
         }
         String modifier = modifierLabel();
         if (modifier.isEmpty()) {
-            return digit;
+            return key;
         }
-        return modifier + " + " + digit;
+        return modifier + " + " + key;
     }
 
     private static void activateSlot(MinecraftClient client, int slotNumber) {
@@ -170,58 +160,26 @@ public final class GemsKeybinds {
     }
 
     private static void drainQueuedPresses() {
-        for (KeyBinding slot : DIRECT_SLOTS) {
+        for (KeyBinding slot : CHORD_SLOTS) {
             while (slot.wasPressed()) {
                 // drain
             }
         }
-        while (DIRECT_SOUL_RELEASE.wasPressed()) {
-            // drain
-        }
     }
 
-    private static int maxAbilityCount() {
-        int max = 0;
-        for (GemId id : GemId.values()) {
-            max = Math.max(max, GemRegistry.definition(id).abilities().size());
+    private static String chordKeyLabel(int slotNumber) {
+        int idx = slotNumber - 1;
+        if (idx < 0 || idx >= CHORD_SLOTS.size()) {
+            return "";
         }
-        return max;
+        KeyBinding binding = CHORD_SLOTS.get(idx);
+        if (binding == null) {
+            return "";
+        }
+        return binding.getBoundKeyLocalizedText().getString();
     }
 
-    private static String digitLabel(int slotNumber) {
-        return switch (slotNumber) {
-            case 1 -> "1";
-            case 2 -> "2";
-            case 3 -> "3";
-            case 4 -> "4";
-            case 5 -> "5";
-            case 6 -> "6";
-            case 7 -> "7";
-            case 8 -> "8";
-            case 9 -> "9";
-            case 10 -> "0";
-            default -> "";
-        };
-    }
-
-    private static void clearChordDown() {
-        for (int i = 0; i < CHORD_DOWN.length; i++) {
-            CHORD_DOWN[i] = false;
-        }
-    }
-
-    private static boolean isDown(MinecraftClient client, int glfwKeyCode) {
-        if (client.getWindow() == null) {
-            return false;
-        }
-        long handle = client.getWindow().getHandle();
-        if (handle == 0L) {
-            return false;
-        }
-        return GLFW.glfwGetKey(handle, glfwKeyCode) == GLFW.GLFW_PRESS;
-    }
-
-    private static int defaultDigitKey(int slotNumber) {
+    private static int defaultChordKey(int slotNumber) {
         return switch (slotNumber) {
             case 1 -> GLFW.GLFW_KEY_1;
             case 2 -> GLFW.GLFW_KEY_2;

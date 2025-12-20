@@ -4,7 +4,6 @@ import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.entity.projectile.FireballEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.HitResult;
@@ -58,7 +57,7 @@ public final class MeteorShowerAbility implements GemAbility {
             world.spawnEntity(meteor);
         }
 
-        world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENTITY_BLAZE_SHOOT, SoundCategory.PLAYERS, 1.0F, 0.8F);
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_BLAZE_SHOOT, 1.0F, 0.8F);
         return true;
     }
 }

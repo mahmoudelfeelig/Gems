@@ -6,7 +6,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
@@ -59,8 +58,7 @@ public final class AstralDaggersAbility implements GemAbility {
             player.getWorld().spawnEntity(arrow);
         }
 
-        player.getWorld().playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.PLAYERS, 1.0F, 1.4F);
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, 1.0F, 1.4F);
         return true;
     }
 }

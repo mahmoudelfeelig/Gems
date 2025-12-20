@@ -1,6 +1,10 @@
 # Balance config
 
-Balancing is controlled by `config/gems/balance.json` (generated on first run). Restart the server/client after editing.
+Balancing is controlled by `config/gems/balance.json` (generated on first run).
+
+- Apply changes without restart: `/gems reloadBalance` (requires op permission level 2+).
+- If the JSON is invalid, the reload fails and the current balance stays active (the file is not overwritten).
+- Export the currently-applied (sanitized) values: `/gems dumpBalance` (writes `config/gems/balance.effective.json`).
 
 ## Units
 
@@ -31,3 +35,13 @@ Common clamps:
 - Strength: `chadEveryHits`, `chadBonusDamage`
 - Wealth: `fumbleRadiusBlocks`, `hotbarLockDurationSeconds`
 
+## Visual budget knobs (server)
+
+These are global caps/switches for particles/sounds emitted by abilities (useful for large servers).
+
+- `visual.enableParticles`: master switch for all server-sent particles.
+- `visual.enableSounds`: master switch for ability sounds.
+- `visual.particleScalePercent`: scales all particle counts (0..200).
+- `visual.maxParticlesPerCall`: hard cap for a single particle spawn call (0..2048).
+- `visual.maxBeamSteps`: hard cap for beam “steps” (0..2048).
+- `visual.maxRingPoints`: hard cap for ring/aura “points” (0..2048).

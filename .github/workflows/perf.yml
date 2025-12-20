@@ -115,12 +115,15 @@ jobs:
           SERVER_PID=$!
 
           cleanup() {
-            if kill -0 "$SERVER_PID" 2>/dev/null; then
+            set +e
+            if [[ -n "${SERVER_PID:-}" ]]; then
               echo "Stopping server..."
-              python3 .github/rcon.py 127.0.0.1 25575 perf "stop" || true
+              python3 .github/rcon.py 127.0.0.1 25575 perf "stop" >/dev/null 2>&1 || true
               sleep 2 || true
-              kill "$SERVER_PID" || true
+              kill "$SERVER_PID" >/dev/null 2>&1 || true
+              wait "$SERVER_PID" >/dev/null 2>&1 || true
             fi
+            return 0
           }
           trap cleanup EXIT
 
@@ -205,7 +208,7 @@ jobs:
           # Force-mode stress is intentionally harsh; keep period=20t to reduce entity spam.
           rcon "gems admin stress start @a 60 20 force true true"
           sleep 65
-          rcon "gems admin stress stop @a" || true
+          # Stress runner auto-stops after its configured duration.
 
           OUT="$(rcon "gems admin perf snapshot 1200" | tr -d '\r')"
           echo "$OUT"

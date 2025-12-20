@@ -1,6 +1,7 @@
 package com.feel.gems.power;
 
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.util.GemsTime;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -13,12 +14,12 @@ public final class AbilityRestrictions {
     }
 
     public static boolean isSuppressed(ServerPlayerEntity player) {
-        long now = player.getServerWorld().getTime();
+        long now = GemsTime.now(player);
         return suppressedUntil(player) > now;
     }
 
     public static boolean isStunned(ServerPlayerEntity player) {
-        long now = player.getServerWorld().getTime();
+        long now = GemsTime.now(player);
         return stunnedUntil(player) > now;
     }
 
@@ -26,14 +27,14 @@ public final class AbilityRestrictions {
         if (durationTicks <= 0) {
             return;
         }
-        persistent(player).putLong(KEY_SUPPRESSED_UNTIL, player.getServerWorld().getTime() + durationTicks);
+        persistent(player).putLong(KEY_SUPPRESSED_UNTIL, GemsTime.now(player) + durationTicks);
     }
 
     public static void stun(ServerPlayerEntity player, int durationTicks) {
         if (durationTicks <= 0) {
             return;
         }
-        persistent(player).putLong(KEY_STUNNED_UNTIL, player.getServerWorld().getTime() + durationTicks);
+        persistent(player).putLong(KEY_STUNNED_UNTIL, GemsTime.now(player) + durationTicks);
     }
 
     public static long suppressedUntil(ServerPlayerEntity player) {
@@ -56,4 +57,3 @@ public final class AbilityRestrictions {
         return ((GemsPersistentDataHolder) player).gems$getPersistentData();
     }
 }
-

@@ -2,6 +2,7 @@ package com.feel.gems.power;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.util.GemsTime;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ArmorMaterials;
@@ -63,7 +64,7 @@ public final class FluxCharge {
         int next = Math.min(100, charge + add);
         set(player, next);
         if (charge < 100 && next >= 100) {
-            persistent(player).putLong(KEY_AT_100, player.getServerWorld().getTime());
+            persistent(player).putLong(KEY_AT_100, GemsTime.now(player));
         }
         player.sendMessage(Text.literal("Flux charge: " + next + "%"), true);
         return true;
@@ -114,7 +115,7 @@ public final class FluxCharge {
         }
 
         NbtCompound nbt = persistent(player);
-        long now = player.getServerWorld().getTime();
+        long now = GemsTime.now(player);
         long at100 = nbt.getLong(KEY_AT_100);
         if (at100 <= 0) {
             nbt.putLong(KEY_AT_100, now);

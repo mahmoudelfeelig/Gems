@@ -4,6 +4,7 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
+import com.feel.gems.util.GemsTime;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EquipmentSlot;
@@ -68,7 +69,7 @@ public final class AbilityRuntime {
     }
 
     public static void tickEverySecond(ServerPlayerEntity player) {
-        long now = player.getServerWorld().getTime();
+        long now = GemsTime.now(player);
 
         FireballAbility.tickCharging(player, now);
         ShadowAnchorAbility.tick(player, now);
@@ -84,27 +85,27 @@ public final class AbilityRuntime {
     }
 
     public static void startCosyCampfire(ServerPlayerEntity player, int durationTicks) {
-        persistent(player).putLong(KEY_CAMPFIRE_UNTIL, player.getServerWorld().getTime() + durationTicks);
+        persistent(player).putLong(KEY_CAMPFIRE_UNTIL, GemsTime.now(player) + durationTicks);
     }
 
     public static void startHeatHazeZone(ServerPlayerEntity player, int durationTicks) {
-        persistent(player).putLong(KEY_HEAT_HAZE_UNTIL, player.getServerWorld().getTime() + durationTicks);
+        persistent(player).putLong(KEY_HEAT_HAZE_UNTIL, GemsTime.now(player) + durationTicks);
     }
 
     public static void startSpeedStorm(ServerPlayerEntity player, int durationTicks) {
-        persistent(player).putLong(KEY_SPEED_STORM_UNTIL, player.getServerWorld().getTime() + durationTicks);
+        persistent(player).putLong(KEY_SPEED_STORM_UNTIL, GemsTime.now(player) + durationTicks);
     }
 
     public static void startUnbounded(ServerPlayerEntity player, int durationTicks) {
         NbtCompound nbt = persistent(player);
-        nbt.putLong(KEY_UNBOUNDED_UNTIL, player.getServerWorld().getTime() + durationTicks);
+        nbt.putLong(KEY_UNBOUNDED_UNTIL, GemsTime.now(player) + durationTicks);
         nbt.putString(KEY_UNBOUNDED_PREV_GAMEMODE, player.interactionManager.getGameMode().getName());
         player.changeGameMode(GameMode.SPECTATOR);
     }
 
     public static void startAstralCamera(ServerPlayerEntity player, int durationTicks) {
         NbtCompound nbt = persistent(player);
-        nbt.putLong(KEY_ASTRAL_CAMERA_UNTIL, player.getServerWorld().getTime() + durationTicks);
+        nbt.putLong(KEY_ASTRAL_CAMERA_UNTIL, GemsTime.now(player) + durationTicks);
         nbt.putString(KEY_ASTRAL_CAMERA_PREV_GAMEMODE, player.interactionManager.getGameMode().getName());
         nbt.putString(KEY_ASTRAL_CAMERA_RETURN_DIM, player.getWorld().getRegistryKey().getValue().toString());
         nbt.put(KEY_ASTRAL_CAMERA_RETURN_POS, NbtHelper.fromBlockPos(player.getBlockPos()));
@@ -115,13 +116,13 @@ public final class AbilityRuntime {
 
     public static void startLifeCircle(ServerPlayerEntity caster, int durationTicks) {
         NbtCompound nbt = persistent(caster);
-        nbt.putLong(KEY_LIFE_CIRCLE_UNTIL, caster.getServerWorld().getTime() + durationTicks);
+        nbt.putLong(KEY_LIFE_CIRCLE_UNTIL, GemsTime.now(caster) + durationTicks);
         nbt.putUuid(KEY_LIFE_CIRCLE_CASTER, caster.getUuid());
     }
 
     public static void startHeartLock(ServerPlayerEntity caster, ServerPlayerEntity target, int durationTicks) {
         NbtCompound nbt = persistent(target);
-        nbt.putLong(KEY_HEART_LOCK_UNTIL, target.getServerWorld().getTime() + durationTicks);
+        nbt.putLong(KEY_HEART_LOCK_UNTIL, GemsTime.now(target) + durationTicks);
         nbt.putUuid(KEY_HEART_LOCK_CASTER, caster.getUuid());
 
         double currentMax = target.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH);
@@ -134,18 +135,18 @@ public final class AbilityRuntime {
 
     public static void startBounty(ServerPlayerEntity hunter, UUID target, int durationTicks) {
         NbtCompound nbt = persistent(hunter);
-        nbt.putLong(KEY_BOUNTY_UNTIL, hunter.getServerWorld().getTime() + durationTicks);
+        nbt.putLong(KEY_BOUNTY_UNTIL, GemsTime.now(hunter) + durationTicks);
         nbt.putUuid(KEY_BOUNTY_TARGET, target);
     }
 
     public static void startChadStrength(ServerPlayerEntity player, int durationTicks) {
         NbtCompound nbt = persistent(player);
-        nbt.putLong(KEY_CHAD_UNTIL, player.getServerWorld().getTime() + durationTicks);
+        nbt.putLong(KEY_CHAD_UNTIL, GemsTime.now(player) + durationTicks);
         nbt.putInt(KEY_CHAD_HITS, 0);
     }
 
     public static boolean isChadStrengthActive(ServerPlayerEntity player) {
-        long now = player.getServerWorld().getTime();
+        long now = GemsTime.now(player);
         return persistent(player).getLong(KEY_CHAD_UNTIL) > now;
     }
 
@@ -157,15 +158,15 @@ public final class AbilityRuntime {
     }
 
     public static void startRichRush(ServerPlayerEntity player, int durationTicks) {
-        persistent(player).putLong(KEY_RICH_RUSH_UNTIL, player.getServerWorld().getTime() + durationTicks);
+        persistent(player).putLong(KEY_RICH_RUSH_UNTIL, GemsTime.now(player) + durationTicks);
     }
 
     public static void startAmplification(ServerPlayerEntity player, int durationTicks) {
-        persistent(player).putLong(KEY_AMPLIFICATION_UNTIL, player.getServerWorld().getTime() + durationTicks);
+        persistent(player).putLong(KEY_AMPLIFICATION_UNTIL, GemsTime.now(player) + durationTicks);
     }
 
     public static boolean isRichRushActive(ServerPlayerEntity player) {
-        long now = player.getServerWorld().getTime();
+        long now = GemsTime.now(player);
         return persistent(player).getLong(KEY_RICH_RUSH_UNTIL) > now;
     }
 
@@ -314,10 +315,18 @@ public final class AbilityRuntime {
             return;
         }
 
-        double currentMax = target.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH);
-        float locked = nbt.contains(KEY_HEART_LOCK_LOCKED_MAX, NbtElement.FLOAT_TYPE) ? nbt.getFloat(KEY_HEART_LOCK_LOCKED_MAX) : (float) currentMax;
+        EntityAttributeInstance maxHealth = target.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+        if (maxHealth == null) {
+            return;
+        }
+        // Ensure the lock calculation uses the max health without the Heart Lock modifier,
+        // otherwise a "perfectly locked" state (delta = 0) would remove the modifier and oscillate.
+        maxHealth.removeModifier(modifierId);
+        double baseMax = maxHealth.getValue();
+
+        float locked = nbt.contains(KEY_HEART_LOCK_LOCKED_MAX, NbtElement.FLOAT_TYPE) ? nbt.getFloat(KEY_HEART_LOCK_LOCKED_MAX) : (float) baseMax;
         double lockedMax = Math.max(2.0D, locked);
-        double delta = lockedMax - currentMax;
+        double delta = lockedMax - baseMax;
         applyMaxHealthModifier(target, modifierId, delta);
     }
 

@@ -1,6 +1,7 @@
 package com.feel.gems.power;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.util.GemsTime;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -19,7 +20,7 @@ public final class BreezyBashTracker {
         if (windowTicks <= 0) {
             return;
         }
-        long until = target.getServerWorld().getTime() + windowTicks;
+        long until = GemsTime.now(target) + windowTicks;
         ACTIVE.put(target.getUuid(), new Bash(caster.getUuid(), until, false));
     }
 
@@ -40,7 +41,7 @@ public final class BreezyBashTracker {
                 continue;
             }
 
-            long now = target.getServerWorld().getTime();
+            long now = GemsTime.now(target);
             if (now > bash.until) {
                 it.remove();
                 continue;

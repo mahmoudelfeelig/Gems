@@ -1,6 +1,7 @@
 package com.feel.gems.power;
 
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.util.GemsTime;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -12,16 +13,16 @@ public final class WealthFumble {
     }
 
     public static void apply(ServerPlayerEntity target, int durationTicks) {
-        apply(persistent(target), target.getServerWorld().getTime(), durationTicks);
+        apply(persistent(target), GemsTime.now(target), durationTicks);
     }
 
     public static boolean isActive(ServerPlayerEntity player) {
-        long now = player.getServerWorld().getTime();
+        long now = GemsTime.now(player);
         return until(persistent(player), now) > now;
     }
 
     public static long until(ServerPlayerEntity player) {
-        return until(persistent(player), player.getServerWorld().getTime());
+        return until(persistent(player), GemsTime.now(player));
     }
 
     static void apply(NbtCompound nbt, long now, int durationTicks) {

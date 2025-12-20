@@ -1,5 +1,6 @@
 package com.feel.gems.power;
 
+import com.feel.gems.util.GemsTime;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.component.type.NbtComponent;
@@ -21,7 +22,7 @@ public final class EnchantmentAmplification {
     }
 
     public static void apply(ServerPlayerEntity player, int durationTicks) {
-        long until = player.getServerWorld().getTime() + durationTicks;
+        long until = GemsTime.now(player) + durationTicks;
 
         amplifyStack(player.getServerWorld(), player.getMainHandStack(), until);
         amplifyStack(player.getServerWorld(), player.getOffHandStack(), until);
@@ -101,4 +102,3 @@ public final class EnchantmentAmplification {
         }
     }
 }
-

@@ -5,6 +5,7 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.power.GemAbilityCooldowns;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.util.GemsTime;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
@@ -23,7 +24,7 @@ public final class GemCooldownSync {
         GemDefinition def = GemRegistry.definition(active);
         List<Identifier> abilities = def.abilities();
 
-        long now = player.getServerWorld().getTime();
+        long now = GemsTime.now(player);
         List<Integer> remaining = new ArrayList<>(abilities.size());
         for (int i = 0; i < abilities.size(); i++) {
             Identifier id = abilities.get(i);

@@ -26,6 +26,7 @@ public final class ModItems {
 
     public static void init() {
         // Triggers static initialization.
+        ModItemGroups.init();
     }
 
     public static Item gemItem(GemId gemId) {
@@ -49,4 +50,3 @@ public final class ModItems {
         return Registry.register(Registries.ITEM, Identifier.of(GemsMod.MOD_ID, path), item);
     }
 }
-

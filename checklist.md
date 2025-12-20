@@ -10,6 +10,11 @@
 - Textures: shared gem base texture with palette swaps per gem; custom textures for upgrade items and heart drops.
 - Performance/architecture: composition-first modular system; keep per-tick load minimal; abilities and passives should register/unregister cleanly; add tests/benchmarks as we go.
 
+## Recipes
+- Heart (`gems:heart`): shaped `NIN / IGI / NIN` where `N=netherite_scrap`, `I=iron_block`, `G=gold_block`.
+- Energy Upgrade (`gems:energy_upgrade`): shaped `NEN / EDE / NEN` where `N=netherite_scrap`, `E=emerald_block`, `D=diamond_block`.
+- Trader (`gems:trader`): shaped `DBD / BWB / DBD` where `D=diamond_block`, `B=dragon_breath`, `W=wither_skeleton_skull`.
+
 ## Gem abilities and passives (detailed)
 - Astra
   - Passives:

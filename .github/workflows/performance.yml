@@ -247,7 +247,8 @@ jobs:
           sleep 5
           rcon "gems admin perf reset"
 
-          # Force-mode stress is intentionally harsh; put period=5t to add entity spam.
+          # Start a spark profiler in parallel with the stress run.
+          # Note: the viewer link is often printed only when the profiler finishes and uploads.
           SPARK_START_OUT="$(rcon "spark profiler --timeout 120" 2>/dev/null || true)"
           if [[ -n "$SPARK_START_OUT" ]]; then
             echo "$SPARK_START_OUT"
@@ -258,6 +259,12 @@ jobs:
 
           OUT="$(rcon "gems admin perf snapshot 2400" | tr -d '\r')"
           echo "$OUT"
+
+          # Try to stop spark explicitly to force the upload/link message to be emitted.
+          SPARK_STOP_OUT="$(rcon "spark profiler --stop" 2>/dev/null || true)"
+          if [[ -n "$SPARK_STOP_OUT" ]]; then
+            echo "$SPARK_STOP_OUT"
+          fi
           
           export GEMS_PERF_OUT="$OUT"
           AVG_P95="$(python3 - <<'PY'
@@ -278,20 +285,28 @@ jobs:
           # Guardrails for regression detection (kept intentionally lenient for shared CI runners).
           awk -v avg="$AVG" -v p95="$P95" 'BEGIN{ exit !((avg+0) <= 40.0 && (p95+0) <= 120.0) }'
           
-          # Stop server so logs are flushed before extracting spark link.
-          cleanup
-          trap - EXIT
-
           # Print spark viewer link if present in the logs.
           SPARK_LINK=""
           # Prefer the command response (most reliable), then fall back to log files.
-          SPARK_LINK="$(printf '%s\n' "${SPARK_START_OUT:-}" | grep -Eo 'https?://spark\.lucko\.me/[^[:space:]]+' | tail -n1 || true)"
+          SPARK_LINK="$(printf '%s\n' "${SPARK_STOP_OUT:-}" | grep -Eo 'https?://spark\.lucko\.me/[^[:space:]]+' | tail -n1 || true)"
           if [[ -z "$SPARK_LINK" ]]; then
-            SPARK_LINK="$(grep -Eo 'https?://spark\.lucko\.me/[^[:space:]]+' server.log run/logs/latest.log 2>/dev/null | tail -n1 || true)"
+            SPARK_LINK="$(printf '%s\n' "${SPARK_START_OUT:-}" | grep -Eo 'https?://spark\.lucko\.me/[^[:space:]]+' | tail -n1 || true)"
+          fi
+          if [[ -z "$SPARK_LINK" ]]; then
+            # Wait briefly for spark to finish uploading and printing the link.
+            for _ in $(seq 1 30); do
+              SPARK_LINK="$(grep -Eo 'https?://spark\.lucko\.me/[^[:space:]]+' server.log run/logs/latest.log 2>/dev/null | tail -n1 || true)"
+              if [[ -n "$SPARK_LINK" ]]; then
+                break
+              fi
+              sleep 1
+            done
           fi
           SPARK_LINK="$(printf '%s' "$SPARK_LINK" | tr -d '\r')"
           if [[ -n "$SPARK_LINK" ]]; then
             echo "spark: $SPARK_LINK"
+            # Also append to the server.log artifact so it's easy to find.
+            echo "spark: $SPARK_LINK" >> server.log
           fi
           if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
             echo "spark_link=${SPARK_LINK}" >> "$GITHUB_OUTPUT"
@@ -299,6 +314,10 @@ jobs:
           if [[ -n "${GITHUB_STEP_SUMMARY:-}" && -n "$SPARK_LINK" ]]; then
             echo "spark: ${SPARK_LINK}" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+          # Stop server so logs are flushed before uploading artifacts.
+          cleanup
+          trap - EXIT
 
       - name: Spark viewer link
         if: always()

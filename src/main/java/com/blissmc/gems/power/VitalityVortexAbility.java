@@ -1,7 +1,7 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
-import com.blissmc.gems.config.GemsBalance;
-import com.blissmc.gems.trust.GemTrust;
+import com.feel.gems.config.GemsBalance;
+import com.feel.gems.trust.GemTrust;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.effect.StatusEffectInstance;

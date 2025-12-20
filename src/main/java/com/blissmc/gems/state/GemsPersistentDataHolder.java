@@ -1,4 +1,4 @@
-package com.blissmc.gems.state;
+package com.feel.gems.state;
 
 import net.minecraft.nbt.NbtCompound;
 

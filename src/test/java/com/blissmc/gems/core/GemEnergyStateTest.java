@@ -1,4 +1,4 @@
-package com.blissmc.gems.core;
+package com.feel.gems.core;
 
 import org.junit.jupiter.api.Test;
 

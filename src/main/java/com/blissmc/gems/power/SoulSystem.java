@@ -1,6 +1,6 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
-import com.blissmc.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -41,7 +41,7 @@ public final class SoulSystem {
             return;
         }
         persistent(player).putString(KEY_SOUL_TYPE, typeId.toString());
-        com.blissmc.gems.net.GemExtraStateSync.send(player);
+        com.feel.gems.net.GemExtraStateSync.send(player);
         AbilityFeedback.burst(player, ParticleTypes.SCULK_SOUL, 8, 0.25D);
 
         if (GemPowers.isPassiveActive(player, PowerIds.SOUL_HEALING)) {
@@ -94,7 +94,7 @@ public final class SoulSystem {
         }
 
         nbt.remove(KEY_SOUL_TYPE);
-        com.blissmc.gems.net.GemExtraStateSync.send(player);
+        com.feel.gems.net.GemExtraStateSync.send(player);
         if (GemPowers.isPassiveActive(player, PowerIds.SOUL_HEALING)) {
             player.heal(2.0F);
         }
@@ -114,12 +114,12 @@ public final class SoulSystem {
         }
 
         // Best-effort: make hostile summons target untrusted players, while excluding the owner and trusted players.
-        ((com.blissmc.gems.mixin.accessor.MobEntitySelectorsAccessor) mob).gems$getTargetSelector().add(1,
+        ((com.feel.gems.mixin.accessor.MobEntitySelectorsAccessor) mob).gems$getTargetSelector().add(1,
                 new ActiveTargetGoal<>(mob, ServerPlayerEntity.class, true, candidate -> {
                     if (!(candidate instanceof ServerPlayerEntity p)) {
                         return false;
                     }
-                    return !com.blissmc.gems.trust.GemTrust.isTrusted(owner, p);
+                    return !com.feel.gems.trust.GemTrust.isTrusted(owner, p);
                 })
         );
     }

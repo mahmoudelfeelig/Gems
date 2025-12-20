@@ -1,4 +1,4 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
 import net.minecraft.item.AxeItem;
 import net.minecraft.item.BowItem;

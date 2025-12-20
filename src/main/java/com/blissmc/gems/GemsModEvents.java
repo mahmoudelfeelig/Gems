@@ -1,16 +1,17 @@
-package com.blissmc.gems;
+package com.feel.gems;
 
-import com.blissmc.gems.state.GemPlayerState;
-import com.blissmc.gems.item.ModItems;
-import com.blissmc.gems.item.GemItemGlint;
-import com.blissmc.gems.net.GemStateSync;
-import com.blissmc.gems.power.FluxCharge;
-import com.blissmc.gems.power.AbilityRuntime;
-import com.blissmc.gems.power.BreezyBashTracker;
-import com.blissmc.gems.power.GemPowers;
-import com.blissmc.gems.power.SoulSystem;
-import com.blissmc.gems.trust.GemTrust;
-import com.blissmc.gems.mixin.BlockAutoSmeltMixin;
+import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.item.ModItems;
+import com.feel.gems.item.GemItemGlint;
+import com.feel.gems.net.GemStateSync;
+import com.feel.gems.power.FluxCharge;
+import com.feel.gems.power.AbilityRuntime;
+import com.feel.gems.power.BreezyBashTracker;
+import com.feel.gems.power.GemPowers;
+import com.feel.gems.power.SoulSystem;
+import com.feel.gems.power.AutoSmeltCache;
+import com.feel.gems.trust.GemTrust;
+import com.feel.gems.debug.GemsStressTest;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -19,7 +20,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
-import com.blissmc.gems.core.GemId;
+import com.feel.gems.core.GemId;
 
 public final class GemsModEvents {
     private static int tickCounter = 0;
@@ -60,7 +61,7 @@ public final class GemsModEvents {
             GemStateSync.send(newPlayer);
         });
 
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> BlockAutoSmeltMixin.gems$clearSmeltCache());
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> AutoSmeltCache.clear());
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             tickCounter++;
@@ -85,6 +86,7 @@ public final class GemsModEvents {
         });
 
         ServerTickEvents.END_SERVER_TICK.register(BreezyBashTracker::tick);
+        ServerTickEvents.END_SERVER_TICK.register(GemsStressTest::tick);
     }
 
     private static void ensureActiveGemItem(ServerPlayerEntity player) {

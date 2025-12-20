@@ -1,6 +1,6 @@
-package com.blissmc.gems.item;
+package com.feel.gems.item;
 
-import com.blissmc.gems.core.GemId;
+import com.feel.gems.core.GemId;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;

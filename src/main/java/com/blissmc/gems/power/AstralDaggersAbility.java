@@ -1,6 +1,6 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
-import com.blissmc.gems.config.GemsBalance;
+import com.feel.gems.config.GemsBalance;
 import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -44,7 +44,8 @@ public final class AstralDaggersAbility implements GemAbility {
         AbilityFeedback.burstAt(player.getServerWorld(), spawnPos, ParticleTypes.END_ROD, Math.min(24, count * 3), 0.12D);
 
         for (int i = 0; i < count; i++) {
-            ArrowEntity arrow = new ArrowEntity(player.getWorld(), player, new ItemStack(Items.ARROW), ItemStack.EMPTY);
+            // 1.21+ validates that the "weapon" stack is a valid projectile weapon for arrows.
+            ArrowEntity arrow = new ArrowEntity(player.getWorld(), player, new ItemStack(Items.ARROW), new ItemStack(Items.BOW));
             arrow.setPosition(spawnPos.x, spawnPos.y, spawnPos.z);
             Vec3d spread = direction.add(
                     (player.getRandom().nextDouble() - 0.5D) * spreadAmount,

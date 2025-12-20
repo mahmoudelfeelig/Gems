@@ -1,9 +1,9 @@
-package com.blissmc.gems.net;
+package com.feel.gems.net;
 
-import com.blissmc.gems.core.GemId;
-import com.blissmc.gems.power.FluxCharge;
-import com.blissmc.gems.power.SoulSystem;
-import com.blissmc.gems.state.GemPlayerState;
+import com.feel.gems.core.GemId;
+import com.feel.gems.power.FluxCharge;
+import com.feel.gems.power.SoulSystem;
+import com.feel.gems.state.GemPlayerState;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 

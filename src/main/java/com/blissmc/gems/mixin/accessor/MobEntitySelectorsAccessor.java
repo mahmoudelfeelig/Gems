@@ -1,4 +1,4 @@
-package com.blissmc.gems.mixin.accessor;
+package com.feel.gems.mixin.accessor;
 
 import net.minecraft.entity.ai.goal.GoalSelector;
 import net.minecraft.entity.mob.MobEntity;

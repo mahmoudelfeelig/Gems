@@ -22,3 +22,6 @@ a Minecraft mod that adds season-inspired gems with unique powers for each holde
 - `/gems admin giveItem <player> <heart|energy_upgrade|trader>` (op 2+)
 - `/gems admin giveGem <player> <gem>` (op 2+)
 - `/gems admin resync <player>` (op 2+)
+- `/gems admin cast <player> <slot 1..10>` (op 2+)
+- `/gems admin stress start <players> <seconds> <periodTicks> <realistic|force> <cycleGems> <forceEnergy10>` (op 2+)
+- `/gems admin stress stop <players>` (op 2+)

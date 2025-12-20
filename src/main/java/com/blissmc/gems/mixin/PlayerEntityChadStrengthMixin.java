@@ -1,8 +1,8 @@
-package com.blissmc.gems.mixin;
+package com.feel.gems.mixin;
 
-import com.blissmc.gems.config.GemsBalance;
-import com.blissmc.gems.power.AbilityRuntime;
-import com.blissmc.gems.trust.GemTrust;
+import com.feel.gems.config.GemsBalance;
+import com.feel.gems.power.AbilityRuntime;
+import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;

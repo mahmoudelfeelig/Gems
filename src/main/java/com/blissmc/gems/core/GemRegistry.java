@@ -1,6 +1,6 @@
-package com.blissmc.gems.core;
+package com.feel.gems.core;
 
-import com.blissmc.gems.power.PowerIds;
+import com.feel.gems.power.PowerIds;
 import net.minecraft.util.Identifier;
 
 import java.util.EnumMap;

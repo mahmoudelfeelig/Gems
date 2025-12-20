@@ -1,7 +1,7 @@
-package com.blissmc.gems.item;
+package com.feel.gems.item;
 
-import com.blissmc.gems.GemsMod;
-import com.blissmc.gems.core.GemId;
+import com.feel.gems.GemsMod;
+import com.feel.gems.core.GemId;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;

@@ -1,6 +1,6 @@
-package com.blissmc.gems.trust;
+package com.feel.gems.trust;
 
-import com.blissmc.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;

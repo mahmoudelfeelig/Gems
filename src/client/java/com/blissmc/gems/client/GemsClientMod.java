@@ -1,4 +1,4 @@
-package com.blissmc.gems.client;
+package com.feel.gems.client;
 
 import net.fabricmc.api.ClientModInitializer;
 
@@ -7,7 +7,7 @@ public final class GemsClientMod implements ClientModInitializer {
     public void onInitializeClient() {
         ClientNetworking.register();
         GemsKeybinds.register();
-        com.blissmc.gems.client.hud.GemsHud.register();
-        com.blissmc.gems.client.hud.GemsTooltips.register();
+        com.feel.gems.client.hud.GemsHud.register();
+        com.feel.gems.client.hud.GemsTooltips.register();
     }
 }

@@ -1,7 +1,7 @@
-package com.blissmc.gems.item;
+package com.feel.gems.item;
 
-import com.blissmc.gems.core.GemId;
-import com.blissmc.gems.state.GemPlayerState;
+import com.feel.gems.core.GemId;
+import com.feel.gems.state.GemPlayerState;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;

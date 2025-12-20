@@ -1,9 +1,9 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
-import com.blissmc.gems.config.GemsBalance;
-import com.blissmc.gems.state.GemPlayerState;
-import com.blissmc.gems.state.GemsPersistentDataHolder;
-import com.blissmc.gems.trust.GemTrust;
+import com.feel.gems.config.GemsBalance;
+import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.trust.GemTrust;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EquipmentSlot;

@@ -1,10 +1,10 @@
-package com.blissmc.gems.net;
+package com.feel.gems.net;
 
-import com.blissmc.gems.core.GemDefinition;
-import com.blissmc.gems.core.GemId;
-import com.blissmc.gems.core.GemRegistry;
-import com.blissmc.gems.power.GemAbilityCooldowns;
-import com.blissmc.gems.state.GemPlayerState;
+import com.feel.gems.core.GemDefinition;
+import com.feel.gems.core.GemId;
+import com.feel.gems.core.GemRegistry;
+import com.feel.gems.power.GemAbilityCooldowns;
+import com.feel.gems.state.GemPlayerState;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;

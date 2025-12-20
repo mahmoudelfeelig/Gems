@@ -1,4 +1,4 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
 import net.minecraft.nbt.NbtCompound;
 import org.junit.jupiter.api.Test;

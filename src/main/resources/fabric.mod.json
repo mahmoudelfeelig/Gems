@@ -5,16 +5,16 @@
   "name": "Gems",
   "description": "Eight superpowered gems with energy and level progression.",
   "authors": [
-    "BlissMC"
+    "feel"
   ],
   "license": "LICENSE",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.blissmc.gems.GemsMod"
+      "com.feel.gems.GemsMod"
     ],
     "client": [
-      "com.blissmc.gems.client.GemsClientMod"
+      "com.feel.gems.client.GemsClientMod"
     ]
   },
   "mixins": [

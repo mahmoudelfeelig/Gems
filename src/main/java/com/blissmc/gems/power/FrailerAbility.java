@@ -1,6 +1,6 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
-import com.blissmc.gems.config.GemsBalance;
+import com.feel.gems.config.GemsBalance;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.ParticleTypes;
@@ -9,7 +9,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-import com.blissmc.gems.trust.GemTrust;
+import com.feel.gems.trust.GemTrust;
 
 public final class FrailerAbility implements GemAbility {
     @Override

@@ -1,4 +1,4 @@
-package com.blissmc.gems.core;
+package com.feel.gems.core;
 
 /**
  * Identifier for the eight Season 3 gems.

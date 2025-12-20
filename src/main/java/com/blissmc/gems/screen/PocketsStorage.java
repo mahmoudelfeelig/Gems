@@ -1,6 +1,6 @@
-package com.blissmc.gems.screen;
+package com.feel.gems.screen;
 
-import com.blissmc.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;

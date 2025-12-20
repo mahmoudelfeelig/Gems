@@ -1,4 +1,4 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;

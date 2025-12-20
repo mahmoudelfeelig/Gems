@@ -1,7 +1,7 @@
-package com.blissmc.gems.mixin;
+package com.feel.gems.mixin;
 
-import com.blissmc.gems.power.GemPowers;
-import com.blissmc.gems.power.PowerIds;
+import com.feel.gems.power.GemPowers;
+import com.feel.gems.power.PowerIds;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;

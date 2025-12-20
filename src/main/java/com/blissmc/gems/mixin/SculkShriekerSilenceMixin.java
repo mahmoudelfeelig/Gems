@@ -1,7 +1,7 @@
-package com.blissmc.gems.mixin;
+package com.feel.gems.mixin;
 
-import com.blissmc.gems.power.GemPowers;
-import com.blissmc.gems.power.PowerIds;
+import com.feel.gems.power.GemPowers;
+import com.feel.gems.power.PowerIds;
 import net.minecraft.block.entity.SculkShriekerBlockEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;

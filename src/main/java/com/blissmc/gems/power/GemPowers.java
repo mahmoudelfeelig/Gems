@@ -1,10 +1,10 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
-import com.blissmc.gems.core.GemDefinition;
-import com.blissmc.gems.core.GemId;
-import com.blissmc.gems.core.GemRegistry;
-import com.blissmc.gems.state.GemPlayerState;
-import com.blissmc.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.core.GemDefinition;
+import com.feel.gems.core.GemId;
+import com.feel.gems.core.GemRegistry;
+import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;

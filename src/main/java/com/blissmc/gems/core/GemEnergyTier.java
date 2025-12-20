@@ -1,4 +1,4 @@
-package com.blissmc.gems.core;
+package com.feel.gems.core;
 
 /**
  * Normalized energy tiers for gems. Values are clamped between 0 and 10.

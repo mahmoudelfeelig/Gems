@@ -1,7 +1,7 @@
-package com.blissmc.gems.state;
+package com.feel.gems.state;
 
-import com.blissmc.gems.GemsMod;
-import com.blissmc.gems.core.GemId;
+import com.feel.gems.GemsMod;
+import com.feel.gems.core.GemId;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;

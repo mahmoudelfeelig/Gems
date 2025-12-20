@@ -24,36 +24,66 @@ public final class GemsConfigManager {
     private GemsConfigManager() {
     }
 
-    static GemsBalanceConfig loadOrCreate() {
-        Path path = configPath();
-        GemsBalanceConfig cfg = read(path);
-        if (cfg == null) {
-            cfg = new GemsBalanceConfig();
+    public enum LoadStatus {
+        LOADED,
+        CREATED,
+        ERROR
+    }
+
+    public record LoadResult(LoadStatus status, Path path, GemsBalanceConfig config, String error) {
+    }
+
+    static LoadResult loadOrCreateWithFallback() {
+        return loadInternal(true, true);
+    }
+
+    static LoadResult loadOrCreateStrict() {
+        return loadInternal(true, false);
+    }
+
+    private static LoadResult loadInternal(boolean createIfMissing, boolean fallbackToDefaults) {
+        Path path = balancePath();
+
+        if (!Files.exists(path)) {
+            if (!createIfMissing) {
+                return new LoadResult(LoadStatus.ERROR, path, null, "Config file does not exist: " + path);
+            }
+            GemsBalanceConfig cfg = new GemsBalanceConfig();
             write(path, cfg);
+            return new LoadResult(LoadStatus.CREATED, path, cfg, null);
         }
-        return cfg;
+
+        try (Reader reader = Files.newBufferedReader(path)) {
+            GemsBalanceConfig cfg = GSON.fromJson(reader, GemsBalanceConfig.class);
+            return new LoadResult(LoadStatus.LOADED, path, cfg, null);
+        } catch (JsonSyntaxException e) {
+            String error = "Failed to parse config " + path + " (keeping file, not overwriting).";
+            GemsMod.LOGGER.error(error, e);
+            return new LoadResult(LoadStatus.ERROR, path, fallbackToDefaults ? new GemsBalanceConfig() : null, error);
+        } catch (IOException e) {
+            String error = "Failed to read config " + path + " (keeping file).";
+            GemsMod.LOGGER.error(error, e);
+            return new LoadResult(LoadStatus.ERROR, path, fallbackToDefaults ? new GemsBalanceConfig() : null, error);
+        }
     }
 
     private static Path configPath() {
-        return FabricLoader.getInstance().getConfigDir().resolve(DIR).resolve(FILE);
+        return balancePath();
     }
 
-    private static GemsBalanceConfig read(Path path) {
-        if (!Files.exists(path)) {
-            return null;
-        }
-        try (Reader reader = Files.newBufferedReader(path)) {
-            return GSON.fromJson(reader, GemsBalanceConfig.class);
-        } catch (JsonSyntaxException e) {
-            GemsMod.LOGGER.error("Failed to parse config {}, using defaults.", path, e);
-            return null;
-        } catch (IOException e) {
-            GemsMod.LOGGER.error("Failed to read config {}, using defaults.", path, e);
-            return null;
-        }
+    static Path configDir() {
+        return FabricLoader.getInstance().getConfigDir().resolve(DIR);
     }
 
-    private static void write(Path path, GemsBalanceConfig cfg) {
+    static Path balancePath() {
+        return configDir().resolve(FILE);
+    }
+
+    static Path resolveInConfigDir(String fileName) {
+        return configDir().resolve(fileName);
+    }
+
+    static void write(Path path, Object cfg) {
         try {
             Files.createDirectories(path.getParent());
         } catch (IOException e) {
@@ -67,4 +97,3 @@ public final class GemsConfigManager {
         }
     }
 }
-

@@ -78,6 +78,14 @@ public final class GemPlayerState {
         addOwnedGem(player, gem);
     }
 
+    public static void resetToNew(ServerPlayerEntity player, GemId gem) {
+        NbtCompound data = root(player);
+        data.putInt(KEY_ENERGY, DEFAULT_ENERGY);
+        data.putInt(KEY_MAX_HEARTS, DEFAULT_MAX_HEARTS);
+        data.putString(KEY_ACTIVE_GEM, gem.name());
+        setOwnedGems(player, EnumSet.of(gem));
+    }
+
     public static EnumSet<GemId> getOwnedGems(PlayerEntity player) {
         NbtCompound data = root(player);
         if (!data.contains(KEY_OWNED_GEMS, NbtElement.LIST_TYPE)) {

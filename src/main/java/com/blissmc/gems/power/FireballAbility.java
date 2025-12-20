@@ -8,7 +8,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -104,16 +103,7 @@ public final class FireballAbility implements GemAbility {
         }
         player.getWorld().spawnEntity(fireball);
 
-        player.getWorld().playSound(
-                null,
-                player.getX(),
-                player.getY(),
-                player.getZ(),
-                SoundEvents.ENTITY_GHAST_SHOOT,
-                SoundCategory.PLAYERS,
-                1.0F,
-                1.0F
-        );
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_GHAST_SHOOT, 1.0F, 1.0F);
     }
 
     private static NbtCompound persistent(ServerPlayerEntity player) {

@@ -1,5 +1,6 @@
 package com.blissmc.gems.power;
 
+import com.blissmc.gems.config.GemsBalance;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -13,6 +14,9 @@ public final class AbilityFeedback {
     }
 
     public static void sound(ServerPlayerEntity player, SoundEvent sound, float volume, float pitch) {
+        if (!GemsBalance.v().visual().enableSounds()) {
+            return;
+        }
         ServerWorld world = player.getServerWorld();
         world.playSound(null, player.getX(), player.getY(), player.getZ(), sound, SoundCategory.PLAYERS, volume, pitch);
     }
@@ -26,15 +30,20 @@ public final class AbilityFeedback {
     }
 
     public static void burstAt(ServerWorld world, Vec3d pos, ParticleEffect particle, int count, double spread) {
-        if (count <= 0) {
+        int scaled = scaleParticles(count);
+        if (scaled <= 0) {
             return;
         }
+        if (!GemsBalance.v().visual().enableParticles()) {
+            return;
+        }
+        scaled = Math.min(scaled, GemsBalance.v().visual().maxParticlesPerCall());
         world.spawnParticles(
                 particle,
                 pos.x,
                 pos.y,
                 pos.z,
-                count,
+                scaled,
                 spread,
                 spread,
                 spread,
@@ -43,31 +52,53 @@ public final class AbilityFeedback {
     }
 
     public static void beam(ServerWorld world, Vec3d from, Vec3d to, ParticleEffect particle, int steps) {
-        if (steps <= 0) {
+        int scaledSteps = scaleParticles(steps);
+        if (scaledSteps <= 0) {
             return;
         }
-        double dx = (to.x - from.x) / steps;
-        double dy = (to.y - from.y) / steps;
-        double dz = (to.z - from.z) / steps;
+        if (!GemsBalance.v().visual().enableParticles()) {
+            return;
+        }
+        scaledSteps = Math.min(scaledSteps, GemsBalance.v().visual().maxBeamSteps());
+        double dx = to.x - from.x;
+        double dy = to.y - from.y;
+        double dz = to.z - from.z;
 
-        for (int i = 0; i <= steps; i++) {
-            double x = from.x + dx * i;
-            double y = from.y + dy * i;
-            double z = from.z + dz * i;
+        for (int i = 0; i <= scaledSteps; i++) {
+            double t = i / (double) scaledSteps;
+            double x = from.x + dx * t;
+            double y = from.y + dy * t;
+            double z = from.z + dz * t;
             world.spawnParticles(particle, x, y, z, 1, 0.02D, 0.02D, 0.02D, 0.0D);
         }
     }
 
     public static void ring(ServerWorld world, Vec3d center, double radius, ParticleEffect particle, int points) {
-        if (points <= 0 || radius <= 0.0D) {
+        int scaledPoints = scaleParticles(points);
+        if (scaledPoints <= 0 || radius <= 0.0D) {
             return;
         }
-        double step = (Math.PI * 2.0D) / points;
-        for (int i = 0; i < points; i++) {
+        if (!GemsBalance.v().visual().enableParticles()) {
+            return;
+        }
+        scaledPoints = Math.min(scaledPoints, GemsBalance.v().visual().maxRingPoints());
+        double step = (Math.PI * 2.0D) / scaledPoints;
+        for (int i = 0; i < scaledPoints; i++) {
             double a = i * step;
             double x = center.x + Math.cos(a) * radius;
             double z = center.z + Math.sin(a) * radius;
             world.spawnParticles(particle, x, center.y, z, 1, 0.02D, 0.02D, 0.02D, 0.0D);
         }
+    }
+
+    private static int scaleParticles(int count) {
+        if (count <= 0) {
+            return 0;
+        }
+        int scale = GemsBalance.v().visual().particleScalePercent();
+        if (scale <= 0) {
+            return 0;
+        }
+        return (int) Math.round(count * (scale / 100.0D));
     }
 }

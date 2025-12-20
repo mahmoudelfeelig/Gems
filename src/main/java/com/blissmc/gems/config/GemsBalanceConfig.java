@@ -7,6 +7,8 @@ package com.blissmc.gems.config;
  * - damage is in half-hearts (Minecraft health points) where 1.0 = half-heart, 2.0 = 1 heart
  */
 public final class GemsBalanceConfig {
+    public Visual visual = new Visual();
+
     public Astra astra = new Astra();
     public Fire fire = new Fire();
     public Flux flux = new Flux();
@@ -15,6 +17,32 @@ public final class GemsBalanceConfig {
     public Speed speed = new Speed();
     public Strength strength = new Strength();
     public Wealth wealth = new Wealth();
+
+    public static final class Visual {
+        public boolean enableParticles = true;
+        public boolean enableSounds = true;
+
+        /**
+         * Scales particle counts for all abilities (0 = off, 100 = default, 200 = double).
+         * This is a global safety knob for large servers.
+         */
+        public int particleScalePercent = 100;
+
+        /**
+         * Hard cap for a single server particle packet.
+         */
+        public int maxParticlesPerCall = 128;
+
+        /**
+         * Hard cap for beam particle steps (used by Flux Beam and similar effects).
+         */
+        public int maxBeamSteps = 256;
+
+        /**
+         * Hard cap for ring/aura particle points (used by campfire/zone-style abilities).
+         */
+        public int maxRingPoints = 128;
+    }
 
     public static final class Astra {
         public int shadowAnchorWindowSeconds = 10;
@@ -191,4 +219,3 @@ public final class GemsBalanceConfig {
         public int richRushDurationSeconds = 3 * 60;
     }
 }
-

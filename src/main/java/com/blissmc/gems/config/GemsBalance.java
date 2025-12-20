@@ -15,8 +15,8 @@ public final class GemsBalance {
     }
 
     public static void init() {
-        GemsBalanceConfig cfg = GemsConfigManager.loadOrCreate();
-        apply(cfg);
+        GemsConfigManager.LoadResult load = GemsConfigManager.loadOrCreateWithFallback();
+        apply(load.config());
     }
 
     static void apply(GemsBalanceConfig cfg) {
@@ -28,7 +28,180 @@ public final class GemsBalance {
         VALUES = next;
     }
 
+    public record ReloadResult(boolean applied, GemsConfigManager.LoadResult loadResult) {
+    }
+
+    public static ReloadResult reloadFromDisk() {
+        GemsConfigManager.LoadResult load = GemsConfigManager.loadOrCreateStrict();
+        if (load.status() == GemsConfigManager.LoadStatus.ERROR || load.config() == null) {
+            return new ReloadResult(false, load);
+        }
+        apply(load.config());
+        return new ReloadResult(true, load);
+    }
+
+    public static java.nio.file.Path dumpEffectiveBalance() {
+        GemsBalanceConfig cfg = toConfig(VALUES);
+        java.nio.file.Path out = GemsConfigManager.resolveInConfigDir("balance.effective.json");
+        GemsConfigManager.write(out, cfg);
+        return out;
+    }
+
+    private static GemsBalanceConfig toConfig(Values v) {
+        GemsBalanceConfig cfg = new GemsBalanceConfig();
+
+        cfg.visual.enableParticles = v.visual().enableParticles();
+        cfg.visual.enableSounds = v.visual().enableSounds();
+        cfg.visual.particleScalePercent = v.visual().particleScalePercent();
+        cfg.visual.maxParticlesPerCall = v.visual().maxParticlesPerCall();
+        cfg.visual.maxBeamSteps = v.visual().maxBeamSteps();
+        cfg.visual.maxRingPoints = v.visual().maxRingPoints();
+
+        cfg.astra.shadowAnchorWindowSeconds = ticksToSeconds(v.astra().shadowAnchorWindowTicks());
+        cfg.astra.dimensionalVoidCooldownSeconds = ticksToSeconds(v.astra().dimensionalVoidCooldownTicks());
+        cfg.astra.dimensionalVoidDurationSeconds = ticksToSeconds(v.astra().dimensionalVoidDurationTicks());
+        cfg.astra.dimensionalVoidRadiusBlocks = v.astra().dimensionalVoidRadiusBlocks();
+        cfg.astra.astralDaggersCooldownSeconds = ticksToSeconds(v.astra().astralDaggersCooldownTicks());
+        cfg.astra.astralDaggersCount = v.astra().astralDaggersCount();
+        cfg.astra.astralDaggersDamage = v.astra().astralDaggersDamage();
+        cfg.astra.astralDaggersVelocity = v.astra().astralDaggersVelocity();
+        cfg.astra.astralDaggersSpread = v.astra().astralDaggersSpread();
+        cfg.astra.unboundedCooldownSeconds = ticksToSeconds(v.astra().unboundedCooldownTicks());
+        cfg.astra.unboundedDurationSeconds = ticksToSeconds(v.astra().unboundedDurationTicks());
+        cfg.astra.astralCameraCooldownSeconds = ticksToSeconds(v.astra().astralCameraCooldownTicks());
+        cfg.astra.astralCameraDurationSeconds = ticksToSeconds(v.astra().astralCameraDurationTicks());
+        cfg.astra.spookCooldownSeconds = ticksToSeconds(v.astra().spookCooldownTicks());
+        cfg.astra.spookRadiusBlocks = v.astra().spookRadiusBlocks();
+        cfg.astra.spookDurationSeconds = ticksToSeconds(v.astra().spookDurationTicks());
+        cfg.astra.tagCooldownSeconds = ticksToSeconds(v.astra().tagCooldownTicks());
+        cfg.astra.tagRangeBlocks = v.astra().tagRangeBlocks();
+        cfg.astra.tagDurationSeconds = ticksToSeconds(v.astra().tagDurationTicks());
+
+        cfg.fire.cosyCampfireCooldownSeconds = ticksToSeconds(v.fire().cosyCampfireCooldownTicks());
+        cfg.fire.cosyCampfireDurationSeconds = ticksToSeconds(v.fire().cosyCampfireDurationTicks());
+        cfg.fire.cosyCampfireRadiusBlocks = v.fire().cosyCampfireRadiusBlocks();
+        cfg.fire.cosyCampfireRegenAmplifier = v.fire().cosyCampfireRegenAmplifier();
+        cfg.fire.heatHazeCooldownSeconds = ticksToSeconds(v.fire().heatHazeCooldownTicks());
+        cfg.fire.heatHazeDurationSeconds = ticksToSeconds(v.fire().heatHazeDurationTicks());
+        cfg.fire.heatHazeRadiusBlocks = v.fire().heatHazeRadiusBlocks();
+        cfg.fire.heatHazeEnemyMiningFatigueAmplifier = v.fire().heatHazeEnemyMiningFatigueAmplifier();
+        cfg.fire.heatHazeEnemyWeaknessAmplifier = v.fire().heatHazeEnemyWeaknessAmplifier();
+        cfg.fire.fireballChargeUpSeconds = ticksToSeconds(v.fire().fireballChargeUpTicks());
+        cfg.fire.fireballChargeDownSeconds = ticksToSeconds(v.fire().fireballChargeDownTicks());
+        cfg.fire.fireballInternalCooldownSeconds = ticksToSeconds(v.fire().fireballInternalCooldownTicks());
+        cfg.fire.fireballMaxDistanceBlocks = v.fire().fireballMaxDistanceBlocks();
+        cfg.fire.meteorShowerCooldownSeconds = ticksToSeconds(v.fire().meteorShowerCooldownTicks());
+        cfg.fire.meteorShowerCount = v.fire().meteorShowerCount();
+        cfg.fire.meteorShowerSpreadBlocks = v.fire().meteorShowerSpreadBlocks();
+        cfg.fire.meteorShowerHeightBlocks = v.fire().meteorShowerHeightBlocks();
+        cfg.fire.meteorShowerVelocity = v.fire().meteorShowerVelocity();
+
+        cfg.flux.fluxBeamCooldownSeconds = ticksToSeconds(v.flux().fluxBeamCooldownTicks());
+        cfg.flux.fluxBeamRangeBlocks = v.flux().fluxBeamRangeBlocks();
+        cfg.flux.fluxBeamMinDamage = v.flux().fluxBeamMinDamage();
+        cfg.flux.fluxBeamMaxDamageAt100 = v.flux().fluxBeamMaxDamageAt100();
+        cfg.flux.fluxBeamMaxDamageAt200 = v.flux().fluxBeamMaxDamageAt200();
+        cfg.flux.fluxBeamArmorDamageAt100 = v.flux().fluxBeamArmorDamageAt100();
+        cfg.flux.fluxBeamArmorDamagePerPercent = v.flux().fluxBeamArmorDamagePerPercent();
+        cfg.flux.staticBurstCooldownSeconds = ticksToSeconds(v.flux().staticBurstCooldownTicks());
+        cfg.flux.staticBurstRadiusBlocks = v.flux().staticBurstRadiusBlocks();
+        cfg.flux.staticBurstMaxDamage = v.flux().staticBurstMaxDamage();
+        cfg.flux.staticBurstStoreWindowSeconds = ticksToSeconds(v.flux().staticBurstStoreWindowTicks());
+        cfg.flux.chargeDiamondBlock = v.flux().chargeDiamondBlock();
+        cfg.flux.chargeGoldBlock = v.flux().chargeGoldBlock();
+        cfg.flux.chargeCopperBlock = v.flux().chargeCopperBlock();
+        cfg.flux.chargeEnchantedDiamondItem = v.flux().chargeEnchantedDiamondItem();
+        cfg.flux.overchargeDelaySeconds = ticksToSeconds(v.flux().overchargeDelayTicks());
+        cfg.flux.overchargePerSecond = v.flux().overchargePerSecond();
+        cfg.flux.overchargeSelfDamagePerSecond = v.flux().overchargeSelfDamagePerSecond();
+
+        cfg.life.vitalityVortexCooldownSeconds = ticksToSeconds(v.life().vitalityVortexCooldownTicks());
+        cfg.life.vitalityVortexRadiusBlocks = v.life().vitalityVortexRadiusBlocks();
+        cfg.life.vitalityVortexDurationSeconds = ticksToSeconds(v.life().vitalityVortexDurationTicks());
+        cfg.life.vitalityVortexScanRadiusBlocks = v.life().vitalityVortexScanRadiusBlocks();
+        cfg.life.vitalityVortexVerdantThreshold = v.life().vitalityVortexVerdantThreshold();
+        cfg.life.vitalityVortexAllyHeal = v.life().vitalityVortexAllyHeal();
+        cfg.life.healthDrainCooldownSeconds = ticksToSeconds(v.life().healthDrainCooldownTicks());
+        cfg.life.healthDrainRangeBlocks = v.life().healthDrainRangeBlocks();
+        cfg.life.healthDrainAmount = v.life().healthDrainAmount();
+        cfg.life.lifeCircleCooldownSeconds = ticksToSeconds(v.life().lifeCircleCooldownTicks());
+        cfg.life.lifeCircleDurationSeconds = ticksToSeconds(v.life().lifeCircleDurationTicks());
+        cfg.life.lifeCircleRadiusBlocks = v.life().lifeCircleRadiusBlocks();
+        cfg.life.lifeCircleMaxHealthDelta = v.life().lifeCircleMaxHealthDelta();
+        cfg.life.heartLockCooldownSeconds = ticksToSeconds(v.life().heartLockCooldownTicks());
+        cfg.life.heartLockDurationSeconds = ticksToSeconds(v.life().heartLockDurationTicks());
+        cfg.life.heartLockRangeBlocks = v.life().heartLockRangeBlocks();
+
+        cfg.puff.doubleJumpCooldownSeconds = ticksToSeconds(v.puff().doubleJumpCooldownTicks());
+        cfg.puff.doubleJumpVelocityY = v.puff().doubleJumpVelocityY();
+        cfg.puff.dashCooldownSeconds = ticksToSeconds(v.puff().dashCooldownTicks());
+        cfg.puff.dashVelocity = v.puff().dashVelocity();
+        cfg.puff.dashDamage = v.puff().dashDamage();
+        cfg.puff.dashHitRangeBlocks = v.puff().dashHitRangeBlocks();
+        cfg.puff.breezyBashCooldownSeconds = ticksToSeconds(v.puff().breezyBashCooldownTicks());
+        cfg.puff.breezyBashRangeBlocks = v.puff().breezyBashRangeBlocks();
+        cfg.puff.breezyBashUpVelocityY = v.puff().breezyBashUpVelocityY();
+        cfg.puff.breezyBashKnockback = v.puff().breezyBashKnockback();
+        cfg.puff.breezyBashInitialDamage = v.puff().breezyBashInitialDamage();
+        cfg.puff.breezyBashImpactDamage = v.puff().breezyBashImpactDamage();
+        cfg.puff.breezyBashImpactWindowSeconds = ticksToSeconds(v.puff().breezyBashImpactWindowTicks());
+        cfg.puff.groupBashCooldownSeconds = ticksToSeconds(v.puff().groupBashCooldownTicks());
+        cfg.puff.groupBashRadiusBlocks = v.puff().groupBashRadiusBlocks();
+        cfg.puff.groupBashKnockback = v.puff().groupBashKnockback();
+        cfg.puff.groupBashUpVelocityY = v.puff().groupBashUpVelocityY();
+
+        cfg.speed.arcShotCooldownSeconds = ticksToSeconds(v.speed().arcShotCooldownTicks());
+        cfg.speed.arcShotRangeBlocks = v.speed().arcShotRangeBlocks();
+        cfg.speed.arcShotRadiusBlocks = v.speed().arcShotRadiusBlocks();
+        cfg.speed.arcShotMaxTargets = v.speed().arcShotMaxTargets();
+        cfg.speed.arcShotDamage = v.speed().arcShotDamage();
+        cfg.speed.speedStormCooldownSeconds = ticksToSeconds(v.speed().speedStormCooldownTicks());
+        cfg.speed.speedStormDurationSeconds = ticksToSeconds(v.speed().speedStormDurationTicks());
+        cfg.speed.speedStormRadiusBlocks = v.speed().speedStormRadiusBlocks();
+        cfg.speed.speedStormAllySpeedAmplifier = v.speed().speedStormAllySpeedAmplifier();
+        cfg.speed.speedStormAllyHasteAmplifier = v.speed().speedStormAllyHasteAmplifier();
+        cfg.speed.speedStormEnemySlownessAmplifier = v.speed().speedStormEnemySlownessAmplifier();
+        cfg.speed.speedStormEnemyMiningFatigueAmplifier = v.speed().speedStormEnemyMiningFatigueAmplifier();
+        cfg.speed.terminalVelocityCooldownSeconds = ticksToSeconds(v.speed().terminalVelocityCooldownTicks());
+        cfg.speed.terminalVelocityDurationSeconds = ticksToSeconds(v.speed().terminalVelocityDurationTicks());
+        cfg.speed.terminalVelocitySpeedAmplifier = v.speed().terminalVelocitySpeedAmplifier();
+        cfg.speed.terminalVelocityHasteAmplifier = v.speed().terminalVelocityHasteAmplifier();
+
+        cfg.strength.nullifyCooldownSeconds = ticksToSeconds(v.strength().nullifyCooldownTicks());
+        cfg.strength.nullifyRadiusBlocks = v.strength().nullifyRadiusBlocks();
+        cfg.strength.frailerCooldownSeconds = ticksToSeconds(v.strength().frailerCooldownTicks());
+        cfg.strength.frailerRangeBlocks = v.strength().frailerRangeBlocks();
+        cfg.strength.frailerDurationSeconds = ticksToSeconds(v.strength().frailerDurationTicks());
+        cfg.strength.bountyCooldownSeconds = ticksToSeconds(v.strength().bountyCooldownTicks());
+        cfg.strength.bountyDurationSeconds = ticksToSeconds(v.strength().bountyDurationTicks());
+        cfg.strength.chadCooldownSeconds = ticksToSeconds(v.strength().chadCooldownTicks());
+        cfg.strength.chadDurationSeconds = ticksToSeconds(v.strength().chadDurationTicks());
+        cfg.strength.chadEveryHits = v.strength().chadEveryHits();
+        cfg.strength.chadBonusDamage = v.strength().chadBonusDamage();
+
+        cfg.wealth.fumbleCooldownSeconds = ticksToSeconds(v.wealth().fumbleCooldownTicks());
+        cfg.wealth.fumbleDurationSeconds = ticksToSeconds(v.wealth().fumbleDurationTicks());
+        cfg.wealth.fumbleRadiusBlocks = v.wealth().fumbleRadiusBlocks();
+        cfg.wealth.hotbarLockCooldownSeconds = ticksToSeconds(v.wealth().hotbarLockCooldownTicks());
+        cfg.wealth.hotbarLockDurationSeconds = ticksToSeconds(v.wealth().hotbarLockDurationTicks());
+        cfg.wealth.hotbarLockRangeBlocks = v.wealth().hotbarLockRangeBlocks();
+        cfg.wealth.amplificationCooldownSeconds = ticksToSeconds(v.wealth().amplificationCooldownTicks());
+        cfg.wealth.amplificationDurationSeconds = ticksToSeconds(v.wealth().amplificationDurationTicks());
+        cfg.wealth.richRushCooldownSeconds = ticksToSeconds(v.wealth().richRushCooldownTicks());
+        cfg.wealth.richRushDurationSeconds = ticksToSeconds(v.wealth().richRushDurationTicks());
+
+        return cfg;
+    }
+
+    private static int ticksToSeconds(int ticks) {
+        if (ticks <= 0) {
+            return 0;
+        }
+        return (int) Math.round(ticks / (double) TICKS_PER_SECOND);
+    }
+
     public record Values(
+            Visual visual,
             Astra astra,
             Fire fire,
             Flux flux,
@@ -44,14 +217,35 @@ public final class GemsBalance {
 
         public static Values from(GemsBalanceConfig cfg) {
             return new Values(
-                    Astra.from(cfg.astra),
-                    Fire.from(cfg.fire),
-                    Flux.from(cfg.flux),
-                    Life.from(cfg.life),
-                    Puff.from(cfg.puff),
-                    Speed.from(cfg.speed),
-                    Strength.from(cfg.strength),
-                    Wealth.from(cfg.wealth)
+                    Visual.from(cfg.visual != null ? cfg.visual : new GemsBalanceConfig.Visual()),
+                    Astra.from(cfg.astra != null ? cfg.astra : new GemsBalanceConfig.Astra()),
+                    Fire.from(cfg.fire != null ? cfg.fire : new GemsBalanceConfig.Fire()),
+                    Flux.from(cfg.flux != null ? cfg.flux : new GemsBalanceConfig.Flux()),
+                    Life.from(cfg.life != null ? cfg.life : new GemsBalanceConfig.Life()),
+                    Puff.from(cfg.puff != null ? cfg.puff : new GemsBalanceConfig.Puff()),
+                    Speed.from(cfg.speed != null ? cfg.speed : new GemsBalanceConfig.Speed()),
+                    Strength.from(cfg.strength != null ? cfg.strength : new GemsBalanceConfig.Strength()),
+                    Wealth.from(cfg.wealth != null ? cfg.wealth : new GemsBalanceConfig.Wealth())
+            );
+        }
+    }
+
+    public record Visual(
+            boolean enableParticles,
+            boolean enableSounds,
+            int particleScalePercent,
+            int maxParticlesPerCall,
+            int maxBeamSteps,
+            int maxRingPoints
+    ) {
+        static Visual from(GemsBalanceConfig.Visual cfg) {
+            return new Visual(
+                    cfg.enableParticles,
+                    cfg.enableSounds,
+                    clampInt(cfg.particleScalePercent, 0, 200),
+                    clampInt(cfg.maxParticlesPerCall, 0, 2048),
+                    clampInt(cfg.maxBeamSteps, 0, 2048),
+                    clampInt(cfg.maxRingPoints, 0, 2048)
             );
         }
     }

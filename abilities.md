@@ -4,9 +4,9 @@ This doc is player-facing and lists what each gem does, plus the default balanci
 
 ## Keybinds (default)
 
-- **Ability cast**: hold `Gems Modifier` (default: Left Alt) + press `1..9` (and `0` for slot 10).
-- **Astra Soul Release**: the slot **after** Astra’s last ability (ex: 7 abilities → Soul Release is `Alt + 8`).
-- **Optional direct binds**: `Ability N (Direct)` and `Soul Release (Direct)` are unbound by default to avoid hotbar conflicts.
+- **Ability cast**: hold `Gems Modifier` (default: Left Alt) + press `Ability Slot N` (defaults: `1..9` and `0` for slot 10).
+- **Astra Soul Release**: the slot **after** Astra’s last ability (ex: 7 abilities → Soul Release is `Alt + Ability Slot 8`).
+- All of these can be changed in `Options → Controls → Gems` (and hotbar number keys are suppressed while the modifier is held, so hotbar usage stays normal).
 
 ## HUD
 

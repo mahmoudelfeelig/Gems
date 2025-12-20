@@ -110,6 +110,37 @@ jobs:
           )"
           echo "Downloading Carpet: $CARPET_URL"
           curl -sSL "$CARPET_URL" -o run/mods/carpet.jar
+          
+          SPARK_URL="$(python3 - <<'PY'
+          import json
+          import urllib.parse
+          import urllib.request
+          
+          def fetch_url(params):
+              base = 'https://api.modrinth.com/v2/project/spark/version'
+              url = base + '?' + urllib.parse.urlencode(params)
+              req = urllib.request.Request(url, headers={'User-Agent': 'gems-perf-ci'})
+              with urllib.request.urlopen(req) as r:
+                  data = json.loads(r.read().decode('utf-8'))
+              if not data:
+                  return None
+              for f in (data[0].get('files') or []):
+                  if f.get('url'):
+                      return f['url']
+              return None
+          
+          url = fetch_url({'game_versions': json.dumps(['1.21.1']), 'loaders': json.dumps(['fabric'])})
+          if url is None:
+              url = fetch_url({'loaders': json.dumps(['fabric'])})
+          print(url or '')
+          PY
+          )"
+          if [[ -n "$SPARK_URL" ]]; then
+            echo "Downloading spark: $SPARK_URL"
+            curl -sSL "$SPARK_URL" -o run/mods/spark.jar
+          else
+            echo "spark download skipped (no matching version found)"
+          fi
 
           "$GRADLE" --no-daemon runServer --args "nogui" > server.log 2>&1 &
           SERVER_PID=$!
@@ -206,6 +237,7 @@ jobs:
           rcon "gems admin perf reset"
 
           # Force-mode stress is intentionally harsh; put period=5t to add entity spam.
+          rcon "spark profiler --timeout 120" || true
           rcon "gems admin stress start @a 120 5 force true true"
           sleep 125
           # Stress runner auto-stops after its configured duration.
@@ -228,3 +260,14 @@ jobs:
         with:
           name: perf-server-log
           path: server.log
+          if-no-files-found: ignore
+      
+      - name: Upload spark output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-spark
+          path: |
+            run/spark/**
+            run/logs/**
+          if-no-files-found: ignore

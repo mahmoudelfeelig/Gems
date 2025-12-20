@@ -356,7 +356,7 @@ public final class AbilityRuntime {
             prev = GameMode.SURVIVAL;
         }
 
-        BlockPos returnPos = nbt.contains(KEY_ASTRAL_CAMERA_RETURN_POS, NbtElement.COMPOUND_TYPE)
+        BlockPos returnPos = nbt.contains(KEY_ASTRAL_CAMERA_RETURN_POS)
                 ? NbtHelper.toBlockPos(nbt, KEY_ASTRAL_CAMERA_RETURN_POS).orElse(player.getBlockPos())
                 : player.getBlockPos();
         float yaw = nbt.contains(KEY_ASTRAL_CAMERA_RETURN_YAW, NbtElement.FLOAT_TYPE) ? nbt.getFloat(KEY_ASTRAL_CAMERA_RETURN_YAW) : player.getYaw();

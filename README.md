@@ -10,6 +10,11 @@ a Minecraft mod that adds gems with unique powers for each holder.
 
 - Build a jar with `./gradlew build` and copy `build/libs/*.jar` into your server’s `mods/` folder (with Fabric Loader + Fabric API installed).
 
+## Testing
+
+- Unit tests: `./gradlew test`
+- End-to-end integration (Fabric GameTest): `./gradlew gametest` (writes `build/reports/gametest.xml`, uses `run/gametest/`)
+
 ## Admin commands
 
 - `/gems reloadBalance` (op 2+)

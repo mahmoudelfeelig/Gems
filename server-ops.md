@@ -50,3 +50,7 @@ If you want automated end-to-end checks beyond unit tests, consider adding Fabri
 - Spawn a controlled world, give a test player a gem, and assert cooldowns/state changes after ability activation.
 - These tests can run headlessly in CI and catch regressions that unit tests won’t.
 
+This repo includes a small GameTest suite under `src/gametest/`:
+- Run locally: `./gradlew gametest`
+- Output report: `build/reports/gametest.xml`
+- Run directory: `run/gametest/` (EULA is auto-accepted for the dev run)

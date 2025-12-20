@@ -1,0 +1,84 @@
+package com.feel.gems.item;
+
+import com.feel.gems.state.GemsPersistentDataHolder;
+import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.server.network.ServerPlayerEntity;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Keeps gem items from dropping on death by stashing them into persistent player NBT and restoring on respawn.
+ */
+public final class GemKeepOnDeath {
+    private static final String KEY_KEPT_GEMS = "keptGems";
+
+    private GemKeepOnDeath() {
+    }
+
+    public static void stash(ServerPlayerEntity player) {
+        NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        root.remove(KEY_KEPT_GEMS);
+
+        List<ItemStack> kept = new ArrayList<>();
+
+        for (int i = 0; i < player.getInventory().main.size(); i++) {
+            ItemStack stack = player.getInventory().main.get(i);
+            if (stack.getItem() instanceof GemItem) {
+                kept.add(stack.copy());
+                player.getInventory().main.set(i, ItemStack.EMPTY);
+            }
+        }
+        for (int i = 0; i < player.getInventory().offHand.size(); i++) {
+            ItemStack stack = player.getInventory().offHand.get(i);
+            if (stack.getItem() instanceof GemItem) {
+                kept.add(stack.copy());
+                player.getInventory().offHand.set(i, ItemStack.EMPTY);
+            }
+        }
+        for (int i = 0; i < player.getInventory().armor.size(); i++) {
+            ItemStack stack = player.getInventory().armor.get(i);
+            if (stack.getItem() instanceof GemItem) {
+                kept.add(stack.copy());
+                player.getInventory().armor.set(i, ItemStack.EMPTY);
+            }
+        }
+
+        if (kept.isEmpty()) {
+            return;
+        }
+
+        SimpleInventory inv = new SimpleInventory(kept.size());
+        for (int i = 0; i < kept.size(); i++) {
+            inv.setStack(i, kept.get(i));
+        }
+        NbtList list = inv.toNbtList(player.getServerWorld().getRegistryManager());
+        root.put(KEY_KEPT_GEMS, list);
+    }
+
+    public static void restore(ServerPlayerEntity player) {
+        NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        if (!root.contains(KEY_KEPT_GEMS, NbtElement.LIST_TYPE)) {
+            return;
+        }
+        NbtList list = root.getList(KEY_KEPT_GEMS, NbtElement.COMPOUND_TYPE);
+        root.remove(KEY_KEPT_GEMS);
+        if (list.isEmpty()) {
+            return;
+        }
+
+        SimpleInventory inv = new SimpleInventory(list.size());
+        inv.readNbtList(list, player.getServerWorld().getRegistryManager());
+        for (int i = 0; i < inv.size(); i++) {
+            ItemStack stack = inv.getStack(i);
+            if (!stack.isEmpty()) {
+                player.giveItemStack(stack);
+            }
+        }
+    }
+}
+

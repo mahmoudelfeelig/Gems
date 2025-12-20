@@ -3,6 +3,7 @@ package com.feel.gems;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.item.GemItemGlint;
+import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.FluxCharge;
 import com.feel.gems.power.AbilityRuntime;
@@ -45,6 +46,7 @@ public final class GemsModEvents {
             ServerPlayerEntity player = handler.getPlayer();
             GemPlayerState.initIfNeeded(player);
             GemPlayerState.applyMaxHearts(player);
+            GemKeepOnDeath.restore(player);
             ensureActiveGemItem(player);
             GemPowers.sync(player);
             GemItemGlint.sync(player);
@@ -62,6 +64,7 @@ public final class GemsModEvents {
             GemPlayerState.copy(oldPlayer, newPlayer);
             GemPlayerState.initIfNeeded(newPlayer);
             GemPlayerState.applyMaxHearts(newPlayer);
+            GemKeepOnDeath.restore(newPlayer);
             ensureActiveGemItem(newPlayer);
             GemPowers.sync(newPlayer);
             GemItemGlint.sync(newPlayer);

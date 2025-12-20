@@ -110,10 +110,20 @@ public final class GemsKeybinds {
         GemDefinition def = GemRegistry.definition(ClientGemState.activeGem());
         int abilityCount = def.abilities().size();
 
-        // Flux charging is always the key AFTER the gem's last ability (not "after unlocked abilities").
-        if (ClientGemState.activeGem() == GemId.FLUX && slotNumber == abilityCount + 1) {
-            ClientPlayNetworking.send(FluxChargePayload.INSTANCE);
-            return;
+        // Flux: insert "Charge" as slot 2 (between ability 1 and ability 2).
+        if (ClientGemState.activeGem() == GemId.FLUX) {
+            if (slotNumber == 2) {
+                ClientPlayNetworking.send(FluxChargePayload.INSTANCE);
+                return;
+            }
+            if (slotNumber >= 3) {
+                int shiftedIndex = slotNumber - 2;
+                if (shiftedIndex < 0 || shiftedIndex >= abilityCount) {
+                    return;
+                }
+                ClientPlayNetworking.send(new ActivateAbilityPayload(shiftedIndex));
+                return;
+            }
         }
 
         // Soul release is always the key AFTER the gem's last ability (not "after unlocked abilities").

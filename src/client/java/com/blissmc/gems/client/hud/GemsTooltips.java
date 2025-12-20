@@ -57,10 +57,9 @@ public final class GemsTooltips {
         }
 
         if (gem == GemId.FLUX) {
-            lines.add(Text.literal("Sneak + Right-click to consume 1 charge item (offhand or inventory).").formatted(Formatting.AQUA));
-            String chord = com.feel.gems.client.GemsKeybinds.chordSlotLabel(def.abilities().size() + 1);
+            String chord = com.feel.gems.client.GemsKeybinds.chordSlotLabel(2);
             if (!chord.isEmpty()) {
-                lines.add(Text.literal("Or " + chord + " to charge.").formatted(Formatting.AQUA));
+                lines.add(Text.literal(chord + " to charge (consumes 1 item).").formatted(Formatting.AQUA));
             }
             lines.add(Text.literal("Charge items (per item):").formatted(Formatting.AQUA));
             var flux = GemsBalance.v().flux();

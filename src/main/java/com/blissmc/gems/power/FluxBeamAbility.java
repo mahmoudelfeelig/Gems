@@ -1,6 +1,7 @@
 package com.feel.gems.power;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.net.GemExtraStateSync;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -59,6 +60,7 @@ public final class FluxBeamAbility implements GemAbility {
             repairArmor(other, durabilityDamage);
             beamFx(player, other.getPos().add(0.0D, 1.0D, 0.0D), true);
             player.sendMessage(Text.literal("Flux Beam: repaired ally armor (" + charge + "%)"), true);
+            consumeCharge(player);
             return true;
         }
 
@@ -69,16 +71,28 @@ public final class FluxBeamAbility implements GemAbility {
         }
         beamFx(player, target.getPos().add(0.0D, 1.0D, 0.0D), false);
         player.sendMessage(Text.literal("Flux Beam: " + charge + "%"), true);
+        consumeCharge(player);
         return true;
     }
 
     private static void beamFx(ServerPlayerEntity player, Vec3d hitPos, boolean healing) {
         var world = player.getServerWorld();
         Vec3d from = player.getEyePos();
-        var particle = healing ? ParticleTypes.HAPPY_VILLAGER : ParticleTypes.ELECTRIC_SPARK;
-        AbilityFeedback.beam(world, from, hitPos, particle, 16);
-        AbilityFeedback.burstAt(world, hitPos, particle, 10, 0.25D);
-        AbilityFeedback.sound(player, SoundEvents.ENTITY_GUARDIAN_ATTACK, 0.8F, healing ? 1.6F : 1.2F);
+        var core = healing ? ParticleTypes.HAPPY_VILLAGER : ParticleTypes.ELECTRIC_SPARK;
+        var trail = healing ? ParticleTypes.END_ROD : ParticleTypes.END_ROD;
+        AbilityFeedback.beam(world, from, hitPos, core, 28);
+        AbilityFeedback.beam(world, from, hitPos, trail, 18);
+        AbilityFeedback.burstAt(world, hitPos, core, 18, 0.35D);
+        AbilityFeedback.burstAt(world, hitPos, ParticleTypes.FLASH, 1, 0.0D);
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_GUARDIAN_ATTACK, 0.9F, healing ? 1.6F : 1.1F);
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 0.25F, healing ? 1.8F : 1.4F);
+    }
+
+    private static void consumeCharge(ServerPlayerEntity player) {
+        // Flux charge is a one-shot resource; after firing, it resets.
+        FluxCharge.set(player, 0);
+        FluxCharge.clearIfBelow100(player);
+        GemExtraStateSync.send(player);
     }
 
     private static void damageArmor(ServerPlayerEntity player, int amount) {

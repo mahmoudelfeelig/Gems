@@ -1,5 +1,6 @@
 package com.feel.gems.mixin;
 
+import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.net.GemStateSync;
@@ -16,6 +17,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityDeathMixin {
+    @Inject(method = "onDeath", at = @At("HEAD"))
+    private void gems$stashGems(DamageSource source, CallbackInfo ci) {
+        ServerPlayerEntity victim = (ServerPlayerEntity) (Object) this;
+        if (victim.getWorld().isClient) {
+            return;
+        }
+        GemKeepOnDeath.stash(victim);
+    }
+
     @Inject(method = "onDeath", at = @At("TAIL"))
     private void gems$onDeath(DamageSource source, CallbackInfo ci) {
         ServerPlayerEntity victim = (ServerPlayerEntity) (Object) this;

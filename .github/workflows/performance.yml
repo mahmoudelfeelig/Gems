@@ -275,7 +275,11 @@ jobs:
 
           # Print spark viewer link if present in the logs.
           SPARK_LINK=""
-          SPARK_LINK="$(grep -Eo 'https?://spark\\.lucko\\.me/[^ ]+' server.log run/logs/latest.log 2>/dev/null | tail -n1 || true)"
+          # Prefer the command response (most reliable), then fall back to log files.
+          SPARK_LINK="$(printf '%s\n' "${SPARK_START_OUT:-}" | grep -Eo 'https?://spark\.lucko\.me/[^[:space:]]+' | tail -n1 || true)"
+          if [[ -z "$SPARK_LINK" ]]; then
+            SPARK_LINK="$(grep -Eo 'https?://spark\.lucko\.me/[^[:space:]]+' server.log run/logs/latest.log 2>/dev/null | tail -n1 || true)"
+          fi
           SPARK_LINK="$(printf '%s' "$SPARK_LINK" | tr -d '\r')"
           if [[ -n "$SPARK_LINK" ]]; then
             echo "spark: $SPARK_LINK"

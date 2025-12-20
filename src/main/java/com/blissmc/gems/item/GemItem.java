@@ -2,7 +2,6 @@ package com.feel.gems.item;
 
 import com.feel.gems.core.GemId;
 import com.feel.gems.net.GemStateSync;
-import com.feel.gems.power.FluxCharge;
 import com.feel.gems.power.GemPowers;
 import com.feel.gems.state.GemPlayerState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -37,22 +36,6 @@ public final class GemItem extends Item {
         }
 
         GemPlayerState.initIfNeeded(player);
-
-        if (player.isSneaking() && gemId == GemId.FLUX) {
-            boolean changedGem = false;
-            if (GemPlayerState.getActiveGem(player) != GemId.FLUX) {
-                GemPlayerState.setActiveGem(player, GemId.FLUX);
-                GemPowers.sync(player);
-                changedGem = true;
-            }
-
-            boolean charged = FluxCharge.tryConsumeChargeItem(player);
-            if (charged || changedGem) {
-                GemStateSync.send(player);
-                GemItemGlint.sync(player);
-            }
-            return TypedActionResult.success(stack);
-        }
 
         GemPlayerState.setActiveGem(player, gemId);
         GemPowers.sync(player);

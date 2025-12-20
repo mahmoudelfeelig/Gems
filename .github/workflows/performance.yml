@@ -212,12 +212,21 @@ jobs:
           PY
 
           echo "Waiting for RCON..."
+          RCON_READY="false"
           for _ in $(seq 1 180); do
             if python3 .github/rcon.py 127.0.0.1 25575 perf "list" >/dev/null 2>&1; then
+              RCON_READY="true"
               break
             fi
             sleep 1
           done
+          if [[ "$RCON_READY" != "true" ]]; then
+            echo "RCON never became ready; dumping server.log (last 200 lines):"
+            tail -n 200 server.log || true
+            echo "RCON never became ready; dumping run/logs/latest.log (last 200 lines):"
+            tail -n 200 run/logs/latest.log || true
+            exit 1
+          fi
 
           rcon() { python3 .github/rcon.py 127.0.0.1 25575 perf "$@"; }
 

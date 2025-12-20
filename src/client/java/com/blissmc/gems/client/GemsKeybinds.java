@@ -6,7 +6,6 @@ import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.ActivateAbilityPayload;
 import com.feel.gems.net.FluxChargePayload;
 import com.feel.gems.net.SoulReleasePayload;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
@@ -21,7 +20,6 @@ public final class GemsKeybinds {
 
     private static boolean registered = false;
     private static KeyBinding MODIFIER;
-    private static final boolean[] HOTBAR_PREV_DOWN = new boolean[9];
 
     private GemsKeybinds() {
     }
@@ -38,43 +36,10 @@ public final class GemsKeybinds {
                 GLFW.GLFW_KEY_LEFT_ALT,
                 CATEGORY
         ));
+    }
 
-        // Abilities use "Modifier + Hotbar key 1..9".
-        // We intentionally do NOT register per-slot 1..9 bindings, to avoid breaking vanilla hotbar selection.
-        ClientTickEvents.START_CLIENT_TICK.register(client -> {
-            if (client.currentScreen != null) {
-                clearHotbarPrev();
-                return;
-            }
-            if (!MODIFIER.isPressed()) {
-                clearHotbarPrev();
-                return;
-            }
-            GameOptions options = client.options;
-            if (options == null || options.hotbarKeys == null) {
-                clearHotbarPrev();
-                return;
-            }
-            int limit = Math.min(9, options.hotbarKeys.length);
-            for (int i = 0; i < limit; i++) {
-                KeyBinding hotbar = options.hotbarKeys[i];
-                boolean down = hotbar.isPressed();
-                if (down && !HOTBAR_PREV_DOWN[i]) {
-                    activateSlot(client, i + 1);
-                }
-                HOTBAR_PREV_DOWN[i] = down;
-            }
-            for (int i = limit; i < HOTBAR_PREV_DOWN.length; i++) {
-                HOTBAR_PREV_DOWN[i] = false;
-            }
-        });
-
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.currentScreen != null) {
-                return;
-            }
-            // Nothing: ability hotkeys are handled in START_CLIENT_TICK to preempt vanilla hotbar switching.
-        });
+    public static boolean isModifierDown() {
+        return MODIFIER != null && MODIFIER.isPressed();
     }
 
     public static String modifierLabel() {
@@ -96,7 +61,7 @@ public final class GemsKeybinds {
         return modifier + " + " + key;
     }
 
-    private static void activateSlot(MinecraftClient client, int slotNumber) {
+    public static void activateSlotChord(MinecraftClient client, int slotNumber) {
         if (client.getNetworkHandler() == null) {
             sendActionBar(client, Text.literal("Not connected."));
             return;
@@ -162,12 +127,6 @@ public final class GemsKeybinds {
             return;
         }
         client.player.sendMessage(text, true);
-    }
-
-    private static void clearHotbarPrev() {
-        for (int i = 0; i < HOTBAR_PREV_DOWN.length; i++) {
-            HOTBAR_PREV_DOWN[i] = false;
-        }
     }
 
     private static String chordKeyLabel(int slotNumber) {

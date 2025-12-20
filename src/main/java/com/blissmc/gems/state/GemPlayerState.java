@@ -183,6 +183,13 @@ public final class GemPlayerState {
         root(player).put(KEY_OWNED_GEMS, list);
     }
 
+    public static void setOwnedGemsExact(PlayerEntity player, EnumSet<GemId> owned) {
+        if (owned == null || owned.isEmpty()) {
+            owned = EnumSet.of(getActiveGem(player));
+        }
+        setOwnedGems(player, owned);
+    }
+
     private static GemId randomGem(PlayerEntity player) {
         GemId[] values = GemId.values();
         return values[player.getRandom().nextInt(values.length)];

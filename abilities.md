@@ -76,9 +76,10 @@ With Carpet installed, you can also spawn 20 fake players and run the same tests
 - Heat Haze Zone: allies gain Fire Resistance; enemies gain Mining Fatigue + Weakness while in the radius.
   - Defaults: `heatHazeCooldownSeconds=90`, `heatHazeDurationSeconds=10`, `heatHazeRadiusBlocks=10`, `heatHazeEnemyMiningFatigueAmplifier=0`, `heatHazeEnemyWeaknessAmplifier=0`
 - Fireball: press once to start charging; press again to launch. Charge decays unless standing on obsidian.
+  - Shows current charge % in the action bar while charging.
   - Defaults: `fireballChargeUpSeconds=3`, `fireballChargeDownSeconds=3`, `fireballInternalCooldownSeconds=4`, `fireballMaxDistanceBlocks=60`
 - Meteor Shower: spawns multiple falling “meteors” around a target zone.
-  - Defaults: `meteorShowerCooldownSeconds=120`, `meteorShowerCount=10`, `meteorShowerSpreadBlocks=10`, `meteorShowerHeightBlocks=25`, `meteorShowerVelocity=1.5`
+  - Defaults: `meteorShowerCooldownSeconds=120`, `meteorShowerCount=10`, `meteorShowerSpreadBlocks=10`, `meteorShowerHeightBlocks=25`, `meteorShowerVelocity=1.5`, `meteorShowerExplosionPower=2`
 
 ## Flux Gem
 

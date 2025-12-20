@@ -96,6 +96,7 @@ public final class GemsBalance {
         cfg.fire.meteorShowerSpreadBlocks = v.fire().meteorShowerSpreadBlocks();
         cfg.fire.meteorShowerHeightBlocks = v.fire().meteorShowerHeightBlocks();
         cfg.fire.meteorShowerVelocity = v.fire().meteorShowerVelocity();
+        cfg.fire.meteorShowerExplosionPower = v.fire().meteorShowerExplosionPower();
 
         cfg.flux.fluxBeamCooldownSeconds = ticksToSeconds(v.flux().fluxBeamCooldownTicks());
         cfg.flux.fluxBeamRangeBlocks = v.flux().fluxBeamRangeBlocks();
@@ -320,7 +321,8 @@ public final class GemsBalance {
             int meteorShowerCount,
             int meteorShowerSpreadBlocks,
             int meteorShowerHeightBlocks,
-            float meteorShowerVelocity
+            float meteorShowerVelocity,
+            int meteorShowerExplosionPower
     ) {
         static Fire from(GemsBalanceConfig.Fire cfg) {
             return new Fire(
@@ -341,7 +343,8 @@ public final class GemsBalance {
                     clampInt(cfg.meteorShowerCount, 0, 50),
                     clampInt(cfg.meteorShowerSpreadBlocks, 0, 48),
                     clampInt(cfg.meteorShowerHeightBlocks, 1, 256),
-                    clampFloat(cfg.meteorShowerVelocity, 0.1F, 6.0F)
+                    clampFloat(cfg.meteorShowerVelocity, 0.1F, 6.0F),
+                    clampInt(cfg.meteorShowerExplosionPower, 1, 6)
             );
         }
     }

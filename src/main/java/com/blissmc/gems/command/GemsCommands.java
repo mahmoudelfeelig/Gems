@@ -17,6 +17,7 @@ import com.feel.gems.power.ModPassives;
 import com.feel.gems.power.GemAbilities;
 import com.feel.gems.power.SoulSystem;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.trade.GemTrading;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.debug.GemsStressTest;
 import com.feel.gems.debug.GemsPerfMonitor;
@@ -415,23 +416,11 @@ public final class GemsCommands {
             return 0;
         }
 
-        boolean alreadyOwned = GemPlayerState.getOwnedGems(player).contains(gemId);
-        if (!alreadyOwned) {
-            ItemStack traderStack = findTraderStack(player);
-            if (traderStack == null) {
-                player.sendMessage(Text.literal("Hold a Gem Trader to trade for a new gem."), false);
-                return 0;
-            }
-            traderStack.decrement(1);
-            GemPlayerState.addOwnedGem(player, gemId);
+        GemTrading.Result result = GemTrading.trade(player, gemId);
+        if (!result.success()) {
+            return 0;
         }
-
-        GemPlayerState.setActiveGem(player, gemId);
-        GemPowers.sync(player);
-        GemItemGlint.sync(player);
-        GemStateSync.send(player);
-        ensurePlayerHasItem(player, ModItems.gemItem(gemId));
-        player.sendMessage(Text.literal(alreadyOwned ? "Switched active gem to " + gemId.name() : "Traded for " + gemId.name()), false);
+        player.sendMessage(Text.literal("Traded for " + gemId.name()), false);
         return 1;
     }
 
@@ -440,19 +429,6 @@ public final class GemsCommands {
         GemPowers.sync(player);
         GemItemGlint.sync(player);
         GemStateSync.send(player);
-    }
-
-    private static ItemStack findTraderStack(ServerPlayerEntity player) {
-        Item trader = ModItems.TRADER;
-        ItemStack main = player.getMainHandStack();
-        if (main.isOf(trader)) {
-            return main;
-        }
-        ItemStack off = player.getOffHandStack();
-        if (off.isOf(trader)) {
-            return off;
-        }
-        return null;
     }
 
     private static void ensurePlayerHasItem(ServerPlayerEntity player, Item item) {

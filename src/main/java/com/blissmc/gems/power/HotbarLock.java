@@ -1,6 +1,7 @@
 package com.feel.gems.power;
 
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.util.GemsTime;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -13,7 +14,7 @@ public final class HotbarLock {
     }
 
     public static void lock(ServerPlayerEntity target, int hotbarSlot, int durationTicks) {
-        lock(persistent(target), target.getServerWorld().getTime(), hotbarSlot, durationTicks);
+        lock(persistent(target), GemsTime.now(target), hotbarSlot, durationTicks);
     }
 
     public static boolean isLocked(ServerPlayerEntity player) {
@@ -21,7 +22,7 @@ public final class HotbarLock {
     }
 
     public static int lockedSlot(ServerPlayerEntity player) {
-        return lockedSlot(persistent(player), player.getServerWorld().getTime());
+        return lockedSlot(persistent(player), GemsTime.now(player));
     }
 
     static void lock(NbtCompound nbt, long now, int hotbarSlot, int durationTicks) {

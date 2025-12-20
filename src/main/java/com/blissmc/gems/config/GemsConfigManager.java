@@ -41,6 +41,10 @@ public final class GemsConfigManager {
         return loadInternal(true, false);
     }
 
+    public static LoadResult loadOrCreateForUi() {
+        return loadInternal(true, true);
+    }
+
     private static LoadResult loadInternal(boolean createIfMissing, boolean fallbackToDefaults) {
         Path path = balancePath();
 
@@ -79,6 +83,10 @@ public final class GemsConfigManager {
         return configDir().resolve(FILE);
     }
 
+    public static Path balancePathForUi() {
+        return balancePath();
+    }
+
     static Path resolveInConfigDir(String fileName) {
         return configDir().resolve(fileName);
     }
@@ -95,5 +103,9 @@ public final class GemsConfigManager {
         } catch (IOException e) {
             GemsMod.LOGGER.error("Failed to write config {}", path, e);
         }
+    }
+
+    public static void writeBalanceForUi(GemsBalanceConfig cfg) {
+        write(balancePath(), cfg);
     }
 }

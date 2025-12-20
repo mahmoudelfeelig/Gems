@@ -2,6 +2,7 @@ package com.feel.gems.power;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.util.GemsTime;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.projectile.FireballEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -43,7 +44,7 @@ public final class FireballAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
-        long now = player.getServerWorld().getTime();
+        long now = GemsTime.now(player);
         long lastFire = nbt.getLong(KEY_LAST_FIRE);
         if (now - lastFire < GemsBalance.v().fire().fireballInternalCooldownTicks()) {
             player.sendMessage(Text.literal("Fireball is on cooldown."), true);

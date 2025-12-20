@@ -106,6 +106,9 @@ tasks.register("prepareGametestRunDir") {
     doLast {
         file("run/gametest").mkdirs()
         file("run/gametest/eula.txt").text = "eula=true\n"
+        if (!file("run/gametest/server.properties").exists()) {
+            file("run/gametest/server.properties").text = "online-mode=false\n"
+        }
     }
 }
 

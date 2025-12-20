@@ -32,7 +32,7 @@ jobs:
 
           if [[ -f gradle/wrapper/gradle-wrapper.jar ]]; then
             chmod +x ./gradlew
-            ./gradlew --no-daemon lint test build
+            ./gradlew --no-daemon lint test gametest build
             exit 0
           fi
 
@@ -42,4 +42,4 @@ jobs:
           unzip -q /tmp/gradle.zip -d /tmp/gradle
           gradle_bin="$(find /tmp/gradle -maxdepth 3 -type f -path '*/bin/gradle' | head -n1)"
           chmod +x "$gradle_bin"
-          "$gradle_bin" --no-daemon lint test build
+          "$gradle_bin" --no-daemon lint test gametest build

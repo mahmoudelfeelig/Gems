@@ -6,6 +6,7 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.util.GemsTime;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -55,7 +56,7 @@ public final class GemAbilities {
             return;
         }
 
-        long now = player.getServerWorld().getTime();
+        long now = GemsTime.now(player);
         long nextAllowed = GemAbilityCooldowns.nextAllowedTick(player, abilityId);
         if (nextAllowed > now) {
             long remainingTicks = nextAllowed - now;

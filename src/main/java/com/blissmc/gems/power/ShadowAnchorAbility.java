@@ -6,6 +6,7 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.util.GemsTime;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.particle.ParticleTypes;
@@ -45,7 +46,7 @@ public final class ShadowAnchorAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
-        long now = player.getServerWorld().getTime();
+        long now = GemsTime.now(player);
 
         if (nbt.contains(KEY_ANCHOR_UNTIL, NbtElement.LONG_TYPE) && now <= nbt.getLong(KEY_ANCHOR_UNTIL)) {
             if (player.isSneaking()) {

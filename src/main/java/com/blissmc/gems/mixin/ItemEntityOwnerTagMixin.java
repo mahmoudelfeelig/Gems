@@ -1,6 +1,6 @@
-package com.blissmc.gems.mixin;
+package com.feel.gems.mixin;
 
-import com.blissmc.gems.power.AbilityRuntime;
+import com.feel.gems.power.AbilityRuntime;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;

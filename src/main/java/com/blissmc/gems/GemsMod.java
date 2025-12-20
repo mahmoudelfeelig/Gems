@@ -1,14 +1,14 @@
-package com.blissmc.gems;
+package com.feel.gems;
 
-import com.blissmc.gems.config.GemsBalance;
+import com.feel.gems.config.GemsBalance;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.blissmc.gems.command.GemsCommands;
-import com.blissmc.gems.item.ModItems;
-import com.blissmc.gems.net.GemsPayloads;
-import com.blissmc.gems.net.ServerAbilityNetworking;
+import com.feel.gems.command.GemsCommands;
+import com.feel.gems.item.ModItems;
+import com.feel.gems.net.GemsPayloads;
+import com.feel.gems.net.ServerAbilityNetworking;
 
 public final class GemsMod implements ModInitializer {
     public static final String MOD_ID = "gems";

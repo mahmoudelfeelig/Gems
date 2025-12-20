@@ -1,7 +1,7 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
-import com.blissmc.gems.screen.PocketsScreenHandler;
-import com.blissmc.gems.screen.PocketsStorage;
+import com.feel.gems.screen.PocketsScreenHandler;
+import com.feel.gems.screen.PocketsStorage;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;

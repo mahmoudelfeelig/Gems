@@ -1,8 +1,8 @@
-package com.blissmc.gems.client;
+package com.feel.gems.client;
 
-import com.blissmc.gems.core.GemDefinition;
-import com.blissmc.gems.core.GemId;
-import com.blissmc.gems.core.GemRegistry;
+import com.feel.gems.core.GemDefinition;
+import com.feel.gems.core.GemId;
+import com.feel.gems.core.GemRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
 

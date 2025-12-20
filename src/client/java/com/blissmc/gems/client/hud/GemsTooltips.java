@@ -1,13 +1,13 @@
-package com.blissmc.gems.client.hud;
+package com.feel.gems.client.hud;
 
-import com.blissmc.gems.core.GemDefinition;
-import com.blissmc.gems.core.GemId;
-import com.blissmc.gems.core.GemRegistry;
-import com.blissmc.gems.item.GemItem;
-import com.blissmc.gems.power.GemAbility;
-import com.blissmc.gems.power.GemPassive;
-import com.blissmc.gems.power.ModAbilities;
-import com.blissmc.gems.power.ModPassives;
+import com.feel.gems.core.GemDefinition;
+import com.feel.gems.core.GemId;
+import com.feel.gems.core.GemRegistry;
+import com.feel.gems.item.GemItem;
+import com.feel.gems.power.GemAbility;
+import com.feel.gems.power.GemPassive;
+import com.feel.gems.power.ModAbilities;
+import com.feel.gems.power.ModPassives;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;

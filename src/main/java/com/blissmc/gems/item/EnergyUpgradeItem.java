@@ -1,8 +1,8 @@
-package com.blissmc.gems.item;
+package com.feel.gems.item;
 
-import com.blissmc.gems.net.GemStateSync;
-import com.blissmc.gems.power.GemPowers;
-import com.blissmc.gems.state.GemPlayerState;
+import com.feel.gems.net.GemStateSync;
+import com.feel.gems.power.GemPowers;
+import com.feel.gems.state.GemPlayerState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;

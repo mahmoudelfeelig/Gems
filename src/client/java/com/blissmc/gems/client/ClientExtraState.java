@@ -1,4 +1,4 @@
-package com.blissmc.gems.client;
+package com.feel.gems.client;
 
 public final class ClientExtraState {
     private static int fluxChargePercent = 0;

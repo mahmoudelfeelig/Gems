@@ -1,4 +1,4 @@
-package com.blissmc.gems.screen;
+package com.feel.gems.screen;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;

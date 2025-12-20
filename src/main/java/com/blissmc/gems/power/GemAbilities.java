@@ -1,11 +1,11 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
-import com.blissmc.gems.core.GemDefinition;
-import com.blissmc.gems.core.GemEnergyState;
-import com.blissmc.gems.core.GemId;
-import com.blissmc.gems.core.GemRegistry;
-import com.blissmc.gems.net.AbilityCooldownPayload;
-import com.blissmc.gems.state.GemPlayerState;
+import com.feel.gems.core.GemDefinition;
+import com.feel.gems.core.GemEnergyState;
+import com.feel.gems.core.GemId;
+import com.feel.gems.core.GemRegistry;
+import com.feel.gems.net.AbilityCooldownPayload;
+import com.feel.gems.state.GemPlayerState;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;

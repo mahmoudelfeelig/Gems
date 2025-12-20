@@ -1,7 +1,7 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
-import com.blissmc.gems.config.GemsBalance;
-import com.blissmc.gems.trust.GemTrust;
+import com.feel.gems.config.GemsBalance;
+import com.feel.gems.trust.GemTrust;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;

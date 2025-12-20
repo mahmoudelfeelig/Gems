@@ -1,6 +1,6 @@
-package com.blissmc.gems.net;
+package com.feel.gems.net;
 
-import com.blissmc.gems.GemsMod;
+import com.feel.gems.GemsMod;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;

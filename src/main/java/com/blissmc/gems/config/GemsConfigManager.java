@@ -1,6 +1,6 @@
-package com.blissmc.gems.config;
+package com.feel.gems.config;
 
-import com.blissmc.gems.GemsMod;
+import com.feel.gems.GemsMod;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;

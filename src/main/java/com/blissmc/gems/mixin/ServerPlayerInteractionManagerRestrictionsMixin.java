@@ -1,7 +1,7 @@
-package com.blissmc.gems.mixin;
+package com.feel.gems.mixin;
 
-import com.blissmc.gems.power.AbilityRestrictions;
-import com.blissmc.gems.power.WealthFumble;
+import com.feel.gems.power.AbilityRestrictions;
+import com.feel.gems.power.WealthFumble;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;

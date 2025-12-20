@@ -1,10 +1,10 @@
-package com.blissmc.gems.client;
+package com.feel.gems.client;
 
-import com.blissmc.gems.core.GemId;
-import com.blissmc.gems.net.AbilityCooldownPayload;
-import com.blissmc.gems.net.CooldownSnapshotPayload;
-import com.blissmc.gems.net.ExtraStatePayload;
-import com.blissmc.gems.net.StateSyncPayload;
+import com.feel.gems.core.GemId;
+import com.feel.gems.net.AbilityCooldownPayload;
+import com.feel.gems.net.CooldownSnapshotPayload;
+import com.feel.gems.net.ExtraStatePayload;
+import com.feel.gems.net.StateSyncPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 

@@ -1,4 +1,4 @@
-package com.blissmc.gems.net;
+package com.feel.gems.net;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 

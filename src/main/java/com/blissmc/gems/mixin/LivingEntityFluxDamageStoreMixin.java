@@ -1,8 +1,8 @@
-package com.blissmc.gems.mixin;
+package com.feel.gems.mixin;
 
-import com.blissmc.gems.core.GemId;
-import com.blissmc.gems.power.StaticBurstAbility;
-import com.blissmc.gems.state.GemPlayerState;
+import com.feel.gems.core.GemId;
+import com.feel.gems.power.StaticBurstAbility;
+import com.feel.gems.state.GemPlayerState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;

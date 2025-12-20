@@ -1,7 +1,7 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
-import com.blissmc.gems.config.GemsBalance;
-import com.blissmc.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.config.GemsBalance;
+import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ArmorMaterials;
@@ -92,7 +92,7 @@ public final class FluxCharge {
         int next = Math.min(200, charge + GemsBalance.v().flux().overchargePerSecond());
         set(player, next);
         player.damage(player.getDamageSources().magic(), GemsBalance.v().flux().overchargeSelfDamagePerSecond());
-        com.blissmc.gems.net.GemExtraStateSync.send(player);
+        com.feel.gems.net.GemExtraStateSync.send(player);
     }
 
     public static void clearIfBelow100(ServerPlayerEntity player) {

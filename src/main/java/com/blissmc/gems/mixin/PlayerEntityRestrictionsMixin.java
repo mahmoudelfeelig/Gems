@@ -1,6 +1,6 @@
-package com.blissmc.gems.mixin;
+package com.feel.gems.mixin;
 
-import com.blissmc.gems.power.AbilityRestrictions;
+import com.feel.gems.power.AbilityRestrictions;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;

@@ -1,6 +1,6 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
-import com.blissmc.gems.GemsMod;
+import com.feel.gems.GemsMod;
 import net.minecraft.util.Identifier;
 
 public final class PowerIds {

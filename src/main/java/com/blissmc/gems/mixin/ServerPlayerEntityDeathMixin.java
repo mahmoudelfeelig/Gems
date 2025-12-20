@@ -1,10 +1,10 @@
-package com.blissmc.gems.mixin;
+package com.feel.gems.mixin;
 
-import com.blissmc.gems.item.ModItems;
-import com.blissmc.gems.item.GemItemGlint;
-import com.blissmc.gems.net.GemStateSync;
-import com.blissmc.gems.power.GemPowers;
-import com.blissmc.gems.state.GemPlayerState;
+import com.feel.gems.item.ModItems;
+import com.feel.gems.item.GemItemGlint;
+import com.feel.gems.net.GemStateSync;
+import com.feel.gems.power.GemPowers;
+import com.feel.gems.state.GemPlayerState;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;

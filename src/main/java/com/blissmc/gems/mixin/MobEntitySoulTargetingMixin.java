@@ -1,7 +1,7 @@
-package com.blissmc.gems.mixin;
+package com.feel.gems.mixin;
 
-import com.blissmc.gems.power.SoulSummons;
-import com.blissmc.gems.trust.GemTrust;
+import com.feel.gems.power.SoulSummons;
+import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.network.ServerPlayerEntity;

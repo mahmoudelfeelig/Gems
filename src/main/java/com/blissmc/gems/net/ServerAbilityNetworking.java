@@ -1,7 +1,7 @@
-package com.blissmc.gems.net;
+package com.feel.gems.net;
 
-import com.blissmc.gems.power.GemAbilities;
-import com.blissmc.gems.power.SoulSystem;
+import com.feel.gems.power.GemAbilities;
+import com.feel.gems.power.SoulSystem;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 public final class ServerAbilityNetworking {

@@ -1,6 +1,6 @@
-package com.blissmc.gems.power;
+package com.feel.gems.power;
 
-import com.blissmc.gems.config.GemsBalance;
+import com.feel.gems.config.GemsBalance;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 

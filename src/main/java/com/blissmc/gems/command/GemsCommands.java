@@ -1,22 +1,26 @@
-package com.blissmc.gems.command;
+package com.feel.gems.command;
 
-import com.blissmc.gems.core.GemDefinition;
-import com.blissmc.gems.core.GemEnergyState;
-import com.blissmc.gems.core.GemId;
-import com.blissmc.gems.core.GemRegistry;
-import com.blissmc.gems.config.GemsBalance;
-import com.blissmc.gems.item.ModItems;
-import com.blissmc.gems.item.GemItemGlint;
-import com.blissmc.gems.net.GemStateSync;
-import com.blissmc.gems.power.GemAbility;
-import com.blissmc.gems.power.FluxCharge;
-import com.blissmc.gems.power.GemPassive;
-import com.blissmc.gems.power.GemPowers;
-import com.blissmc.gems.power.ModAbilities;
-import com.blissmc.gems.power.ModPassives;
-import com.blissmc.gems.state.GemPlayerState;
-import com.blissmc.gems.trust.GemTrust;
+import com.feel.gems.core.GemDefinition;
+import com.feel.gems.core.GemEnergyState;
+import com.feel.gems.core.GemId;
+import com.feel.gems.core.GemRegistry;
+import com.feel.gems.config.GemsBalance;
+import com.feel.gems.item.ModItems;
+import com.feel.gems.item.GemItemGlint;
+import com.feel.gems.net.GemStateSync;
+import com.feel.gems.power.GemAbility;
+import com.feel.gems.power.FluxCharge;
+import com.feel.gems.power.GemPassive;
+import com.feel.gems.power.GemPowers;
+import com.feel.gems.power.ModAbilities;
+import com.feel.gems.power.ModPassives;
+import com.feel.gems.power.GemAbilities;
+import com.feel.gems.power.SoulSystem;
+import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.trust.GemTrust;
+import com.feel.gems.debug.GemsStressTest;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.Suggestions;
@@ -71,6 +75,14 @@ public final class GemsCommands {
                                 .then(CommandManager.literal("status")
                                         .then(CommandManager.argument("player", EntityArgumentType.player())
                                                 .executes(ctx -> status(ctx.getSource(), EntityArgumentType.getPlayer(ctx, "player")))))
+                                .then(CommandManager.literal("cast")
+                                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                                .then(CommandManager.argument("slot", IntegerArgumentType.integer(1, 10))
+                                                        .executes(ctx -> castSlot(
+                                                                ctx.getSource(),
+                                                                EntityArgumentType.getPlayer(ctx, "player"),
+                                                                IntegerArgumentType.getInteger(ctx, "slot")
+                                                        )))))
                                 .then(CommandManager.literal("resync")
                                         .then(CommandManager.argument("player", EntityArgumentType.player())
                                                 .executes(ctx -> {
@@ -125,8 +137,29 @@ public final class GemsCommands {
                                                         )))))
                                 .then(CommandManager.literal("reset")
                                         .then(CommandManager.argument("player", EntityArgumentType.player())
-                                                .executes(ctx -> reset(ctx.getSource(), EntityArgumentType.getPlayer(ctx, "player"))))))
-        );
+                                                .executes(ctx -> reset(ctx.getSource(), EntityArgumentType.getPlayer(ctx, "player")))))
+                                .then(CommandManager.literal("stress")
+                                        .then(CommandManager.literal("start")
+                                                .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                        .then(CommandManager.argument("seconds", IntegerArgumentType.integer(1, 3600))
+                                                                .then(CommandManager.argument("periodTicks", IntegerArgumentType.integer(1, 200))
+                                                                        .then(CommandManager.argument("mode", StringArgumentType.word())
+                                                                                .suggests((ctx, builder) -> suggestStressMode(builder))
+                                                                                .then(CommandManager.argument("cycleGems", BoolArgumentType.bool())
+                                                                                        .then(CommandManager.argument("forceEnergy10", BoolArgumentType.bool())
+                                                                                                .executes(ctx -> stressStart(
+                                                                                                        ctx.getSource(),
+                                                                                                        EntityArgumentType.getPlayers(ctx, "players"),
+                                                                                                        IntegerArgumentType.getInteger(ctx, "seconds"),
+                                                                                                        IntegerArgumentType.getInteger(ctx, "periodTicks"),
+                                                                                                        GemsStressTest.parseMode(StringArgumentType.getString(ctx, "mode")),
+                                                                                                        BoolArgumentType.getBool(ctx, "cycleGems"),
+                                                                                                        BoolArgumentType.getBool(ctx, "forceEnergy10")
+                                                                                                ))))))))))
+                                        .then(CommandManager.literal("stop")
+                                                .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                        .executes(ctx -> stressStop(ctx.getSource(), EntityArgumentType.getPlayers(ctx, "players"))))))
+                        );
     }
 
     private static int status(ServerCommandSource source, ServerPlayerEntity player) {
@@ -156,6 +189,27 @@ public final class GemsCommands {
         return 1;
     }
 
+    private static int castSlot(ServerCommandSource source, ServerPlayerEntity player, int slotNumber) {
+        GemPlayerState.initIfNeeded(player);
+        GemId active = GemPlayerState.getActiveGem(player);
+        int abilityCount = GemRegistry.definition(active).abilities().size();
+
+        int zeroBased = slotNumber - 1;
+        if (active == GemId.ASTRA && zeroBased == abilityCount) {
+            SoulSystem.release(player);
+            source.sendFeedback(() -> Text.literal("Cast Soul Release for " + player.getName().getString()), true);
+            return 1;
+        }
+        if (zeroBased < 0 || zeroBased >= abilityCount) {
+            source.sendError(Text.literal("Slot " + slotNumber + " is not valid for " + active.name() + " (abilities: " + abilityCount + ")."));
+            return 0;
+        }
+
+        GemAbilities.activateByIndex(player, zeroBased);
+        source.sendFeedback(() -> Text.literal("Cast slot " + slotNumber + " for " + player.getName().getString() + " (" + active.name() + ")"), true);
+        return 1;
+    }
+
     private static int reloadBalance(ServerCommandSource source) {
         GemsBalance.ReloadResult result = GemsBalance.reloadFromDisk();
         if (!result.applied()) {
@@ -171,6 +225,35 @@ public final class GemsCommands {
     private static int dumpBalance(ServerCommandSource source) {
         var out = GemsBalance.dumpEffectiveBalance();
         source.sendFeedback(() -> Text.literal("Wrote effective balance to: " + out), true);
+        return 1;
+    }
+
+    private static int stressStart(
+            ServerCommandSource source,
+            java.util.Collection<ServerPlayerEntity> players,
+            int seconds,
+            int periodTicks,
+            GemsStressTest.Mode mode,
+            boolean cycleGems,
+            boolean forceEnergy10
+    ) {
+        for (ServerPlayerEntity p : players) {
+            GemsStressTest.start(p, seconds, periodTicks, mode, cycleGems, forceEnergy10);
+        }
+        source.sendFeedback(() -> Text.literal("Started stress test for " + players.size() + " player(s): " +
+                seconds + "s, period=" + periodTicks + "t, mode=" + mode + ", cycleGems=" + cycleGems + ", forceEnergy10=" + forceEnergy10), true);
+        return 1;
+    }
+
+    private static int stressStop(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players) {
+        int stopped = 0;
+        for (ServerPlayerEntity p : players) {
+            if (GemsStressTest.stop(p.getUuid())) {
+                stopped++;
+            }
+        }
+        int finalStopped = stopped;
+        source.sendFeedback(() -> Text.literal("Stopped stress test for " + finalStopped + " player(s)."), true);
         return 1;
     }
 
@@ -374,6 +457,12 @@ public final class GemsCommands {
         for (String id : List.of("heart", "energy_upgrade", "trader")) {
             builder.suggest(id);
         }
+        return builder.buildFuture();
+    }
+
+    private static CompletableFuture<Suggestions> suggestStressMode(SuggestionsBuilder builder) {
+        builder.suggest("realistic");
+        builder.suggest("force");
         return builder.buildFuture();
     }
 }

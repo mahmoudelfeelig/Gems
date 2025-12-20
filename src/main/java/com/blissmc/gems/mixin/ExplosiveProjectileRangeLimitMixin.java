@@ -1,6 +1,6 @@
-package com.blissmc.gems.mixin;
+package com.feel.gems.mixin;
 
-import com.blissmc.gems.power.RangeLimitedProjectile;
+import com.feel.gems.power.RangeLimitedProjectile;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.projectile.ExplosiveProjectileEntity;
 import net.minecraft.util.math.Vec3d;

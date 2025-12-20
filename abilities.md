@@ -8,6 +8,12 @@ This doc is player-facing and lists what each gem does, plus the default balanci
 - **Astra Soul Release**: the slot **after** Astra’s last ability (ex: 7 abilities → Soul Release is `Alt + Ability Slot 8`).
 - All of these can be changed in `Options → Controls → Gems` (and hotbar number keys are suppressed while the modifier is held, so hotbar usage stays normal).
 
+## Profiling helpers (admin)
+
+For automated profiling (spark/JFR), ops can drive abilities without key presses:
+- `/gems admin cast <player> <slot>`
+- `/gems admin stress start <players> <seconds> <periodTicks> <realistic|force> <cycleGems> <forceEnergy10>`
+
 ## HUD
 
 - Shows gem, energy tier, max hearts, ability list (locked/cooldown), Flux charge %, Astra soul captured state, and highlights your last pressed ability slot.

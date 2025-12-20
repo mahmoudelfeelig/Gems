@@ -1,6 +1,6 @@
-package com.blissmc.gems.client;
+package com.feel.gems.client;
 
-import com.blissmc.gems.core.GemId;
+import com.feel.gems.core.GemId;
 
 public final class ClientGemState {
     private static boolean initialized = false;

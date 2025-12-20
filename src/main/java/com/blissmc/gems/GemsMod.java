@@ -9,6 +9,7 @@ import com.feel.gems.command.GemsCommands;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.GemsPayloads;
 import com.feel.gems.net.ServerAbilityNetworking;
+import com.feel.gems.screen.ModScreenHandlers;
 
 public final class GemsMod implements ModInitializer {
     public static final String MOD_ID = "gems";
@@ -19,6 +20,7 @@ public final class GemsMod implements ModInitializer {
         LOGGER.info("Initializing Gems mod");
         GemsBalance.init();
         GemsPayloads.register();
+        ModScreenHandlers.init();
         ModItems.init();
         ServerAbilityNetworking.register();
         GemsModEvents.register();

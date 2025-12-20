@@ -43,17 +43,28 @@ public final class MeteorShowerAbility implements GemAbility {
         int spread = GemsBalance.v().fire().meteorShowerSpreadBlocks();
         int height = GemsBalance.v().fire().meteorShowerHeightBlocks();
         float velocity = GemsBalance.v().fire().meteorShowerVelocity();
+        int explosionPower = GemsBalance.v().fire().meteorShowerExplosionPower();
+        double maxOffset = Math.max(0.0D, spread / 2.0D);
 
         for (int i = 0; i < count; i++) {
-            double ox = (player.getRandom().nextDouble() - 0.5D) * spread;
-            double oz = (player.getRandom().nextDouble() - 0.5D) * spread;
-            Vec3d spawn = new Vec3d(center.getX() + 0.5D + ox, center.getY() + height + player.getRandom().nextDouble() * 10.0D, center.getZ() + 0.5D + oz);
-            Vec3d dir = new Vec3d(-ox, -25.0D, -oz).normalize();
+            double a = player.getRandom().nextDouble() * Math.PI * 2.0D;
+            double r = Math.sqrt(player.getRandom().nextDouble()) * maxOffset;
+            double ox = Math.cos(a) * r;
+            double oz = Math.sin(a) * r;
 
-            FireballEntity meteor = new FireballEntity(world, player, dir, 1);
+            double impactX = center.getX() + 0.5D + ox;
+            double impactZ = center.getZ() + 0.5D + oz;
+            Vec3d spawn = new Vec3d(impactX, center.getY() + height, impactZ);
+            Vec3d dir = new Vec3d(0.0D, -1.0D, 0.0D);
+
+            // Use zero acceleration (for consistency) and set explicit velocity.
+            FireballEntity meteor = new FireballEntity(world, player, Vec3d.ZERO, explosionPower);
             meteor.refreshPositionAndAngles(spawn.x, spawn.y, spawn.z, 0.0F, 0.0F);
-            meteor.setVelocity(dir.multiply(velocity));
+            meteor.setVelocity(dir.multiply(Math.max(0.1D, velocity)));
             meteor.addCommandTag("gems_meteor");
+            if (meteor instanceof RangeLimitedProjectile limited) {
+                limited.gems$setRangeLimit(spawn, height + 64.0D);
+            }
             world.spawnEntity(meteor);
         }
 

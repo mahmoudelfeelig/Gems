@@ -14,6 +14,7 @@
 - Heart (`gems:heart`): shaped `NIN / IGI / NIN` where `N=netherite_scrap`, `I=iron_block`, `G=gold_block`.
 - Energy Upgrade (`gems:energy_upgrade`): shaped `NEN / EDE / NEN` where `N=netherite_scrap`, `E=emerald_block`, `D=diamond_block`.
 - Trader (`gems:trader`): shaped `DBD / BWB / DBD` where `D=diamond_block`, `B=dragon_breath`, `W=wither_skeleton_skull`.
+  - Use: opens a GUI to pick a new gem; consumes 1 Trader and replaces your owned gems with the selected gem (which becomes active).
 
 ## Gem abilities and passives (detailed)
 - Astra

@@ -4,6 +4,8 @@ import com.feel.gems.item.ModItems;
 import com.feel.gems.power.AbilityRuntime;
 import com.feel.gems.power.FluxBeamAbility;
 import com.feel.gems.power.FluxCharge;
+import com.feel.gems.core.GemId;
+import com.feel.gems.state.GemPlayerState;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemStack;
@@ -71,7 +73,7 @@ public final class GemsGameTests {
     }
 
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void gemsDoNotDropOnDeath(TestContext context) {
+    public void deathKeepsActiveGemOnly(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
         player.changeGameMode(GameMode.SURVIVAL);
@@ -80,16 +82,23 @@ public final class GemsGameTests {
         BlockPos startBlock = BlockPos.ofFloored(startPos);
         player.teleport(world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
 
+        GemPlayerState.initIfNeeded(player);
+        GemPlayerState.setActiveGem(player, GemId.ASTRA);
         player.giveItemStack(new ItemStack(ModItems.ASTRA_GEM));
+        player.giveItemStack(new ItemStack(ModItems.FIRE_GEM));
 
         player.damage(player.getDamageSources().generic(), 10_000.0F);
 
         context.runAtTick(5L, () -> {
             Box box = new Box(startBlock).expand(12.0D);
-            boolean foundGemDrop = !world.getEntitiesByType(EntityType.ITEM, box, item -> item.getStack().isOf(ModItems.ASTRA_GEM)).isEmpty();
+            boolean foundActiveDrop = !world.getEntitiesByType(EntityType.ITEM, box, item -> item.getStack().isOf(ModItems.ASTRA_GEM)).isEmpty();
+            boolean foundOtherDrop = !world.getEntitiesByType(EntityType.ITEM, box, item -> item.getStack().isOf(ModItems.FIRE_GEM)).isEmpty();
 
-            if (foundGemDrop) {
-                context.throwGameTestException("Gem item dropped on death (should be kept)");
+            if (foundActiveDrop) {
+                context.throwGameTestException("Active gem dropped on death (should be kept)");
+            }
+            if (!foundOtherDrop) {
+                context.throwGameTestException("Non-active gem did not drop on death (should drop)");
             }
             context.complete();
         });

@@ -1,5 +1,7 @@
 package com.feel.gems.item;
 
+import com.feel.gems.core.GemId;
+import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
@@ -24,27 +26,34 @@ public final class GemKeepOnDeath {
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         root.remove(KEY_KEPT_GEMS);
 
+        GemPlayerState.initIfNeeded(player);
+        GemId active = GemPlayerState.getActiveGem(player);
+
         List<ItemStack> kept = new ArrayList<>();
+        boolean found = false;
 
         for (int i = 0; i < player.getInventory().main.size(); i++) {
             ItemStack stack = player.getInventory().main.get(i);
-            if (stack.getItem() instanceof GemItem) {
+            if (!found && stack.getItem() instanceof GemItem gem && gem.gemId() == active) {
                 kept.add(stack.copy());
                 player.getInventory().main.set(i, ItemStack.EMPTY);
+                found = true;
             }
         }
         for (int i = 0; i < player.getInventory().offHand.size(); i++) {
             ItemStack stack = player.getInventory().offHand.get(i);
-            if (stack.getItem() instanceof GemItem) {
+            if (!found && stack.getItem() instanceof GemItem gem && gem.gemId() == active) {
                 kept.add(stack.copy());
                 player.getInventory().offHand.set(i, ItemStack.EMPTY);
+                found = true;
             }
         }
         for (int i = 0; i < player.getInventory().armor.size(); i++) {
             ItemStack stack = player.getInventory().armor.get(i);
-            if (stack.getItem() instanceof GemItem) {
+            if (!found && stack.getItem() instanceof GemItem gem && gem.gemId() == active) {
                 kept.add(stack.copy());
                 player.getInventory().armor.set(i, ItemStack.EMPTY);
+                found = true;
             }
         }
 
@@ -81,4 +90,3 @@ public final class GemKeepOnDeath {
         }
     }
 }
-

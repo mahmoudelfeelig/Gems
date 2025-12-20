@@ -95,6 +95,7 @@ public final class GemsBalanceConfig {
         public int meteorShowerSpreadBlocks = 10;
         public int meteorShowerHeightBlocks = 25;
         public float meteorShowerVelocity = 1.5F;
+        public int meteorShowerExplosionPower = 2;
     }
 
     public static final class Flux {

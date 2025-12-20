@@ -27,7 +27,7 @@ Common clamps:
 ## High-impact knobs (recommended)
 
 - Astra: `dimensionalVoidRadiusBlocks`, `dimensionalVoidDurationSeconds`, `unboundedDurationSeconds`
-- Fire: `heatHazeRadiusBlocks`, `meteorShowerCount`, `meteorShowerSpreadBlocks`
+- Fire: `heatHazeRadiusBlocks`, `meteorShowerCount`, `meteorShowerSpreadBlocks`, `meteorShowerExplosionPower`
 - Flux: `fluxBeamArmorDamageAt100`, `overchargeSelfDamagePerSecond`, `overchargePerSecond`
 - Life: `lifeCircleMaxHealthDelta`, `vitalityVortexScanRadiusBlocks`
 - Puff: `dashVelocity`, `breezyBashImpactDamage`, `groupBashRadiusBlocks`

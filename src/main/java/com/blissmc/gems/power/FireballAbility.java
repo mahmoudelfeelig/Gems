@@ -18,6 +18,7 @@ import net.minecraft.particle.ParticleTypes;
 public final class FireballAbility implements GemAbility {
     private static final String KEY_CHARGE_START = "fireballChargeStart";
     private static final String KEY_LAST_FIRE = "fireballLastFire";
+    private static final String KEY_LAST_SHOWN_CHARGE = "fireballLastShownCharge";
 
     @Override
     public Identifier id() {
@@ -52,20 +53,37 @@ public final class FireballAbility implements GemAbility {
         long start = nbt.getLong(KEY_CHARGE_START);
         if (start <= 0) {
             nbt.putLong(KEY_CHARGE_START, now);
+            nbt.putInt(KEY_LAST_SHOWN_CHARGE, -1);
             AbilityFeedback.sound(player, SoundEvents.BLOCK_FIRE_AMBIENT, 0.7F, 1.2F);
             AbilityFeedback.burst(player, ParticleTypes.SMALL_FLAME, 10, 0.2D);
-            player.sendMessage(Text.literal("Charging Fireball..."), true);
+            player.sendMessage(Text.literal("Fireball charge: 0%"), true);
             return true;
         }
 
         int charge = computeCharge(player.getServerWorld(), player, start, now);
         nbt.remove(KEY_CHARGE_START);
+        nbt.remove(KEY_LAST_SHOWN_CHARGE);
         nbt.putLong(KEY_LAST_FIRE, now);
         launch(player, charge);
         AbilityFeedback.burst(player, ParticleTypes.FLAME, 14, 0.25D);
         AbilityFeedback.burst(player, ParticleTypes.SMOKE, 10, 0.25D);
         player.sendMessage(Text.literal("Fireball: " + charge + "%"), true);
         return true;
+    }
+
+    public static void tickCharging(ServerPlayerEntity player, long now) {
+        NbtCompound nbt = persistent(player);
+        long start = nbt.getLong(KEY_CHARGE_START);
+        if (start <= 0) {
+            return;
+        }
+        int charge = computeCharge(player.getServerWorld(), player, start, now);
+        int last = nbt.contains(KEY_LAST_SHOWN_CHARGE, NbtElement.INT_TYPE) ? nbt.getInt(KEY_LAST_SHOWN_CHARGE) : -1;
+        if (charge == last) {
+            return;
+        }
+        nbt.putInt(KEY_LAST_SHOWN_CHARGE, charge);
+        player.sendMessage(Text.literal("Fireball charge: " + charge + "%"), true);
     }
 
     private static int computeCharge(ServerWorld world, ServerPlayerEntity player, long start, long now) {

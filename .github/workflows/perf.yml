@@ -1,0 +1,142 @@
+name: Perf
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    types: [ opened, synchronize, reopened, labeled ]
+
+permissions:
+  contents: read
+
+jobs:
+  perf:
+    # Run on demand, nightly, on main, or on PRs explicitly labeled "run-perf".
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-perf'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Install perf tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mcrcon jq netcat-openbsd
+
+      - name: Ensure Gradle wrapper is executable
+        run: chmod +x ./gradlew
+
+      - name: Build
+        run: ./gradlew --no-daemon build
+
+      - name: Perf smoke (20 Carpet bots + force stress)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p run/mods
+          cat > run/eula.txt <<'EOF'
+          eula=true
+          EOF
+
+          cat > run/server.properties <<'EOF'
+          enable-rcon=true
+          rcon.password=perf
+          rcon.port=25575
+          online-mode=false
+          allow-flight=true
+          view-distance=2
+          simulation-distance=2
+          spawn-protection=0
+          max-players=50
+          motd=gems-perf
+          level-name=perfworld
+          level-type=minecraft:flat
+          sync-chunk-writes=false
+          EOF
+
+          CARPET_JSON="$(curl -sS 'https://api.modrinth.com/v2/project/carpet/versions?game_versions=%5B%221.21.1%22%5D&loaders=%5B%22fabric%22%5D')"
+          CARPET_URL="$(echo "$CARPET_JSON" | jq -r '.[0].files[0].url')"
+          echo "Downloading Carpet: $CARPET_URL"
+          curl -sSL "$CARPET_URL" -o run/mods/carpet.jar
+
+          ./gradlew --no-daemon runServer --args "nogui" > server.log 2>&1 &
+          SERVER_PID=$!
+
+          cleanup() {
+            if kill -0 "$SERVER_PID" 2>/dev/null; then
+              echo "Stopping server..."
+              mcrcon -H 127.0.0.1 -P 25575 -p perf "stop" || true
+              sleep 2 || true
+              kill "$SERVER_PID" || true
+            fi
+          }
+          trap cleanup EXIT
+
+          echo "Waiting for RCON..."
+          for i in $(seq 1 120); do
+            if nc -z 127.0.0.1 25575; then
+              break
+            fi
+            sleep 1
+          done
+          nc -z 127.0.0.1 25575
+
+          rcon() { mcrcon -H 127.0.0.1 -P 25575 -p perf "$@"; }
+
+          rcon "gamerule doMobSpawning false" || true
+          rcon "gamerule doWeatherCycle false" || true
+          rcon "gamerule randomTickSpeed 0" || true
+          rcon "gems admin perf reset"
+
+          echo "Spawning Carpet bots..."
+          for i in $(seq 1 20); do
+            rcon "player bot$i spawn"
+          done
+
+          rcon "gems admin setEnergy @a 10"
+          rcon "gems admin resync @a"
+
+          # Warm-up buffer
+          sleep 5
+          rcon "gems admin perf reset"
+
+          # Force-mode stress is intentionally harsh; keep period=20t to reduce entity spam.
+          rcon "gems admin stress start @a 60 20 force true true"
+          sleep 65
+          rcon "gems admin stress stop @a" || true
+
+          OUT="$(rcon "gems admin perf snapshot 1200" | tr -d '\r')"
+          echo "$OUT"
+
+          P95="$(echo "$OUT" | sed -n 's/.*p95_mspt=\\([0-9.]*\\).*/\\1/p')"
+          AVG="$(echo "$OUT" | sed -n 's/.*avg_mspt=\\([0-9.]*\\).*/\\1/p')"
+          test -n "$P95"
+          test -n "$AVG"
+          echo "Parsed avg_mspt=$AVG p95_mspt=$P95"
+
+          # Guardrails for regression detection (kept intentionally lenient for shared CI runners).
+          awk -v avg="$AVG" -v p95="$P95" 'BEGIN{ exit !((avg+0) <= 40.0 && (p95+0) <= 120.0) }'
+
+      - name: Upload server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-server-log
+          path: server.log

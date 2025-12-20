@@ -19,6 +19,7 @@ import com.feel.gems.power.SoulSystem;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.debug.GemsStressTest;
+import com.feel.gems.debug.GemsPerfMonitor;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -138,6 +139,13 @@ public final class GemsCommands {
                                 .then(CommandManager.literal("reset")
                                         .then(CommandManager.argument("player", EntityArgumentType.player())
                                                 .executes(ctx -> reset(ctx.getSource(), EntityArgumentType.getPlayer(ctx, "player")))))
+                                .then(CommandManager.literal("perf")
+                                        .then(CommandManager.literal("reset")
+                                                .executes(ctx -> perfReset(ctx.getSource())))
+                                        .then(CommandManager.literal("snapshot")
+                                                .executes(ctx -> perfSnapshot(ctx.getSource(), 1200))
+                                                .then(CommandManager.argument("windowTicks", IntegerArgumentType.integer(1, 2400))
+                                                        .executes(ctx -> perfSnapshot(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "windowTicks"))))))
                                 .then(CommandManager.literal("stress")
                                         .then(CommandManager.literal("start")
                                                 .then(CommandManager.argument("players", EntityArgumentType.players())
@@ -207,6 +215,26 @@ public final class GemsCommands {
 
         GemAbilities.activateByIndex(player, zeroBased);
         source.sendFeedback(() -> Text.literal("Cast slot " + slotNumber + " for " + player.getName().getString() + " (" + active.name() + ")"), true);
+        return 1;
+    }
+
+    private static int perfReset(ServerCommandSource source) {
+        GemsPerfMonitor.reset();
+        source.sendFeedback(() -> Text.literal("GEMS_PERF reset"), true);
+        return 1;
+    }
+
+    private static int perfSnapshot(ServerCommandSource source, int windowTicks) {
+        GemsPerfMonitor.Snapshot snap = GemsPerfMonitor.snapshot(windowTicks);
+        source.sendFeedback(() -> Text.literal(String.format(
+                java.util.Locale.ROOT,
+                "GEMS_PERF samples=%d avg_mspt=%.2f med_mspt=%.2f p95_mspt=%.2f max_mspt=%.2f",
+                snap.samples(),
+                snap.avgMspt(),
+                snap.medianMspt(),
+                snap.p95Mspt(),
+                snap.maxMspt()
+        )), false);
         return 1;
     }
 

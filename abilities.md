@@ -13,6 +13,16 @@ This doc is player-facing and lists what each gem does, plus the default balanci
 For automated profiling (spark/JFR), ops can drive abilities without key presses:
 - `/gems admin cast <player> <slot>`
 - `/gems admin stress start <players> <seconds> <periodTicks> <realistic|force> <cycleGems> <forceEnergy10>`
+- MSPT snapshot (server tick timing): `/gems admin perf snapshot [windowTicks]` and reset: `/gems admin perf reset`
+
+If you want a single command-block command, use the built-in functions:
+- `/function gems:perf_force_60s`
+- `/function gems:perf_realistic_60s`
+- `/function gems:perf_stop`
+
+With Carpet installed, you can also spawn 20 fake players and run the same tests:
+- `/function gems:perf_force_60s_bots_20`
+- `/function gems:perf_realistic_60s_bots_20`
 
 ## HUD
 

@@ -205,12 +205,12 @@ jobs:
           sleep 5
           rcon "gems admin perf reset"
 
-          # Force-mode stress is intentionally harsh; keep period=20t to reduce entity spam.
-          rcon "gems admin stress start @a 60 20 force true true"
-          sleep 65
+          # Force-mode stress is intentionally harsh; put period=5t to add entity spam.
+          rcon "gems admin stress start @a 120 5 force true true"
+          sleep 125
           # Stress runner auto-stops after its configured duration.
 
-          OUT="$(rcon "gems admin perf snapshot 1200" | tr -d '\r')"
+          OUT="$(rcon "gems admin perf snapshot 2400" | tr -d '\r')"
           echo "$OUT"
 
           P95="$(echo "$OUT" | sed -n 's/.*p95_mspt=\\([0-9.]*\\).*/\\1/p')"

@@ -23,7 +23,8 @@ public final class GemEnergyState {
     }
 
     public boolean canUseAbilities() {
-        return energy > 0;
+        // Ability unlocks start at energy 2.
+        return energy > 1;
     }
 
     /**

@@ -4,6 +4,7 @@
   "version": "${version}",
   "name": "Gems",
   "description": "Eight superpowered gems with energy and level progression.",
+  "icon": "assets/gems/icon.png",
   "authors": [
     "feel"
   ],

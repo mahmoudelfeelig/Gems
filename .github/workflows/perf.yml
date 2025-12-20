@@ -90,10 +90,21 @@ jobs:
           EOF
 
           CARPET_URL="$(python3 - <<'PY'
-          import json, sys, urllib.request
-          url = 'https://api.modrinth.com/v2/project/carpet/versions?game_versions=%5B%221.21.1%22%5D&loaders=%5B%22fabric%22%5D'
-          with urllib.request.urlopen(url) as r:
+          import json
+          import urllib.parse
+          import urllib.request
+          
+          base = 'https://api.modrinth.com/v2/project/carpet/version'
+          params = {
+              'game_versions': json.dumps(['1.21.1']),
+              'loaders': json.dumps(['fabric']),
+          }
+          url = base + '?' + urllib.parse.urlencode(params)
+          req = urllib.request.Request(url, headers={'User-Agent': 'gems-perf-ci'})
+          with urllib.request.urlopen(req) as r:
               data = json.loads(r.read().decode('utf-8'))
+          if not data:
+              raise SystemExit('No Carpet versions found for 1.21.1 + fabric')
           print(data[0]['files'][0]['url'])
           PY
           )"

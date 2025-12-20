@@ -36,21 +36,21 @@ public final class BountyHuntingAbility implements GemAbility {
         ItemStack stack = player.getMainHandStack();
         if (stack.isEmpty()) {
             player.sendMessage(Text.literal("Hold an item to track."), true);
-            return true;
+            return false;
         }
         UUID owner = AbilityRuntime.getOwner(stack);
         if (owner == null) {
             player.sendMessage(Text.literal("That item has no recorded owner."), true);
-            return true;
+            return false;
         }
         if (owner.equals(player.getUuid())) {
             player.sendMessage(Text.literal("That's your own item."), true);
-            return true;
+            return false;
         }
         var target = player.getServer().getPlayerManager().getPlayer(owner);
         if (target == null) {
             player.sendMessage(Text.literal("Owner is offline."), true);
-            return true;
+            return false;
         }
 
         stack.decrement(1);

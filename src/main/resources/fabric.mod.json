@@ -3,11 +3,16 @@
   "id": "gems",
   "version": "${version}",
   "name": "Gems",
-  "description": "Eight superpowered gems with energy and level progression.",
+  "description": "Superpowered gems with energy and level progression.",
   "icon": "assets/gems/icon.png",
   "authors": [
     "feel"
   ],
+  "contact": {
+    "homepage": "https://github.com/mahmoudelfeelig/Gems",
+    "sources": "https://github.com/mahmoudelfeelig/Gems",
+    "issues": "https://github.com/mahmoudelfeelig/Gems/issues"
+  },
   "license": "LICENSE",
   "environment": "*",
   "entrypoints": {
@@ -16,6 +21,9 @@
     ],
     "client": [
       "com.feel.gems.client.GemsClientMod"
+    ],
+    "modmenu": [
+      "com.feel.gems.client.modmenu.GemsModMenu"
     ]
   },
   "mixins": [
@@ -25,5 +33,8 @@
     "fabricloader": ">=0.16.11",
     "fabric-api": ">=0.114.0+1.21.1",
     "minecraft": ">=1.21.1"
+  },
+  "suggests": {
+    "modmenu": "*"
   }
 }

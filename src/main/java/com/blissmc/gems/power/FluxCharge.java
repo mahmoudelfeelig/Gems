@@ -46,14 +46,20 @@ public final class FluxCharge {
             return false;
         }
 
-        ItemStack fuel = player.getOffHandStack();
-        int add = chargeValue(fuel);
-        if (add <= 0) {
-            player.sendMessage(Text.literal("Hold a charge item in your offhand."), true);
+        int[] fuel = findFuelSlot(player);
+        if (fuel == null) {
+            player.sendMessage(Text.literal("No charge item found (offhand or inventory)."), true);
             return false;
         }
 
-        fuel.decrement(1);
+        ItemStack fuelStack = getFuelStack(player, fuel);
+        int add = chargeValue(fuelStack);
+        if (add <= 0) {
+            player.sendMessage(Text.literal("No valid charge item found."), true);
+            return false;
+        }
+
+        fuelStack.decrement(1);
         int next = Math.min(100, charge + add);
         set(player, next);
         if (charge < 100 && next >= 100) {
@@ -61,6 +67,41 @@ public final class FluxCharge {
         }
         player.sendMessage(Text.literal("Flux charge: " + next + "%"), true);
         return true;
+    }
+
+    /**
+     * Finds a single stack to consume for charging.
+     *
+     * <p>Order: offhand, then inventory (hotbar first).</p>
+     *
+     * @return int[]{type, index} where type 0 = offhand, 1 = inventory main list
+     */
+    private static int[] findFuelSlot(ServerPlayerEntity player) {
+        ItemStack offhand = player.getOffHandStack();
+        if (chargeValue(offhand) > 0) {
+            return new int[]{0, 0};
+        }
+
+        // Only scan the main inventory; charging is an explicit action and this runs only on use().
+        // Prefer hotbar slots 0..8.
+        for (int slot = 0; slot < Math.min(9, player.getInventory().main.size()); slot++) {
+            if (chargeValue(player.getInventory().main.get(slot)) > 0) {
+                return new int[]{1, slot};
+            }
+        }
+        for (int slot = 9; slot < player.getInventory().main.size(); slot++) {
+            if (chargeValue(player.getInventory().main.get(slot)) > 0) {
+                return new int[]{1, slot};
+            }
+        }
+        return null;
+    }
+
+    private static ItemStack getFuelStack(ServerPlayerEntity player, int[] fuel) {
+        if (fuel[0] == 0) {
+            return player.getOffHandStack();
+        }
+        return player.getInventory().main.get(fuel[1]);
     }
 
     public static void tickOvercharge(ServerPlayerEntity player) {
@@ -120,6 +161,15 @@ public final class FluxCharge {
         }
         if (stack.isOf(Items.COPPER_BLOCK)) {
             return GemsBalance.v().flux().chargeCopperBlock();
+        }
+        if (stack.isOf(Items.EMERALD_BLOCK)) {
+            return GemsBalance.v().flux().chargeEmeraldBlock();
+        }
+        if (stack.isOf(Items.AMETHYST_BLOCK)) {
+            return GemsBalance.v().flux().chargeAmethystBlock();
+        }
+        if (stack.isOf(Items.NETHERITE_SCRAP)) {
+            return GemsBalance.v().flux().chargeNetheriteScrap();
         }
 
         if (!EnchantmentHelper.hasEnchantments(stack)) {

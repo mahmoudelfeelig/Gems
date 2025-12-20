@@ -39,7 +39,7 @@ public final class FluxBeamAbility implements GemAbility {
         LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().flux().fluxBeamRangeBlocks());
         if (target == null) {
             player.sendMessage(Text.literal("No target."), true);
-            return true;
+            return false;
         }
 
         int charge = FluxCharge.get(player);

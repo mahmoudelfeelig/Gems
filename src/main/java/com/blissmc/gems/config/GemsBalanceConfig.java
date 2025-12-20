@@ -46,6 +46,7 @@ public final class GemsBalanceConfig {
 
     public static final class Astra {
         public int shadowAnchorWindowSeconds = 10;
+        public int shadowAnchorPostCooldownSeconds = 10;
 
         public int dimensionalVoidCooldownSeconds = 60;
         public int dimensionalVoidDurationSeconds = 8;
@@ -113,6 +114,9 @@ public final class GemsBalanceConfig {
         public int chargeDiamondBlock = 25;
         public int chargeGoldBlock = 15;
         public int chargeCopperBlock = 5;
+        public int chargeEmeraldBlock = 20;
+        public int chargeAmethystBlock = 10;
+        public int chargeNetheriteScrap = 35;
         public int chargeEnchantedDiamondItem = 20;
 
         public int overchargeDelaySeconds = 5;

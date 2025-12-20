@@ -124,6 +124,21 @@ public final class GemsHud {
             }
         }
 
+        if (gem == GemId.FLUX) {
+            int slot = abilities.size() + 1;
+            if (slot <= 9) {
+                boolean selected = selectedSlot == slot;
+                ctx.drawTextWithShadow(
+                        tr,
+                        (selected ? "» " : "") + GemsKeybinds.chordSlotLabel(slot) + " Flux Charge",
+                        x,
+                        y,
+                        selected ? 0x55FF55 : 0x55FFFF
+                );
+                y += lineHeight;
+            }
+        }
+
         if (gem == GemId.ASTRA) {
             int soulSlot = abilities.size() + 1;
             if (soulSlot <= 10) {

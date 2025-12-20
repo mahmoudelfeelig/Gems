@@ -65,7 +65,6 @@ public final class GemAbilities {
 
         boolean ok = ability.activate(player);
         if (!ok) {
-            player.sendMessage(Text.literal(ability.name() + " is not implemented yet."), true);
             return;
         }
 

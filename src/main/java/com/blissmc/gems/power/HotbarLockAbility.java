@@ -35,11 +35,11 @@ public final class HotbarLockAbility implements GemAbility {
         LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().wealth().hotbarLockRangeBlocks());
         if (!(target instanceof ServerPlayerEntity other)) {
             player.sendMessage(Text.literal("No player target."), true);
-            return true;
+            return false;
         }
         if (GemTrust.isTrusted(player, other)) {
             player.sendMessage(Text.literal("Target is trusted."), true);
-            return true;
+            return false;
         }
 
         HotbarLock.lock(other, other.getInventory().selectedSlot, GemsBalance.v().wealth().hotbarLockDurationTicks());

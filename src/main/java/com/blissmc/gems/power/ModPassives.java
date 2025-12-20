@@ -44,7 +44,7 @@ public final class ModPassives {
         register(new MarkerPassive(
                 PowerIds.FLUX_CHARGE_STORAGE,
                 "Charge Storage",
-                "Consume valuables to charge the Flux Beam."
+                "Consume valuables (offhand/inventory) to charge Flux (Diamond/Gold/Copper/Emerald/Amethyst Blocks, Netherite Scrap, enchanted diamond gear)."
         ));
         register(new MarkerPassive(
                 PowerIds.FLUX_ALLY_INVERSION,

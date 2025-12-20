@@ -42,7 +42,7 @@ public final class StaticBurstAbility implements GemAbility {
         float stored = nbt.getFloat(KEY_STORED_DAMAGE);
         if (stored <= 0.0F) {
             player.sendMessage(Text.literal("No stored damage."), true);
-            return true;
+            return false;
         }
 
         ServerWorld world = player.getServerWorld();

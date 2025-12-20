@@ -82,7 +82,7 @@ public final class ArcShotAbility implements GemAbility {
         hits.sort(Comparator.comparingDouble(h -> h.t));
         if (hits.isEmpty()) {
             player.sendMessage(Text.literal("No targets."), true);
-            return true;
+            return false;
         }
 
         int count = 0;

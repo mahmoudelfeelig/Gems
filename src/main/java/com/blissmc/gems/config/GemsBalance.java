@@ -58,6 +58,7 @@ public final class GemsBalance {
         cfg.visual.maxRingPoints = v.visual().maxRingPoints();
 
         cfg.astra.shadowAnchorWindowSeconds = ticksToSeconds(v.astra().shadowAnchorWindowTicks());
+        cfg.astra.shadowAnchorPostCooldownSeconds = ticksToSeconds(v.astra().shadowAnchorPostCooldownTicks());
         cfg.astra.dimensionalVoidCooldownSeconds = ticksToSeconds(v.astra().dimensionalVoidCooldownTicks());
         cfg.astra.dimensionalVoidDurationSeconds = ticksToSeconds(v.astra().dimensionalVoidDurationTicks());
         cfg.astra.dimensionalVoidRadiusBlocks = v.astra().dimensionalVoidRadiusBlocks();
@@ -110,6 +111,9 @@ public final class GemsBalance {
         cfg.flux.chargeDiamondBlock = v.flux().chargeDiamondBlock();
         cfg.flux.chargeGoldBlock = v.flux().chargeGoldBlock();
         cfg.flux.chargeCopperBlock = v.flux().chargeCopperBlock();
+        cfg.flux.chargeEmeraldBlock = v.flux().chargeEmeraldBlock();
+        cfg.flux.chargeAmethystBlock = v.flux().chargeAmethystBlock();
+        cfg.flux.chargeNetheriteScrap = v.flux().chargeNetheriteScrap();
         cfg.flux.chargeEnchantedDiamondItem = v.flux().chargeEnchantedDiamondItem();
         cfg.flux.overchargeDelaySeconds = ticksToSeconds(v.flux().overchargeDelayTicks());
         cfg.flux.overchargePerSecond = v.flux().overchargePerSecond();
@@ -252,6 +256,7 @@ public final class GemsBalance {
 
     public record Astra(
             int shadowAnchorWindowTicks,
+            int shadowAnchorPostCooldownTicks,
             int dimensionalVoidCooldownTicks,
             int dimensionalVoidDurationTicks,
             int dimensionalVoidRadiusBlocks,
@@ -274,6 +279,7 @@ public final class GemsBalance {
         static Astra from(GemsBalanceConfig.Astra cfg) {
             return new Astra(
                     secClamped(cfg.shadowAnchorWindowSeconds, 1, 60),
+                    secClamped(cfg.shadowAnchorPostCooldownSeconds, 0, 3600),
                     secClamped(cfg.dimensionalVoidCooldownSeconds, 0, 3600),
                     secClamped(cfg.dimensionalVoidDurationSeconds, 0, 60),
                     clampInt(cfg.dimensionalVoidRadiusBlocks, 0, 32),
@@ -355,6 +361,9 @@ public final class GemsBalance {
             int chargeDiamondBlock,
             int chargeGoldBlock,
             int chargeCopperBlock,
+            int chargeEmeraldBlock,
+            int chargeAmethystBlock,
+            int chargeNetheriteScrap,
             int chargeEnchantedDiamondItem,
             int overchargeDelayTicks,
             int overchargePerSecond,
@@ -376,6 +385,9 @@ public final class GemsBalance {
                     clampInt(cfg.chargeDiamondBlock, 0, 200),
                     clampInt(cfg.chargeGoldBlock, 0, 200),
                     clampInt(cfg.chargeCopperBlock, 0, 200),
+                    clampInt(cfg.chargeEmeraldBlock, 0, 200),
+                    clampInt(cfg.chargeAmethystBlock, 0, 200),
+                    clampInt(cfg.chargeNetheriteScrap, 0, 200),
                     clampInt(cfg.chargeEnchantedDiamondItem, 0, 200),
                     secClamped(cfg.overchargeDelaySeconds, 0, 60),
                     clampInt(cfg.overchargePerSecond, 0, 100),

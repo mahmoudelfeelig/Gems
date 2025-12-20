@@ -56,14 +56,11 @@ public final class GemsHud {
 
         GemId gem = ClientGemState.activeGem();
         int energy = ClientGemState.energy();
-        int maxHearts = ClientGemState.maxHearts();
         GemEnergyTier tier = new GemEnergyState(energy).tier();
 
         ctx.drawTextWithShadow(tr, "Gem: " + title(gem.name()), x, y, 0xFFFFFF);
         y += lineHeight;
         ctx.drawTextWithShadow(tr, "Energy: " + tierLabel(tier) + " (" + energy + "/10)", x, y, tierColor(tier));
-        y += lineHeight;
-        ctx.drawTextWithShadow(tr, "Max hearts: " + (maxHearts), x, y, 0xFFFFFF);
         y += lineHeight;
 
         if (gem == GemId.FLUX) {
@@ -93,49 +90,87 @@ public final class GemsHud {
         int unlocked = new GemEnergyState(energy).unlockedAbilityCount(abilities.size());
         int selectedSlot = ClientAbilitySelection.slotNumber(gem);
 
-        for (int i = 0; i < abilities.size(); i++) {
-            Identifier id = abilities.get(i);
-            GemAbility ability = ModAbilities.get(id);
-            String name = ability != null ? ability.name() : id.toString();
-
-            boolean isUnlocked = i < unlocked;
-            int remaining = ClientCooldowns.remainingTicks(gem, id);
-
-            String key = GemsKeybinds.chordSlotLabel(i + 1);
-            String suffix;
-            int color;
-            if (!isUnlocked) {
-                suffix = " (locked)";
-                color = 0x777777;
-            } else if (remaining > 0) {
-                suffix = " (" + seconds(remaining) + "s)";
-                color = 0xFFCC33;
-            } else {
-                suffix = "";
-                color = 0xFFFFFF;
-            }
-
-            boolean selected = selectedSlot == (i + 1);
-            String prefix = selected ? "» " : "";
-            ctx.drawTextWithShadow(tr, prefix + key + " " + name + suffix, x, y, selected ? 0x55FF55 : color);
-            y += lineHeight;
-            if (y > client.getWindow().getScaledHeight() - lineHeight) {
-                break;
-            }
-        }
-
         if (gem == GemId.FLUX) {
-            int slot = abilities.size() + 1;
-            if (slot <= 9) {
-                boolean selected = selectedSlot == slot;
-                ctx.drawTextWithShadow(
-                        tr,
-                        (selected ? "» " : "") + GemsKeybinds.chordSlotLabel(slot) + " Flux Charge",
-                        x,
-                        y,
-                        selected ? 0x55FF55 : 0x55FFFF
-                );
+            // Flux has a special key layout:
+            // - Slot 1: ability 1
+            // - Slot 2: Flux Charge (pseudo-ability, not part of unlock/cooldown)
+            // - Slot 3+: remaining abilities
+            for (int i = 0; i < abilities.size(); i++) {
+                Identifier id = abilities.get(i);
+                GemAbility ability = ModAbilities.get(id);
+                String name = ability != null ? ability.name() : id.toString();
+
+                boolean isUnlocked = i < unlocked;
+                int remaining = ClientCooldowns.remainingTicks(gem, id);
+
+                int slotNumber = i == 0 ? 1 : (i + 2);
+                String key = GemsKeybinds.chordSlotLabel(slotNumber);
+                String suffix;
+                int color;
+                if (!isUnlocked) {
+                    suffix = " (locked)";
+                    color = 0x777777;
+                } else if (remaining > 0) {
+                    suffix = " (" + seconds(remaining) + "s)";
+                    color = 0xFFCC33;
+                } else {
+                    suffix = "";
+                    color = 0xFFFFFF;
+                }
+
+                boolean selected = selectedSlot == slotNumber;
+                String prefix = selected ? "» " : "";
+                ctx.drawTextWithShadow(tr, prefix + key + " " + name + suffix, x, y, selected ? 0x55FF55 : color);
                 y += lineHeight;
+                if (y > client.getWindow().getScaledHeight() - lineHeight) {
+                    break;
+                }
+
+                if (i == 0) {
+                    boolean selectedCharge = selectedSlot == 2;
+                    ctx.drawTextWithShadow(
+                            tr,
+                            (selectedCharge ? "» " : "") + GemsKeybinds.chordSlotLabel(2) + " Flux Charge",
+                            x,
+                            y,
+                            selectedCharge ? 0x55FF55 : 0x55FFFF
+                    );
+                    y += lineHeight;
+                    if (y > client.getWindow().getScaledHeight() - lineHeight) {
+                        break;
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < abilities.size(); i++) {
+                Identifier id = abilities.get(i);
+                GemAbility ability = ModAbilities.get(id);
+                String name = ability != null ? ability.name() : id.toString();
+
+                boolean isUnlocked = i < unlocked;
+                int remaining = ClientCooldowns.remainingTicks(gem, id);
+
+                String key = GemsKeybinds.chordSlotLabel(i + 1);
+                String suffix;
+                int color;
+                if (!isUnlocked) {
+                    suffix = " (locked)";
+                    color = 0x777777;
+                } else if (remaining > 0) {
+                    suffix = " (" + seconds(remaining) + "s)";
+                    color = 0xFFCC33;
+                } else {
+                    suffix = "";
+                    color = 0xFFFFFF;
+                }
+
+                boolean selected = selectedSlot == (i + 1);
+                String prefix = selected ? "» " : "";
+                ctx.drawTextWithShadow(tr, prefix + key + " " + name + suffix, x, y, selected ? 0x55FF55 : color);
+                y += lineHeight;
+                if (y > client.getWindow().getScaledHeight() - lineHeight) {
+                    break;
+                }
             }
         }
 

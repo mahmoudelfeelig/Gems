@@ -21,6 +21,29 @@ loom {
     splitEnvironmentSourceSets()
 }
 
+sourceSets {
+    gametest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+
+loom {
+    runs {
+        gametestServer {
+            inherit server
+            name "GameTest Server"
+            runDir "run/gametest"
+            source sourceSets.main
+            source sourceSets.gametest
+            vmArg "-Dfabric-api.gametest=1"
+            vmArg "-Dfabric-api.gametest.command=false"
+            vmArg "-Dfabric-api.gametest.report-file=${project.buildDir}/reports/gametest.xml"
+            programArg "nogui"
+        }
+    }
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings "net.fabricmc:yarn:${yarn_mappings}:v2"
@@ -70,7 +93,24 @@ tasks.withType(JavaCompile).configureEach {
 tasks.register("lint") {
     group = "verification"
     description = "Compiles all source sets with strict Java compiler linting (warnings as errors)."
-    dependsOn("compileJava", "compileClientJava", "compileTestJava")
+    dependsOn("compileJava", "compileClientJava", "compileGametestJava", "compileTestJava")
+}
+
+tasks.register("gametest") {
+    group = "verification"
+    description = "Runs Fabric GameTest end-to-end tests in a headless dedicated server."
+    dependsOn("runGametestServer")
+}
+
+tasks.register("prepareGametestRunDir") {
+    doLast {
+        file("run/gametest").mkdirs()
+        file("run/gametest/eula.txt").text = "eula=true\n"
+    }
+}
+
+tasks.named("runGametestServer").configure {
+    dependsOn("prepareGametestRunDir")
 }
 
 processResources {

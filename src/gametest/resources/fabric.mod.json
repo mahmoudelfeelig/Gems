@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "gems-gametest",
+  "version": "1.0.0",
+  "name": "Gems GameTests",
+  "description": "End-to-end integration tests for the Gems mod (development-only).",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "com.feel.gems.gametest.GemsGameTests"
+    ]
+  },
+  "depends": {
+    "minecraft": ">=1.21.1",
+    "fabricloader": ">=0.16.11",
+    "gems": "*",
+    "fabric-gametest-api-v1": "*"
+  }
+}

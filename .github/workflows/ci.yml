@@ -25,8 +25,21 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Ensure Gradle wrapper is executable
-        run: chmod +x ./gradlew
-
       - name: Build and test
-        run: ./gradlew --no-daemon lint test build
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -f gradle/wrapper/gradle-wrapper.jar ]]; then
+            chmod +x ./gradlew
+            ./gradlew --no-daemon lint test build
+            exit 0
+          fi
+
+          echo "gradle-wrapper.jar is missing; bootstrapping Gradle from distributionUrl for CI..."
+          url="$(grep -E '^distributionUrl=' gradle/wrapper/gradle-wrapper.properties | cut -d= -f2-)"
+          curl -fsSL "$url" -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp/gradle
+          gradle_bin="$(find /tmp/gradle -maxdepth 3 -type f -path '*/bin/gradle' | head -n1)"
+          chmod +x "$gradle_bin"
+          "$gradle_bin" --no-daemon lint test build

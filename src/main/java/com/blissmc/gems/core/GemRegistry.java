@@ -93,12 +93,17 @@ public final class GemRegistry {
         register(new GemDefinition(
                 GemId.SPEED,
                 List.of(
-                        PowerIds.SPEED_I
+                        PowerIds.SPEED_I,
+                        PowerIds.SPEED_HASTE,
+                        PowerIds.SPEED_MOMENTUM,
+                        PowerIds.SPEED_FRICTIONLESS
                 ),
                 List.of(
                         PowerIds.ARC_SHOT,
                         PowerIds.SPEED_STORM,
-                        PowerIds.TERMINAL_VELOCITY
+                        PowerIds.TERMINAL_VELOCITY,
+                        PowerIds.SPEED_SLIPSTREAM,
+                        PowerIds.SPEED_AFTERIMAGE
                 )
         ));
 
@@ -229,6 +234,38 @@ public final class GemRegistry {
                         PowerIds.SPY_STEAL,
                         PowerIds.SPY_SMOKE_BOMB,
                         PowerIds.SPY_STOLEN_CAST
+                )
+        ));
+
+        register(new GemDefinition(
+                GemId.BEACON,
+                List.of(
+                        PowerIds.BEACON_CORE,
+                        PowerIds.BEACON_STABILIZE,
+                        PowerIds.BEACON_RALLY
+                ),
+                List.of(
+                        PowerIds.BEACON_AURA_SPEED,
+                        PowerIds.BEACON_AURA_HASTE,
+                        PowerIds.BEACON_AURA_RESISTANCE,
+                        PowerIds.BEACON_AURA_JUMP,
+                        PowerIds.BEACON_AURA_STRENGTH,
+                        PowerIds.BEACON_AURA_REGEN
+                )
+        ));
+
+        register(new GemDefinition(
+                GemId.AIR,
+                List.of(
+                        PowerIds.AIR_WINDBURST_MACE,
+                        PowerIds.AIR_AERIAL_GUARD,
+                        PowerIds.AIR_SKYBORN
+                ),
+                List.of(
+                        PowerIds.AIR_WIND_JUMP,
+                        PowerIds.AIR_GALE_SLAM,
+                        PowerIds.AIR_UPDRAFT_ZONE,
+                        PowerIds.AIR_DASH
                 )
         ));
     }

@@ -23,6 +23,8 @@ public final class GemsBalanceConfig {
     public Reaper reaper = new Reaper();
     public Pillager pillager = new Pillager();
     public SpyMimic spyMimic = new SpyMimic();
+    public Beacon beacon = new Beacon();
+    public Air air = new Air();
 
     public static final class Visual {
         public boolean enableParticles = true;
@@ -177,6 +179,12 @@ public final class GemsBalanceConfig {
     }
 
     public static final class Speed {
+        public double momentumMinSpeed = 0.10D;
+        public double momentumMaxSpeed = 0.60D;
+        public float momentumMinMultiplier = 0.90F;
+        public float momentumMaxMultiplier = 1.30F;
+        public int frictionlessSpeedAmplifier = 1;
+
         public int arcShotCooldownSeconds = 20;
         public int arcShotRangeBlocks = 40;
         public double arcShotRadiusBlocks = 2.0D;
@@ -195,6 +203,18 @@ public final class GemsBalanceConfig {
         public int terminalVelocityDurationSeconds = 10;
         public int terminalVelocitySpeedAmplifier = 2; // Speed III
         public int terminalVelocityHasteAmplifier = 1; // Haste II
+
+        public int slipstreamCooldownSeconds = 45;
+        public int slipstreamDurationSeconds = 8;
+        public int slipstreamLengthBlocks = 18;
+        public int slipstreamRadiusBlocks = 3;
+        public int slipstreamAllySpeedAmplifier = 1;
+        public int slipstreamEnemySlownessAmplifier = 1;
+        public double slipstreamEnemyKnockback = 0.35D;
+
+        public int afterimageCooldownSeconds = 30;
+        public int afterimageDurationSeconds = 6;
+        public int afterimageSpeedAmplifier = 1;
     }
 
     public static final class Strength {
@@ -447,5 +467,63 @@ public final class GemsBalanceConfig {
         public int smokeBombSlownessAmplifier = 0;
 
         public int stolenCastCooldownSeconds = 20;
+    }
+
+    public static final class Beacon {
+        // Passives
+        public int coreRadiusBlocks = 8;
+        public int corePulsePeriodSeconds = 2;
+        public int coreRegenDurationSeconds = 3;
+        public int coreRegenAmplifier = 0;
+
+        public int stabilizeRadiusBlocks = 8;
+        public int stabilizeReduceTicksPerSecond = 20;
+
+        public int rallyRadiusBlocks = 10;
+        public int rallyAbsorptionHearts = 4;
+        public int rallyDurationSeconds = 8;
+
+        // Abilities (auras)
+        public int auraCooldownSeconds = 30;
+        public int auraDurationSeconds = 12;
+        public int auraRadiusBlocks = 10;
+        public int auraRefreshSeconds = 2;
+        public int auraSpeedAmplifier = 1;
+        public int auraHasteAmplifier = 1;
+        public int auraResistanceAmplifier = 0;
+        public int auraJumpAmplifier = 1;
+        public int auraStrengthAmplifier = 0;
+        public int auraRegenAmplifier = 0;
+    }
+
+    public static final class Air {
+        // Passives
+        public float aerialGuardFallDamageMultiplier = 0.50F;
+        public float aerialGuardKnockbackMultiplier = 0.60F;
+        public int skybornDurationSeconds = 3;
+        public int skybornCooldownSeconds = 20;
+
+        // Abilities
+        public int windJumpCooldownSeconds = 8;
+        public double windJumpVerticalVelocity = 1.0D;
+        public double windJumpForwardVelocity = 0.2D;
+
+        public int galeSlamCooldownSeconds = 30;
+        public int galeSlamWindowSeconds = 8;
+        public int galeSlamRadiusBlocks = 4;
+        public float galeSlamBonusDamage = 6.0F;
+        public double galeSlamKnockback = 1.0D;
+
+        public int updraftZoneCooldownSeconds = 25;
+        public int updraftZoneRadiusBlocks = 8;
+        public double updraftZoneUpVelocity = 0.9D;
+        public float updraftZoneEnemyDamage = 3.0F;
+        public double updraftZoneEnemyKnockback = 0.6D;
+
+        public int dashCooldownSeconds = 6;
+        public double dashVelocity = 1.6D;
+        public double dashUpVelocity = 0.1D;
+        public int dashIFrameDurationSeconds = 1;
+        public int dashIFrameResistanceAmplifier = 4;
     }
 }

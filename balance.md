@@ -31,7 +31,7 @@ Common clamps:
 - Flux: `fluxBeamArmorDamageAt100`, `overchargeSelfDamagePerSecond`, `overchargePerSecond`
 - Life: `lifeCircleMaxHealthDelta`, `vitalityVortexScanRadiusBlocks`
 - Puff: `dashVelocity`, `breezyBashImpactDamage`, `groupBashRadiusBlocks`
-- Speed: `speedStormRadiusBlocks`, `speedStormEnemySlownessAmplifier`
+- Speed: `speedStormRadiusBlocks`, `speedStormEnemySlownessAmplifier`, `momentumMinSpeed`, `momentumMaxSpeed`, `slipstreamLengthBlocks`
 - Strength: `chadEveryHits`, `chadBonusDamage`
 - Wealth: `fumbleRadiusBlocks`, `hotbarLockDurationSeconds`
 

@@ -32,7 +32,8 @@ public final class TerminalVelocityAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int duration = GemsBalance.v().speed().terminalVelocityDurationTicks();
+        float momentum = SpeedMomentum.multiplier(player);
+        int duration = Math.max(1, Math.round(GemsBalance.v().speed().terminalVelocityDurationTicks() * momentum));
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, duration, GemsBalance.v().speed().terminalVelocitySpeedAmplifier(), true, false, false));
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, duration, GemsBalance.v().speed().terminalVelocityHasteAmplifier(), true, false, false));
         AbilityFeedback.sound(player, SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, 0.9F, 1.3F);

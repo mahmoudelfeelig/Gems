@@ -7,6 +7,8 @@ import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.FluxCharge;
 import com.feel.gems.power.AbilityRuntime;
+import com.feel.gems.power.BeaconAuraRuntime;
+import com.feel.gems.power.BeaconSupportRuntime;
 import com.feel.gems.power.BreezyBashTracker;
 import com.feel.gems.power.GemPowers;
 import com.feel.gems.power.SoulSystem;
@@ -19,6 +21,7 @@ import com.feel.gems.power.PillagerVolleyRuntime;
 import com.feel.gems.power.PillagerVindicatorBreakAbility;
 import com.feel.gems.power.PillagerDiscipline;
 import com.feel.gems.power.SpyMimicSystem;
+import com.feel.gems.power.SpeedFrictionlessSteps;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.debug.GemsStressTest;
 import com.feel.gems.debug.GemsPerfMonitor;
@@ -183,6 +186,8 @@ public final class GemsModEvents {
                     AbilityRuntime.tickEverySecond(player);
                     PillagerDiscipline.tick(player);
                     SpyMimicSystem.tickEverySecond(player);
+                    BeaconSupportRuntime.tickEverySecond(player);
+                    BeaconAuraRuntime.tickEverySecond(player);
                 }
             }
         });
@@ -190,6 +195,7 @@ public final class GemsModEvents {
         ServerTickEvents.END_SERVER_TICK.register(BreezyBashTracker::tick);
         ServerTickEvents.END_SERVER_TICK.register(SpaceAnomalies::tick);
         ServerTickEvents.END_SERVER_TICK.register(PillagerVolleyRuntime::tick);
+        ServerTickEvents.END_SERVER_TICK.register(SpeedFrictionlessSteps::tick);
         ServerTickEvents.END_SERVER_TICK.register(GemsStressTest::tick);
         ServerTickEvents.END_SERVER_TICK.register(server -> GemsPerfMonitor.onTickEnd());
     }

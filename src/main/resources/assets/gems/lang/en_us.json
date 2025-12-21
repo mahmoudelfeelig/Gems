@@ -21,5 +21,7 @@
   "item.gems.space_gem": "Space Gem",
   "item.gems.reaper_gem": "Reaper Gem",
   "item.gems.pillager_gem": "Pillager Gem",
-  "item.gems.spy_mimic_gem": "Spy/Mimic Gem"
+  "item.gems.spy_mimic_gem": "Spy/Mimic Gem",
+  "item.gems.beacon_gem": "Beacon Gem",
+  "item.gems.air_gem": "Air Gem"
 }

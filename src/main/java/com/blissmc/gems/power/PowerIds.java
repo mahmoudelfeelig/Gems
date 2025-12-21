@@ -26,6 +26,9 @@ public final class PowerIds {
     public static final Identifier CROP_TRAMPLE_IMMUNITY = id("crop_trample_immunity");
 
     public static final Identifier SPEED_I = id("speed_i");
+    public static final Identifier SPEED_HASTE = id("speed_haste");
+    public static final Identifier SPEED_MOMENTUM = id("speed_momentum");
+    public static final Identifier SPEED_FRICTIONLESS = id("speed_frictionless");
 
     public static final Identifier STRENGTH_I = id("strength_i");
     public static final Identifier AUTO_ENCHANT_SHARPNESS = id("auto_enchant_sharpness");
@@ -71,6 +74,16 @@ public final class PowerIds {
     public static final Identifier SPY_FALSE_SIGNATURE = id("spy_false_signature");
     public static final Identifier SPY_QUICK_HANDS = id("spy_quick_hands");
 
+    // Beacon (new)
+    public static final Identifier BEACON_CORE = id("beacon_core");
+    public static final Identifier BEACON_STABILIZE = id("beacon_stabilize");
+    public static final Identifier BEACON_RALLY = id("beacon_rally");
+
+    // Air (new)
+    public static final Identifier AIR_WINDBURST_MACE = id("air_windburst_mace");
+    public static final Identifier AIR_AERIAL_GUARD = id("air_aerial_guard");
+    public static final Identifier AIR_SKYBORN = id("air_skyborn");
+
     // Abilities
     public static final Identifier SHADOW_ANCHOR = id("shadow_anchor");
     public static final Identifier DIMENSIONAL_VOID = id("dimensional_void");
@@ -101,6 +114,8 @@ public final class PowerIds {
     public static final Identifier ARC_SHOT = id("arc_shot");
     public static final Identifier SPEED_STORM = id("speed_storm");
     public static final Identifier TERMINAL_VELOCITY = id("terminal_velocity");
+    public static final Identifier SPEED_SLIPSTREAM = id("speed_slipstream");
+    public static final Identifier SPEED_AFTERIMAGE = id("speed_afterimage");
 
     public static final Identifier NULLIFY = id("nullify");
     public static final Identifier FRAILER = id("frailer");
@@ -151,6 +166,20 @@ public final class PowerIds {
     public static final Identifier SPY_STEAL = id("spy_steal");
     public static final Identifier SPY_SMOKE_BOMB = id("spy_smoke_bomb");
     public static final Identifier SPY_STOLEN_CAST = id("spy_stolen_cast");
+
+    // Beacon (new)
+    public static final Identifier BEACON_AURA_SPEED = id("beacon_aura_speed");
+    public static final Identifier BEACON_AURA_HASTE = id("beacon_aura_haste");
+    public static final Identifier BEACON_AURA_RESISTANCE = id("beacon_aura_resistance");
+    public static final Identifier BEACON_AURA_JUMP = id("beacon_aura_jump");
+    public static final Identifier BEACON_AURA_STRENGTH = id("beacon_aura_strength");
+    public static final Identifier BEACON_AURA_REGEN = id("beacon_aura_regen");
+
+    // Air (new)
+    public static final Identifier AIR_WIND_JUMP = id("air_wind_jump");
+    public static final Identifier AIR_GALE_SLAM = id("air_gale_slam");
+    public static final Identifier AIR_UPDRAFT_ZONE = id("air_updraft_zone");
+    public static final Identifier AIR_DASH = id("air_dash");
 
     private PowerIds() {
     }

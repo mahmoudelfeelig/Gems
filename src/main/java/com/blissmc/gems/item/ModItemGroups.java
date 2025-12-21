@@ -41,9 +41,11 @@ public final class ModItemGroups {
                             entries.add(ModItems.TERROR_GEM);
                             entries.add(ModItems.SUMMONER_GEM);
                             entries.add(ModItems.SPACE_GEM);
-                            entries.add(ModItems.REAPER_GEM);
-                            entries.add(ModItems.PILLAGER_GEM);
-                            entries.add(ModItems.SPY_MIMIC_GEM);
+                    entries.add(ModItems.REAPER_GEM);
+                    entries.add(ModItems.PILLAGER_GEM);
+                    entries.add(ModItems.SPY_MIMIC_GEM);
+                    entries.add(ModItems.BEACON_GEM);
+                    entries.add(ModItems.AIR_GEM);
 
                             entries.add(ModItems.ENERGY_UPGRADE);
                             entries.add(ModItems.HEART);

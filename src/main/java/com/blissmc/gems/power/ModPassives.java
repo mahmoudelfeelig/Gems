@@ -104,6 +104,23 @@ public final class ModPassives {
                 StatusEffects.SPEED,
                 0
         ));
+        register(new StatusEffectPassive(
+                PowerIds.SPEED_HASTE,
+                "Haste I",
+                "Permanent Haste I effect.",
+                StatusEffects.HASTE,
+                0
+        ));
+        register(new MarkerPassive(
+                PowerIds.SPEED_MOMENTUM,
+                "Momentum",
+                "Abilities scale with your movement speed at cast time."
+        ));
+        register(new MarkerPassive(
+                PowerIds.SPEED_FRICTIONLESS,
+                "Frictionless Steps",
+                "Reduced slowdown from cobweb, honey, and powder snow."
+        ));
 
         register(new StatusEffectPassive(
                 PowerIds.STRENGTH_I,
@@ -270,6 +287,40 @@ public final class ModPassives {
                 "Permanent minor Haste while the gem is active.",
                 StatusEffects.HASTE,
                 0
+        ));
+
+        // Beacon
+        register(new MarkerPassive(
+                PowerIds.BEACON_CORE,
+                "Beacon Core",
+                "Trusted allies near you receive periodic Regeneration pulses."
+        ));
+        register(new MarkerPassive(
+                PowerIds.BEACON_STABILIZE,
+                "Stabilize",
+                "Reduces harmful effect durations on trusted allies nearby."
+        ));
+        register(new MarkerPassive(
+                PowerIds.BEACON_RALLY,
+                "Rally",
+                "Casting a beacon aura grants allies brief Absorption."
+        ));
+
+        // Air
+        register(new AirMacePassive(
+                PowerIds.AIR_WINDBURST_MACE,
+                "Windburst Mace",
+                "Grants a maxed-out mace while the gem is active."
+        ));
+        register(new MarkerPassive(
+                PowerIds.AIR_AERIAL_GUARD,
+                "Aerial Guard",
+                "Reduced fall damage and knockback while holding the mace."
+        ));
+        register(new MarkerPassive(
+                PowerIds.AIR_SKYBORN,
+                "Skyborn",
+                "Taking damage midair grants brief Slow Falling (cooldown)."
         ));
     }
 

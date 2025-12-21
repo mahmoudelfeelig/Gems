@@ -25,6 +25,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.server.MinecraftServer;
@@ -35,6 +36,15 @@ public final class AbilityRuntime {
     private static final String KEY_CAMPFIRE_UNTIL = "cosyCampfireUntil";
     private static final String KEY_HEAT_HAZE_UNTIL = "heatHazeUntil";
     private static final String KEY_SPEED_STORM_UNTIL = "speedStormUntil";
+    private static final String KEY_SPEED_STORM_SCALE = "speedStormScale";
+    private static final String KEY_SPEED_SLIPSTREAM_UNTIL = "speedSlipstreamUntil";
+    private static final String KEY_SPEED_SLIPSTREAM_SCALE = "speedSlipstreamScale";
+    private static final String KEY_SPEED_SLIPSTREAM_DIR_X = "speedSlipstreamDirX";
+    private static final String KEY_SPEED_SLIPSTREAM_DIR_Z = "speedSlipstreamDirZ";
+    private static final String KEY_SPEED_SLIPSTREAM_ORIGIN_X = "speedSlipstreamOriginX";
+    private static final String KEY_SPEED_SLIPSTREAM_ORIGIN_Y = "speedSlipstreamOriginY";
+    private static final String KEY_SPEED_SLIPSTREAM_ORIGIN_Z = "speedSlipstreamOriginZ";
+    private static final String KEY_SPEED_AFTERIMAGE_UNTIL = "speedAfterimageUntil";
     private static final String KEY_SPACE_GRAVITY_UNTIL = "spaceGravityUntil";
     private static final String KEY_SPACE_GRAVITY_CASTER = "spaceGravityCaster";
 
@@ -88,6 +98,8 @@ public final class AbilityRuntime {
         tickCosyCampfire(player, now);
         tickHeatHazeZone(player, now);
         tickSpeedStorm(player, now);
+        tickSpeedSlipstream(player, now);
+        tickSpeedAfterimage(player, now);
         tickSpaceGravityField(player, now);
         tickLifeCircle(player, now);
         tickHeartLock(player, now);
@@ -109,8 +121,55 @@ public final class AbilityRuntime {
         persistent(player).putLong(KEY_HEAT_HAZE_UNTIL, GemsTime.now(player) + durationTicks);
     }
 
-    public static void startSpeedStorm(ServerPlayerEntity player, int durationTicks) {
-        persistent(player).putLong(KEY_SPEED_STORM_UNTIL, GemsTime.now(player) + durationTicks);
+    public static void startSpeedStorm(ServerPlayerEntity player, int durationTicks, float scale) {
+        NbtCompound nbt = persistent(player);
+        nbt.putLong(KEY_SPEED_STORM_UNTIL, GemsTime.now(player) + durationTicks);
+        nbt.putFloat(KEY_SPEED_STORM_SCALE, scale);
+    }
+
+    public static void startSpeedSlipstream(ServerPlayerEntity player, Vec3d direction, int durationTicks, float scale) {
+        if (durationTicks <= 0) {
+            return;
+        }
+        Vec3d flat = new Vec3d(direction.x, 0.0D, direction.z);
+        if (flat.lengthSquared() <= 1.0E-4D) {
+            return;
+        }
+        flat = flat.normalize();
+
+        NbtCompound nbt = persistent(player);
+        nbt.putLong(KEY_SPEED_SLIPSTREAM_UNTIL, GemsTime.now(player) + durationTicks);
+        nbt.putFloat(KEY_SPEED_SLIPSTREAM_SCALE, scale);
+        nbt.putDouble(KEY_SPEED_SLIPSTREAM_DIR_X, flat.x);
+        nbt.putDouble(KEY_SPEED_SLIPSTREAM_DIR_Z, flat.z);
+        nbt.putDouble(KEY_SPEED_SLIPSTREAM_ORIGIN_X, player.getX());
+        nbt.putDouble(KEY_SPEED_SLIPSTREAM_ORIGIN_Y, player.getY());
+        nbt.putDouble(KEY_SPEED_SLIPSTREAM_ORIGIN_Z, player.getZ());
+    }
+
+    public static void startSpeedAfterimage(ServerPlayerEntity player, int durationTicks) {
+        if (durationTicks <= 0) {
+            return;
+        }
+        NbtCompound nbt = persistent(player);
+        nbt.putLong(KEY_SPEED_AFTERIMAGE_UNTIL, GemsTime.now(player) + durationTicks);
+
+        int speedAmp = GemsBalance.v().speed().afterimageSpeedAmplifier();
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, durationTicks, speedAmp, true, false, false));
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, durationTicks, 0, true, false, false));
+    }
+
+    public static void breakSpeedAfterimage(ServerPlayerEntity player) {
+        if (!isSpeedAfterimageActive(player)) {
+            return;
+        }
+        clearSpeedAfterimage(player);
+        AbilityFeedback.burst(player, net.minecraft.particle.ParticleTypes.SMOKE, 10, 0.2D);
+    }
+
+    private static boolean isSpeedAfterimageActive(ServerPlayerEntity player) {
+        return persistent(player).getLong(KEY_SPEED_AFTERIMAGE_UNTIL) > GemsTime.now(player);
+    }
     }
 
     public static void startSpaceGravityField(ServerPlayerEntity player, int durationTicks) {
@@ -332,15 +391,20 @@ public final class AbilityRuntime {
     }
 
     private static void tickSpeedStorm(ServerPlayerEntity player, long now) {
-        if (persistent(player).getLong(KEY_SPEED_STORM_UNTIL) <= now) {
+        NbtCompound nbt = persistent(player);
+        if (nbt.getLong(KEY_SPEED_STORM_UNTIL) <= now) {
             return;
         }
         ServerWorld world = player.getServerWorld();
-        int radius = GemsBalance.v().speed().speedStormRadiusBlocks();
-        int allySpeed = GemsBalance.v().speed().speedStormAllySpeedAmplifier();
-        int allyHaste = GemsBalance.v().speed().speedStormAllyHasteAmplifier();
-        int enemySlow = GemsBalance.v().speed().speedStormEnemySlownessAmplifier();
-        int enemyFatigue = GemsBalance.v().speed().speedStormEnemyMiningFatigueAmplifier();
+        float scale = nbt.contains(KEY_SPEED_STORM_SCALE, NbtElement.FLOAT_TYPE) ? nbt.getFloat(KEY_SPEED_STORM_SCALE) : 1.0F;
+        if (scale <= 0.0F) {
+            scale = 1.0F;
+        }
+        int radius = SpeedMomentum.scaleInt(GemsBalance.v().speed().speedStormRadiusBlocks(), scale, 1);
+        int allySpeed = SpeedMomentum.scaleInt(GemsBalance.v().speed().speedStormAllySpeedAmplifier(), scale, 0);
+        int allyHaste = SpeedMomentum.scaleInt(GemsBalance.v().speed().speedStormAllyHasteAmplifier(), scale, 0);
+        int enemySlow = SpeedMomentum.scaleInt(GemsBalance.v().speed().speedStormEnemySlownessAmplifier(), scale, 0);
+        int enemyFatigue = SpeedMomentum.scaleInt(GemsBalance.v().speed().speedStormEnemyMiningFatigueAmplifier(), scale, 0);
         AbilityFeedback.ring(world, player.getPos().add(0.0D, 0.2D, 0.0D), Math.min(7.0D, radius), net.minecraft.particle.ParticleTypes.CLOUD, 24);
         for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
             if (GemTrust.isTrusted(player, other)) {
@@ -353,6 +417,110 @@ public final class AbilityRuntime {
                 AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.SNOWFLAKE, 1, 0.1D);
             }
         }
+    }
+
+    private static void tickSpeedSlipstream(ServerPlayerEntity player, long now) {
+        NbtCompound nbt = persistent(player);
+        long until = nbt.getLong(KEY_SPEED_SLIPSTREAM_UNTIL);
+        if (until <= 0) {
+            return;
+        }
+        if (now >= until) {
+            clearSpeedSlipstream(nbt);
+            return;
+        }
+        if (!nbt.contains(KEY_SPEED_SLIPSTREAM_DIR_X, NbtElement.DOUBLE_TYPE) || !nbt.contains(KEY_SPEED_SLIPSTREAM_DIR_Z, NbtElement.DOUBLE_TYPE)) {
+            clearSpeedSlipstream(nbt);
+            return;
+        }
+
+        float scale = nbt.contains(KEY_SPEED_SLIPSTREAM_SCALE, NbtElement.FLOAT_TYPE) ? nbt.getFloat(KEY_SPEED_SLIPSTREAM_SCALE) : 1.0F;
+        if (scale <= 0.0F) {
+            scale = 1.0F;
+        }
+
+        Vec3d dir = new Vec3d(nbt.getDouble(KEY_SPEED_SLIPSTREAM_DIR_X), 0.0D, nbt.getDouble(KEY_SPEED_SLIPSTREAM_DIR_Z));
+        if (dir.lengthSquared() <= 1.0E-4D) {
+            clearSpeedSlipstream(nbt);
+            return;
+        }
+        dir = dir.normalize();
+
+        Vec3d origin = new Vec3d(
+                nbt.getDouble(KEY_SPEED_SLIPSTREAM_ORIGIN_X),
+                nbt.getDouble(KEY_SPEED_SLIPSTREAM_ORIGIN_Y),
+                nbt.getDouble(KEY_SPEED_SLIPSTREAM_ORIGIN_Z)
+        );
+
+        double length = SpeedMomentum.scaleDouble(GemsBalance.v().speed().slipstreamLengthBlocks(), scale);
+        double radius = SpeedMomentum.scaleDouble(GemsBalance.v().speed().slipstreamRadiusBlocks(), scale);
+        if (length <= 0.0D || radius <= 0.0D) {
+            return;
+        }
+
+        ServerWorld world = player.getServerWorld();
+        Vec3d end = origin.add(dir.multiply(length));
+        Box box = new Box(origin, end).expand(radius, 2.0D, radius);
+
+        int allyAmp = SpeedMomentum.scaleInt(GemsBalance.v().speed().slipstreamAllySpeedAmplifier(), scale, 0);
+        int enemyAmp = SpeedMomentum.scaleInt(GemsBalance.v().speed().slipstreamEnemySlownessAmplifier(), scale, 0);
+        double knockback = GemsBalance.v().speed().slipstreamEnemyKnockback() * scale;
+
+        for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
+            Vec3d pos = other.getPos();
+            double t = pos.subtract(origin).dotProduct(dir);
+            if (t < 0.0D || t > length) {
+                continue;
+            }
+            Vec3d closest = origin.add(dir.multiply(t));
+            if (pos.squaredDistanceTo(closest) > radius * radius) {
+                continue;
+            }
+
+            boolean trusted = other == player || GemTrust.isTrusted(player, other);
+            if (trusted) {
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 40, allyAmp, true, false, false));
+            } else {
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 40, enemyAmp, true, false, false));
+                if (knockback > 0.0D) {
+                    other.addVelocity(dir.x * knockback, 0.02D, dir.z * knockback);
+                    other.velocityModified = true;
+                }
+            }
+        }
+    }
+
+    private static void tickSpeedAfterimage(ServerPlayerEntity player, long now) {
+        NbtCompound nbt = persistent(player);
+        long until = nbt.getLong(KEY_SPEED_AFTERIMAGE_UNTIL);
+        if (until <= 0) {
+            return;
+        }
+        if (now >= until) {
+            clearSpeedAfterimage(player);
+        }
+    }
+
+    private static void clearSpeedAfterimage(ServerPlayerEntity player) {
+        NbtCompound nbt = persistent(player);
+        nbt.remove(KEY_SPEED_AFTERIMAGE_UNTIL);
+
+        player.removeStatusEffect(StatusEffects.INVISIBILITY);
+        int amp = GemsBalance.v().speed().afterimageSpeedAmplifier();
+        StatusEffectInstance speed = player.getStatusEffect(StatusEffects.SPEED);
+        if (speed != null && speed.getAmplifier() == amp) {
+            player.removeStatusEffect(StatusEffects.SPEED);
+        }
+    }
+
+    private static void clearSpeedSlipstream(NbtCompound nbt) {
+        nbt.remove(KEY_SPEED_SLIPSTREAM_UNTIL);
+        nbt.remove(KEY_SPEED_SLIPSTREAM_SCALE);
+        nbt.remove(KEY_SPEED_SLIPSTREAM_DIR_X);
+        nbt.remove(KEY_SPEED_SLIPSTREAM_DIR_Z);
+        nbt.remove(KEY_SPEED_SLIPSTREAM_ORIGIN_X);
+        nbt.remove(KEY_SPEED_SLIPSTREAM_ORIGIN_Y);
+        nbt.remove(KEY_SPEED_SLIPSTREAM_ORIGIN_Z);
     }
 
     private static void tickSpaceGravityField(ServerPlayerEntity caster, long now) {

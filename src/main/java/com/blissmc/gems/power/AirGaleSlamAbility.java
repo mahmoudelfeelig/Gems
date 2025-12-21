@@ -1,0 +1,40 @@
+package com.feel.gems.power;
+
+import com.feel.gems.config.GemsBalance;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.Identifier;
+
+public final class AirGaleSlamAbility implements GemAbility {
+    @Override
+    public Identifier id() {
+        return PowerIds.AIR_GALE_SLAM;
+    }
+
+    @Override
+    public String name() {
+        return "Gale Slam";
+    }
+
+    @Override
+    public String description() {
+        return "Empowers your next mace hit to create a stronger wind slam.";
+    }
+
+    @Override
+    public int cooldownTicks() {
+        return GemsBalance.v().air().galeSlamCooldownTicks();
+    }
+
+    @Override
+    public boolean activate(ServerPlayerEntity player) {
+        int window = GemsBalance.v().air().galeSlamWindowTicks();
+        if (window <= 0) {
+            return false;
+        }
+        AirGaleSlamRuntime.start(player, window);
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, 0.7F, 1.3F);
+        return true;
+    }
+}
+

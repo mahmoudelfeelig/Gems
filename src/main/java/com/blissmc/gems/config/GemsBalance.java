@@ -155,6 +155,12 @@ public final class GemsBalance {
         cfg.puff.groupBashKnockback = v.puff().groupBashKnockback();
         cfg.puff.groupBashUpVelocityY = v.puff().groupBashUpVelocityY();
 
+        cfg.speed.momentumMinSpeed = v.speed().momentumMinSpeed();
+        cfg.speed.momentumMaxSpeed = v.speed().momentumMaxSpeed();
+        cfg.speed.momentumMinMultiplier = v.speed().momentumMinMultiplier();
+        cfg.speed.momentumMaxMultiplier = v.speed().momentumMaxMultiplier();
+        cfg.speed.frictionlessSpeedAmplifier = v.speed().frictionlessSpeedAmplifier();
+
         cfg.speed.arcShotCooldownSeconds = ticksToSeconds(v.speed().arcShotCooldownTicks());
         cfg.speed.arcShotRangeBlocks = v.speed().arcShotRangeBlocks();
         cfg.speed.arcShotRadiusBlocks = v.speed().arcShotRadiusBlocks();
@@ -171,6 +177,18 @@ public final class GemsBalance {
         cfg.speed.terminalVelocityDurationSeconds = ticksToSeconds(v.speed().terminalVelocityDurationTicks());
         cfg.speed.terminalVelocitySpeedAmplifier = v.speed().terminalVelocitySpeedAmplifier();
         cfg.speed.terminalVelocityHasteAmplifier = v.speed().terminalVelocityHasteAmplifier();
+
+        cfg.speed.slipstreamCooldownSeconds = ticksToSeconds(v.speed().slipstreamCooldownTicks());
+        cfg.speed.slipstreamDurationSeconds = ticksToSeconds(v.speed().slipstreamDurationTicks());
+        cfg.speed.slipstreamLengthBlocks = v.speed().slipstreamLengthBlocks();
+        cfg.speed.slipstreamRadiusBlocks = v.speed().slipstreamRadiusBlocks();
+        cfg.speed.slipstreamAllySpeedAmplifier = v.speed().slipstreamAllySpeedAmplifier();
+        cfg.speed.slipstreamEnemySlownessAmplifier = v.speed().slipstreamEnemySlownessAmplifier();
+        cfg.speed.slipstreamEnemyKnockback = v.speed().slipstreamEnemyKnockback();
+
+        cfg.speed.afterimageCooldownSeconds = ticksToSeconds(v.speed().afterimageCooldownTicks());
+        cfg.speed.afterimageDurationSeconds = ticksToSeconds(v.speed().afterimageDurationTicks());
+        cfg.speed.afterimageSpeedAmplifier = v.speed().afterimageSpeedAmplifier();
 
         cfg.strength.nullifyCooldownSeconds = ticksToSeconds(v.strength().nullifyCooldownTicks());
         cfg.strength.nullifyRadiusBlocks = v.strength().nullifyRadiusBlocks();
@@ -329,6 +347,49 @@ public final class GemsBalance {
         cfg.spyMimic.smokeBombSlownessAmplifier = v.spyMimic().smokeBombSlownessAmplifier();
         cfg.spyMimic.stolenCastCooldownSeconds = ticksToSeconds(v.spyMimic().stolenCastCooldownTicks());
 
+        cfg.beacon.coreRadiusBlocks = v.beacon().coreRadiusBlocks();
+        cfg.beacon.corePulsePeriodSeconds = ticksToSeconds(v.beacon().corePulsePeriodTicks());
+        cfg.beacon.coreRegenDurationSeconds = ticksToSeconds(v.beacon().coreRegenDurationTicks());
+        cfg.beacon.coreRegenAmplifier = v.beacon().coreRegenAmplifier();
+        cfg.beacon.stabilizeRadiusBlocks = v.beacon().stabilizeRadiusBlocks();
+        cfg.beacon.stabilizeReduceTicksPerSecond = v.beacon().stabilizeReduceTicksPerSecond();
+        cfg.beacon.rallyRadiusBlocks = v.beacon().rallyRadiusBlocks();
+        cfg.beacon.rallyAbsorptionHearts = v.beacon().rallyAbsorptionHearts();
+        cfg.beacon.rallyDurationSeconds = ticksToSeconds(v.beacon().rallyDurationTicks());
+        cfg.beacon.auraCooldownSeconds = ticksToSeconds(v.beacon().auraCooldownTicks());
+        cfg.beacon.auraDurationSeconds = ticksToSeconds(v.beacon().auraDurationTicks());
+        cfg.beacon.auraRadiusBlocks = v.beacon().auraRadiusBlocks();
+        cfg.beacon.auraRefreshSeconds = ticksToSeconds(v.beacon().auraRefreshTicks());
+        cfg.beacon.auraSpeedAmplifier = v.beacon().auraSpeedAmplifier();
+        cfg.beacon.auraHasteAmplifier = v.beacon().auraHasteAmplifier();
+        cfg.beacon.auraResistanceAmplifier = v.beacon().auraResistanceAmplifier();
+        cfg.beacon.auraJumpAmplifier = v.beacon().auraJumpAmplifier();
+        cfg.beacon.auraStrengthAmplifier = v.beacon().auraStrengthAmplifier();
+        cfg.beacon.auraRegenAmplifier = v.beacon().auraRegenAmplifier();
+
+        cfg.air.aerialGuardFallDamageMultiplier = v.air().aerialGuardFallDamageMultiplier();
+        cfg.air.aerialGuardKnockbackMultiplier = v.air().aerialGuardKnockbackMultiplier();
+        cfg.air.skybornDurationSeconds = ticksToSeconds(v.air().skybornDurationTicks());
+        cfg.air.skybornCooldownSeconds = ticksToSeconds(v.air().skybornCooldownTicks());
+        cfg.air.windJumpCooldownSeconds = ticksToSeconds(v.air().windJumpCooldownTicks());
+        cfg.air.windJumpVerticalVelocity = v.air().windJumpVerticalVelocity();
+        cfg.air.windJumpForwardVelocity = v.air().windJumpForwardVelocity();
+        cfg.air.galeSlamCooldownSeconds = ticksToSeconds(v.air().galeSlamCooldownTicks());
+        cfg.air.galeSlamWindowSeconds = ticksToSeconds(v.air().galeSlamWindowTicks());
+        cfg.air.galeSlamRadiusBlocks = v.air().galeSlamRadiusBlocks();
+        cfg.air.galeSlamBonusDamage = v.air().galeSlamBonusDamage();
+        cfg.air.galeSlamKnockback = v.air().galeSlamKnockback();
+        cfg.air.updraftZoneCooldownSeconds = ticksToSeconds(v.air().updraftZoneCooldownTicks());
+        cfg.air.updraftZoneRadiusBlocks = v.air().updraftZoneRadiusBlocks();
+        cfg.air.updraftZoneUpVelocity = v.air().updraftZoneUpVelocity();
+        cfg.air.updraftZoneEnemyDamage = v.air().updraftZoneEnemyDamage();
+        cfg.air.updraftZoneEnemyKnockback = v.air().updraftZoneEnemyKnockback();
+        cfg.air.dashCooldownSeconds = ticksToSeconds(v.air().dashCooldownTicks());
+        cfg.air.dashVelocity = v.air().dashVelocity();
+        cfg.air.dashUpVelocity = v.air().dashUpVelocity();
+        cfg.air.dashIFrameDurationSeconds = ticksToSeconds(v.air().dashIFrameDurationTicks());
+        cfg.air.dashIFrameResistanceAmplifier = v.air().dashIFrameResistanceAmplifier();
+
         return cfg;
     }
 
@@ -354,7 +415,9 @@ public final class GemsBalance {
             Space space,
             Reaper reaper,
             Pillager pillager,
-            SpyMimic spyMimic
+            SpyMimic spyMimic,
+            Beacon beacon,
+            Air air
     ) {
         public static Values defaults() {
             return from(new GemsBalanceConfig());
@@ -376,7 +439,9 @@ public final class GemsBalance {
                     Space.from(cfg.space != null ? cfg.space : new GemsBalanceConfig.Space()),
                     Reaper.from(cfg.reaper != null ? cfg.reaper : new GemsBalanceConfig.Reaper()),
                     Pillager.from(cfg.pillager != null ? cfg.pillager : new GemsBalanceConfig.Pillager()),
-                    SpyMimic.from(cfg.spyMimic != null ? cfg.spyMimic : new GemsBalanceConfig.SpyMimic())
+                    SpyMimic.from(cfg.spyMimic != null ? cfg.spyMimic : new GemsBalanceConfig.SpyMimic()),
+                    Beacon.from(cfg.beacon != null ? cfg.beacon : new GemsBalanceConfig.Beacon()),
+                    Air.from(cfg.air != null ? cfg.air : new GemsBalanceConfig.Air())
             );
         }
     }
@@ -628,6 +693,11 @@ public final class GemsBalance {
     }
 
     public record Speed(
+            double momentumMinSpeed,
+            double momentumMaxSpeed,
+            float momentumMinMultiplier,
+            float momentumMaxMultiplier,
+            int frictionlessSpeedAmplifier,
             int arcShotCooldownTicks,
             int arcShotRangeBlocks,
             double arcShotRadiusBlocks,
@@ -643,10 +713,25 @@ public final class GemsBalance {
             int terminalVelocityCooldownTicks,
             int terminalVelocityDurationTicks,
             int terminalVelocitySpeedAmplifier,
-            int terminalVelocityHasteAmplifier
+            int terminalVelocityHasteAmplifier,
+            int slipstreamCooldownTicks,
+            int slipstreamDurationTicks,
+            int slipstreamLengthBlocks,
+            int slipstreamRadiusBlocks,
+            int slipstreamAllySpeedAmplifier,
+            int slipstreamEnemySlownessAmplifier,
+            double slipstreamEnemyKnockback,
+            int afterimageCooldownTicks,
+            int afterimageDurationTicks,
+            int afterimageSpeedAmplifier
     ) {
         static Speed from(GemsBalanceConfig.Speed cfg) {
             return new Speed(
+                    clampDouble(cfg.momentumMinSpeed, 0.0D, 2.0D),
+                    clampDouble(cfg.momentumMaxSpeed, 0.0D, 2.0D),
+                    clampFloat(cfg.momentumMinMultiplier, 0.1F, 3.0F),
+                    clampFloat(cfg.momentumMaxMultiplier, 0.1F, 3.0F),
+                    clampInt(cfg.frictionlessSpeedAmplifier, 0, 5),
                     secClamped(cfg.arcShotCooldownSeconds, 0, 3600),
                     clampInt(cfg.arcShotRangeBlocks, 0, 256),
                     clampDouble(cfg.arcShotRadiusBlocks, 0.0D, 16.0D),
@@ -662,7 +747,17 @@ public final class GemsBalance {
                     secClamped(cfg.terminalVelocityCooldownSeconds, 0, 3600),
                     secClamped(cfg.terminalVelocityDurationSeconds, 0, 120),
                     clampInt(cfg.terminalVelocitySpeedAmplifier, 0, 10),
-                    clampInt(cfg.terminalVelocityHasteAmplifier, 0, 10)
+                    clampInt(cfg.terminalVelocityHasteAmplifier, 0, 10),
+                    secClamped(cfg.slipstreamCooldownSeconds, 0, 3600),
+                    secClamped(cfg.slipstreamDurationSeconds, 0, 120),
+                    clampInt(cfg.slipstreamLengthBlocks, 0, 128),
+                    clampInt(cfg.slipstreamRadiusBlocks, 0, 32),
+                    clampInt(cfg.slipstreamAllySpeedAmplifier, 0, 10),
+                    clampInt(cfg.slipstreamEnemySlownessAmplifier, 0, 10),
+                    clampDouble(cfg.slipstreamEnemyKnockback, 0.0D, 3.0D),
+                    secClamped(cfg.afterimageCooldownSeconds, 0, 3600),
+                    secClamped(cfg.afterimageDurationSeconds, 0, 120),
+                    clampInt(cfg.afterimageSpeedAmplifier, 0, 10)
             );
         }
     }
@@ -1060,6 +1155,104 @@ public final class GemsBalance {
                     clampInt(cfg.smokeBombBlindnessAmplifier, 0, 10),
                     clampInt(cfg.smokeBombSlownessAmplifier, 0, 10),
                     secClamped(cfg.stolenCastCooldownSeconds, 0, 24 * 3600)
+            );
+        }
+    }
+
+    public record Beacon(
+            int coreRadiusBlocks,
+            int corePulsePeriodTicks,
+            int coreRegenDurationTicks,
+            int coreRegenAmplifier,
+            int stabilizeRadiusBlocks,
+            int stabilizeReduceTicksPerSecond,
+            int rallyRadiusBlocks,
+            int rallyAbsorptionHearts,
+            int rallyDurationTicks,
+            int auraCooldownTicks,
+            int auraDurationTicks,
+            int auraRadiusBlocks,
+            int auraRefreshTicks,
+            int auraSpeedAmplifier,
+            int auraHasteAmplifier,
+            int auraResistanceAmplifier,
+            int auraJumpAmplifier,
+            int auraStrengthAmplifier,
+            int auraRegenAmplifier
+    ) {
+        static Beacon from(GemsBalanceConfig.Beacon cfg) {
+            return new Beacon(
+                    clampInt(cfg.coreRadiusBlocks, 0, 64),
+                    secClamped(cfg.corePulsePeriodSeconds, 1, 60),
+                    secClamped(cfg.coreRegenDurationSeconds, 1, 60),
+                    clampInt(cfg.coreRegenAmplifier, 0, 10),
+                    clampInt(cfg.stabilizeRadiusBlocks, 0, 64),
+                    clampInt(cfg.stabilizeReduceTicksPerSecond, 0, 200),
+                    clampInt(cfg.rallyRadiusBlocks, 0, 64),
+                    clampInt(cfg.rallyAbsorptionHearts, 0, 40),
+                    secClamped(cfg.rallyDurationSeconds, 0, 120),
+                    secClamped(cfg.auraCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.auraDurationSeconds, 0, 600),
+                    clampInt(cfg.auraRadiusBlocks, 0, 128),
+                    secClamped(cfg.auraRefreshSeconds, 1, 60),
+                    clampInt(cfg.auraSpeedAmplifier, 0, 10),
+                    clampInt(cfg.auraHasteAmplifier, 0, 10),
+                    clampInt(cfg.auraResistanceAmplifier, 0, 10),
+                    clampInt(cfg.auraJumpAmplifier, 0, 10),
+                    clampInt(cfg.auraStrengthAmplifier, 0, 10),
+                    clampInt(cfg.auraRegenAmplifier, 0, 10)
+            );
+        }
+    }
+
+    public record Air(
+            float aerialGuardFallDamageMultiplier,
+            float aerialGuardKnockbackMultiplier,
+            int skybornDurationTicks,
+            int skybornCooldownTicks,
+            int windJumpCooldownTicks,
+            double windJumpVerticalVelocity,
+            double windJumpForwardVelocity,
+            int galeSlamCooldownTicks,
+            int galeSlamWindowTicks,
+            int galeSlamRadiusBlocks,
+            float galeSlamBonusDamage,
+            double galeSlamKnockback,
+            int updraftZoneCooldownTicks,
+            int updraftZoneRadiusBlocks,
+            double updraftZoneUpVelocity,
+            float updraftZoneEnemyDamage,
+            double updraftZoneEnemyKnockback,
+            int dashCooldownTicks,
+            double dashVelocity,
+            double dashUpVelocity,
+            int dashIFrameDurationTicks,
+            int dashIFrameResistanceAmplifier
+    ) {
+        static Air from(GemsBalanceConfig.Air cfg) {
+            return new Air(
+                    clampFloat(cfg.aerialGuardFallDamageMultiplier, 0.0F, 1.0F),
+                    clampFloat(cfg.aerialGuardKnockbackMultiplier, 0.0F, 1.0F),
+                    secClamped(cfg.skybornDurationSeconds, 0, 120),
+                    secClamped(cfg.skybornCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.windJumpCooldownSeconds, 0, 24 * 3600),
+                    clampDouble(cfg.windJumpVerticalVelocity, 0.0D, 5.0D),
+                    clampDouble(cfg.windJumpForwardVelocity, 0.0D, 5.0D),
+                    secClamped(cfg.galeSlamCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.galeSlamWindowSeconds, 0, 60),
+                    clampInt(cfg.galeSlamRadiusBlocks, 0, 32),
+                    clampFloat(cfg.galeSlamBonusDamage, 0.0F, 200.0F),
+                    clampDouble(cfg.galeSlamKnockback, 0.0D, 5.0D),
+                    secClamped(cfg.updraftZoneCooldownSeconds, 0, 24 * 3600),
+                    clampInt(cfg.updraftZoneRadiusBlocks, 0, 64),
+                    clampDouble(cfg.updraftZoneUpVelocity, 0.0D, 5.0D),
+                    clampFloat(cfg.updraftZoneEnemyDamage, 0.0F, 200.0F),
+                    clampDouble(cfg.updraftZoneEnemyKnockback, 0.0D, 5.0D),
+                    secClamped(cfg.dashCooldownSeconds, 0, 24 * 3600),
+                    clampDouble(cfg.dashVelocity, 0.0D, 5.0D),
+                    clampDouble(cfg.dashUpVelocity, -1.0D, 5.0D),
+                    secClamped(cfg.dashIFrameDurationSeconds, 0, 10),
+                    clampInt(cfg.dashIFrameResistanceAmplifier, 0, 10)
             );
         }
     }

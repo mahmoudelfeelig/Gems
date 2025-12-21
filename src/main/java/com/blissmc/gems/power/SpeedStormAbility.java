@@ -30,7 +30,9 @@ public final class SpeedStormAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startSpeedStorm(player, GemsBalance.v().speed().speedStormDurationTicks());
+        float momentum = SpeedMomentum.multiplier(player);
+        int duration = Math.max(1, Math.round(GemsBalance.v().speed().speedStormDurationTicks() * momentum));
+        AbilityRuntime.startSpeedStorm(player, duration, momentum);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 0.9F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.CLOUD, 20, 0.45D);
         player.sendMessage(Text.literal("Speed Storm active."), true);

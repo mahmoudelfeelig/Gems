@@ -44,8 +44,10 @@ public final class ArcShotAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getServerWorld();
         double maxDistance = GemsBalance.v().speed().arcShotRangeBlocks();
-        double radius = GemsBalance.v().speed().arcShotRadiusBlocks();
-        int maxTargets = GemsBalance.v().speed().arcShotMaxTargets();
+        float momentum = SpeedMomentum.multiplier(player);
+        double radius = SpeedMomentum.scaleDouble(GemsBalance.v().speed().arcShotRadiusBlocks(), momentum);
+        int maxTargets = SpeedMomentum.scaleInt(GemsBalance.v().speed().arcShotMaxTargets(), momentum, 1);
+        float damage = SpeedMomentum.scaleFloat(GemsBalance.v().speed().arcShotDamage(), momentum);
 
         Vec3d start = player.getCameraPosVec(1.0F);
         Vec3d dir = player.getRotationVec(1.0F).normalize();
@@ -90,11 +92,12 @@ public final class ArcShotAbility implements GemAbility {
         for (Hit hit : hits) {
             LivingEntity target = hit.target;
             spawnLightning(world, target.getPos());
-            target.damage(player.getDamageSources().lightningBolt(), GemsBalance.v().speed().arcShotDamage());
+            target.damage(player.getDamageSources().lightningBolt(), damage);
             AbilityFeedback.beam(world, start, target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ELECTRIC_SPARK, 12);
 
             Vec3d away = target.getPos().subtract(player.getPos()).normalize();
-            target.addVelocity(away.x * 0.8D, 0.4D, away.z * 0.8D);
+            double kb = 0.8D * momentum;
+            target.addVelocity(away.x * kb, 0.4D * momentum, away.z * kb);
             target.velocityModified = true;
 
             count++;

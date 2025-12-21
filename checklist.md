@@ -109,9 +109,9 @@
 
 ---
 
-# Next iteration (design / not implemented yet)
+# Implemented expansions
 
-## Server gameplay loop: Assassin endgame
+## Server gameplay loop: Assassin endgame (implemented)
 
 - If a player dies while already at **5 max hearts**, they become an **Assassin**.
 - Assassins are highlighted **red** in the player list/tab UI.
@@ -129,26 +129,17 @@
 - Winner selection uses points (admin-run duel afterwards):
   - Highest-point Assassin vs last surviving non-Assassin.
 
-## Heart items: team restriction
+## Heart items: team restriction (implemented)
 
 - Heart items should not be consumable by teammates (trusted players), to prevent team boosting.
 
-## Speed gem: scaling + expansion
+## Speed gem: scaling + expansion (implemented)
 
-- Add Haste as a passive.
-- Add “acceleration” scaling so Speed abilities scale with the caster’s current movement speed at cast time.
-- Add more passives/abilities for Speed.
+- Added **Haste I**, **Momentum** scaling, and **Frictionless Steps** passives.
+- Momentum snapshots at cast time and scales Speed ability potency.
+- Added **Slipstream** and **Afterimage** abilities.
 
-Proposed Speed passives:
-- Speed I, Haste I
-- Momentum scaling snapshot at cast time (horizontal speed → `[0..1]` momentum).
-- Frictionless Steps: reduced slowdown from cobweb/honey/slow powder.
-
-Proposed Speed abilities to add:
-- Slipstream: forward wind lane that buffs trusted allies and disrupts enemies.
-- Afterimage: short “blur” invis/speed that breaks on first hit.
-
-## New gems to add (docs only for now)
+## New gems implemented
 
 ### 1) Terror gem
 
@@ -156,40 +147,40 @@ Proposed Speed abilities to add:
 - Cost: **-2 hearts and -2 permanent energy** (even for Assassins).
 - Hard cap: **3 uses per player total**, persistent across gem changes and deaths.
 - Ability: spawn 5 primed TNT around you.
-- Passives (proposed):
+- Passives:
   - Dread Aura (Darkness pulses on untrusted nearby)
-  - Fearless (immune to Darkness/Blindness from gem sources)
-  - Blood Price (short Strength burst on player kill)
+  - Fearless (cleanses Blindness/Darkness from the holder)
+  - Blood Price (short Strength/Resistance burst on player kill)
 
 ### 2) Summoner gem
 
-- Passives (proposed):
-  - Summon Mastery (never targets owner/trusted)
+- Passives:
+  - Summoner’s Bond (summons never target owner/trusted players)
   - Commander’s Mark (sword-hit mark → summons prioritize + bonus damage)
-  - Pack Tactics (small bonus when multiple summons nearby)
-  - Soulbound (despawn on owner death/logoff)
+  - Soulbound Minions (despawn on owner death/logoff)
+  - Familiar’s Blessing (summons spawn with bonus health)
 - “Mana/coin” point system:
-  - You have a total point budget and per-mob costs.
-  - Ability slots 1–5 each spawn the configured summon for that slot.
-  - Summons are never hostile to you or your trust list.
-  - Summons prioritize targets you hit with a sword within the last 3 seconds, with increased damage.
+  - Total point budget and per-mob costs.
+  - Ability slots 1–5 spawn the configured summon for that slot.
+  - Summons prioritize targets you hit with a sword within 3 seconds and gain temporary Strength.
   - All costs + max points configurable; excludes Wither/Ender Dragon.
   - Summons drop no loot or XP.
-  - Extra ability (proposed): Recall (teleport active summons to you; limited range).
+  - Recall: despawn all active summons.
 
 ### 3) Space gem
 
-- Passives (proposed):
+- Passives:
   - Lunar Scaling (moon phase multiplier)
-  - Low Gravity (minor slow falling / reduced fall damage)
+  - Low Gravity (minor slow falling / no fall damage)
   - Starshield (reduced projectile damage outdoors at night)
 - Ability: orbital laser strike in a selected area (shift mining mode; can mine hard blocks like obsidian).
 - Ability: gravity control in an area (per-player “lighter/heavier” control).
 - Ability: black hole on your location that pulls/damages mobs and players.
+- Ability: white hole that pushes/damages mobs and players.
 
 ### 4) Reaper gem
 
-- Passives (proposed):
+- Passives:
   - Rot Eater (no negative effects from rotten flesh/spider eyes)
   - Undead Ward (reduced damage from undead mobs)
   - Harvest (brief regen on mob kills, capped)
@@ -202,9 +193,9 @@ Proposed Speed abilities to add:
 
 ### 5) Pillager gem
 
-- Passives (proposed):
-  - Raider’s Training (better bow/crossbow handling)
-  - Shieldbreaker (extra shield disable time on hits)
+- Passives:
+  - Raider’s Training (faster projectiles)
+  - Shieldbreaker (disable shields even without an axe)
   - Illager Discipline (brief Resistance at low HP, cooldown)
 - Ability: evoker fangs attack.
 - Ability: ravager-style knockback hit.
@@ -213,35 +204,34 @@ Proposed Speed abilities to add:
 
 ### 6) Spy / mimic gem
 
-- Passive: if you stay still for 5 seconds, become invisible (no particles).
-- Passives (proposed):
-  - Silent Step (no footsteps + no sculk triggers)
-  - False Signature (hide gem indicators from enemies)
-  - Quick Hands (reduced item-use slowdown while invisible)
-- Ability: transform into the last mob you killed (model + health/hitbox/speed).
-- Ability: copy an ability used in front of you.
-- Ability: “observe theft”: if you witness an ability used 4 times in 10 minutes and stay alive, permanently steal it (until you switch gems; max 3 stolen abilities; choose which ability).
-- Spy abilities (proposed):
-  - Decoy (fake player decoy, no damage)
-  - Wiretap (briefly see nearby players’ last ability used)
+- Passives:
+  - Stillness Cloak (stand still to become invisible with no particles)
+  - Silent Step (no sculk triggers)
+  - False Signature (harder to track)
+  - Quick Hands (minor Haste)
+- Ability: mimic form (temporary invis + bonus health/speed based on last mob killed).
+- Ability: echo (replay last observed ability in front of you).
+- Ability: steal (after enough observation, steal an ability and disable it for the victim).
+- Ability: smoke bomb (blind/slowness + brief cloak).
+- Ability: stolen cast (cast a selected stolen ability; sneak to cycle).
 
 ### 7) Beacon gem (support/utility)
 
-- Passives (proposed):
-  - Beacon Core (minor regen pulses for trusted allies nearby)
+- Passives:
+  - Beacon Core (regen pulses for trusted allies nearby)
   - Stabilize (reduces negative effect durations on trusted allies nearby)
-  - Rally (absorption burst for trusted allies when you cast a beacon aura)
-- Abilities 1–6: moving maxed-out beacon effects for you + trusted allies.
-  - Proposed effects: Speed, Haste, Resistance, Jump Boost, Strength, Regeneration.
+  - Rally (absorption burst when you cast a beacon aura)
+- Abilities 1–6: moving beacon effects for you + trusted allies:
+  - Speed, Haste, Resistance, Jump Boost, Strength, Regeneration.
 
 ### 8) Air gem (mace-focused)
 
-- Passive: grants a maxed-out mace (Breach IV, Wind Burst III, Mending, Unbreaking III, Fire Aspect II).
-- Passives (proposed):
+- Passives:
+  - Windburst Mace (Breach IV, Wind Burst III, Mending, Unbreaking III, Fire Aspect II)
   - Aerial Guard (reduced fall damage/knockback while holding the mace)
   - Skyborn (brief slow falling after taking damage while airborne, cooldown)
 - Ability: wind-charge style high jump.
-- Air abilities (proposed):
+- Air abilities:
   - Gale Slam (empower next mace slam: stronger wind burst)
   - Updraft Zone (pillar that lifts trusted allies, disrupts enemies)
   - Air Dash (mid-air dash with brief i-frames)

@@ -137,6 +137,11 @@ With Carpet installed, you can also spawn 20 fake players and run the same tests
 
 **Passives**
 - Speed I: permanent Speed I effect.
+- Haste I: permanent Haste I effect.
+- Momentum: abilities scale with your movement speed at cast time.
+  - Defaults: `momentumMinSpeed=0.10`, `momentumMaxSpeed=0.60`, `momentumMinMultiplier=0.90`, `momentumMaxMultiplier=1.30`
+- Frictionless Steps: reduced slowdown from cobweb, honey, and powder snow.
+  - Defaults: `frictionlessSpeedAmplifier=1`
 
 **Abilities**
 - Arc Shot: lightning arc that can strike multiple targets in a line.
@@ -145,6 +150,10 @@ With Carpet installed, you can also spawn 20 fake players and run the same tests
   - Defaults: `speedStormCooldownSeconds=60`, `speedStormDurationSeconds=8`, `speedStormRadiusBlocks=10`, `speedStormAllySpeedAmplifier=1`, `speedStormAllyHasteAmplifier=1`, `speedStormEnemySlownessAmplifier=6`, `speedStormEnemyMiningFatigueAmplifier=2`
 - Terminal Velocity: burst of Speed III + Haste II.
   - Defaults: `terminalVelocityCooldownSeconds=30`, `terminalVelocityDurationSeconds=10`, `terminalVelocitySpeedAmplifier=2`, `terminalVelocityHasteAmplifier=1`
+- Slipstream: a forward wind lane that speeds allies and disrupts enemies.
+  - Defaults: `slipstreamCooldownSeconds=45`, `slipstreamDurationSeconds=8`, `slipstreamLengthBlocks=18`, `slipstreamRadiusBlocks=3`, `slipstreamAllySpeedAmplifier=1`, `slipstreamEnemySlownessAmplifier=1`, `slipstreamEnemyKnockback=0.35`
+- Afterimage: brief invisibility + speed burst; breaks on first hit.
+  - Defaults: `afterimageCooldownSeconds=30`, `afterimageDurationSeconds=6`, `afterimageSpeedAmplifier=1`
 
 ## Strength Gem
 
@@ -309,6 +318,45 @@ With Carpet installed, you can also spawn 20 fake players and run the same tests
 - Stolen Cast: casts your selected stolen ability; `Sneak + cast` cycles selection.
   - Defaults: `stolenCastCooldownSeconds=20`
 
+## Beacon Gem
+
+**Passives**
+- Beacon Core: trusted allies near you receive periodic Regeneration pulses.
+  - Defaults: `coreRadiusBlocks=8`, `corePulsePeriodSeconds=2`, `coreRegenDurationSeconds=3`, `coreRegenAmplifier=0`
+- Stabilize: reduces harmful effect durations on trusted allies nearby.
+  - Defaults: `stabilizeRadiusBlocks=8`, `stabilizeReduceTicksPerSecond=20`
+- Rally: casting a beacon aura grants allies brief Absorption.
+  - Defaults: `rallyRadiusBlocks=10`, `rallyAbsorptionHearts=4`, `rallyDurationSeconds=8`
+
+**Abilities (moving beacon auras)**
+- Aura: Speed
+- Aura: Haste
+- Aura: Resistance
+- Aura: Jump Boost
+- Aura: Strength
+- Aura: Regeneration
+- Defaults: `auraCooldownSeconds=30`, `auraDurationSeconds=12`, `auraRadiusBlocks=10`, `auraRefreshSeconds=2`
+- Aura amplifiers: `auraSpeedAmplifier=1`, `auraHasteAmplifier=1`, `auraResistanceAmplifier=0`, `auraJumpAmplifier=1`, `auraStrengthAmplifier=0`, `auraRegenAmplifier=0`
+
+## Air Gem
+
+**Passives**
+- Windburst Mace: grants a maxed-out mace (Breach IV, Wind Burst III, Mending, Unbreaking III, Fire Aspect II).
+- Aerial Guard: reduced fall damage and knockback while holding the mace.
+  - Defaults: `aerialGuardFallDamageMultiplier=0.50`, `aerialGuardKnockbackMultiplier=0.60`
+- Skyborn: taking damage midair grants brief Slow Falling (cooldown).
+  - Defaults: `skybornDurationSeconds=3`, `skybornCooldownSeconds=20`
+
+**Abilities**
+- Wind Jump: wind-charge style high jump.
+  - Defaults: `windJumpCooldownSeconds=8`, `windJumpVerticalVelocity=1.0`, `windJumpForwardVelocity=0.2`
+- Gale Slam: empowers your next mace hit to create a stronger wind slam.
+  - Defaults: `galeSlamCooldownSeconds=30`, `galeSlamWindowSeconds=8`, `galeSlamRadiusBlocks=4`, `galeSlamBonusDamage=6.0`, `galeSlamKnockback=1.0`
+- Updraft Zone: updraft that lifts allies and disrupts enemies.
+  - Defaults: `updraftZoneCooldownSeconds=25`, `updraftZoneRadiusBlocks=8`, `updraftZoneUpVelocity=0.9`, `updraftZoneEnemyDamage=3.0`, `updraftZoneEnemyKnockback=0.6`
+- Air Dash: forward dash with brief i-frames.
+  - Defaults: `dashCooldownSeconds=6`, `dashVelocity=1.6`, `dashUpVelocity=0.1`, `dashIFrameDurationSeconds=1`, `dashIFrameResistanceAmplifier=4`
+
 ---
 
 # Assassin Endgame
@@ -332,68 +380,3 @@ With Carpet installed, you can also spawn 20 fake players and run the same tests
 ## Heart Items: teammate restriction
 
 - Heart items can be consumed by anyone *except* players trusted by the heart’s owner (prevents teammate boosting).
-
-# Planned / Design Notes (not implemented yet)
-
-## Speed Gem: scaling + expansion (planned)
-
-- Add **Haste** as a passive.
-- Add “acceleration” scaling: the faster the Speed user is moving, the stronger Speed abilities are *at cast time*.
-- Add additional passives/abilities to make Speed more complete.
-
-**Proposed Speed passives (level 1)**
-- Speed I: permanent Speed I.
-- Haste I: permanent Haste I.
-- Momentum: abilities snapshot your movement speed at cast time and scale their effects (damage/radius/duration/targets) based on that “momentum”.
-- Frictionless Steps: reduces movement slowdown from cobweb/honey/slow powder while the gem is active.
-
-**Proposed Speed abilities**
-- Arc Shot (existing): lightning arc that can strike multiple targets in a line.
-- Speed Storm (existing): AOE field that slows enemies and buffs allies.
-- Terminal Velocity (existing): burst of Speed III + Haste II.
-- Slipstream: creates a forward wind lane; trusted allies inside gain Speed, enemies get minor knockback/Slowness.
-- Afterimage: short-duration “blur” that grants brief invisibility + speed burst; first hit taken ends it early.
-
-**Proposed acceleration scaling (cast-time snapshot)**
-- Define `momentum` from horizontal velocity at cast time, clamped to `[minSpeed, maxSpeed]` and remapped to `[0..1]`.
-- Examples:
-  - Arc Shot: `damage`, `maxTargets`, and `knockback` scale with momentum.
-  - Speed Storm: `radius` and `enemySlownessAmplifier` scale with momentum.
-  - Terminal Velocity: `duration` scales with momentum (cap to avoid over-long buffs).
-
-## New Gems (planned)
-
-### Beacon Gem (support/utility)
-
-**Proposed Beacon passives (level 1)**
-- Beacon Core: trusted allies in a small radius get minor Regeneration pulses.
-- Stabilize: reduces negative status effect durations on trusted allies near you.
-- Rally: when you cast a beacon ability, trusted allies get a short absorption shield.
-
-**Proposed Beacon abilities (1–6 are beacon effects)**
-- Aura: Speed
-- Aura: Haste
-- Aura: Resistance
-- Aura: Jump Boost
-- Aura: Strength
-- Aura: Regeneration
-
-Each aura sets your “active beacon effect” for a duration (moving beacon), affecting you + trusted allies within radius.
-
-### Air Gem (mace-focused)
-- Passives:
-  - Grants a maxed-out mace (Breach IV, Wind Burst III, Mending, Unbreaking III, Fire Aspect II).
-
-**Proposed Air passives (level 1)**
-- Windburst Mace: grants the maxed-out mace.
-- Aerial Guard: reduced fall damage and knockback while holding the mace.
-- Skyborn: brief Slow Falling after taking damage while airborne (cooldown).
-
-- Abilities:
-  - Wind-charge style high jump.
-
-**Proposed Air abilities (order)**
-- Wind Jump: wind-charge style high jump (no block grief).
-- Gale Slam: empowers your next mace slam to create a stronger wind explosion (knockback + damage).
-- Updraft Zone: short-lived updraft pillar that lifts trusted allies and disrupts enemies.
-- Air Dash: mid-air dash with a brief i-frame window (cooldown).

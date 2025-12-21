@@ -45,6 +45,8 @@ public final class ModAbilities {
         register(new ArcShotAbility());
         register(new SpeedStormAbility());
         register(new TerminalVelocityAbility());
+        register(new SpeedSlipstreamAbility());
+        register(new SpeedAfterimageAbility());
 
         // Strength
         register(new NullifyAbility());
@@ -97,6 +99,20 @@ public final class ModAbilities {
         register(new SpyStealAbility());
         register(new SpySmokeBombAbility());
         register(new SpyStolenCastAbility());
+
+        // Beacon
+        register(new BeaconAuraAbility(BeaconAuraRuntime.AuraType.SPEED));
+        register(new BeaconAuraAbility(BeaconAuraRuntime.AuraType.HASTE));
+        register(new BeaconAuraAbility(BeaconAuraRuntime.AuraType.RESISTANCE));
+        register(new BeaconAuraAbility(BeaconAuraRuntime.AuraType.JUMP));
+        register(new BeaconAuraAbility(BeaconAuraRuntime.AuraType.STRENGTH));
+        register(new BeaconAuraAbility(BeaconAuraRuntime.AuraType.REGEN));
+
+        // Air
+        register(new AirWindJumpAbility());
+        register(new AirGaleSlamAbility());
+        register(new AirUpdraftZoneAbility());
+        register(new AirDashAbility());
     }
 
     private ModAbilities() {

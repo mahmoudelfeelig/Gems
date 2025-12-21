@@ -1,4 +1,4 @@
-name: Performance
+name: Performance (Light)
 
 on:
   workflow_dispatch:
@@ -11,15 +11,15 @@ permissions:
   contents: read
 
 jobs:
-  performance:
-    name: performance
+  performance_light:
+    name: performance-light
     # Run on demand, on main, or on PRs explicitly labeled "run-perf".
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-perf'))
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
 
     steps:
       - name: Checkout
@@ -63,11 +63,19 @@ jobs:
           chmod +x "$gradle_bin"
           "$gradle_bin" --no-daemon build
 
-      - name: Performance smoke (20 Carpet bots + force stress)
+      - name: Performance stress test (light)
         id: perf
         shell: bash
         run: |
           set -euo pipefail
+
+          # Light run settings:
+          # - 5 minutes spark profile, server thread only
+          # - 5 minutes of your stress command
+          PROFILE_SECONDS=300
+          STRESS_SECONDS=300
+          SNAPSHOT_TICKS=6000
+          LAG_THRESHOLD_MS=51
 
           # Resolve a Gradle binary (wrapper if present, otherwise bootstrap).
           GRADLE="./gradlew"
@@ -92,6 +100,8 @@ jobs:
           rcon.port=25575
           online-mode=false
           allow-flight=true
+          # Shared CI runners can occasionally stall a tick during chunk work; relax watchdog.
+          max-tick-time=300000
           view-distance=2
           simulation-distance=2
           spawn-protection=0
@@ -100,13 +110,15 @@ jobs:
           level-name=perfworld
           level-type=minecraft:flat
           sync-chunk-writes=false
+          # Slow down autosaves to avoid periodic spikes; we'll manage saves manually in the run.
+          max-auto-save-chunks-per-tick=8
           EOF
 
           CARPET_URL="$(python3 - <<'PY'
           import json
           import urllib.parse
           import urllib.request
-          
+
           base = 'https://api.modrinth.com/v2/project/carpet/version'
           params = {
               'game_versions': json.dumps(['1.21.1']),
@@ -123,12 +135,12 @@ jobs:
           )"
           echo "Downloading Carpet: $CARPET_URL"
           curl -sSL "$CARPET_URL" -o run/mods/carpet.jar
-          
+
           SPARK_URL="$(python3 - <<'PY'
           import json
           import urllib.parse
           import urllib.request
-          
+
           def fetch_url(params):
               base = 'https://api.modrinth.com/v2/project/spark/version'
               url = base + '?' + urllib.parse.urlencode(params)
@@ -141,7 +153,7 @@ jobs:
                   if f.get('url'):
                       return f['url']
               return None
-          
+
           url = fetch_url({'game_versions': json.dumps(['1.21.1']), 'loaders': json.dumps(['fabric'])})
           if url is None:
               url = fetch_url({'loaders': json.dumps(['fabric'])})
@@ -239,76 +251,141 @@ jobs:
             exit 1
           fi
 
-          rcon() { python3 .github/rcon.py 127.0.0.1 25575 perf "$@"; }
+          rcon_raw() { python3 .github/rcon.py 127.0.0.1 25575 perf "$@"; }
+          rcon() {
+            # RCON can transiently fail under GC/IO pressure; retry a few times.
+            local out rc
+            for _ in $(seq 1 10); do
+              out="$(rcon_raw "$@" 2>&1)"; rc=$?
+              if [[ $rc -eq 0 ]]; then
+                printf '%s\n' "$out"
+                return 0
+              fi
+              if printf '%s' "$out" | grep -Eq 'ConnectionRefusedError|timed out|short read|short packet'; then
+                sleep 1
+                continue
+              fi
+              printf '%s\n' "$out" >&2
+              return $rc
+            done
+
+            echo "RCON failed after retries; dumping server.log (last 200 lines):" >&2
+            tail -n 200 server.log >&2 || true
+            echo "RCON failed after retries; dumping run/logs/latest.log (last 200 lines):" >&2
+            tail -n 200 run/logs/latest.log >&2 || true
+            return 1
+          }
 
           rcon "gamerule doMobSpawning false" || true
           rcon "gamerule doWeatherCycle false" || true
           rcon "gamerule randomTickSpeed 0" || true
+          rcon "gamerule fallDamage false" || true
+          rcon "save-off" || true
           rcon "gems admin perf reset"
 
+          echo "Pregenerating / forceloading test areas..."
+          rcon "forceload add -16 -16 16 16" || true
+          rcon "execute in minecraft:the_nether run forceload add 34 34 66 66" || true
+          rcon "execute in minecraft:the_end run forceload add -16 -16 16 16" || true
+          rcon "forceload add 1984 784 2016 816" || true
+
           echo "Spawning Carpet bots..."
-          # 20 in overworld (origin area), 10 in Nether, 10 in End, 10 far overworld.
-          BOTS=( $(seq -f "bot%g" 1 20) $(seq -f "nether%g" 1 10) $(seq -f "end%g" 1 10) $(seq -f "far%g" 1 10) )
-
-          for b in "${BOTS[@]}"; do
-            rcon "player $b spawn"
-          done
-
-          # Spread bots across dimensions so stress is multidimensional.
-          for b in $(seq 1 10); do
-            rcon "execute in minecraft:the_nether run tp nether$b 50 90 50"
-          done
-          for b in $(seq 1 10); do
-            rcon "execute in minecraft:the_end run tp end$b 0 80 100"
-          done
-          for b in $(seq 1 10); do
-            rcon "tp far$b 2000 80 $((100 * b))"
-          done
-
-          # Keep bots alive and auto-respawn if they die/disconnect.
-          rcon "gamerule doImmediateRespawn true" || true
-          keep_bots() {
-            while true; do
-              for b in "${BOTS[@]}"; do
-                rcon "player $b spawn" >/dev/null 2>&1 || true
-              done
-              sleep 5
+          spawn_overworld() {
+            for i in $(seq 1 10); do
+              x=$(( ( (i - 1) % 5 ) * 4 - 8 ))
+              z=$(( ( (i - 1) / 5 ) * 4 - 2 ))
+              rcon "execute positioned $x 80 $z run player bot$i spawn" >/dev/null 2>&1 || true
+              sleep 0.05
             done
           }
-          keep_bots &
-          KEEP_BOTS_PID=$!
+
+          spawn_far_overworld() {
+            for i in $(seq 1 10); do
+              x=$((2000 + ( ( (i - 1) % 5 ) * 4 - 8 )))
+              z=$((800 + ( ( (i - 1) / 5 ) * 4 - 2 )))
+              rcon "execute positioned $x 80 $z run player far$i spawn" >/dev/null 2>&1 || true
+              sleep 0.05
+            done
+          }
+
+          spawn_nether() {
+            for i in $(seq 1 10); do
+              x=$((50 + ( ( (i - 1) % 5 ) * 3 - 6 )))
+              z=$((50 + ( ( (i - 1) / 5 ) * 3 - 2 )))
+              rcon "execute in minecraft:the_nether positioned $x 90 $z run player nether$i spawn" >/dev/null 2>&1 || true
+              sleep 0.05
+            done
+          }
+
+          spawn_end() {
+            for i in $(seq 1 10); do
+              x=$(( ( (i - 1) % 5 ) * 3 - 6 ))
+              z=$(( ( (i - 1) / 5 ) * 3 - 2 ))
+              rcon "execute in minecraft:the_end positioned $x 80 $z run player end$i spawn" >/dev/null 2>&1 || true
+              sleep 0.05
+            done
+          }
+
+          spawn_overworld
+          spawn_far_overworld
+          spawn_nether
+          spawn_end
 
           rcon "gems admin setEnergy @a 10"
           rcon "gems admin resync @a"
+          rcon "effect give @a minecraft:resistance 999999 4 true"
 
-          # Warm-up buffer
-          sleep 5
+          echo "Settling chunks before profiling..."
+          sleep 10
           rcon "gems admin perf reset"
 
-          # Start a spark profiler in parallel with the stress run.
-          # Note: the viewer link is often printed only when the profiler finishes and uploads.
-          SPARK_START_OUT="$(rcon "spark profiler --timeout 120" 2>/dev/null || true)"
+          echo "Enabling spark tickmonitor (laggy tick reporting)..."
+          rcon "spark tickmonitor --threshold-tick ${LAG_THRESHOLD_MS} --without-gc" || true
+
+          # Start a 5-minute profile on the server thread only.
+          SPARK_START_OUT="$(rcon "spark profiler start --timeout ${PROFILE_SECONDS} --thread \"Server thread\" --ignore-sleeping" 2>/dev/null || true)"
           if [[ -n "$SPARK_START_OUT" ]]; then
             echo "$SPARK_START_OUT"
           fi
-          rcon "gems admin stress start @a 120 5 force true true"
-          sleep 125
-          # Stress runner auto-stops after its configured duration.
 
-          OUT="$(rcon "gems admin perf snapshot 2400" | tr -d '\r')"
+          echo "Starting stress for ${STRESS_SECONDS}s..."
+          rcon "gems admin stress start @a ${STRESS_SECONDS} 5 force true true"
+          sleep $((STRESS_SECONDS + 10))
+
+          OUT="$(rcon "gems admin perf snapshot ${SNAPSHOT_TICKS}" | tr -d '\r')"
           echo "$OUT"
 
-          # Try to stop spark explicitly to force the upload/link message to be emitted.
-          SPARK_STOP_OUT="$(rcon "spark profiler --stop" 2>/dev/null || true)"
+          # Stop profiler explicitly (if timeout already ended it, this is harmless).
+          SPARK_STOP_OUT="$(rcon "spark profiler stop --comment ci-light" 2>/dev/null || true)"
           if [[ -n "$SPARK_STOP_OUT" ]]; then
             echo "$SPARK_STOP_OUT"
           fi
-          
+
+          echo "Disabling spark tickmonitor..."
+          rcon "spark tickmonitor" || true
+
+          # Re-enable saves and flush once before shutdown.
+          rcon "save-on" || true
+          rcon "save-all flush" || true
+
+          # Extract tickmonitor messages from logs into a dedicated artifact file.
+          mkdir -p run
+          LAG_FILE="run/laggy-ticks.txt"
+          {
+            echo "spark tickmonitor output (threshold-tick=${LAG_THRESHOLD_MS}ms)"
+            echo
+            # The exact wording can vary; this captures typical tickmonitor lines emitted by spark.
+            grep -nE '\[spark\].*(Tick|tick)' run/logs/latest.log server.log 2>/dev/null || true
+          } > "$LAG_FILE"
+          if ! grep -qE '\[spark\].*(Tick|tick)' "$LAG_FILE"; then
+            echo "No tickmonitor lines matched in logs." > "$LAG_FILE"
+          fi
+
           export GEMS_PERF_OUT="$OUT"
           AVG_P95="$(python3 - <<'PY'
           import os
           import re
-          
+
           s = os.environ.get("GEMS_PERF_OUT", "")
           m_avg = re.search(r"avg_mspt=([0-9]+(?:\\.[0-9]+)?)", s)
           m_p95 = re.search(r"p95_mspt=([0-9]+(?:\\.[0-9]+)?)", s)
@@ -322,18 +399,15 @@ jobs:
 
           # Guardrails for regression detection (kept intentionally lenient for shared CI runners).
           awk -v avg="$AVG" -v p95="$P95" 'BEGIN{ exit !((avg+0) <= 40.0 && (p95+0) <= 120.0) }'
-          
-          # Print spark viewer link if present in the logs.
+
+          # Print spark viewer link if present in the command output or logs.
           SPARK_LINK=""
-          # Prefer the command response (most reliable), then fall back to log files.
-          # Only accept real viewer links (host + single ID segment, 6+ chars), ignore docs/warnings.
           VIEWER_RE='https?://spark\.lucko\.me/[A-Za-z0-9]{6,}'
           SPARK_LINK="$(printf '%s\n' "${SPARK_STOP_OUT:-}" | grep -Eo "$VIEWER_RE" | tail -n1 || true)"
           if [[ -z "$SPARK_LINK" ]]; then
             SPARK_LINK="$(printf '%s\n' "${SPARK_START_OUT:-}" | grep -Eo "$VIEWER_RE" | tail -n1 || true)"
           fi
           if [[ -z "$SPARK_LINK" ]]; then
-            # Wait briefly for spark to finish uploading and printing the link.
             for _ in $(seq 1 30); do
               SPARK_LINK="$(grep -Eo "$VIEWER_RE" server.log run/logs/latest.log 2>/dev/null | tail -n1 || true)"
               if [[ -n "$SPARK_LINK" ]]; then
@@ -342,23 +416,30 @@ jobs:
               sleep 1
             done
           fi
-          if [[ "$SPARK_LINK" == *"/docs"* ]]; then
-            SPARK_LINK=""
-          fi
           SPARK_LINK="$(printf '%s' "$SPARK_LINK" | tr -d '\r')"
           if [[ -n "$SPARK_LINK" ]]; then
             echo "spark: $SPARK_LINK"
-            # Also append to the server.log artifact so it's easy to find.
             echo "spark: $SPARK_LINK" >> server.log
           fi
           if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
             echo "spark_link=${SPARK_LINK}" >> "$GITHUB_OUTPUT"
           fi
-          if [[ -n "${GITHUB_STEP_SUMMARY:-}" && -n "$SPARK_LINK" ]]; then
-            echo "spark: ${SPARK_LINK}" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+            echo "### Performance (Light)" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Stress seconds: ${STRESS_SECONDS}" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Profile seconds: ${PROFILE_SECONDS} (Server thread only)" >> "$GITHUB_STEP_SUMMARY"
+            echo "- avg_mspt: ${AVG}" >> "$GITHUB_STEP_SUMMARY"
+            echo "- p95_mspt: ${P95}" >> "$GITHUB_STEP_SUMMARY"
+            if [[ -n "$SPARK_LINK" ]]; then
+              echo "- spark: ${SPARK_LINK}" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "- spark: (no link found)" >> "$GITHUB_STEP_SUMMARY"
+            fi
+            LAG_COUNT="$(grep -cE '\[spark\].*(Tick|tick)' "$LAG_FILE" 2>/dev/null || true)"
+            echo "- tickmonitor matches in logs: ${LAG_COUNT}" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-          # Stop keepalive loop and server so logs are flushed before uploading artifacts.
           if [[ -n "${KEEP_BOTS_PID:-}" ]]; then
             kill "$KEEP_BOTS_PID" >/dev/null 2>&1 || true
           fi
@@ -374,23 +455,24 @@ jobs:
             echo "spark: ${{ steps.perf.outputs.spark_link }}"
             echo "spark: ${{ steps.perf.outputs.spark_link }}" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "spark: (no link found in server.log)"
+            echo "spark: (no link found)"
           fi
 
       - name: Upload server log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: perf-server-log
+          name: perf-light-server-log
           path: server.log
           if-no-files-found: ignore
-      
+
       - name: Upload spark output
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: perf-spark
+          name: perf-light-spark
           path: |
             run/spark/**
             run/logs/**
+            run/laggy-ticks.txt
           if-no-files-found: ignore

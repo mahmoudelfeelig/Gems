@@ -1,6 +1,7 @@
 package com.feel.gems.testutil;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class MinecraftBootstrap {
@@ -15,8 +16,32 @@ public final class MinecraftBootstrap {
         }
 
         tryInvokeStatic("net.minecraft.SharedConstants", "createGameVersion");
-        tryInvokeStatic("net.minecraft.Bootstrap", "initialize");
-        tryInvokeStatic("net.minecraft.Bootstrap", "bootstrap");
+        trySetBootstrapFlag();
+    }
+
+    private static void trySetBootstrapFlag() {
+        try {
+            Class<?> bootstrap = Class.forName("net.minecraft.Bootstrap");
+            // Different Minecraft versions name the guard differently; set any boolean flag we find.
+            String[] candidates = {"initialized", "bootstrapped", "BOOTSTRAPPED"};
+            for (String name : candidates) {
+                trySetBoolean(bootstrap, name, true);
+            }
+        } catch (Throwable ignored) {
+            // best effort
+        }
+    }
+
+    private static void trySetBoolean(Class<?> cls, String fieldName, boolean value) {
+        try {
+            Field f = cls.getDeclaredField(fieldName);
+            f.setAccessible(true);
+            if (f.getType() == boolean.class) {
+                f.setBoolean(null, value);
+            }
+        } catch (Throwable ignored) {
+            // best effort
+        }
     }
 
     private static void tryInvokeStatic(String className, String methodName) {

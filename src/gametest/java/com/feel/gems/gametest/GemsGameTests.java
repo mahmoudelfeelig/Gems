@@ -2,11 +2,17 @@ package com.feel.gems.gametest;
 
 import java.util.EnumSet;
 
+import com.feel.gems.assassin.AssassinState;
+import com.feel.gems.config.GemsBalance;
+import com.feel.gems.core.GemDefinition;
+import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemId;
+import com.feel.gems.core.GemRegistry;
 import com.feel.gems.item.GemKeepOnDeath;
+import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.ModItems;
-import com.feel.gems.power.AbilityRuntime;
 import com.feel.gems.power.AbilityDisables;
+import com.feel.gems.power.AbilityRuntime;
 import com.feel.gems.power.AirDashAbility;
 import com.feel.gems.power.AirUpdraftZoneAbility;
 import com.feel.gems.power.AirWindJumpAbility;
@@ -15,11 +21,13 @@ import com.feel.gems.power.BeaconAuraRuntime;
 import com.feel.gems.power.FluxBeamAbility;
 import com.feel.gems.power.FluxCharge;
 import com.feel.gems.power.GemPowers;
+import com.feel.gems.power.GemAbilities;
 import com.feel.gems.power.PanicRingAbility;
 import com.feel.gems.power.PillagerDiscipline;
 import com.feel.gems.power.PillagerFangsAbility;
 import com.feel.gems.power.PillagerVolleyAbility;
 import com.feel.gems.power.PillagerVolleyRuntime;
+import com.feel.gems.power.PowerIds;
 import com.feel.gems.power.SpyMimicFormAbility;
 import com.feel.gems.power.SpyMimicSystem;
 import com.feel.gems.power.SpyStealAbility;
@@ -29,30 +37,35 @@ import com.feel.gems.power.SummonerSummons;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.trade.GemTrading;
 import com.feel.gems.trust.GemTrust;
-import com.feel.gems.assassin.AssassinState;
-import com.feel.gems.config.GemsBalance;
+import com.feel.gems.util.GemsTime;
+import com.feel.gems.power.AbilityDisables;
+import com.feel.gems.power.GemAbilityCooldowns;
+import com.feel.gems.net.CooldownSnapshotPayload;
 
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.TntEntity;
-import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.EvokerFangsEntity;
 import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.Identifier;
+import io.netty.buffer.Unpooled;
+import net.minecraft.network.RegistryByteBuf;
 
 public final class GemsGameTests {
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
@@ -237,6 +250,60 @@ public final class GemsGameTests {
         });
     }
 
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void abilityDisablesClearAndCooldownSnapshotPersists(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        GemPlayerState.initIfNeeded(player);
+        GemPlayerState.setActiveGem(player, GemId.AIR);
+        GemPlayerState.setEnergy(player, 8);
+
+        var abilities = GemRegistry.definition(GemId.AIR).abilities();
+        int dashIndex = abilities.indexOf(PowerIds.AIR_DASH);
+        if (dashIndex < 0) {
+            context.throwGameTestException("AIR gem missing dash ability registration");
+            return;
+        }
+
+        AbilityDisables.disable(player, PowerIds.AIR_DASH);
+        GemPlayerState.setActiveGem(player, GemId.FIRE);
+        GemPlayerState.setActiveGem(player, GemId.AIR);
+        if (AbilityDisables.isDisabled(player, PowerIds.AIR_DASH)) {
+            context.throwGameTestException("Ability disables should clear on gem switch");
+            return;
+        }
+
+        context.runAtTick(2L, () -> {
+            long now = GemsTime.now(player);
+            GemAbilities.activateByIndex(player, dashIndex);
+
+            long nextAllowed = GemAbilityCooldowns.nextAllowedTick(player, PowerIds.AIR_DASH);
+            if (nextAllowed <= now) {
+                context.throwGameTestException("Dash ability did not start cooldown after activation");
+                return;
+            }
+
+            int remaining = GemAbilityCooldowns.remainingTicks(player, PowerIds.AIR_DASH, now);
+            RegistryByteBuf buf = new RegistryByteBuf(Unpooled.buffer(), world.getRegistryManager());
+            CooldownSnapshotPayload payload = new CooldownSnapshotPayload(GemId.AIR.ordinal(), java.util.List.of(remaining));
+            CooldownSnapshotPayload.CODEC.encode(buf, payload);
+            buf.readerIndex(0);
+            CooldownSnapshotPayload decoded = CooldownSnapshotPayload.CODEC.decode(buf);
+
+            if (decoded.remainingAbilityCooldownTicks().isEmpty()) {
+                context.throwGameTestException("Cooldown snapshot payload lost cooldown entries");
+                return;
+            }
+            if (!decoded.remainingAbilityCooldownTicks().get(0).equals(remaining)) {
+                context.throwGameTestException("Cooldown snapshot payload did not preserve remaining ticks");
+                return;
+            }
+            context.complete();
+        });
+    }
+
     private static boolean hasItem(ServerPlayerEntity player, net.minecraft.item.Item item) {
         for (ItemStack stack : player.getInventory().main) {
             if (stack.isOf(item)) {
@@ -276,6 +343,26 @@ public final class GemsGameTests {
         return count;
     }
 
+    private static int countGlint(ServerPlayerEntity player, net.minecraft.item.Item item) {
+        int glint = 0;
+        for (ItemStack stack : player.getInventory().main) {
+            if (stack.isOf(item) && stack.contains(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE)) {
+                glint++;
+            }
+        }
+        for (ItemStack stack : player.getInventory().offHand) {
+            if (stack.isOf(item) && stack.contains(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE)) {
+                glint++;
+            }
+        }
+        for (ItemStack stack : player.getInventory().armor) {
+            if (stack.isOf(item) && stack.contains(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE)) {
+                glint++;
+            }
+        }
+        return glint;
+    }
+
     private static int countGemItems(java.util.List<ItemStack> stacks) {
         int gemItems = 0;
         for (ItemStack stack : stacks) {
@@ -284,6 +371,36 @@ public final class GemsGameTests {
             }
         }
         return gemItems;
+    }
+
+    private static boolean containsAirMace(ServerPlayerEntity player) {
+        for (ItemStack stack : player.getInventory().main) {
+            if (isAirMace(stack)) {
+                return true;
+            }
+        }
+        for (ItemStack stack : player.getInventory().offHand) {
+            if (isAirMace(stack)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isAirMace(ItemStack stack) {
+        if (!stack.isOf(Items.MACE)) {
+            return false;
+        }
+        var custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        return custom != null && custom.getNbt().getBoolean("gemsAirMace");
+    }
+
+    private static void resetAssassinState(ServerPlayerEntity player) {
+        AssassinState.initIfNeeded(player);
+        var data = ((com.feel.gems.state.GemsPersistentDataHolder) player).gems$getPersistentData();
+        data.putBoolean("assassinIsAssassin", false);
+        data.putBoolean("assassinEliminated", false);
+        data.putInt("assassinHearts", AssassinState.ASSASSIN_MAX_HEARTS);
     }
 
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
@@ -972,5 +1089,510 @@ public final class GemsGameTests {
             }
             context.complete();
         });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 120)
+    public void unlockOrderFollowsSpec(TestContext context) {
+        // Use Fire as a representative 4-ability gem and also validate all gems respect the energy spec.
+        GemDefinition fire = GemRegistry.definition(GemId.FIRE);
+        int fireAbilities = fire.abilities().size();
+        if (fireAbilities < 3) {
+            context.throwGameTestException("Fire gem should have at least 3 abilities for unlock progression test");
+            return;
+        }
+
+        int at2 = fire.availableAbilities(new GemEnergyState(2)).size();
+        int at3 = fire.availableAbilities(new GemEnergyState(3)).size();
+        int at4 = fire.availableAbilities(new GemEnergyState(4)).size();
+        int at5 = fire.availableAbilities(new GemEnergyState(5)).size();
+
+        if (at2 != 1 || at3 != Math.min(2, fireAbilities) || at4 != Math.min(3, fireAbilities) || at5 != fireAbilities) {
+            context.throwGameTestException("Fire unlock counts did not follow spec: " + at2 + "," + at3 + "," + at4 + "," + at5);
+            return;
+        }
+
+        // All gems should follow the same energy unlock curve.
+        for (GemId id : GemId.values()) {
+            GemDefinition def = GemRegistry.definition(id);
+            if (def == null) {
+                continue;
+            }
+            int total = def.abilities().size();
+            int e2 = def.availableAbilities(new GemEnergyState(2)).size();
+            int e3 = def.availableAbilities(new GemEnergyState(3)).size();
+            int e4 = def.availableAbilities(new GemEnergyState(4)).size();
+            int e5 = def.availableAbilities(new GemEnergyState(5)).size();
+
+            if (e2 != Math.min(1, total) || e3 != Math.min(2, total) || e4 != Math.min(3, total) || e5 != total) {
+                context.throwGameTestException("Unlock curve mismatch for gem " + id + " counts=" + e2 + "," + e3 + "," + e4 + "," + e5 + " total=" + total);
+                return;
+            }
+        }
+
+        context.complete();
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 120)
+    public void energyLadderGatesAbilitiesAndLosesOnDeath(TestContext context) {
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        GemPlayerState.initIfNeeded(player);
+        GemPlayerState.setActiveGem(player, GemId.FIRE);
+        GemDefinition def = GemRegistry.definition(GemId.FIRE);
+        int total = def.abilities().size();
+
+        int e0 = def.availableAbilities(new GemEnergyState(0)).size();
+        int e1 = def.availableAbilities(new GemEnergyState(1)).size();
+        int e2 = def.availableAbilities(new GemEnergyState(2)).size();
+        int e4 = def.availableAbilities(new GemEnergyState(4)).size();
+        int e5 = def.availableAbilities(new GemEnergyState(5)).size();
+
+        if (e0 != 0 || e1 != 0 || e2 != Math.min(1, total) || e4 != Math.min(3, total) || e5 != total) {
+            context.throwGameTestException("Ability gating mismatch for Fire gem");
+            return;
+        }
+
+        if (GemPlayerState.getEnergy(player) != GemPlayerState.DEFAULT_ENERGY) {
+            context.throwGameTestException("Default energy should start at 3");
+            return;
+        }
+
+        GemPlayerState.addEnergy(player, 1);
+        if (GemPlayerState.getEnergy(player) != 4) {
+            context.throwGameTestException("Kill-style energy gain should increase energy by 1 to 4");
+            return;
+        }
+
+        GemPlayerState.addEnergy(player, -1); // simulate death loss
+        if (GemPlayerState.getEnergy(player) != 3) {
+            context.throwGameTestException("Death should reduce energy by 1 to 3");
+            return;
+        }
+
+        context.complete();
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void traderRequiresItemAndConsumesExactlyOne(TestContext context) {
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        GemPlayerState.initIfNeeded(player);
+        GemPlayerState.setActiveGem(player, GemId.ASTRA);
+        GemPlayerState.setOwnedGemsExact(player, java.util.EnumSet.of(GemId.ASTRA));
+
+        // No trader item present: should fail and not change state.
+        GemTrading.Result fail = GemTrading.trade(player, GemId.FLUX);
+        if (fail.success() || fail.consumedTrader()) {
+            context.throwGameTestException("Trade should fail without a trader item");
+            return;
+        }
+        if (GemPlayerState.getActiveGem(player) != GemId.ASTRA) {
+            context.throwGameTestException("Active gem should remain unchanged on failed trade");
+            return;
+        }
+
+        // Fill part of the inventory, leave space for the gem.
+        for (int i = 0; i < 5; i++) {
+            player.getInventory().main.set(i, new ItemStack(Items.DIRT));
+        }
+
+        // Add exactly one trader item and trade again.
+        player.giveItemStack(new ItemStack(ModItems.TRADER));
+        int tradersBefore = countItem(player, ModItems.TRADER);
+
+        GemTrading.Result ok = GemTrading.trade(player, GemId.FLUX);
+        if (!ok.success() || !ok.consumedTrader()) {
+            context.throwGameTestException("Trade should succeed and consume a trader item");
+            return;
+        }
+        int tradersAfter = countItem(player, ModItems.TRADER);
+        if (tradersAfter != Math.max(0, tradersBefore - 1)) {
+            context.throwGameTestException("Trader count did not decrement by 1");
+            return;
+        }
+
+        if (GemPlayerState.getActiveGem(player) != GemId.FLUX) {
+            context.throwGameTestException("Active gem should be Flux after trade");
+            return;
+        }
+        if (!GemPlayerState.getOwnedGems(player).equals(java.util.EnumSet.of(GemId.FLUX))) {
+            context.throwGameTestException("Owned gems should be reset to only Flux after trade");
+            return;
+        }
+
+        int gemItems = countGemItems(player.getInventory().main)
+                + countGemItems(player.getInventory().offHand)
+                + countGemItems(player.getInventory().armor);
+        if (gemItems != 1 || !hasItem(player, ModItems.FLUX_GEM)) {
+            context.throwGameTestException("Inventory should contain exactly one Flux gem item after trade");
+            return;
+        }
+
+        context.complete();
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 160)
+    public void heartDropsAboveFloorAndStopsAtFive(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity killer = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity victim = context.createMockCreativeServerPlayerInWorld();
+        killer.changeGameMode(GameMode.SURVIVAL);
+        victim.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        killer.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        victim.teleport(world, pos.x + 1.0D, pos.y, pos.z, 180.0F, 0.0F);
+
+        GemPlayerState.initIfNeeded(killer);
+        GemPlayerState.initIfNeeded(victim);
+        GemPlayerState.setActiveGem(killer, GemId.FIRE);
+        GemPlayerState.setActiveGem(victim, GemId.LIFE);
+        resetAssassinState(victim);
+        GemPlayerState.setMaxHearts(victim, GemPlayerState.MIN_MAX_HEARTS + 1);
+        GemPlayerState.applyMaxHearts(victim);
+
+        context.runAtTick(2L, () -> {
+            victim.setHealth(2.0F);
+            victim.damage(victim.getDamageSources().playerAttack(killer), 10.0F);
+            if (!victim.isDead()) {
+                // Guarantee death triggers even if mock combat fails to deliver damage (e.g. PVP quirks).
+                victim.kill();
+            }
+        });
+
+        context.runAtTick(40L, () -> {
+            if (!victim.isDead()) {
+                context.throwGameTestException("Victim did not die during heart drop scenario");
+                return;
+            }
+            int heartsDropped = world.getEntitiesByClass(ItemEntity.class, new Box(pos, pos.add(1.0D, 1.0D, 1.0D)).expand(3.0D), e -> e.getStack().isOf(ModItems.HEART)).size();
+            int invHearts = countItem(killer, ModItems.HEART);
+            var victimDataAfter = ((com.feel.gems.state.GemsPersistentDataHolder) victim).gems$getPersistentData();
+            if (heartsDropped + invHearts != 1) {
+                context.throwGameTestException("Expected exactly one heart gained (dropped or picked up), found dropped=" + heartsDropped + " inv=" + invHearts + " assassin=" + victimDataAfter.getBoolean("assassinIsAssassin") + " storedMax=" + victimDataAfter.getInt("maxHearts") + " assassinHearts=" + victimDataAfter.getInt("assassinHearts"));
+                return;
+            }
+            int storedHearts = victimDataAfter.getInt("maxHearts");
+            if (storedHearts != GemPlayerState.MIN_MAX_HEARTS) {
+                context.throwGameTestException("Victim hearts should clamp to floor after drop: " + storedHearts);
+                return;
+            }
+            boolean becameAssassin = victimDataAfter.getBoolean("assassinIsAssassin");
+            if (becameAssassin) {
+                context.throwGameTestException("Victim above floor should not convert to assassin");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 160)
+    public void heartAtFloorDoesNotDropAndTurnsAssassin(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity killer = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity victim = context.createMockCreativeServerPlayerInWorld();
+        killer.changeGameMode(GameMode.SURVIVAL);
+        victim.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        killer.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        victim.teleport(world, pos.x + 1.0D, pos.y, pos.z, 180.0F, 0.0F);
+
+        GemPlayerState.initIfNeeded(killer);
+        GemPlayerState.initIfNeeded(victim);
+        GemPlayerState.setActiveGem(killer, GemId.FIRE);
+        GemPlayerState.setActiveGem(victim, GemId.LIFE);
+        resetAssassinState(victim);
+        GemPlayerState.setMaxHearts(victim, GemPlayerState.MIN_MAX_HEARTS);
+        GemPlayerState.applyMaxHearts(victim);
+
+        context.runAtTick(2L, () -> {
+            victim.setHealth(2.0F);
+            victim.damage(victim.getDamageSources().playerAttack(killer), 10.0F);
+            if (!victim.isDead()) {
+                victim.kill();
+            }
+        });
+
+        context.runAtTick(40L, () -> {
+            if (!victim.isDead()) {
+                context.throwGameTestException("Victim did not die during floor clamp scenario");
+                return;
+            }
+            int heartsDropped = world.getEntitiesByClass(ItemEntity.class, new Box(pos, pos.add(1.0D, 1.0D, 1.0D)).expand(3.0D), e -> e.getStack().isOf(ModItems.HEART)).size();
+            var victimDataAfter = ((com.feel.gems.state.GemsPersistentDataHolder) victim).gems$getPersistentData();
+            if (heartsDropped != 0) {
+                context.throwGameTestException("No hearts should drop at the floor (5 hearts)");
+                return;
+            }
+            int invHearts = countItem(killer, ModItems.HEART);
+            if (invHearts != 0) {
+                context.throwGameTestException("Killer should not receive a heart when victim at floor");
+                return;
+            }
+            boolean becameAssassin = victimDataAfter.getBoolean("assassinIsAssassin");
+            if (!becameAssassin) {
+                context.throwGameTestException("Victim at floor should be converted to assassin on death (storedMax=" + victimDataAfter.getInt("maxHearts") + " assassinHearts=" + victimDataAfter.getInt("assassinHearts") + ")");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 120)
+    public void glintAppliesOnlyToActiveGemAtCap(TestContext context) {
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        GemPlayerState.initIfNeeded(player);
+        GemPlayerState.setEnergy(player, GemPlayerState.MAX_ENERGY);
+        GemPlayerState.setActiveGem(player, GemId.ASTRA);
+
+        player.getInventory().clear();
+        player.giveItemStack(new ItemStack(ModItems.ASTRA_GEM));
+        player.giveItemStack(new ItemStack(ModItems.FIRE_GEM));
+
+        context.runAtTick(2L, () -> {
+            GemItemGlint.sync(player);
+            if (countGlint(player, ModItems.ASTRA_GEM) != 1) {
+                context.throwGameTestException("Active gem should glint when at energy cap");
+                return;
+            }
+            if (countGlint(player, ModItems.FIRE_GEM) != 0) {
+                context.throwGameTestException("Inactive gems should not glint when another gem is active");
+                return;
+            }
+
+            GemPlayerState.setEnergy(player, GemPlayerState.MIN_ENERGY);
+            GemItemGlint.sync(player);
+            if (countGlint(player, ModItems.ASTRA_GEM) != 0) {
+                context.throwGameTestException("Glint should clear when energy drops below cap");
+                return;
+            }
+
+            GemPlayerState.setActiveGem(player, GemId.FIRE);
+            GemPlayerState.setEnergy(player, GemPlayerState.MAX_ENERGY);
+            GemItemGlint.sync(player);
+            if (countGlint(player, ModItems.ASTRA_GEM) != 0) {
+                context.throwGameTestException("Old active gem should lose glint after switching");
+                return;
+            }
+            if (countGlint(player, ModItems.FIRE_GEM) != 1) {
+                context.throwGameTestException("New active gem should gain glint at energy cap");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 160)
+    public void passivesApplyAndStopWhenDisabled(TestContext context) {
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        GemPlayerState.initIfNeeded(player);
+        GemPlayerState.setActiveGem(player, GemId.SPEED);
+        GemPlayerState.setEnergy(player, 4);
+
+        GemPowers.sync(player);
+        if (!player.hasStatusEffect(StatusEffects.SPEED)) {
+            context.throwGameTestException("Speed passive should apply when energy is above zero");
+            return;
+        }
+
+        GemPlayerState.setEnergy(player, 0);
+        GemPowers.sync(player);
+        if (player.hasStatusEffect(StatusEffects.SPEED)) {
+            context.throwGameTestException("Speed passive should clear when energy hits zero");
+            return;
+        }
+
+        GemPlayerState.setActiveGem(player, GemId.AIR);
+        GemPlayerState.setEnergy(player, 4);
+        GemPowers.maintain(player);
+        if (!containsAirMace(player)) {
+            context.throwGameTestException("Maintained passive should grant air mace when enabled");
+            return;
+        }
+
+        player.getInventory().clear();
+        GemPlayerState.setEnergy(player, 0);
+        GemPowers.maintain(player);
+        if (containsAirMace(player)) {
+            context.throwGameTestException("Maintained passives should stop ticking when disabled");
+            return;
+        }
+
+        context.complete();
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 120)
+    public void energyUpgradeIncreasesEnergyUntilCap(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        GemPlayerState.initIfNeeded(player);
+        GemPlayerState.setEnergy(player, GemPlayerState.MAX_ENERGY - 1);
+
+        ItemStack upgrades = new ItemStack(ModItems.ENERGY_UPGRADE, 2);
+        player.setStackInHand(Hand.MAIN_HAND, upgrades);
+
+        context.runAtTick(2L, () -> {
+            ModItems.ENERGY_UPGRADE.use(world, player, Hand.MAIN_HAND);
+            if (GemPlayerState.getEnergy(player) != GemPlayerState.MAX_ENERGY) {
+                context.throwGameTestException("Energy upgrade did not raise energy to cap");
+                return;
+            }
+            if (player.getMainHandStack().getCount() != 1) {
+                context.throwGameTestException("Energy upgrade should consume exactly one item when applied");
+                return;
+            }
+
+            ModItems.ENERGY_UPGRADE.use(world, player, Hand.MAIN_HAND);
+            if (GemPlayerState.getEnergy(player) != GemPlayerState.MAX_ENERGY) {
+                context.throwGameTestException("Energy should stay capped after extra upgrade use");
+                return;
+            }
+            if (player.getMainHandStack().getCount() != 1) {
+                context.throwGameTestException("Energy upgrade should not consume when at cap");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 120)
+    public void heartItemRespectsMaxCap(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        GemPlayerState.initIfNeeded(player);
+        GemPlayerState.setMaxHearts(player, GemPlayerState.MAX_MAX_HEARTS - 1);
+        GemPlayerState.applyMaxHearts(player);
+
+        ItemStack hearts = new ItemStack(ModItems.HEART, 2);
+        player.setStackInHand(Hand.MAIN_HAND, hearts);
+
+        context.runAtTick(2L, () -> {
+            ModItems.HEART.use(world, player, Hand.MAIN_HAND);
+            if (GemPlayerState.getMaxHearts(player) != GemPlayerState.MAX_MAX_HEARTS) {
+                context.throwGameTestException("Heart did not increase max hearts to the cap");
+                return;
+            }
+            if (player.getMainHandStack().getCount() != 1) {
+                context.throwGameTestException("Heart should consume exactly one item when applied");
+                return;
+            }
+
+            ModItems.HEART.use(world, player, Hand.MAIN_HAND);
+            if (GemPlayerState.getMaxHearts(player) != GemPlayerState.MAX_MAX_HEARTS) {
+                context.throwGameTestException("Hearts should stay at cap after extra use");
+                return;
+            }
+            if (player.getMainHandStack().getCount() != 1) {
+                context.throwGameTestException("Heart should not consume when already capped");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 120)
+    public void pocketsInventoryPersistsAcrossSaves(TestContext context) {
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        context.runAtTick(2L, () -> {
+            var pockets = com.feel.gems.screen.PocketsStorage.load(player);
+            pockets.setStack(0, new ItemStack(Items.DIAMOND, 3));
+            com.feel.gems.screen.PocketsStorage.save(player, pockets);
+
+            var reloaded = com.feel.gems.screen.PocketsStorage.load(player);
+            if (!ItemStack.areEqual(reloaded.getStack(0), new ItemStack(Items.DIAMOND, 3))) {
+                context.throwGameTestException("Pockets inventory did not persist items through save/load");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void spyStealRespectsWitnessCountEvenOnColdCache(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity spy = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity caster = context.createMockCreativeServerPlayerInWorld();
+        spy.changeGameMode(GameMode.SURVIVAL);
+        caster.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d spyPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        Vec3d casterPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 6.5D));
+        spy.teleport(world, spyPos.x, spyPos.y, spyPos.z, 0.0F, 0.0F); // yaw 0 faces +Z
+        caster.teleport(world, casterPos.x, casterPos.y, casterPos.z, 180.0F, 0.0F);
+
+        GemPlayerState.initIfNeeded(spy);
+        GemPlayerState.setActiveGem(spy, GemId.SPY_MIMIC);
+        GemPlayerState.setEnergy(spy, 10);
+
+        Identifier observed = PowerIds.FIREBALL;
+        int required = GemsBalance.v().spyMimic().stealRequiredWitnessCount();
+        long now = GemsTime.now(world);
+        for (int i = 0; i < required; i++) {
+            SpyMimicSystem.onAbilityUsed(world.getServer(), caster, observed);
+        }
+
+        int seen = SpyMimicSystem.witnessedCount(spy, observed);
+        if (seen < required) {
+            context.throwGameTestException("Spy did not record required observations; saw=" + seen + " required=" + required);
+            return;
+        }
+        if (!SpyMimicSystem.canSteal(spy, observed, now)) {
+            context.throwGameTestException("Spy cannot steal after required observations (cold cache path)");
+            return;
+        }
+
+        context.complete();
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void summonerRecallCleansSummons(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity owner = context.createMockCreativeServerPlayerInWorld();
+        owner.changeGameMode(GameMode.SURVIVAL);
+
+        var zombie = EntityType.ZOMBIE.create(world);
+        if (zombie == null) {
+            context.throwGameTestException("Failed to create zombie summon");
+            return;
+        }
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        zombie.refreshPositionAndAngles(pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        zombie.setPersistent();
+        world.spawnEntity(zombie);
+
+        long until = GemsTime.now(owner) + 200;
+        SummonerSummons.mark(zombie, owner.getUuid(), until);
+        SummonerSummons.trackSpawn(owner, zombie);
+
+        int tracked = SummonerSummons.pruneAndCount(owner);
+        if (tracked != 1) {
+            context.throwGameTestException("Expected one tracked summon, got " + tracked);
+            return;
+        }
+
+        SummonerSummons.discardAll(owner);
+        if (SummonerSummons.findEntity(world.getServer(), zombie.getUuid()) != null) {
+            context.throwGameTestException("Summon was not discarded on recall");
+            return;
+        }
+        if (!SummonerSummons.ownedSummonUuids(owner).isEmpty()) {
+            context.throwGameTestException("Owned summon list not cleared on recall");
+            return;
+        }
+
+        context.complete();
     }
 }

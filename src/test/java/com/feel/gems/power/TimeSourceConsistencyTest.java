@@ -1,5 +1,10 @@
 package com.feel.gems.power;
 
+import com.feel.gems.net.ServerAbilityNetworking;
+import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.trade.GemTrading;
+import com.feel.gems.trust.GemTrust;
+
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -12,11 +17,19 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TimeSourceConsistencyTest {
+
+    private static Path packageRoot(Class<?> anchor) {
+        return Path.of("src", "main", "java").resolve(anchor.getPackageName().replace('.', '/'));
+    }
+
     @Test
     void powerAndNetCodeDoesNotUsePerWorldTime() throws IOException {
         List<Path> roots = List.of(
-                Path.of("src/main/java/com/feel/gems/power"),
-                Path.of("src/main/java/com/feel/gems/net")
+                packageRoot(SpyMimicSystem.class),
+            packageRoot(ServerAbilityNetworking.class),
+            packageRoot(GemPlayerState.class),
+            packageRoot(GemTrading.class),
+            packageRoot(GemTrust.class)
         );
 
         List<String> offenders = new ArrayList<>();

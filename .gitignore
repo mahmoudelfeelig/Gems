@@ -36,3 +36,8 @@ replay_pid*
 *.iml
 *.ipr
 *.iws
+
+
+# Virtual environments
+.env/
+.venv/

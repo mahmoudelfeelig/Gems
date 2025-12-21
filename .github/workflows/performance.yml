@@ -288,14 +288,16 @@ jobs:
           # Print spark viewer link if present in the logs.
           SPARK_LINK=""
           # Prefer the command response (most reliable), then fall back to log files.
-          SPARK_LINK="$(printf '%s\n' "${SPARK_STOP_OUT:-}" | grep -Eo 'https?://spark\.lucko\.me/[^[:space:]]+' | tail -n1 || true)"
+          # Only accept real viewer links (host + single ID segment), ignore agent warnings like /docs/misc/Java-agent-warning.
+          VIEWER_RE='https?://spark\.lucko\.me/[A-Za-z0-9]+'          
+          SPARK_LINK="$(printf '%s\n' "${SPARK_STOP_OUT:-}" | grep -Eo "$VIEWER_RE" | tail -n1 || true)"
           if [[ -z "$SPARK_LINK" ]]; then
-            SPARK_LINK="$(printf '%s\n' "${SPARK_START_OUT:-}" | grep -Eo 'https?://spark\.lucko\.me/[^[:space:]]+' | tail -n1 || true)"
+            SPARK_LINK="$(printf '%s\n' "${SPARK_START_OUT:-}" | grep -Eo "$VIEWER_RE" | tail -n1 || true)"
           fi
           if [[ -z "$SPARK_LINK" ]]; then
             # Wait briefly for spark to finish uploading and printing the link.
             for _ in $(seq 1 30); do
-              SPARK_LINK="$(grep -Eo 'https?://spark\.lucko\.me/[^[:space:]]+' server.log run/logs/latest.log 2>/dev/null | tail -n1 || true)"
+              SPARK_LINK="$(grep -Eo "$VIEWER_RE" server.log run/logs/latest.log 2>/dev/null | tail -n1 || true)"
               if [[ -n "$SPARK_LINK" ]]; then
                 break
               fi

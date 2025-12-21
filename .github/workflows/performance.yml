@@ -25,6 +25,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            .gradle/loom-cache
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -236,9 +247,36 @@ jobs:
           rcon "gems admin perf reset"
 
           echo "Spawning Carpet bots..."
-          for i in $(seq 1 20); do
-            rcon "player bot$i spawn"
+          # 20 in overworld (origin area), 10 in Nether, 10 in End, 10 far overworld.
+          BOTS=( $(seq -f "bot%g" 1 20) $(seq -f "nether%g" 1 10) $(seq -f "end%g" 1 10) $(seq -f "far%g" 1 10) )
+
+          for b in "${BOTS[@]}"; do
+            rcon "player $b spawn"
           done
+
+          # Spread bots across dimensions so stress is multidimensional.
+          for b in $(seq 1 10); do
+            rcon "execute in minecraft:the_nether run tp nether$b 50 90 50"
+          done
+          for b in $(seq 1 10); do
+            rcon "execute in minecraft:the_end run tp end$b 0 80 100"
+          done
+          for b in $(seq 1 10); do
+            rcon "tp far$b 2000 80 $((100 * b))"
+          done
+
+          # Keep bots alive and auto-respawn if they die/disconnect.
+          rcon "gamerule doImmediateRespawn true" || true
+          keep_bots() {
+            while true; do
+              for b in "${BOTS[@]}"; do
+                rcon "player $b spawn" >/dev/null 2>&1 || true
+              done
+              sleep 5
+            done
+          }
+          keep_bots &
+          KEEP_BOTS_PID=$!
 
           rcon "gems admin setEnergy @a 10"
           rcon "gems admin resync @a"
@@ -288,8 +326,8 @@ jobs:
           # Print spark viewer link if present in the logs.
           SPARK_LINK=""
           # Prefer the command response (most reliable), then fall back to log files.
-          # Only accept real viewer links (host + single ID segment), ignore agent warnings like /docs/misc/Java-agent-warning.
-          VIEWER_RE='https?://spark\.lucko\.me/[A-Za-z0-9]+'          
+          # Only accept real viewer links (host + single ID segment, 6+ chars), ignore docs/warnings.
+          VIEWER_RE='https?://spark\.lucko\.me/[A-Za-z0-9]{6,}'
           SPARK_LINK="$(printf '%s\n' "${SPARK_STOP_OUT:-}" | grep -Eo "$VIEWER_RE" | tail -n1 || true)"
           if [[ -z "$SPARK_LINK" ]]; then
             SPARK_LINK="$(printf '%s\n' "${SPARK_START_OUT:-}" | grep -Eo "$VIEWER_RE" | tail -n1 || true)"
@@ -304,6 +342,9 @@ jobs:
               sleep 1
             done
           fi
+          if [[ "$SPARK_LINK" == *"/docs"* ]]; then
+            SPARK_LINK=""
+          fi
           SPARK_LINK="$(printf '%s' "$SPARK_LINK" | tr -d '\r')"
           if [[ -n "$SPARK_LINK" ]]; then
             echo "spark: $SPARK_LINK"
@@ -317,7 +358,10 @@ jobs:
             echo "spark: ${SPARK_LINK}" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-          # Stop server so logs are flushed before uploading artifacts.
+          # Stop keepalive loop and server so logs are flushed before uploading artifacts.
+          if [[ -n "${KEEP_BOTS_PID:-}" ]]; then
+            kill "$KEEP_BOTS_PID" >/dev/null 2>&1 || true
+          fi
           cleanup
           trap - EXIT
 

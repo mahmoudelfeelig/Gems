@@ -1,0 +1,222 @@
+package com.feel.gems.power;
+
+import com.feel.gems.config.GemsBalance;
+import com.feel.gems.config.GemsBalanceConfig;
+import com.feel.gems.state.GemsPersistentDataHolder;
+import net.minecraft.entity.EntityType;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * Per-player Summoner loadouts. Server-authoritative, persisted in the player’s
+ * Gems persistent NBT and sanitized against the current balance config.
+ */
+public final class SummonerLoadouts {
+    public static final int SLOT_COUNT = 5;
+    private static final String KEY_LOADOUT = "summonerLoadout";
+
+    private SummonerLoadouts() {
+    }
+
+    public record Entry(String entityId, int count) {
+    }
+
+    public record Loadout(
+            List<Entry> slot1,
+            List<Entry> slot2,
+            List<Entry> slot3,
+            List<Entry> slot4,
+            List<Entry> slot5
+    ) {
+        public List<Entry> slot(int index) {
+            return switch (index) {
+                case 1 -> slot1;
+                case 2 -> slot2;
+                case 3 -> slot3;
+                case 4 -> slot4;
+                case 5 -> slot5;
+                default -> Collections.emptyList();
+            };
+        }
+    }
+
+    public static Loadout resolve(ServerPlayerEntity player, GemsBalance.Summoner cfg) {
+        Loadout stored = load(player);
+        if (stored == null) {
+            return fromConfig(cfg);
+        }
+        return sanitize(stored, cfg);
+    }
+
+    public static Loadout sanitize(Loadout loadout, GemsBalance.Summoner cfg) {
+        Objects.requireNonNull(loadout, "loadout");
+        return new Loadout(
+                sanitizeSlot(loadout.slot1(), cfg),
+                sanitizeSlot(loadout.slot2(), cfg),
+                sanitizeSlot(loadout.slot3(), cfg),
+                sanitizeSlot(loadout.slot4(), cfg),
+                sanitizeSlot(loadout.slot5(), cfg)
+        );
+    }
+
+    public static Loadout fromConfig(GemsBalance.Summoner cfg) {
+        return new Loadout(
+                copy(cfg.slot1()),
+                copy(cfg.slot2()),
+                copy(cfg.slot3()),
+                copy(cfg.slot4()),
+                copy(cfg.slot5())
+        );
+    }
+
+    public static Loadout fromEntries(
+            List<Entry> slot1,
+            List<Entry> slot2,
+            List<Entry> slot3,
+            List<Entry> slot4,
+            List<Entry> slot5
+    ) {
+        return new Loadout(
+                normalize(slot1),
+                normalize(slot2),
+                normalize(slot3),
+                normalize(slot4),
+                normalize(slot5)
+        );
+    }
+
+    public static void save(ServerPlayerEntity player, Loadout loadout) {
+        NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        NbtCompound out = new NbtCompound();
+        out.put("slot1", toNbtList(loadout.slot1()));
+        out.put("slot2", toNbtList(loadout.slot2()));
+        out.put("slot3", toNbtList(loadout.slot3()));
+        out.put("slot4", toNbtList(loadout.slot4()));
+        out.put("slot5", toNbtList(loadout.slot5()));
+        root.put(KEY_LOADOUT, out);
+    }
+
+    public static Loadout load(ServerPlayerEntity player) {
+        NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        if (!root.contains(KEY_LOADOUT, NbtElement.COMPOUND_TYPE)) {
+            return null;
+        }
+        NbtCompound in = root.getCompound(KEY_LOADOUT);
+        return new Loadout(
+                fromNbtList(in.getList("slot1", NbtElement.COMPOUND_TYPE)),
+                fromNbtList(in.getList("slot2", NbtElement.COMPOUND_TYPE)),
+                fromNbtList(in.getList("slot3", NbtElement.COMPOUND_TYPE)),
+                fromNbtList(in.getList("slot4", NbtElement.COMPOUND_TYPE)),
+                fromNbtList(in.getList("slot5", NbtElement.COMPOUND_TYPE))
+        );
+    }
+
+    private static List<Entry> sanitizeSlot(List<Entry> raw, GemsBalance.Summoner cfg) {
+        if (raw == null || raw.isEmpty()) {
+            return List.of();
+        }
+        List<Entry> out = new ArrayList<>();
+        for (Entry entry : raw) {
+            if (entry == null || entry.entityId == null || entry.entityId.isBlank()) {
+                continue;
+            }
+            Identifier id = Identifier.tryParse(entry.entityId);
+            if (id == null) {
+                continue;
+            }
+            EntityType<?> type = Registries.ENTITY_TYPE.get(id);
+            if (type == EntityType.WITHER || type == EntityType.ENDER_DRAGON) {
+                continue;
+            }
+            int count = clamp(entry.count, 0, cfg.maxActiveSummons());
+            if (count <= 0) {
+                continue;
+            }
+            out.add(new Entry(id.toString(), count));
+        }
+        return Collections.unmodifiableList(out);
+    }
+
+    private static List<Entry> normalize(List<Entry> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return List.of();
+        }
+        List<Entry> out = new ArrayList<>(entries.size());
+        for (Entry e : entries) {
+            if (e != null) {
+                out.add(new Entry(e.entityId, e.count));
+            }
+        }
+        return Collections.unmodifiableList(out);
+    }
+
+    private static List<Entry> copy(List<GemsBalanceConfig.Summoner.SummonSpec> specs) {
+        if (specs == null || specs.isEmpty()) {
+            return List.of();
+        }
+        List<Entry> out = new ArrayList<>(specs.size());
+        for (GemsBalanceConfig.Summoner.SummonSpec spec : specs) {
+            if (spec == null || spec.entityId == null) {
+                continue;
+            }
+            out.add(new Entry(spec.entityId, spec.count));
+        }
+        return Collections.unmodifiableList(out);
+    }
+
+    private static NbtList toNbtList(List<Entry> entries) {
+        NbtList list = new NbtList();
+        if (entries == null) {
+            return list;
+        }
+        for (Entry entry : entries) {
+            if (entry == null || entry.entityId == null || entry.entityId.isBlank() || entry.count <= 0) {
+                continue;
+            }
+            NbtCompound tag = new NbtCompound();
+            tag.putString("id", entry.entityId);
+            tag.putInt("count", entry.count);
+            list.add(tag);
+        }
+        return list;
+    }
+
+    private static List<Entry> fromNbtList(NbtList list) {
+        if (list == null || list.isEmpty()) {
+            return List.of();
+        }
+        List<Entry> out = new ArrayList<>(list.size());
+        for (int i = 0; i < list.size(); i++) {
+            NbtElement element = list.get(i);
+            if (!(element instanceof NbtCompound tag)) {
+                continue;
+            }
+            String id = tag.getString("id");
+            int count = tag.getInt("count");
+            if (id == null || id.isBlank() || count <= 0) {
+                continue;
+            }
+            out.add(new Entry(id, count));
+        }
+        return Collections.unmodifiableList(out);
+    }
+
+    private static int clamp(int value, int min, int max) {
+        if (value < min) {
+            return min;
+        }
+        if (value > max) {
+            return max;
+        }
+        return value;
+    }
+}

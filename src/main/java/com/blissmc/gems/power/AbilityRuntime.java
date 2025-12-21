@@ -122,8 +122,13 @@ public final class AbilityRuntime {
     }
 
     public static void startSpeedStorm(ServerPlayerEntity player, int durationTicks, float scale) {
+        long now = GemsTime.now(player);
+        if ((now % 3) != 0) {
+            return; // cut box scan frequency
+        }
+
         NbtCompound nbt = persistent(player);
-        nbt.putLong(KEY_SPEED_STORM_UNTIL, GemsTime.now(player) + durationTicks);
+        nbt.putLong(KEY_SPEED_STORM_UNTIL, now + durationTicks);
         nbt.putFloat(KEY_SPEED_STORM_SCALE, scale);
     }
 
@@ -169,7 +174,6 @@ public final class AbilityRuntime {
 
     private static boolean isSpeedAfterimageActive(ServerPlayerEntity player) {
         return persistent(player).getLong(KEY_SPEED_AFTERIMAGE_UNTIL) > GemsTime.now(player);
-    }
     }
 
     public static void startSpaceGravityField(ServerPlayerEntity player, int durationTicks) {
@@ -553,9 +557,17 @@ public final class AbilityRuntime {
         int radius = GemsBalance.v().space().gravityFieldRadiusBlocks();
         float allyMult = GemsBalance.v().space().gravityFieldAllyGravityMultiplier();
         float enemyMult = GemsBalance.v().space().gravityFieldEnemyGravityMultiplier();
+        double radiusSq = radius * (double) radius;
         AbilityFeedback.ring(world, caster.getPos().add(0.0D, 0.25D, 0.0D), Math.min(7.0D, radius), net.minecraft.particle.ParticleTypes.END_ROD, 18);
 
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(caster) <= radius * (double) radius)) {
+        // Update all players once per second: apply inside radius, remove if they left.
+        for (ServerPlayerEntity other : world.getPlayers()) {
+            double distSq = other.squaredDistanceTo(caster);
+            if (distSq > radiusSq) {
+                applyGravityMultiplier(other, modifierId, 1.0F);
+                continue;
+            }
+
             float mult = GemTrust.isTrusted(caster, other) ? allyMult : enemyMult;
             applyGravityMultiplier(other, modifierId, mult);
         }

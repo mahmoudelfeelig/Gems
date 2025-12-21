@@ -26,10 +26,6 @@ public abstract class PlayerEntityChadStrengthMixin {
         if (!(target instanceof LivingEntity living) || !living.isAlive()) {
             return;
         }
-        if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(attacker, other)) {
-            return;
-        }
-
         int hit = AbilityRuntime.incrementChadHit(attacker);
         int every = Math.max(1, GemsBalance.v().strength().chadEveryHits());
         if (hit % every != 0) {

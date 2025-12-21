@@ -2,6 +2,17 @@
 
 This doc is player-facing and lists what each gem does, plus the default balancing values from `config/gems/balance.json`.
 
+## Trust & ownership
+
+- Trust is one-way: being on another player’s trust list does not imply they are on yours. Trusted players can still damage or debuff you (PVP always allowed); trust only controls ally-targeted effects.
+
+## Gem ownership
+
+- Each gem item is tagged to its owner. If that owner dies, all of their gem items (even if dropped or stashed) are reclaimed and the owner respawns with the same gem at **-1 energy** (min 0).
+- If someone else activates your gem item, you die, lose 2 max hearts (no heart item drops), and your gem resets to level 1 (or stays at 0/1); the activator keeps the gem but gains no hearts or energy.
+- You can hold multiple gem items (even ones owned by others) but can only activate one gem at a time.
+- Gem trading items only trade your currently active gem; other held gems stay untouched.
+
 ## Keybinds (default)
 
 - **Ability cast**: hold `Gems Modifier` (default: Left Alt) + press a hotbar number key (`1..9`).
@@ -221,6 +232,7 @@ With Carpet installed, you can also spawn 20 fake players and run the same tests
 - Soulbound Minions: summons despawn when you die or log out.
 - Familiar’s Blessing: summons spawn with bonus max health.
   - Defaults: `summonBonusHealth=4.0`
+- Loadout UI: press your Gems modifier + the next hotbar key after the last loadout slot (default: Left Alt + hotbar 6) while using the Summoner gem to open the loadout editor. Each slot can hold multiple rows of mobs, and edits are validated against the point budget.
 
 **Abilities**
 - Summon 1–5: spawns the configured minions for that slot.
@@ -230,6 +242,7 @@ With Carpet installed, you can also spawn 20 fake players and run the same tests
     - Slot 1: 2× zombie
     - Slot 2: 2× skeleton
     - Slot 3: 1× creeper
+  - Default point costs (extendable via config/UI): zombie 5, skeleton 5, stray 6, husk 6, spider 6, cave spider 8, drowned 8, wolf 8, piglin 8, slime 8, magma cube 10, creeper 10, witch 14, blaze 14, pillager 12, vindicator 18, wither skeleton 18, guardian 18, enderman 20, hoglin 16, zoglin 22, piglin brute 25, iron golem 40, ravager 45.
 - Recall: despawns all of your active summons.
   - Defaults: `recallCooldownSeconds=20`
 
@@ -321,11 +334,11 @@ With Carpet installed, you can also spawn 20 fake players and run the same tests
 ## Beacon Gem
 
 **Passives**
-- Beacon Core: trusted allies near you receive periodic Regeneration pulses.
+- Beacon Core: trusted allies near you receive periodic Regeneration pulses; nearby untrusted players are slowed.
   - Defaults: `coreRadiusBlocks=8`, `corePulsePeriodSeconds=2`, `coreRegenDurationSeconds=3`, `coreRegenAmplifier=0`
-- Stabilize: reduces harmful effect durations on trusted allies nearby.
+- Stabilize: reduces harmful effect durations on trusted allies nearby and hinders untrusted players with brief fatigue.
   - Defaults: `stabilizeRadiusBlocks=8`, `stabilizeReduceTicksPerSecond=20`
-- Rally: casting a beacon aura grants allies brief Absorption.
+- Rally: casting a beacon aura grants trusted allies brief Absorption and weakens untrusted players.
   - Defaults: `rallyRadiusBlocks=10`, `rallyAbsorptionHearts=4`, `rallyDurationSeconds=8`
 
 **Abilities (moving beacon auras)**
@@ -335,6 +348,7 @@ With Carpet installed, you can also spawn 20 fake players and run the same tests
 - Aura: Jump Boost
 - Aura: Strength
 - Aura: Regeneration
+- Each pulse: buffs trusted players with the chosen aura and applies Slowness/Weakness to untrusted players in range.
 - Defaults: `auraCooldownSeconds=30`, `auraDurationSeconds=12`, `auraRadiusBlocks=10`, `auraRefreshSeconds=2`
 - Aura amplifiers: `auraSpeedAmplifier=1`, `auraHasteAmplifier=1`, `auraResistanceAmplifier=0`, `auraJumpAmplifier=1`, `auraStrengthAmplifier=0`, `auraRegenAmplifier=0`
 

@@ -10,27 +10,31 @@ public final class SummonerBudget {
     }
 
     public static int totalLoadoutCost(GemsBalance.Summoner cfg) {
-        return slotCost(cfg.costs(), cfg.slot1())
-                + slotCost(cfg.costs(), cfg.slot2())
-                + slotCost(cfg.costs(), cfg.slot3())
-                + slotCost(cfg.costs(), cfg.slot4())
-                + slotCost(cfg.costs(), cfg.slot5());
+        return totalLoadoutCost(cfg.costs(), SummonerLoadouts.fromConfig(cfg));
     }
 
-    public static int slotCost(Map<String, Integer> costs, List<com.feel.gems.config.GemsBalanceConfig.Summoner.SummonSpec> specs) {
+    public static int totalLoadoutCost(Map<String, Integer> costs, SummonerLoadouts.Loadout loadout) {
+        return slotCost(costs, loadout.slot1())
+                + slotCost(costs, loadout.slot2())
+                + slotCost(costs, loadout.slot3())
+                + slotCost(costs, loadout.slot4())
+                + slotCost(costs, loadout.slot5());
+    }
+
+    public static int slotCost(Map<String, Integer> costs, List<SummonerLoadouts.Entry> specs) {
         if (costs == null || costs.isEmpty() || specs == null || specs.isEmpty()) {
             return 0;
         }
         int total = 0;
-        for (var spec : specs) {
-            if (spec == null || spec.entityId == null) {
+        for (SummonerLoadouts.Entry spec : specs) {
+            if (spec == null || spec.entityId() == null) {
                 continue;
             }
-            Integer cost = costs.get(spec.entityId);
+            Integer cost = costs.get(spec.entityId());
             if (cost == null || cost <= 0) {
                 continue;
             }
-            total += cost * Math.max(0, spec.count);
+            total += cost * Math.max(0, spec.count());
         }
         return total;
     }

@@ -9,6 +9,7 @@ import com.feel.gems.command.GemsCommands;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.GemsPayloads;
 import com.feel.gems.net.ServerAbilityNetworking;
+import com.feel.gems.net.ServerSummonerNetworking;
 import com.feel.gems.screen.ModScreenHandlers;
 
 public final class GemsMod implements ModInitializer {
@@ -23,6 +24,7 @@ public final class GemsMod implements ModInitializer {
         ModScreenHandlers.init();
         ModItems.init();
         ServerAbilityNetworking.register();
+        ServerSummonerNetworking.register();
         GemsModEvents.register();
         GemsCommands.register();
     }

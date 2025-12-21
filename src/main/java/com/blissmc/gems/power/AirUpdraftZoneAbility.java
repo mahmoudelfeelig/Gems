@@ -35,6 +35,7 @@ public final class AirUpdraftZoneAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
+        GemTrust.clearRuntimeCache(player.getUuid());
         int radius = GemsBalance.v().air().updraftZoneRadiusBlocks();
         double up = GemsBalance.v().air().updraftZoneUpVelocity();
         float damage = GemsBalance.v().air().updraftZoneEnemyDamage();
@@ -53,10 +54,17 @@ public final class AirUpdraftZoneAbility implements GemAbility {
                 continue;
             }
             LivingEntity living = (LivingEntity) entity;
+            // Ensure enemies don't keep any ally-only buff that might have been present.
+            living.removeStatusEffect(StatusEffects.SLOW_FALLING);
             living.addVelocity(0.0D, up, 0.0D);
             living.velocityModified = true;
             if (damage > 0.0F) {
-                living.damage(player.getDamageSources().playerAttack(player), damage);
+                float before = living.getHealth();
+                boolean applied = living.damage(world.getDamageSources().generic(), damage);
+                if (!applied && living.getHealth() >= before) {
+                    // Spawn invulnerability or PvP rules can block the damage; enforce a minimal health drop so the zone still punishes enemies.
+                    living.setHealth(Math.max(0.1F, before - damage));
+                }
             }
             if (kb > 0.0D) {
                 var away = living.getPos().subtract(player.getPos()).normalize();

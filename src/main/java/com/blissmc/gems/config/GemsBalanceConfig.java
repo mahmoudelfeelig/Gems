@@ -319,11 +319,26 @@ public final class GemsBalanceConfig {
             m.put("minecraft:creeper", 10);
             m.put("minecraft:spider", 6);
             m.put("minecraft:cave_spider", 8);
+            m.put("minecraft:husk", 6);
+            m.put("minecraft:drowned", 8);
+            m.put("minecraft:stray", 6);
             m.put("minecraft:piglin", 8);
             m.put("minecraft:piglin_brute", 25);
             m.put("minecraft:enderman", 20);
             m.put("minecraft:wolf", 8);
             m.put("minecraft:iron_golem", 40);
+            m.put("minecraft:vindicator", 18);
+            m.put("minecraft:pillager", 12);
+            m.put("minecraft:ravager", 45);
+            m.put("minecraft:witch", 14);
+            m.put("minecraft:blaze", 14);
+            m.put("minecraft:wither_skeleton", 18);
+            m.put("minecraft:guardian", 18);
+            m.put("minecraft:hoglin", 16);
+            m.put("minecraft:zoglin", 22);
+            m.put("minecraft:slime", 8);
+            m.put("minecraft:magma_cube", 10);
+            m.put("minecraft:snow_golem", 10);
             return m;
         }
     }
@@ -414,7 +429,7 @@ public final class GemsBalanceConfig {
         // Abilities
         public int fangsCooldownSeconds = 25;
         public int fangsRangeBlocks = 24;
-        public int fangsCount = 8;
+        public int fangsCount = 16;
         public float fangsSpacingBlocks = 1.25F;
         public int fangsWarmupStepTicks = 2;
 

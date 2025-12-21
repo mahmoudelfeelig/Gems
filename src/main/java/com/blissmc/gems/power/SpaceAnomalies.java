@@ -28,6 +28,7 @@ import java.util.UUID;
  */
 public final class SpaceAnomalies {
     private static final List<Anomaly> ACTIVE = new ArrayList<>();
+    private static final int HOLE_TICK_STRIDE = 3; // reduce per-tick physics work
 
     private SpaceAnomalies() {
     }
@@ -97,7 +98,10 @@ public final class SpaceAnomalies {
                 continue;
             }
 
-            tickHole(caster, world, a, now);
+            if (now >= a.nextPhysicsTick) {
+                tickHole(caster, world, a, now);
+                a.nextPhysicsTick = now + HOLE_TICK_STRIDE;
+            }
         }
     }
 
@@ -242,6 +246,7 @@ public final class SpaceAnomalies {
         final float strength;
         final float damagePerSecond;
         long nextDamageTick;
+        long nextPhysicsTick;
 
         final BlockPos laserTarget;
         final boolean miningMode;
@@ -259,6 +264,7 @@ public final class SpaceAnomalies {
             this.strength = strength;
             this.damagePerSecond = damagePerSecond;
             this.nextDamageTick = nextDamageTick;
+            this.nextPhysicsTick = nextDamageTick; // align first physics tick with first damage tick window
             this.laserTarget = laserTarget;
             this.miningMode = miningMode;
             this.strikeAtTick = strikeAtTick;

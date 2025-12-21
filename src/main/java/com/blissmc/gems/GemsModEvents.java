@@ -4,6 +4,7 @@ import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.GemKeepOnDeath;
+import com.feel.gems.item.GemOwnership;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.FluxCharge;
 import com.feel.gems.power.AbilityRuntime;
@@ -43,6 +44,7 @@ import net.minecraft.item.SwordItem;
 import net.minecraft.item.Items;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ActionResult;
 import com.feel.gems.core.GemId;
@@ -101,15 +103,12 @@ public final class GemsModEvents {
                 boolean breakBuff = PillagerVindicatorBreakAbility.isActive(sp, now);
                 boolean shieldbreaker = GemPowers.isPassiveActive(sp, PowerIds.PILLAGER_SHIELDBREAKER);
                 if (breakBuff || shieldbreaker) {
-                    // Prevent teammate griefing.
-                    if (!GemTrust.isTrusted(sp, victim)) {
-                        victim.disableShield();
-                        int cooldown = breakBuff
-                                ? GemsBalance.v().pillager().vindicatorBreakShieldDisableCooldownTicks()
-                                : GemsBalance.v().pillager().shieldbreakerDisableCooldownTicks();
-                        if (cooldown > 0) {
-                            victim.getItemCooldownManager().set(Items.SHIELD, cooldown);
-                        }
+                    victim.disableShield();
+                    int cooldown = breakBuff
+                            ? GemsBalance.v().pillager().vindicatorBreakShieldDisableCooldownTicks()
+                            : GemsBalance.v().pillager().shieldbreakerDisableCooldownTicks();
+                    if (cooldown > 0) {
+                        victim.getItemCooldownManager().set(Items.SHIELD, cooldown);
                     }
                 }
             }
@@ -121,6 +120,7 @@ public final class GemsModEvents {
             GemPlayerState.initIfNeeded(player);
             AssassinState.initIfNeeded(player);
             GemPlayerState.applyMaxHearts(player);
+            GemOwnership.consumeOfflinePenalty(player);
             GemKeepOnDeath.restore(player);
             ensureActiveGemItem(player);
             GemPowers.sync(player);
@@ -147,6 +147,11 @@ public final class GemsModEvents {
             GemPlayerState.copy(oldPlayer, newPlayer);
             GemPlayerState.initIfNeeded(newPlayer);
             AssassinState.initIfNeeded(newPlayer);
+            if (!alive) {
+                // Death: bump gem epoch to invalidate old gem items and purge owned stacks.
+                GemPlayerState.bumpGemEpoch(newPlayer);
+                purgeOwnedGems(newPlayer);
+            }
             GemPlayerState.applyMaxHearts(newPlayer);
             GemKeepOnDeath.restore(newPlayer);
             ensureActiveGemItem(newPlayer);
@@ -197,6 +202,7 @@ public final class GemsModEvents {
         ServerTickEvents.END_SERVER_TICK.register(PillagerVolleyRuntime::tick);
         ServerTickEvents.END_SERVER_TICK.register(SpeedFrictionlessSteps::tick);
         ServerTickEvents.END_SERVER_TICK.register(GemsStressTest::tick);
+        ServerTickEvents.END_SERVER_TICK.register(server -> com.feel.gems.item.GemOwnership.tickPurgeQueue(server));
         ServerTickEvents.END_SERVER_TICK.register(server -> GemsPerfMonitor.onTickEnd());
     }
 
@@ -205,7 +211,9 @@ public final class GemsModEvents {
         if (hasItem(player, gemItem)) {
             return;
         }
-        player.giveItemStack(new ItemStack(gemItem));
+        ItemStack stack = new ItemStack(gemItem);
+        com.feel.gems.item.GemOwnership.tagOwned(stack, player.getUuid(), GemPlayerState.getGemEpoch(player));
+        player.giveItemStack(stack);
     }
 
     private static boolean hasItem(ServerPlayerEntity player, Item item) {
@@ -225,6 +233,13 @@ public final class GemsModEvents {
             }
         }
         return false;
+    }
+
+    private static void purgeOwnedGems(ServerPlayerEntity player) {
+        if (player.getServer() == null) {
+            return;
+        }
+        com.feel.gems.item.GemOwnership.requestDeferredPurge(player.getServer(), player.getUuid());
     }
 
     private static void unlockStartingRecipes(net.minecraft.server.MinecraftServer server, ServerPlayerEntity player) {

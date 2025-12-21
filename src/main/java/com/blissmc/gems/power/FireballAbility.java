@@ -15,11 +15,13 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.util.Formatting;
 
 public final class FireballAbility implements GemAbility {
     private static final String KEY_CHARGE_START = "fireballChargeStart";
     private static final String KEY_LAST_FIRE = "fireballLastFire";
     private static final String KEY_LAST_SHOWN_CHARGE = "fireballLastShownCharge";
+    private static final int CHARGE_BAR_SEGMENTS = 20;
 
     @Override
     public Identifier id() {
@@ -57,7 +59,7 @@ public final class FireballAbility implements GemAbility {
             nbt.putInt(KEY_LAST_SHOWN_CHARGE, -1);
             AbilityFeedback.sound(player, SoundEvents.BLOCK_FIRE_AMBIENT, 0.7F, 1.2F);
             AbilityFeedback.burst(player, ParticleTypes.SMALL_FLAME, 10, 0.2D);
-            player.sendMessage(Text.literal("Fireball charge: 0%"), true);
+            player.sendMessage(chargeBarText(0), true);
             return true;
         }
 
@@ -68,7 +70,7 @@ public final class FireballAbility implements GemAbility {
         launch(player, charge);
         AbilityFeedback.burst(player, ParticleTypes.FLAME, 14, 0.25D);
         AbilityFeedback.burst(player, ParticleTypes.SMOKE, 10, 0.25D);
-        player.sendMessage(Text.literal("Fireball: " + charge + "%"), true);
+        player.sendMessage(Text.literal("Fireball launched!").formatted(Formatting.GOLD), true);
         return true;
     }
 
@@ -79,12 +81,36 @@ public final class FireballAbility implements GemAbility {
             return;
         }
         int charge = computeCharge(player.getServerWorld(), player, start, now);
+        int bucket = chargeBucket(charge);
         int last = nbt.contains(KEY_LAST_SHOWN_CHARGE, NbtElement.INT_TYPE) ? nbt.getInt(KEY_LAST_SHOWN_CHARGE) : -1;
-        if (charge == last) {
+        if (bucket == last) {
             return;
         }
-        nbt.putInt(KEY_LAST_SHOWN_CHARGE, charge);
-        player.sendMessage(Text.literal("Fireball charge: " + charge + "%"), true);
+        nbt.putInt(KEY_LAST_SHOWN_CHARGE, bucket);
+        player.sendMessage(chargeBarText(charge), true);
+    }
+
+    private static int chargeBucket(int chargePercent) {
+        int clamped = Math.max(0, Math.min(100, chargePercent));
+        return (clamped * CHARGE_BAR_SEGMENTS) / 100;
+    }
+
+    private static Text chargeBarText(int chargePercent) {
+        int filled = chargeBucket(chargePercent);
+        int empty = CHARGE_BAR_SEGMENTS - filled;
+
+        StringBuilder bar = new StringBuilder(CHARGE_BAR_SEGMENTS + 2);
+        bar.append('[');
+        for (int i = 0; i < filled; i++) {
+            bar.append('|');
+        }
+        for (int i = 0; i < empty; i++) {
+            bar.append('.');
+        }
+        bar.append(']');
+
+        return Text.literal("Fireball charge ").formatted(Formatting.GOLD)
+                .append(Text.literal(bar.toString()).formatted(Formatting.RED));
     }
 
     private static int computeCharge(ServerWorld world, ServerPlayerEntity player, long start, long now) {

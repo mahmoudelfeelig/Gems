@@ -6,9 +6,9 @@
     "NEN"
   ],
   "key": {
-    "N": "minecraft:netherite_scrap",
-    "D": "minecraft:diamond_block",
-    "E": "minecraft:emerald_block"
+    "N": { "item": "minecraft:netherite_scrap" },
+    "D": { "item": "minecraft:diamond_block" },
+    "E": { "item": "minecraft:emerald_block" }
   },
   "result": {
     "id": "gems:energy_upgrade",

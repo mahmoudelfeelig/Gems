@@ -1,6 +1,9 @@
 {
   "pack": {
-    "pack_format": 34,
-    "description": "Gems mod resources"
+    "pack_format": {
+      "resource": 34,
+      "data": 48
+    },
+    "description": "Gems mod resources + data"
   }
 }

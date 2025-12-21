@@ -101,11 +101,7 @@ public final class SpyMimicSystem {
         double rangeSq = range * (double) range;
         int window = GemsBalance.v().spyMimic().observeWindowTicks();
 
-        if (ACTIVE_SPIES.isEmpty()) {
-            seedActiveSpies(server);
-        }
-
-        // If the cache is still empty, fall back to scanning all players so first-time steals work immediately.
+        // If the cache is empty, do a full scan so cold starts still record observations.
         if (ACTIVE_SPIES.isEmpty()) {
             for (ServerPlayerEntity spy : server.getPlayerManager().getPlayerList()) {
                 if (spy == caster) {
@@ -118,7 +114,7 @@ public final class SpyMimicSystem {
             return;
         }
 
-        // Iterate only spies that are currently eligible; remove stale entries on the fly.
+        // Maintain the cache: prune stale entries, add newly eligible spies, and fallback to a full scan if everything expired.
         var iter = ACTIVE_SPIES.iterator();
         while (iter.hasNext()) {
             UUID uuid = iter.next();
@@ -129,6 +125,28 @@ public final class SpyMimicSystem {
             }
             if (!observeIfEligible(spy, caster, abilityId, now, rangeSq, window)) {
                 iter.remove();
+            }
+        }
+
+        // Add any newly eligible spies that weren't already in the cache.
+        for (ServerPlayerEntity spy : server.getPlayerManager().getPlayerList()) {
+            if (spy == caster || ACTIVE_SPIES.contains(spy.getUuid())) {
+                continue;
+            }
+            if (observeIfEligible(spy, caster, abilityId, now, rangeSq, window)) {
+                ACTIVE_SPIES.add(spy.getUuid());
+            }
+        }
+
+        // If pruning removed everyone, fall back to a full scan so steals still register immediately.
+        if (ACTIVE_SPIES.isEmpty()) {
+            for (ServerPlayerEntity spy : server.getPlayerManager().getPlayerList()) {
+                if (spy == caster) {
+                    continue;
+                }
+                if (observeIfEligible(spy, caster, abilityId, now, rangeSq, window)) {
+                    ACTIVE_SPIES.add(spy.getUuid());
+                }
             }
         }
     }

@@ -149,7 +149,7 @@ public final class GemsCommands {
                                                 .executes(ctx -> perfReset(ctx.getSource())))
                                         .then(CommandManager.literal("snapshot")
                                                 .executes(ctx -> perfSnapshot(ctx.getSource(), 1200))
-                                                .then(CommandManager.argument("windowTicks", IntegerArgumentType.integer(1, 2400))
+                                                .then(CommandManager.argument("windowTicks", IntegerArgumentType.integer(1, 72000))
                                                         .executes(ctx -> perfSnapshot(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "windowTicks"))))))
                                 .then(CommandManager.literal("stress")
                                         .then(CommandManager.literal("start")

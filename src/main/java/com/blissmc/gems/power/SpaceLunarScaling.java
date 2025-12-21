@@ -1,0 +1,27 @@
+package com.feel.gems.power;
+
+import com.feel.gems.config.GemsBalance;
+import net.minecraft.server.world.ServerWorld;
+
+public final class SpaceLunarScaling {
+    private SpaceLunarScaling() {
+    }
+
+    public static float multiplier(ServerWorld world) {
+        if (world == null) {
+            return 1.0F;
+        }
+        float min = GemsBalance.v().space().lunarMinMultiplier();
+        float max = GemsBalance.v().space().lunarMaxMultiplier();
+        if (max <= min) {
+            return min;
+        }
+
+        // Vanilla moon phases: 0 = full moon, 4 = new moon.
+        int phase = world.getMoonPhase();
+        int distToFull = Math.min(phase, 8 - phase); // 0..4
+        float fullFactor = 1.0F - (distToFull / 4.0F); // 1 at full, 0 at new
+
+        return min + fullFactor * (max - min);
+    }
+}

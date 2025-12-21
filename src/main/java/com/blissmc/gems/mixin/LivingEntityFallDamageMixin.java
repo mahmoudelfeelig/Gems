@@ -21,9 +21,9 @@ public abstract class LivingEntityFallDamageMixin {
         if (!(entity instanceof ServerPlayerEntity player)) {
             return;
         }
-        if (GemPowers.isPassiveActive(player, PowerIds.FALL_DAMAGE_IMMUNITY)) {
+        if (GemPowers.isPassiveActive(player, PowerIds.FALL_DAMAGE_IMMUNITY)
+                || GemPowers.isPassiveActive(player, PowerIds.SPACE_LOW_GRAVITY)) {
             cir.setReturnValue(false);
         }
     }
 }
-

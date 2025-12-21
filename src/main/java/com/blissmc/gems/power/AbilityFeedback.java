@@ -25,6 +25,10 @@ public final class AbilityFeedback {
         sound(player, sound.value(), volume, pitch);
     }
 
+    public static void sound(ServerPlayerEntity player, RegistryEntry<SoundEvent> sound, float volume, float pitch) {
+        sound(player, sound.value(), volume, pitch);
+    }
+
     public static void burst(ServerPlayerEntity player, ParticleEffect particle, int count, double spread) {
         burstAt(player.getServerWorld(), player.getPos().add(0.0D, 1.0D, 0.0D), particle, count, spread);
     }

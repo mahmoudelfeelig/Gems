@@ -58,6 +58,45 @@ public final class ModAbilities {
         register(new HotbarLockAbility());
         register(new AmplificationAbility());
         register(new RichRushAbility());
+
+        // Terror
+        register(new TerrorTradeAbility());
+        register(new PanicRingAbility());
+
+        // Summoner
+        register(new SummonSlotAbility(1));
+        register(new SummonSlotAbility(2));
+        register(new SummonSlotAbility(3));
+        register(new SummonSlotAbility(4));
+        register(new SummonSlotAbility(5));
+        register(new SummonRecallAbility());
+
+        // Space
+        register(new SpaceOrbitalLaserAbility());
+        register(new SpaceGravityFieldAbility());
+        register(new SpaceBlackHoleAbility());
+        register(new SpaceWhiteHoleAbility());
+
+        // Reaper
+        register(new ReaperGraveSteedAbility());
+        register(new ReaperWitheringStrikesAbility());
+        register(new ReaperDeathOathAbility());
+        register(new ReaperScytheSweepAbility());
+        register(new ReaperBloodChargeAbility());
+        register(new ReaperShadeCloneAbility());
+
+        // Pillager
+        register(new PillagerFangsAbility());
+        register(new PillagerRavageAbility());
+        register(new PillagerVindicatorBreakAbility());
+        register(new PillagerVolleyAbility());
+
+        // Spy/Mimic
+        register(new SpyMimicFormAbility());
+        register(new SpyEchoAbility());
+        register(new SpyStealAbility());
+        register(new SpySmokeBombAbility());
+        register(new SpyStolenCastAbility());
     }
 
     private ModAbilities() {

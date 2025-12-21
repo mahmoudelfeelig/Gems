@@ -1,6 +1,7 @@
 package com.feel.gems.item;
 
 import com.feel.gems.net.GemStateSync;
+import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.power.AbilityRuntime;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.trust.GemTrust;
@@ -27,6 +28,12 @@ public final class HeartItem extends Item {
         }
         if (!(user instanceof ServerPlayerEntity player)) {
             return TypedActionResult.pass(stack);
+        }
+
+        AssassinState.initIfNeeded(player);
+        if (AssassinState.isAssassin(player)) {
+            player.sendMessage(net.minecraft.text.Text.literal("Assassins can't consume hearts."), true);
+            return TypedActionResult.fail(stack);
         }
 
         UUID ownerUuid = AbilityRuntime.getOwner(stack);

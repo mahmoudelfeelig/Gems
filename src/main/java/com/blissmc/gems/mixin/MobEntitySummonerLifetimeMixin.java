@@ -1,0 +1,44 @@
+package com.feel.gems.mixin;
+
+import com.feel.gems.power.SummonerSummons;
+import com.feel.gems.util.GemsTime;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.UUID;
+
+@Mixin(MobEntity.class)
+public abstract class MobEntitySummonerLifetimeMixin {
+    @Inject(method = "tick", at = @At("HEAD"), require = 0)
+    private void gems$summonerDespawnIfExpiredOrOwnerOffline(CallbackInfo ci) {
+        MobEntity self = (MobEntity) (Object) this;
+        if (!(self.getWorld() instanceof ServerWorld world)) {
+            return;
+        }
+        if (!SummonerSummons.isSummon(self)) {
+            return;
+        }
+
+        UUID ownerUuid = SummonerSummons.ownerUuid(self);
+        if (ownerUuid == null) {
+            self.discard();
+            return;
+        }
+        ServerPlayerEntity owner = world.getServer().getPlayerManager().getPlayer(ownerUuid);
+        if (owner == null) {
+            self.discard();
+            return;
+        }
+
+        long until = SummonerSummons.untilTick(self);
+        if (until > 0 && GemsTime.now(world) >= until) {
+            self.discard();
+        }
+    }
+}
+

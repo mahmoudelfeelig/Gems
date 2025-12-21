@@ -17,6 +17,7 @@ import com.feel.gems.power.ModPassives;
 import com.feel.gems.power.GemAbilities;
 import com.feel.gems.power.SoulSystem;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.trade.GemTrading;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.debug.GemsStressTest;
@@ -173,10 +174,12 @@ public final class GemsCommands {
 
     private static int status(ServerCommandSource source, ServerPlayerEntity player) {
         GemPlayerState.initIfNeeded(player);
+        AssassinState.initIfNeeded(player);
 
         GemId active = GemPlayerState.getActiveGem(player);
         int energy = GemPlayerState.getEnergy(player);
         int hearts = GemPlayerState.getMaxHearts(player);
+        boolean assassin = AssassinState.isAssassin(player);
 
         GemDefinition def = GemRegistry.definition(active);
         GemEnergyState energyState = new GemEnergyState(energy);
@@ -187,11 +190,21 @@ public final class GemsCommands {
         source.sendFeedback(() -> Text.literal("Player: " + player.getName().getString()), false);
         source.sendFeedback(() -> Text.literal("Gem: " + active.name()), false);
         source.sendFeedback(() -> Text.literal("Energy: " + energyState.tier().name() + " (" + energy + "/10)"), false);
-        source.sendFeedback(() -> Text.literal("Max hearts: " + hearts + "/20"), false);
+        if (assassin) {
+            source.sendFeedback(() -> Text.literal("Assassin: YES (hearts=" + AssassinState.getAssassinHearts(player) + "/10, eliminated=" + AssassinState.isEliminated(player) + ")"), false);
+        } else {
+            source.sendFeedback(() -> Text.literal("Assassin: no"), false);
+        }
+        source.sendFeedback(() -> Text.literal("Max hearts: " + hearts + "/20 (base system)"), false);
         source.sendFeedback(() -> Text.literal("Passives: " + (passives.isEmpty() ? "-" : passives.stream().map(GemsCommands::passiveName).reduce((a, b) -> a + ", " + b).orElse("-"))), false);
         source.sendFeedback(() -> Text.literal("Abilities: " + (abilities.isEmpty() ? "-" : abilities.stream().map(GemsCommands::abilityName).reduce((a, b) -> a + ", " + b).orElse("-"))), false);
         source.sendFeedback(() -> Text.literal("Owned: " + GemPlayerState.getOwnedGems(player)), false);
         source.sendFeedback(() -> Text.literal("Trusted: " + GemTrust.getTrusted(player).size()), false);
+        source.sendFeedback(() -> Text.literal("Kills (total): normal=" + AssassinState.totalNormalKills(player) + " final=" + AssassinState.totalFinalKills(player) + " points=" + AssassinState.totalPoints(player)), false);
+        if (assassin) {
+            source.sendFeedback(() -> Text.literal("Kills (as assassin): normal=" + AssassinState.assassinNormalKills(player) + " final=" + AssassinState.assassinFinalKills(player) + " points=" + AssassinState.assassinPoints(player)), false);
+            source.sendFeedback(() -> Text.literal("Winner points (vs non-assassins): normal=" + AssassinState.assassinNormalKillsVsNonAssassins(player) + " final=" + AssassinState.assassinFinalKillsVsNonAssassins(player) + " points=" + AssassinState.assassinPointsVsNonAssassins(player)), false);
+        }
         if (active == GemId.FLUX) {
             source.sendFeedback(() -> Text.literal("Flux charge: " + FluxCharge.get(player) + "%"), false);
         }

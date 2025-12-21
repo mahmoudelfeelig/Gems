@@ -195,6 +195,140 @@ public final class GemsBalance {
         cfg.wealth.richRushCooldownSeconds = ticksToSeconds(v.wealth().richRushCooldownTicks());
         cfg.wealth.richRushDurationSeconds = ticksToSeconds(v.wealth().richRushDurationTicks());
 
+        cfg.terror.dreadAuraRadiusBlocks = v.terror().dreadAuraRadiusBlocks();
+        cfg.terror.dreadAuraAmplifier = v.terror().dreadAuraAmplifier();
+        cfg.terror.bloodPriceDurationSeconds = ticksToSeconds(v.terror().bloodPriceDurationTicks());
+        cfg.terror.bloodPriceStrengthAmplifier = v.terror().bloodPriceStrengthAmplifier();
+        cfg.terror.bloodPriceResistanceAmplifier = v.terror().bloodPriceResistanceAmplifier();
+        cfg.terror.terrorTradeCooldownSeconds = ticksToSeconds(v.terror().terrorTradeCooldownTicks());
+        cfg.terror.terrorTradeRangeBlocks = v.terror().terrorTradeRangeBlocks();
+        cfg.terror.terrorTradeMaxUses = v.terror().terrorTradeMaxUses();
+        cfg.terror.terrorTradeHeartsCost = v.terror().terrorTradeHeartsCost();
+        cfg.terror.terrorTradePermanentEnergyPenalty = v.terror().terrorTradePermanentEnergyPenalty();
+        cfg.terror.panicRingCooldownSeconds = ticksToSeconds(v.terror().panicRingCooldownTicks());
+        cfg.terror.panicRingTntCount = v.terror().panicRingTntCount();
+        cfg.terror.panicRingFuseTicks = v.terror().panicRingFuseTicks();
+        cfg.terror.panicRingRadiusBlocks = v.terror().panicRingRadiusBlocks();
+
+        cfg.summoner.maxPoints = v.summoner().maxPoints();
+        cfg.summoner.maxActiveSummons = v.summoner().maxActiveSummons();
+        cfg.summoner.summonLifetimeSeconds = ticksToSeconds(v.summoner().summonLifetimeTicks());
+        cfg.summoner.commandRangeBlocks = v.summoner().commandRangeBlocks();
+        cfg.summoner.summonSlotCooldownSeconds = ticksToSeconds(v.summoner().summonSlotCooldownTicks());
+        cfg.summoner.recallCooldownSeconds = ticksToSeconds(v.summoner().recallCooldownTicks());
+        cfg.summoner.commandersMarkDurationSeconds = ticksToSeconds(v.summoner().commandersMarkDurationTicks());
+        cfg.summoner.commandersMarkStrengthAmplifier = v.summoner().commandersMarkStrengthAmplifier();
+        cfg.summoner.summonBonusHealth = v.summoner().summonBonusHealth();
+        cfg.summoner.costs = v.summoner().costs();
+        cfg.summoner.slot1 = v.summoner().slot1();
+        cfg.summoner.slot2 = v.summoner().slot2();
+        cfg.summoner.slot3 = v.summoner().slot3();
+        cfg.summoner.slot4 = v.summoner().slot4();
+        cfg.summoner.slot5 = v.summoner().slot5();
+
+        cfg.space.lunarMinMultiplier = v.space().lunarMinMultiplier();
+        cfg.space.lunarMaxMultiplier = v.space().lunarMaxMultiplier();
+        cfg.space.starshieldProjectileDamageMultiplier = v.space().starshieldProjectileDamageMultiplier();
+        cfg.space.orbitalLaserCooldownSeconds = ticksToSeconds(v.space().orbitalLaserCooldownTicks());
+        cfg.space.orbitalLaserRangeBlocks = v.space().orbitalLaserRangeBlocks();
+        cfg.space.orbitalLaserDelaySeconds = ticksToSeconds(v.space().orbitalLaserDelayTicks());
+        cfg.space.orbitalLaserRadiusBlocks = v.space().orbitalLaserRadiusBlocks();
+        cfg.space.orbitalLaserDamage = v.space().orbitalLaserDamage();
+        cfg.space.orbitalLaserMiningRadiusBlocks = v.space().orbitalLaserMiningRadiusBlocks();
+        cfg.space.orbitalLaserMiningHardnessCap = v.space().orbitalLaserMiningHardnessCap();
+        cfg.space.orbitalLaserMiningMaxBlocks = v.space().orbitalLaserMiningMaxBlocks();
+        cfg.space.gravityFieldCooldownSeconds = ticksToSeconds(v.space().gravityFieldCooldownTicks());
+        cfg.space.gravityFieldDurationSeconds = ticksToSeconds(v.space().gravityFieldDurationTicks());
+        cfg.space.gravityFieldRadiusBlocks = v.space().gravityFieldRadiusBlocks();
+        cfg.space.gravityFieldAllyGravityMultiplier = v.space().gravityFieldAllyGravityMultiplier();
+        cfg.space.gravityFieldEnemyGravityMultiplier = v.space().gravityFieldEnemyGravityMultiplier();
+        cfg.space.blackHoleCooldownSeconds = ticksToSeconds(v.space().blackHoleCooldownTicks());
+        cfg.space.blackHoleDurationSeconds = ticksToSeconds(v.space().blackHoleDurationTicks());
+        cfg.space.blackHoleRadiusBlocks = v.space().blackHoleRadiusBlocks();
+        cfg.space.blackHolePullStrength = v.space().blackHolePullStrength();
+        cfg.space.blackHoleDamagePerSecond = v.space().blackHoleDamagePerSecond();
+        cfg.space.whiteHoleCooldownSeconds = ticksToSeconds(v.space().whiteHoleCooldownTicks());
+        cfg.space.whiteHoleDurationSeconds = ticksToSeconds(v.space().whiteHoleDurationTicks());
+        cfg.space.whiteHoleRadiusBlocks = v.space().whiteHoleRadiusBlocks();
+        cfg.space.whiteHolePushStrength = v.space().whiteHolePushStrength();
+        cfg.space.whiteHoleDamagePerSecond = v.space().whiteHoleDamagePerSecond();
+
+        cfg.reaper.undeadWardDamageMultiplier = v.reaper().undeadWardDamageMultiplier();
+        cfg.reaper.harvestRegenDurationSeconds = ticksToSeconds(v.reaper().harvestRegenDurationTicks());
+        cfg.reaper.harvestRegenAmplifier = v.reaper().harvestRegenAmplifier();
+        cfg.reaper.graveSteedCooldownSeconds = ticksToSeconds(v.reaper().graveSteedCooldownTicks());
+        cfg.reaper.graveSteedDurationSeconds = ticksToSeconds(v.reaper().graveSteedDurationTicks());
+        cfg.reaper.graveSteedDecayDamagePerSecond = v.reaper().graveSteedDecayDamagePerSecond();
+        cfg.reaper.witheringStrikesCooldownSeconds = ticksToSeconds(v.reaper().witheringStrikesCooldownTicks());
+        cfg.reaper.witheringStrikesDurationSeconds = ticksToSeconds(v.reaper().witheringStrikesDurationTicks());
+        cfg.reaper.witheringStrikesWitherDurationSeconds = ticksToSeconds(v.reaper().witheringStrikesWitherDurationTicks());
+        cfg.reaper.witheringStrikesWitherAmplifier = v.reaper().witheringStrikesWitherAmplifier();
+        cfg.reaper.deathOathCooldownSeconds = ticksToSeconds(v.reaper().deathOathCooldownTicks());
+        cfg.reaper.deathOathDurationSeconds = ticksToSeconds(v.reaper().deathOathDurationTicks());
+        cfg.reaper.deathOathRangeBlocks = v.reaper().deathOathRangeBlocks();
+        cfg.reaper.deathOathSelfDamagePerSecond = v.reaper().deathOathSelfDamagePerSecond();
+        cfg.reaper.scytheSweepCooldownSeconds = ticksToSeconds(v.reaper().scytheSweepCooldownTicks());
+        cfg.reaper.scytheSweepRangeBlocks = v.reaper().scytheSweepRangeBlocks();
+        cfg.reaper.scytheSweepArcDegrees = v.reaper().scytheSweepArcDegrees();
+        cfg.reaper.scytheSweepDamage = v.reaper().scytheSweepDamage();
+        cfg.reaper.scytheSweepKnockback = v.reaper().scytheSweepKnockback();
+        cfg.reaper.bloodChargeCooldownSeconds = ticksToSeconds(v.reaper().bloodChargeCooldownTicks());
+        cfg.reaper.bloodChargeMaxChargeSeconds = ticksToSeconds(v.reaper().bloodChargeMaxChargeTicks());
+        cfg.reaper.bloodChargeSelfDamagePerSecond = v.reaper().bloodChargeSelfDamagePerSecond();
+        cfg.reaper.bloodChargeMaxMultiplier = v.reaper().bloodChargeMaxMultiplier();
+        cfg.reaper.bloodChargeBuffDurationSeconds = ticksToSeconds(v.reaper().bloodChargeBuffDurationTicks());
+        cfg.reaper.shadeCloneCooldownSeconds = ticksToSeconds(v.reaper().shadeCloneCooldownTicks());
+        cfg.reaper.shadeCloneDurationSeconds = ticksToSeconds(v.reaper().shadeCloneDurationTicks());
+        cfg.reaper.shadeCloneMaxHealth = v.reaper().shadeCloneMaxHealth();
+
+        cfg.pillager.raidersTrainingProjectileVelocityMultiplier = v.pillager().raidersTrainingProjectileVelocityMultiplier();
+        cfg.pillager.shieldbreakerDisableCooldownTicks = v.pillager().shieldbreakerDisableCooldownTicks();
+        cfg.pillager.illagerDisciplineThresholdHearts = v.pillager().illagerDisciplineThresholdHearts();
+        cfg.pillager.illagerDisciplineResistanceDurationSeconds = ticksToSeconds(v.pillager().illagerDisciplineResistanceDurationTicks());
+        cfg.pillager.illagerDisciplineResistanceAmplifier = v.pillager().illagerDisciplineResistanceAmplifier();
+        cfg.pillager.illagerDisciplineCooldownSeconds = ticksToSeconds(v.pillager().illagerDisciplineCooldownTicks());
+        cfg.pillager.fangsCooldownSeconds = ticksToSeconds(v.pillager().fangsCooldownTicks());
+        cfg.pillager.fangsRangeBlocks = v.pillager().fangsRangeBlocks();
+        cfg.pillager.fangsCount = v.pillager().fangsCount();
+        cfg.pillager.fangsSpacingBlocks = v.pillager().fangsSpacingBlocks();
+        cfg.pillager.fangsWarmupStepTicks = v.pillager().fangsWarmupStepTicks();
+        cfg.pillager.ravageCooldownSeconds = ticksToSeconds(v.pillager().ravageCooldownTicks());
+        cfg.pillager.ravageRangeBlocks = v.pillager().ravageRangeBlocks();
+        cfg.pillager.ravageDamage = v.pillager().ravageDamage();
+        cfg.pillager.ravageKnockback = v.pillager().ravageKnockback();
+        cfg.pillager.vindicatorBreakCooldownSeconds = ticksToSeconds(v.pillager().vindicatorBreakCooldownTicks());
+        cfg.pillager.vindicatorBreakDurationSeconds = ticksToSeconds(v.pillager().vindicatorBreakDurationTicks());
+        cfg.pillager.vindicatorBreakStrengthAmplifier = v.pillager().vindicatorBreakStrengthAmplifier();
+        cfg.pillager.vindicatorBreakShieldDisableCooldownTicks = v.pillager().vindicatorBreakShieldDisableCooldownTicks();
+        cfg.pillager.volleyCooldownSeconds = ticksToSeconds(v.pillager().volleyCooldownTicks());
+        cfg.pillager.volleyDurationSeconds = ticksToSeconds(v.pillager().volleyDurationTicks());
+        cfg.pillager.volleyPeriodTicks = v.pillager().volleyPeriodTicks();
+        cfg.pillager.volleyArrowsPerShot = v.pillager().volleyArrowsPerShot();
+        cfg.pillager.volleyArrowDamage = v.pillager().volleyArrowDamage();
+        cfg.pillager.volleyArrowVelocity = v.pillager().volleyArrowVelocity();
+        cfg.pillager.volleyArrowInaccuracy = v.pillager().volleyArrowInaccuracy();
+
+        cfg.spyMimic.stillnessSeconds = ticksToSeconds(v.spyMimic().stillnessTicks());
+        cfg.spyMimic.stillnessMoveEpsilonBlocks = v.spyMimic().stillnessMoveEpsilonBlocks();
+        cfg.spyMimic.stillnessInvisRefreshSeconds = ticksToSeconds(v.spyMimic().stillnessInvisRefreshTicks());
+        cfg.spyMimic.observeRangeBlocks = v.spyMimic().observeRangeBlocks();
+        cfg.spyMimic.observeWindowSeconds = ticksToSeconds(v.spyMimic().observeWindowTicks());
+        cfg.spyMimic.stealRequiredWitnessCount = v.spyMimic().stealRequiredWitnessCount();
+        cfg.spyMimic.maxStolenAbilities = v.spyMimic().maxStolenAbilities();
+        cfg.spyMimic.mimicFormCooldownSeconds = ticksToSeconds(v.spyMimic().mimicFormCooldownTicks());
+        cfg.spyMimic.mimicFormDurationSeconds = ticksToSeconds(v.spyMimic().mimicFormDurationTicks());
+        cfg.spyMimic.mimicFormBonusMaxHealth = v.spyMimic().mimicFormBonusMaxHealth();
+        cfg.spyMimic.mimicFormSpeedMultiplier = v.spyMimic().mimicFormSpeedMultiplier();
+        cfg.spyMimic.echoCooldownSeconds = ticksToSeconds(v.spyMimic().echoCooldownTicks());
+        cfg.spyMimic.echoWindowSeconds = ticksToSeconds(v.spyMimic().echoWindowTicks());
+        cfg.spyMimic.stealCooldownSeconds = ticksToSeconds(v.spyMimic().stealCooldownTicks());
+        cfg.spyMimic.smokeBombCooldownSeconds = ticksToSeconds(v.spyMimic().smokeBombCooldownTicks());
+        cfg.spyMimic.smokeBombRadiusBlocks = v.spyMimic().smokeBombRadiusBlocks();
+        cfg.spyMimic.smokeBombDurationSeconds = ticksToSeconds(v.spyMimic().smokeBombDurationTicks());
+        cfg.spyMimic.smokeBombBlindnessAmplifier = v.spyMimic().smokeBombBlindnessAmplifier();
+        cfg.spyMimic.smokeBombSlownessAmplifier = v.spyMimic().smokeBombSlownessAmplifier();
+        cfg.spyMimic.stolenCastCooldownSeconds = ticksToSeconds(v.spyMimic().stolenCastCooldownTicks());
+
         return cfg;
     }
 
@@ -214,7 +348,13 @@ public final class GemsBalance {
             Puff puff,
             Speed speed,
             Strength strength,
-            Wealth wealth
+            Wealth wealth,
+            Terror terror,
+            Summoner summoner,
+            Space space,
+            Reaper reaper,
+            Pillager pillager,
+            SpyMimic spyMimic
     ) {
         public static Values defaults() {
             return from(new GemsBalanceConfig());
@@ -230,7 +370,13 @@ public final class GemsBalance {
                     Puff.from(cfg.puff != null ? cfg.puff : new GemsBalanceConfig.Puff()),
                     Speed.from(cfg.speed != null ? cfg.speed : new GemsBalanceConfig.Speed()),
                     Strength.from(cfg.strength != null ? cfg.strength : new GemsBalanceConfig.Strength()),
-                    Wealth.from(cfg.wealth != null ? cfg.wealth : new GemsBalanceConfig.Wealth())
+                    Wealth.from(cfg.wealth != null ? cfg.wealth : new GemsBalanceConfig.Wealth()),
+                    Terror.from(cfg.terror != null ? cfg.terror : new GemsBalanceConfig.Terror()),
+                    Summoner.from(cfg.summoner != null ? cfg.summoner : new GemsBalanceConfig.Summoner()),
+                    Space.from(cfg.space != null ? cfg.space : new GemsBalanceConfig.Space()),
+                    Reaper.from(cfg.reaper != null ? cfg.reaper : new GemsBalanceConfig.Reaper()),
+                    Pillager.from(cfg.pillager != null ? cfg.pillager : new GemsBalanceConfig.Pillager()),
+                    SpyMimic.from(cfg.spyMimic != null ? cfg.spyMimic : new GemsBalanceConfig.SpyMimic())
             );
         }
     }
@@ -575,6 +721,345 @@ public final class GemsBalance {
                     secClamped(cfg.amplificationDurationSeconds, 0, 600),
                     secClamped(cfg.richRushCooldownSeconds, 0, 24 * 3600),
                     secClamped(cfg.richRushDurationSeconds, 0, 24 * 3600)
+            );
+        }
+    }
+
+    public record Terror(
+            int dreadAuraRadiusBlocks,
+            int dreadAuraAmplifier,
+            int bloodPriceDurationTicks,
+            int bloodPriceStrengthAmplifier,
+            int bloodPriceResistanceAmplifier,
+            int terrorTradeCooldownTicks,
+            int terrorTradeRangeBlocks,
+            int terrorTradeMaxUses,
+            int terrorTradeHeartsCost,
+            int terrorTradePermanentEnergyPenalty,
+            int panicRingCooldownTicks,
+            int panicRingTntCount,
+            int panicRingFuseTicks,
+            double panicRingRadiusBlocks
+    ) {
+        static Terror from(GemsBalanceConfig.Terror cfg) {
+            return new Terror(
+                    clampInt(cfg.dreadAuraRadiusBlocks, 0, 32),
+                    clampInt(cfg.dreadAuraAmplifier, 0, 10),
+                    secClamped(cfg.bloodPriceDurationSeconds, 0, 60),
+                    clampInt(cfg.bloodPriceStrengthAmplifier, 0, 10),
+                    clampInt(cfg.bloodPriceResistanceAmplifier, 0, 10),
+                    secClamped(cfg.terrorTradeCooldownSeconds, 0, 24 * 3600),
+                    clampInt(cfg.terrorTradeRangeBlocks, 0, 128),
+                    clampInt(cfg.terrorTradeMaxUses, 0, 10),
+                    clampInt(cfg.terrorTradeHeartsCost, 0, 10),
+                    clampInt(cfg.terrorTradePermanentEnergyPenalty, 0, 10),
+                    secClamped(cfg.panicRingCooldownSeconds, 0, 24 * 3600),
+                    clampInt(cfg.panicRingTntCount, 0, 40),
+                    clampInt(cfg.panicRingFuseTicks, 1, 200),
+                    clampDouble(cfg.panicRingRadiusBlocks, 0.0D, 8.0D)
+            );
+        }
+    }
+
+    public record Summoner(
+            int maxPoints,
+            int maxActiveSummons,
+            int summonLifetimeTicks,
+            int commandRangeBlocks,
+            int summonSlotCooldownTicks,
+            int recallCooldownTicks,
+            int commandersMarkDurationTicks,
+            int commandersMarkStrengthAmplifier,
+            float summonBonusHealth,
+            java.util.Map<String, Integer> costs,
+            java.util.List<GemsBalanceConfig.Summoner.SummonSpec> slot1,
+            java.util.List<GemsBalanceConfig.Summoner.SummonSpec> slot2,
+            java.util.List<GemsBalanceConfig.Summoner.SummonSpec> slot3,
+            java.util.List<GemsBalanceConfig.Summoner.SummonSpec> slot4,
+            java.util.List<GemsBalanceConfig.Summoner.SummonSpec> slot5
+    ) {
+        static Summoner from(GemsBalanceConfig.Summoner cfg) {
+            return new Summoner(
+                    clampInt(cfg.maxPoints, 0, 500),
+                    clampInt(cfg.maxActiveSummons, 0, 200),
+                    secClamped(cfg.summonLifetimeSeconds, 0, 24 * 3600),
+                    clampInt(cfg.commandRangeBlocks, 0, 128),
+                    secClamped(cfg.summonSlotCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.recallCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.commandersMarkDurationSeconds, 0, 60),
+                    clampInt(cfg.commandersMarkStrengthAmplifier, 0, 10),
+                    clampFloat(cfg.summonBonusHealth, 0.0F, 40.0F),
+                    sanitizeCosts(cfg.costs),
+                    sanitizeSpecs(cfg.slot1),
+                    sanitizeSpecs(cfg.slot2),
+                    sanitizeSpecs(cfg.slot3),
+                    sanitizeSpecs(cfg.slot4),
+                    sanitizeSpecs(cfg.slot5)
+            );
+        }
+
+        private static java.util.Map<String, Integer> sanitizeCosts(java.util.Map<String, Integer> costs) {
+            if (costs == null || costs.isEmpty()) {
+                return java.util.Map.of();
+            }
+            java.util.Map<String, Integer> out = new java.util.HashMap<>();
+            for (var e : costs.entrySet()) {
+                if (e.getKey() == null || e.getKey().isBlank()) {
+                    continue;
+                }
+                int v = e.getValue() != null ? e.getValue() : 0;
+                out.put(e.getKey(), clampInt(v, 0, 500));
+            }
+            return java.util.Collections.unmodifiableMap(out);
+        }
+
+        private static java.util.List<GemsBalanceConfig.Summoner.SummonSpec> sanitizeSpecs(java.util.List<GemsBalanceConfig.Summoner.SummonSpec> list) {
+            if (list == null || list.isEmpty()) {
+                return java.util.List.of();
+            }
+            java.util.List<GemsBalanceConfig.Summoner.SummonSpec> out = new java.util.ArrayList<>();
+            for (GemsBalanceConfig.Summoner.SummonSpec spec : list) {
+                if (spec == null || spec.entityId == null || spec.entityId.isBlank()) {
+                    continue;
+                }
+                int count = clampInt(spec.count, 0, 64);
+                if (count <= 0) {
+                    continue;
+                }
+                out.add(new GemsBalanceConfig.Summoner.SummonSpec(spec.entityId, count));
+            }
+            return java.util.Collections.unmodifiableList(out);
+        }
+    }
+
+    public record Space(
+            float lunarMinMultiplier,
+            float lunarMaxMultiplier,
+            float starshieldProjectileDamageMultiplier,
+            int orbitalLaserCooldownTicks,
+            int orbitalLaserRangeBlocks,
+            int orbitalLaserDelayTicks,
+            int orbitalLaserRadiusBlocks,
+            float orbitalLaserDamage,
+            int orbitalLaserMiningRadiusBlocks,
+            float orbitalLaserMiningHardnessCap,
+            int orbitalLaserMiningMaxBlocks,
+            int gravityFieldCooldownTicks,
+            int gravityFieldDurationTicks,
+            int gravityFieldRadiusBlocks,
+            float gravityFieldAllyGravityMultiplier,
+            float gravityFieldEnemyGravityMultiplier,
+            int blackHoleCooldownTicks,
+            int blackHoleDurationTicks,
+            int blackHoleRadiusBlocks,
+            float blackHolePullStrength,
+            float blackHoleDamagePerSecond,
+            int whiteHoleCooldownTicks,
+            int whiteHoleDurationTicks,
+            int whiteHoleRadiusBlocks,
+            float whiteHolePushStrength,
+            float whiteHoleDamagePerSecond
+    ) {
+        static Space from(GemsBalanceConfig.Space cfg) {
+            float lunarMin = clampFloat(cfg.lunarMinMultiplier, 0.1F, 5.0F);
+            float lunarMax = clampFloat(cfg.lunarMaxMultiplier, lunarMin, 5.0F);
+            return new Space(
+                    lunarMin,
+                    lunarMax,
+                    clampFloat(cfg.starshieldProjectileDamageMultiplier, 0.0F, 1.0F),
+                    secClamped(cfg.orbitalLaserCooldownSeconds, 0, 24 * 3600),
+                    clampInt(cfg.orbitalLaserRangeBlocks, 0, 256),
+                    secClamped(cfg.orbitalLaserDelaySeconds, 0, 10),
+                    clampInt(cfg.orbitalLaserRadiusBlocks, 0, 32),
+                    clampFloat(cfg.orbitalLaserDamage, 0.0F, 200.0F),
+                    clampInt(cfg.orbitalLaserMiningRadiusBlocks, 0, 16),
+                    clampFloat(cfg.orbitalLaserMiningHardnessCap, 0.0F, 2000.0F),
+                    clampInt(cfg.orbitalLaserMiningMaxBlocks, 0, 2048),
+                    secClamped(cfg.gravityFieldCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.gravityFieldDurationSeconds, 0, 120),
+                    clampInt(cfg.gravityFieldRadiusBlocks, 0, 64),
+                    clampFloat(cfg.gravityFieldAllyGravityMultiplier, 0.1F, 5.0F),
+                    clampFloat(cfg.gravityFieldEnemyGravityMultiplier, 0.1F, 5.0F),
+                    secClamped(cfg.blackHoleCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.blackHoleDurationSeconds, 0, 60),
+                    clampInt(cfg.blackHoleRadiusBlocks, 0, 64),
+                    clampFloat(cfg.blackHolePullStrength, 0.0F, 5.0F),
+                    clampFloat(cfg.blackHoleDamagePerSecond, 0.0F, 200.0F),
+                    secClamped(cfg.whiteHoleCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.whiteHoleDurationSeconds, 0, 60),
+                    clampInt(cfg.whiteHoleRadiusBlocks, 0, 64),
+                    clampFloat(cfg.whiteHolePushStrength, 0.0F, 5.0F),
+                    clampFloat(cfg.whiteHoleDamagePerSecond, 0.0F, 200.0F)
+            );
+        }
+    }
+
+    public record Reaper(
+            float undeadWardDamageMultiplier,
+            int harvestRegenDurationTicks,
+            int harvestRegenAmplifier,
+            int graveSteedCooldownTicks,
+            int graveSteedDurationTicks,
+            float graveSteedDecayDamagePerSecond,
+            int witheringStrikesCooldownTicks,
+            int witheringStrikesDurationTicks,
+            int witheringStrikesWitherDurationTicks,
+            int witheringStrikesWitherAmplifier,
+            int deathOathCooldownTicks,
+            int deathOathDurationTicks,
+            int deathOathRangeBlocks,
+            float deathOathSelfDamagePerSecond,
+            int scytheSweepCooldownTicks,
+            int scytheSweepRangeBlocks,
+            int scytheSweepArcDegrees,
+            float scytheSweepDamage,
+            double scytheSweepKnockback,
+            int bloodChargeCooldownTicks,
+            int bloodChargeMaxChargeTicks,
+            float bloodChargeSelfDamagePerSecond,
+            float bloodChargeMaxMultiplier,
+            int bloodChargeBuffDurationTicks,
+            int shadeCloneCooldownTicks,
+            int shadeCloneDurationTicks,
+            float shadeCloneMaxHealth
+    ) {
+        static Reaper from(GemsBalanceConfig.Reaper cfg) {
+            return new Reaper(
+                    clampFloat(cfg.undeadWardDamageMultiplier, 0.0F, 1.0F),
+                    secClamped(cfg.harvestRegenDurationSeconds, 0, 60),
+                    clampInt(cfg.harvestRegenAmplifier, 0, 10),
+                    secClamped(cfg.graveSteedCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.graveSteedDurationSeconds, 0, 24 * 3600),
+                    clampFloat(cfg.graveSteedDecayDamagePerSecond, 0.0F, 200.0F),
+                    secClamped(cfg.witheringStrikesCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.witheringStrikesDurationSeconds, 0, 120),
+                    secClamped(cfg.witheringStrikesWitherDurationSeconds, 0, 60),
+                    clampInt(cfg.witheringStrikesWitherAmplifier, 0, 10),
+                    secClamped(cfg.deathOathCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.deathOathDurationSeconds, 0, 300),
+                    clampInt(cfg.deathOathRangeBlocks, 0, 256),
+                    clampFloat(cfg.deathOathSelfDamagePerSecond, 0.0F, 200.0F),
+                    secClamped(cfg.scytheSweepCooldownSeconds, 0, 24 * 3600),
+                    clampInt(cfg.scytheSweepRangeBlocks, 0, 16),
+                    clampInt(cfg.scytheSweepArcDegrees, 10, 180),
+                    clampFloat(cfg.scytheSweepDamage, 0.0F, 200.0F),
+                    clampDouble(cfg.scytheSweepKnockback, 0.0D, 5.0D),
+                    secClamped(cfg.bloodChargeCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.bloodChargeMaxChargeSeconds, 0, 60),
+                    clampFloat(cfg.bloodChargeSelfDamagePerSecond, 0.0F, 200.0F),
+                    clampFloat(cfg.bloodChargeMaxMultiplier, 1.0F, 10.0F),
+                    secClamped(cfg.bloodChargeBuffDurationSeconds, 0, 300),
+                    secClamped(cfg.shadeCloneCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.shadeCloneDurationSeconds, 0, 120),
+                    clampFloat(cfg.shadeCloneMaxHealth, 1.0F, 200.0F)
+            );
+        }
+    }
+
+    public record Pillager(
+            float raidersTrainingProjectileVelocityMultiplier,
+            int shieldbreakerDisableCooldownTicks,
+            float illagerDisciplineThresholdHearts,
+            int illagerDisciplineResistanceDurationTicks,
+            int illagerDisciplineResistanceAmplifier,
+            int illagerDisciplineCooldownTicks,
+            int fangsCooldownTicks,
+            int fangsRangeBlocks,
+            int fangsCount,
+            float fangsSpacingBlocks,
+            int fangsWarmupStepTicks,
+            int ravageCooldownTicks,
+            int ravageRangeBlocks,
+            float ravageDamage,
+            double ravageKnockback,
+            int vindicatorBreakCooldownTicks,
+            int vindicatorBreakDurationTicks,
+            int vindicatorBreakStrengthAmplifier,
+            int vindicatorBreakShieldDisableCooldownTicks,
+            int volleyCooldownTicks,
+            int volleyDurationTicks,
+            int volleyPeriodTicks,
+            int volleyArrowsPerShot,
+            float volleyArrowDamage,
+            float volleyArrowVelocity,
+            float volleyArrowInaccuracy
+    ) {
+        static Pillager from(GemsBalanceConfig.Pillager cfg) {
+            return new Pillager(
+                    clampFloat(cfg.raidersTrainingProjectileVelocityMultiplier, 1.0F, 3.0F),
+                    clampInt(cfg.shieldbreakerDisableCooldownTicks, 0, 20 * 60),
+                    clampFloat(cfg.illagerDisciplineThresholdHearts, 1.0F, 20.0F),
+                    secClamped(cfg.illagerDisciplineResistanceDurationSeconds, 0, 60),
+                    clampInt(cfg.illagerDisciplineResistanceAmplifier, 0, 10),
+                    secClamped(cfg.illagerDisciplineCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.fangsCooldownSeconds, 0, 24 * 3600),
+                    clampInt(cfg.fangsRangeBlocks, 0, 128),
+                    clampInt(cfg.fangsCount, 0, 32),
+                    clampFloat(cfg.fangsSpacingBlocks, 0.1F, 6.0F),
+                    clampInt(cfg.fangsWarmupStepTicks, 0, 40),
+                    secClamped(cfg.ravageCooldownSeconds, 0, 24 * 3600),
+                    clampInt(cfg.ravageRangeBlocks, 0, 32),
+                    clampFloat(cfg.ravageDamage, 0.0F, 200.0F),
+                    clampDouble(cfg.ravageKnockback, 0.0D, 5.0D),
+                    secClamped(cfg.vindicatorBreakCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.vindicatorBreakDurationSeconds, 0, 120),
+                    clampInt(cfg.vindicatorBreakStrengthAmplifier, 0, 10),
+                    clampInt(cfg.vindicatorBreakShieldDisableCooldownTicks, 0, 20 * 60),
+                    secClamped(cfg.volleyCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.volleyDurationSeconds, 0, 60),
+                    clampInt(cfg.volleyPeriodTicks, 1, 40),
+                    clampInt(cfg.volleyArrowsPerShot, 0, 8),
+                    clampFloat(cfg.volleyArrowDamage, 0.0F, 200.0F),
+                    clampFloat(cfg.volleyArrowVelocity, 0.1F, 10.0F),
+                    clampFloat(cfg.volleyArrowInaccuracy, 0.0F, 10.0F)
+            );
+        }
+    }
+
+    public record SpyMimic(
+            int stillnessTicks,
+            float stillnessMoveEpsilonBlocks,
+            int stillnessInvisRefreshTicks,
+            int observeRangeBlocks,
+            int observeWindowTicks,
+            int stealRequiredWitnessCount,
+            int maxStolenAbilities,
+            int mimicFormCooldownTicks,
+            int mimicFormDurationTicks,
+            float mimicFormBonusMaxHealth,
+            float mimicFormSpeedMultiplier,
+            int echoCooldownTicks,
+            int echoWindowTicks,
+            int stealCooldownTicks,
+            int smokeBombCooldownTicks,
+            int smokeBombRadiusBlocks,
+            int smokeBombDurationTicks,
+            int smokeBombBlindnessAmplifier,
+            int smokeBombSlownessAmplifier,
+            int stolenCastCooldownTicks
+    ) {
+        static SpyMimic from(GemsBalanceConfig.SpyMimic cfg) {
+            return new SpyMimic(
+                    secClamped(cfg.stillnessSeconds, 0, 60),
+                    clampFloat(cfg.stillnessMoveEpsilonBlocks, 0.0F, 2.0F),
+                    secClamped(cfg.stillnessInvisRefreshSeconds, 0, 60),
+                    clampInt(cfg.observeRangeBlocks, 0, 128),
+                    secClamped(cfg.observeWindowSeconds, 0, 24 * 3600),
+                    clampInt(cfg.stealRequiredWitnessCount, 1, 64),
+                    clampInt(cfg.maxStolenAbilities, 0, 10),
+                    secClamped(cfg.mimicFormCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.mimicFormDurationSeconds, 0, 300),
+                    clampFloat(cfg.mimicFormBonusMaxHealth, 0.0F, 200.0F),
+                    clampFloat(cfg.mimicFormSpeedMultiplier, 0.1F, 3.0F),
+                    secClamped(cfg.echoCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.echoWindowSeconds, 0, 120),
+                    secClamped(cfg.stealCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.smokeBombCooldownSeconds, 0, 24 * 3600),
+                    clampInt(cfg.smokeBombRadiusBlocks, 0, 64),
+                    secClamped(cfg.smokeBombDurationSeconds, 0, 60),
+                    clampInt(cfg.smokeBombBlindnessAmplifier, 0, 10),
+                    clampInt(cfg.smokeBombSlownessAmplifier, 0, 10),
+                    secClamped(cfg.stolenCastCooldownSeconds, 0, 24 * 3600)
             );
         }
     }

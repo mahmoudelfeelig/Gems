@@ -1,7 +1,7 @@
 package com.feel.gems.core;
 
 /**
- * Identifier for the eight Season 3 gems.
+ * Identifier for the supported gems.
  */
 public enum GemId {
     ASTRA,
@@ -11,5 +11,11 @@ public enum GemId {
     PUFF,
     SPEED,
     STRENGTH,
-    WEALTH
+    WEALTH,
+    TERROR,
+    SUMMONER,
+    SPACE,
+    REAPER,
+    PILLAGER,
+    SPY_MIMIC
 }

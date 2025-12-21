@@ -6,15 +6,30 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.power.AbilityRuntime;
+import com.feel.gems.power.AbilityDisables;
 import com.feel.gems.power.FluxBeamAbility;
 import com.feel.gems.power.FluxCharge;
 import com.feel.gems.power.GemPowers;
+import com.feel.gems.power.PanicRingAbility;
+import com.feel.gems.power.PillagerFangsAbility;
+import com.feel.gems.power.SpyMimicSystem;
+import com.feel.gems.power.SpyStealAbility;
+import com.feel.gems.power.SummonRecallAbility;
+import com.feel.gems.power.SummonSlotAbility;
+import com.feel.gems.power.SummonerSummons;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.trade.GemTrading;
+import com.feel.gems.assassin.AssassinState;
+import com.feel.gems.config.GemsBalance;
 
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.TntEntity;
+import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.mob.EvokerFangsEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -25,6 +40,8 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.Identifier;
 
 public final class GemsGameTests {
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
@@ -349,5 +366,274 @@ public final class GemsGameTests {
             });
         }
         context.runAtTick(110L, context::complete);
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void assassinConversionAndHeartsApplied(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d startPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        player.teleport(world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
+
+        GemPlayerState.initIfNeeded(player);
+        AssassinState.initIfNeeded(player);
+
+        // Force conversion using the same persistent path the death mixin uses.
+        AssassinState.becomeAssassin(player);
+        AssassinState.addAssassinHearts(player, -2); // 8 hearts
+        GemPlayerState.applyMaxHearts(player);
+
+        context.runAtTick(2L, () -> {
+            if (!AssassinState.isAssassin(player)) {
+                context.throwGameTestException("Expected player to be assassin after becomeAssassin");
+            }
+            if (AssassinState.getAssassinHearts(player) != 8) {
+                context.throwGameTestException("Expected assassin hearts to be 8, got " + AssassinState.getAssassinHearts(player));
+            }
+            double maxHealth = player.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH);
+            if (Math.abs(maxHealth - 16.0D) > 0.01D) {
+                context.throwGameTestException("Expected max health 16.0 for 8 hearts, got " + maxHealth);
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void panicRingSpawnsConfiguredTnt(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+
+        int expected = GemsBalance.v().terror().panicRingTntCount();
+        context.runAtTick(2L, () -> {
+            boolean ok = new PanicRingAbility().activate(player);
+            if (!ok) {
+                context.throwGameTestException("Panic Ring did not activate");
+            }
+        });
+
+        context.runAtTick(10L, () -> {
+            Box box = new Box(player.getBlockPos()).expand(6.0D);
+            int found = world.getEntitiesByClass(TntEntity.class, box, e -> true).size();
+            if (found < expected) {
+                context.throwGameTestException("Expected at least " + expected + " primed TNT, found " + found);
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 400)
+    public void summonerSummonsHaveNoDropsAndRecallWorks(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+
+        GemPlayerState.initIfNeeded(player);
+        GemPlayerState.setActiveGem(player, GemId.SUMMONER);
+        GemPlayerState.setEnergy(player, 10);
+        GemPowers.sync(player);
+
+        int expected = GemsBalance.v().summoner().slot1().stream().mapToInt(s -> s.count).sum();
+        context.runAtTick(2L, () -> {
+            boolean ok = new SummonSlotAbility(1).activate(player);
+            if (!ok) {
+                context.throwGameTestException("Summon slot 1 did not activate");
+            }
+        });
+
+        context.runAtTick(20L, () -> {
+            Box box = new Box(player.getBlockPos()).expand(12.0D);
+            var summons = world.getEntitiesByClass(net.minecraft.entity.mob.MobEntity.class, box,
+                    e -> SummonerSummons.isSummon(e) && player.getUuid().equals(SummonerSummons.ownerUuid(e)));
+            if (summons.size() < expected) {
+                context.throwGameTestException("Expected at least " + expected + " summons, found " + summons.size());
+            }
+
+            // Kill one summon and ensure it drops no items or XP.
+            var mob = summons.getFirst();
+            mob.damage(mob.getDamageSources().outOfWorld(), 10_000.0F);
+
+            context.runAtTick(40L, () -> {
+                Box lootBox = new Box(player.getBlockPos()).expand(12.0D);
+                int items = world.getEntitiesByClass(ItemEntity.class, lootBox, e -> true).size();
+                int xp = world.getEntitiesByClass(ExperienceOrbEntity.class, lootBox, e -> true).size();
+                if (items > 0) {
+                    context.throwGameTestException("Summons dropped items unexpectedly (" + items + ")");
+                }
+                if (xp > 0) {
+                    context.throwGameTestException("Summons dropped XP unexpectedly (" + xp + ")");
+                }
+
+                boolean recalled = new SummonRecallAbility().activate(player);
+                if (!recalled) {
+                    context.throwGameTestException("Recall did not activate");
+                }
+                context.runAtTick(60L, () -> {
+                    int after = world.getEntitiesByClass(net.minecraft.entity.mob.MobEntity.class, lootBox,
+                            e -> SummonerSummons.isSummon(e) && player.getUuid().equals(SummonerSummons.ownerUuid(e))).size();
+                    if (after != 0) {
+                        context.throwGameTestException("Expected all summons to be recalled, remaining=" + after);
+                    }
+                    context.complete();
+                });
+            });
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void recipesAreRegistered(TestContext context) {
+        ServerWorld world = context.getWorld();
+        var server = world.getServer();
+        if (server == null) {
+            context.throwGameTestException("No server instance");
+            return;
+        }
+        var manager = server.getRecipeManager();
+        for (String path : new String[]{"heart", "energy_upgrade", "trader"}) {
+            Identifier id = Identifier.of("gems", path);
+            if (manager.get(id).isEmpty()) {
+                context.throwGameTestException("Missing recipe: " + id);
+                return;
+            }
+        }
+        context.complete();
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void pillagerFangsSpawnsFangs(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d startPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        player.teleport(world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
+
+        var target = EntityType.ARMOR_STAND.create(world);
+        if (target == null) {
+            context.throwGameTestException("Failed to create target entity");
+            return;
+        }
+        Vec3d targetPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 1.5D));
+        target.refreshPositionAndAngles(targetPos.x, targetPos.y, targetPos.z, 0.0F, 0.0F);
+        target.setNoGravity(true);
+        world.spawnEntity(target);
+
+        // Aim at the target.
+        Vec3d aimAt = new Vec3d(target.getX(), target.getEyeY(), target.getZ());
+        double dx = aimAt.x - player.getX();
+        double dz = aimAt.z - player.getZ();
+        double dy = aimAt.y - player.getEyeY();
+        float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0D);
+        float pitch = (float) (-Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz))));
+        player.teleport(world, startPos.x, startPos.y, startPos.z, yaw, pitch);
+
+        context.runAtTick(5L, () -> {
+            boolean activated = new PillagerFangsAbility().activate(player);
+            if (!activated) {
+                context.throwGameTestException("Fangs did not activate");
+                return;
+            }
+
+            Box box = new Box(target.getBlockPos()).expand(24.0D);
+            int fangs = world.getEntitiesByClass(EvokerFangsEntity.class, box, e -> true).size();
+            if (fangs <= 0) {
+                context.throwGameTestException("Expected fangs entities to be spawned");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 220)
+    public void spyStillnessCloakAppliesInvisibility(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d startPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        player.teleport(world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
+
+        context.runAtTick(10L, () -> {
+            GemPlayerState.initIfNeeded(player);
+            GemPlayerState.setActiveGem(player, GemId.SPY_MIMIC);
+            GemPlayerState.setEnergy(player, 5);
+        });
+
+        // Tick the stillness cloak logic deterministically.
+        for (long t = 20L; t <= 140L; t += 20L) {
+            long at = t;
+            context.runAtTick(at, () -> SpyMimicSystem.tickEverySecond(player));
+        }
+
+        context.runAtTick(160L, () -> {
+            if (!player.hasStatusEffect(StatusEffects.INVISIBILITY)) {
+                context.throwGameTestException("Expected Stillness Cloak to apply invisibility");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void spyStealDisablesVictimAbility(TestContext context) {
+        ServerWorld world = context.getWorld();
+        var server = world.getServer();
+        if (server == null) {
+            context.throwGameTestException("No server instance");
+            return;
+        }
+
+        ServerPlayerEntity spy = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity victim = context.createMockCreativeServerPlayerInWorld();
+        spy.changeGameMode(GameMode.SURVIVAL);
+        victim.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d spyPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        Vec3d victimPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 1.5D));
+        // Yaw 0 faces toward +Z (victim is in front).
+        spy.teleport(world, spyPos.x, spyPos.y, spyPos.z, 0.0F, 0.0F);
+        victim.teleport(world, victimPos.x, victimPos.y, victimPos.z, 180.0F, 0.0F);
+
+        context.runAtTick(10L, () -> {
+            GemPlayerState.initIfNeeded(spy);
+            GemPlayerState.setActiveGem(spy, GemId.SPY_MIMIC);
+            GemPlayerState.setEnergy(spy, 5);
+
+            GemPlayerState.initIfNeeded(victim);
+            GemPlayerState.setActiveGem(victim, GemId.ASTRA);
+            GemPlayerState.setEnergy(victim, 5);
+        });
+
+        Identifier stolen = com.feel.gems.power.PowerIds.ASTRAL_DAGGERS;
+
+        context.runAtTick(20L, () -> {
+            // Simulate the victim casting an ability in front of the spy enough times.
+            for (int i = 0; i < GemsBalance.v().spyMimic().stealRequiredWitnessCount(); i++) {
+                SpyMimicSystem.onAbilityUsed(server, victim, stolen);
+            }
+
+            boolean ok = new SpyStealAbility().activate(spy);
+            if (!ok) {
+                context.throwGameTestException("Steal did not activate");
+                return;
+            }
+            if (!AbilityDisables.isDisabled(victim, stolen)) {
+                context.throwGameTestException("Expected victim ability to be disabled after steal");
+                return;
+            }
+            if (!stolen.equals(SpyMimicSystem.selectedStolenAbility(spy))) {
+                context.throwGameTestException("Expected stolen ability to be selected after steal");
+                return;
+            }
+            context.complete();
+        });
     }
 }

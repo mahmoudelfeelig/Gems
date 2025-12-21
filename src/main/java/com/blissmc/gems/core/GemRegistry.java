@@ -136,6 +136,101 @@ public final class GemRegistry {
                         PowerIds.RICH_RUSH
                 )
         ));
+
+        register(new GemDefinition(
+                GemId.TERROR,
+                List.of(
+                        PowerIds.TERROR_DREAD_AURA,
+                        PowerIds.TERROR_FEARLESS,
+                        PowerIds.TERROR_BLOOD_PRICE
+                ),
+                List.of(
+                        PowerIds.TERROR_TRADE,
+                        PowerIds.TERROR_PANIC_RING
+                )
+        ));
+
+        register(new GemDefinition(
+                GemId.SUMMONER,
+                List.of(
+                        PowerIds.SUMMONER_BOND,
+                        PowerIds.SUMMONER_COMMANDERS_MARK,
+                        PowerIds.SUMMONER_SOULBOUND,
+                        PowerIds.SUMMONER_FAMILIARS_BLESSING
+                ),
+                List.of(
+                        PowerIds.SUMMON_SLOT_1,
+                        PowerIds.SUMMON_SLOT_2,
+                        PowerIds.SUMMON_SLOT_3,
+                        PowerIds.SUMMON_SLOT_4,
+                        PowerIds.SUMMON_SLOT_5,
+                        PowerIds.SUMMON_RECALL
+                )
+        ));
+
+        register(new GemDefinition(
+                GemId.SPACE,
+                List.of(
+                        PowerIds.SPACE_LUNAR_SCALING,
+                        PowerIds.SPACE_LOW_GRAVITY,
+                        PowerIds.SPACE_STARSHIELD
+                ),
+                List.of(
+                        PowerIds.SPACE_ORBITAL_LASER,
+                        PowerIds.SPACE_GRAVITY_FIELD,
+                        PowerIds.SPACE_BLACK_HOLE,
+                        PowerIds.SPACE_WHITE_HOLE
+                )
+        ));
+
+        register(new GemDefinition(
+                GemId.REAPER,
+                List.of(
+                        PowerIds.REAPER_ROT_EATER,
+                        PowerIds.REAPER_UNDEAD_WARD,
+                        PowerIds.REAPER_HARVEST
+                ),
+                List.of(
+                        PowerIds.REAPER_GRAVE_STEED,
+                        PowerIds.REAPER_WITHERING_STRIKES,
+                        PowerIds.REAPER_DEATH_OATH,
+                        PowerIds.REAPER_SCYTHE_SWEEP,
+                        PowerIds.REAPER_BLOOD_CHARGE,
+                        PowerIds.REAPER_SHADE_CLONE
+                )
+        ));
+
+        register(new GemDefinition(
+                GemId.PILLAGER,
+                List.of(
+                        PowerIds.PILLAGER_RAIDERS_TRAINING,
+                        PowerIds.PILLAGER_SHIELDBREAKER,
+                        PowerIds.PILLAGER_ILLAGER_DISCIPLINE
+                ),
+                List.of(
+                        PowerIds.PILLAGER_FANGS,
+                        PowerIds.PILLAGER_RAVAGE,
+                        PowerIds.PILLAGER_VINDICATOR_BREAK,
+                        PowerIds.PILLAGER_VOLLEY
+                )
+        ));
+
+        register(new GemDefinition(
+                GemId.SPY_MIMIC,
+                List.of(
+                        PowerIds.SPY_STILLNESS_CLOAK,
+                        PowerIds.SPY_SILENT_STEP,
+                        PowerIds.SPY_FALSE_SIGNATURE,
+                        PowerIds.SPY_QUICK_HANDS
+                ),
+                List.of(
+                        PowerIds.SPY_MIMIC_FORM,
+                        PowerIds.SPY_ECHO,
+                        PowerIds.SPY_STEAL,
+                        PowerIds.SPY_SMOKE_BOMB,
+                        PowerIds.SPY_STOLEN_CAST
+                )
+        ));
     }
 
     private GemRegistry() {

@@ -1,6 +1,7 @@
 package com.feel.gems.mixin;
 
 import com.feel.gems.power.SoulSummons;
+import com.feel.gems.power.SummonerSummons;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
@@ -27,17 +28,16 @@ public abstract class MobEntitySoulTargetingMixin {
         if (!(target instanceof ServerPlayerEntity candidate)) {
             return;
         }
-        if (!SoulSummons.isSoul(self)) {
+        boolean soul = SoulSummons.isSoul(self);
+        boolean summon = SummonerSummons.isSummon(self);
+        if (!soul && !summon) {
             return;
         }
 
-        UUID ownerUuid = SoulSummons.ownerUuid(self);
-        if (ownerUuid == null && SoulSummons.isSoul(self)) {
+        UUID ownerUuid = soul ? SoulSummons.ownerUuid(self) : SummonerSummons.ownerUuid(self);
+        if (ownerUuid == null) {
             // no owner tag => safest is "do not target players"
             self.setTarget(null);
-            return;
-        }
-        if (ownerUuid == null) {
             return;
         }
         if (candidate.getUuid().equals(ownerUuid)) {
@@ -54,4 +54,3 @@ public abstract class MobEntitySoulTargetingMixin {
         }
     }
 }
-

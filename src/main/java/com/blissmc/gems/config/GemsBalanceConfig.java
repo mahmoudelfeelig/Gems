@@ -17,6 +17,12 @@ public final class GemsBalanceConfig {
     public Speed speed = new Speed();
     public Strength strength = new Strength();
     public Wealth wealth = new Wealth();
+    public Terror terror = new Terror();
+    public Summoner summoner = new Summoner();
+    public Space space = new Space();
+    public Reaper reaper = new Reaper();
+    public Pillager pillager = new Pillager();
+    public SpyMimic spyMimic = new SpyMimic();
 
     public static final class Visual {
         public boolean enableParticles = true;
@@ -222,5 +228,224 @@ public final class GemsBalanceConfig {
 
         public int richRushCooldownSeconds = 9 * 60;
         public int richRushDurationSeconds = 3 * 60;
+    }
+
+    public static final class Terror {
+        // Passives
+        public int dreadAuraRadiusBlocks = 10;
+        public int dreadAuraAmplifier = 0;
+        public int bloodPriceDurationSeconds = 6;
+        public int bloodPriceStrengthAmplifier = 1;
+        public int bloodPriceResistanceAmplifier = 0;
+
+        // Abilities
+        public int terrorTradeCooldownSeconds = 180;
+        public int terrorTradeRangeBlocks = 30;
+        public int terrorTradeMaxUses = 3;
+        public int terrorTradeHeartsCost = 2;
+        public int terrorTradePermanentEnergyPenalty = 2;
+
+        public int panicRingCooldownSeconds = 60;
+        public int panicRingTntCount = 5;
+        public int panicRingFuseTicks = 50;
+        public double panicRingRadiusBlocks = 1.6D;
+    }
+
+    public static final class Summoner {
+        public int maxPoints = 50;
+        public int maxActiveSummons = 20;
+        public int summonLifetimeSeconds = 120;
+        public int commandRangeBlocks = 32;
+
+        public int summonSlotCooldownSeconds = 30;
+        public int recallCooldownSeconds = 20;
+
+        public int commandersMarkDurationSeconds = 3;
+        public int commandersMarkStrengthAmplifier = 0;
+
+        public float summonBonusHealth = 4.0F;
+
+        /**
+         * Entity cost map, keyed by entity id string (e.g. "minecraft:zombie").
+         */
+        public java.util.Map<String, Integer> costs = defaultCosts();
+
+        /**
+         * Slot loadouts; each slot is a list of entity specs to spawn when the corresponding ability is used.
+         */
+        public java.util.List<SummonSpec> slot1 = java.util.List.of(new SummonSpec("minecraft:zombie", 2));
+        public java.util.List<SummonSpec> slot2 = java.util.List.of(new SummonSpec("minecraft:skeleton", 2));
+        public java.util.List<SummonSpec> slot3 = java.util.List.of(new SummonSpec("minecraft:creeper", 1));
+        public java.util.List<SummonSpec> slot4 = java.util.List.of();
+        public java.util.List<SummonSpec> slot5 = java.util.List.of();
+
+        public static final class SummonSpec {
+            public String entityId;
+            public int count;
+
+            public SummonSpec() {
+            }
+
+            public SummonSpec(String entityId, int count) {
+                this.entityId = entityId;
+                this.count = count;
+            }
+        }
+
+        private static java.util.Map<String, Integer> defaultCosts() {
+            java.util.Map<String, Integer> m = new java.util.HashMap<>();
+            m.put("minecraft:zombie", 5);
+            m.put("minecraft:skeleton", 5);
+            m.put("minecraft:creeper", 10);
+            m.put("minecraft:spider", 6);
+            m.put("minecraft:cave_spider", 8);
+            m.put("minecraft:piglin", 8);
+            m.put("minecraft:piglin_brute", 25);
+            m.put("minecraft:enderman", 20);
+            m.put("minecraft:wolf", 8);
+            m.put("minecraft:iron_golem", 40);
+            return m;
+        }
+    }
+
+    public static final class Space {
+        // Passives
+        public float lunarMinMultiplier = 0.85F;
+        public float lunarMaxMultiplier = 1.20F;
+        public float starshieldProjectileDamageMultiplier = 0.80F;
+
+        // Abilities
+        public int orbitalLaserCooldownSeconds = 60;
+        public int orbitalLaserRangeBlocks = 64;
+        public int orbitalLaserDelaySeconds = 1;
+        public int orbitalLaserRadiusBlocks = 4;
+        public float orbitalLaserDamage = 10.0F;
+
+        public int orbitalLaserMiningRadiusBlocks = 2;
+        public float orbitalLaserMiningHardnessCap = 60.0F;
+        public int orbitalLaserMiningMaxBlocks = 64;
+
+        public int gravityFieldCooldownSeconds = 45;
+        public int gravityFieldDurationSeconds = 10;
+        public int gravityFieldRadiusBlocks = 10;
+        public float gravityFieldAllyGravityMultiplier = 0.75F;
+        public float gravityFieldEnemyGravityMultiplier = 1.25F;
+
+        public int blackHoleCooldownSeconds = 60;
+        public int blackHoleDurationSeconds = 6;
+        public int blackHoleRadiusBlocks = 8;
+        public float blackHolePullStrength = 0.10F;
+        public float blackHoleDamagePerSecond = 2.0F;
+
+        public int whiteHoleCooldownSeconds = 60;
+        public int whiteHoleDurationSeconds = 6;
+        public int whiteHoleRadiusBlocks = 8;
+        public float whiteHolePushStrength = 0.12F;
+        public float whiteHoleDamagePerSecond = 1.0F;
+    }
+
+    public static final class Reaper {
+        // Passives
+        public float undeadWardDamageMultiplier = 0.80F;
+        public int harvestRegenDurationSeconds = 4;
+        public int harvestRegenAmplifier = 0;
+
+        // Abilities
+        public int graveSteedCooldownSeconds = 60;
+        public int graveSteedDurationSeconds = 30;
+        public float graveSteedDecayDamagePerSecond = 1.0F;
+
+        public int witheringStrikesCooldownSeconds = 45;
+        public int witheringStrikesDurationSeconds = 10;
+        public int witheringStrikesWitherDurationSeconds = 4;
+        public int witheringStrikesWitherAmplifier = 0;
+
+        public int deathOathCooldownSeconds = 60;
+        public int deathOathDurationSeconds = 12;
+        public int deathOathRangeBlocks = 48;
+        public float deathOathSelfDamagePerSecond = 1.0F;
+
+        public int scytheSweepCooldownSeconds = 20;
+        public int scytheSweepRangeBlocks = 5;
+        public int scytheSweepArcDegrees = 110;
+        public float scytheSweepDamage = 7.0F;
+        public double scytheSweepKnockback = 0.55D;
+
+        public int bloodChargeCooldownSeconds = 60;
+        public int bloodChargeMaxChargeSeconds = 8;
+        public float bloodChargeSelfDamagePerSecond = 1.0F;
+        public float bloodChargeMaxMultiplier = 1.60F;
+        public int bloodChargeBuffDurationSeconds = 8;
+
+        public int shadeCloneCooldownSeconds = 90;
+        public int shadeCloneDurationSeconds = 12;
+        public float shadeCloneMaxHealth = 20.0F;
+    }
+
+    public static final class Pillager {
+        // Passives
+        public float raidersTrainingProjectileVelocityMultiplier = 1.15F;
+        public int shieldbreakerDisableCooldownTicks = 80;
+        public float illagerDisciplineThresholdHearts = 4.0F;
+        public int illagerDisciplineResistanceDurationSeconds = 4;
+        public int illagerDisciplineResistanceAmplifier = 0;
+        public int illagerDisciplineCooldownSeconds = 45;
+
+        // Abilities
+        public int fangsCooldownSeconds = 25;
+        public int fangsRangeBlocks = 24;
+        public int fangsCount = 8;
+        public float fangsSpacingBlocks = 1.25F;
+        public int fangsWarmupStepTicks = 2;
+
+        public int ravageCooldownSeconds = 20;
+        public int ravageRangeBlocks = 6;
+        public float ravageDamage = 6.0F;
+        public double ravageKnockback = 1.25D;
+
+        public int vindicatorBreakCooldownSeconds = 35;
+        public int vindicatorBreakDurationSeconds = 8;
+        public int vindicatorBreakStrengthAmplifier = 0;
+        public int vindicatorBreakShieldDisableCooldownTicks = 100;
+
+        public int volleyCooldownSeconds = 45;
+        public int volleyDurationSeconds = 3;
+        public int volleyPeriodTicks = 10;
+        public int volleyArrowsPerShot = 1;
+        public float volleyArrowDamage = 4.0F;
+        public float volleyArrowVelocity = 3.0F;
+        public float volleyArrowInaccuracy = 1.0F;
+    }
+
+    public static final class SpyMimic {
+        // Passives
+        public int stillnessSeconds = 5;
+        public float stillnessMoveEpsilonBlocks = 0.05F;
+        public int stillnessInvisRefreshSeconds = 2;
+
+        // Observation
+        public int observeRangeBlocks = 24;
+        public int observeWindowSeconds = 10 * 60;
+        public int stealRequiredWitnessCount = 4;
+        public int maxStolenAbilities = 3;
+
+        // Abilities
+        public int mimicFormCooldownSeconds = 60;
+        public int mimicFormDurationSeconds = 12;
+        public float mimicFormBonusMaxHealth = 4.0F;
+        public float mimicFormSpeedMultiplier = 1.10F;
+
+        public int echoCooldownSeconds = 25;
+        public int echoWindowSeconds = 8;
+
+        public int stealCooldownSeconds = 60;
+
+        public int smokeBombCooldownSeconds = 30;
+        public int smokeBombRadiusBlocks = 8;
+        public int smokeBombDurationSeconds = 6;
+        public int smokeBombBlindnessAmplifier = 0;
+        public int smokeBombSlownessAmplifier = 0;
+
+        public int stolenCastCooldownSeconds = 20;
     }
 }

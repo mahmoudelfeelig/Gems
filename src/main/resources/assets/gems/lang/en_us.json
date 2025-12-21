@@ -15,5 +15,11 @@
   "item.gems.puff_gem": "Puff Gem",
   "item.gems.speed_gem": "Speed Gem",
   "item.gems.strength_gem": "Strength Gem",
-  "item.gems.wealth_gem": "Wealth Gem"
+  "item.gems.wealth_gem": "Wealth Gem",
+  "item.gems.terror_gem": "Terror Gem",
+  "item.gems.summoner_gem": "Summoner Gem",
+  "item.gems.space_gem": "Space Gem",
+  "item.gems.reaper_gem": "Reaper Gem",
+  "item.gems.pillager_gem": "Pillager Gem",
+  "item.gems.spy_mimic_gem": "Spy/Mimic Gem"
 }

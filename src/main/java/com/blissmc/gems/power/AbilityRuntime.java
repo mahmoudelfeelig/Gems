@@ -8,6 +8,7 @@ import com.feel.gems.util.GemsTime;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -34,6 +35,8 @@ public final class AbilityRuntime {
     private static final String KEY_CAMPFIRE_UNTIL = "cosyCampfireUntil";
     private static final String KEY_HEAT_HAZE_UNTIL = "heatHazeUntil";
     private static final String KEY_SPEED_STORM_UNTIL = "speedStormUntil";
+    private static final String KEY_SPACE_GRAVITY_UNTIL = "spaceGravityUntil";
+    private static final String KEY_SPACE_GRAVITY_CASTER = "spaceGravityCaster";
 
     private static final String KEY_UNBOUNDED_UNTIL = "unboundedUntil";
     private static final String KEY_UNBOUNDED_PREV_GAMEMODE = "unboundedPrevGamemode";
@@ -62,6 +65,15 @@ public final class AbilityRuntime {
 
     private static final String KEY_AMPLIFICATION_UNTIL = "amplificationUntil";
 
+    // Reaper runtime state
+    private static final String KEY_REAPER_WITHERING_UNTIL = "reaperWitheringUntil";
+    private static final String KEY_REAPER_OATH_UNTIL = "reaperDeathOathUntil";
+    private static final String KEY_REAPER_OATH_TARGET = "reaperDeathOathTarget";
+    private static final String KEY_REAPER_STEED_UNTIL = "reaperGraveSteedUntil";
+    private static final String KEY_REAPER_STEED_UUID = "reaperGraveSteedUuid";
+    private static final String KEY_REAPER_CLONE_UNTIL = "reaperShadeCloneUntil";
+    private static final String KEY_REAPER_CLONE_UUID = "reaperShadeCloneUuid";
+
     private static final String CUSTOM_DATA_KEY_AMPLIFY = "gemsAmplify";
     private static final String CUSTOM_DATA_KEY_OWNER = "gemsOwner";
 
@@ -76,12 +88,17 @@ public final class AbilityRuntime {
         tickCosyCampfire(player, now);
         tickHeatHazeZone(player, now);
         tickSpeedStorm(player, now);
+        tickSpaceGravityField(player, now);
         tickLifeCircle(player, now);
         tickHeartLock(player, now);
         tickUnbounded(player, now);
         tickAstralCamera(player, now);
         tickBounty(player, now);
         tickAmplificationCleanup(player, now);
+        tickReaperGraveSteed(player, now);
+        tickReaperDeathOath(player, now);
+        tickReaperBloodChargeCharging(player, now);
+        tickReaperShadeClone(player, now);
     }
 
     public static void startCosyCampfire(ServerPlayerEntity player, int durationTicks) {
@@ -94,6 +111,89 @@ public final class AbilityRuntime {
 
     public static void startSpeedStorm(ServerPlayerEntity player, int durationTicks) {
         persistent(player).putLong(KEY_SPEED_STORM_UNTIL, GemsTime.now(player) + durationTicks);
+    }
+
+    public static void startSpaceGravityField(ServerPlayerEntity player, int durationTicks) {
+        NbtCompound nbt = persistent(player);
+        nbt.putLong(KEY_SPACE_GRAVITY_UNTIL, GemsTime.now(player) + durationTicks);
+        nbt.putUuid(KEY_SPACE_GRAVITY_CASTER, player.getUuid());
+    }
+
+    public static void startReaperWitheringStrikes(ServerPlayerEntity player, int durationTicks) {
+        if (durationTicks <= 0) {
+            return;
+        }
+        persistent(player).putLong(KEY_REAPER_WITHERING_UNTIL, GemsTime.now(player) + durationTicks);
+    }
+
+    public static boolean isReaperWitheringStrikesActive(ServerPlayerEntity player, long now) {
+        long until = persistent(player).getLong(KEY_REAPER_WITHERING_UNTIL);
+        return until > now;
+    }
+
+    public static void startReaperDeathOath(ServerPlayerEntity player, UUID target, int durationTicks) {
+        if (durationTicks <= 0 || target == null) {
+            return;
+        }
+        NbtCompound nbt = persistent(player);
+        nbt.putLong(KEY_REAPER_OATH_UNTIL, GemsTime.now(player) + durationTicks);
+        nbt.putUuid(KEY_REAPER_OATH_TARGET, target);
+    }
+
+    public static UUID reaperDeathOathTarget(ServerPlayerEntity player) {
+        NbtCompound nbt = persistent(player);
+        if (!nbt.contains(KEY_REAPER_OATH_TARGET, NbtElement.INT_ARRAY_TYPE)) {
+            return null;
+        }
+        return nbt.getUuid(KEY_REAPER_OATH_TARGET);
+    }
+
+    public static void clearReaperDeathOath(ServerPlayerEntity player) {
+        NbtCompound nbt = persistent(player);
+        nbt.remove(KEY_REAPER_OATH_UNTIL);
+        nbt.remove(KEY_REAPER_OATH_TARGET);
+    }
+
+    public static void startReaperGraveSteed(ServerPlayerEntity player, UUID steedUuid, int durationTicks) {
+        if (durationTicks <= 0 || steedUuid == null) {
+            return;
+        }
+        NbtCompound nbt = persistent(player);
+        nbt.putLong(KEY_REAPER_STEED_UNTIL, GemsTime.now(player) + durationTicks);
+        nbt.putUuid(KEY_REAPER_STEED_UUID, steedUuid);
+    }
+
+    public static void startReaperShadeClone(ServerPlayerEntity player, UUID cloneUuid, int durationTicks) {
+        if (durationTicks <= 0 || cloneUuid == null) {
+            return;
+        }
+        NbtCompound nbt = persistent(player);
+        nbt.putLong(KEY_REAPER_CLONE_UNTIL, GemsTime.now(player) + durationTicks);
+        nbt.putUuid(KEY_REAPER_CLONE_UUID, cloneUuid);
+    }
+
+    public static void startReaperBloodChargeCharging(ServerPlayerEntity player, int maxChargeTicks) {
+        if (maxChargeTicks <= 0) {
+            return;
+        }
+        NbtCompound nbt = persistent(player);
+        nbt.putLong(ReaperBloodCharge.KEY_CHARGING_UNTIL, GemsTime.now(player) + maxChargeTicks);
+        nbt.putInt(ReaperBloodCharge.KEY_CHARGED_TICKS, 0);
+    }
+
+    public static boolean finishReaperBloodChargeCharging(ServerPlayerEntity player) {
+        NbtCompound nbt = persistent(player);
+        long until = nbt.getLong(ReaperBloodCharge.KEY_CHARGING_UNTIL);
+        if (until <= 0) {
+            return false;
+        }
+        int charged = nbt.getInt(ReaperBloodCharge.KEY_CHARGED_TICKS);
+        int maxCharge = GemsBalance.v().reaper().bloodChargeMaxChargeTicks();
+        float mult = ReaperBloodCharge.computeMultiplier(charged, Math.max(1, maxCharge));
+        int buffDuration = GemsBalance.v().reaper().bloodChargeBuffDurationTicks();
+        ReaperBloodCharge.setBuff(player, mult, buffDuration);
+        ReaperBloodCharge.clearCharging(player);
+        return true;
     }
 
     public static void startUnbounded(ServerPlayerEntity player, int durationTicks) {
@@ -253,6 +353,60 @@ public final class AbilityRuntime {
                 AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.SNOWFLAKE, 1, 0.1D);
             }
         }
+    }
+
+    private static void tickSpaceGravityField(ServerPlayerEntity caster, long now) {
+        NbtCompound nbt = persistent(caster);
+        long until = nbt.getLong(KEY_SPACE_GRAVITY_UNTIL);
+        if (until <= 0) {
+            return;
+        }
+
+        UUID casterId = nbt.contains(KEY_SPACE_GRAVITY_CASTER, NbtElement.INT_ARRAY_TYPE) ? nbt.getUuid(KEY_SPACE_GRAVITY_CASTER) : caster.getUuid();
+        Identifier modifierId = spaceGravityModifierId(casterId);
+
+        MinecraftServer server = caster.getServer();
+        if (server == null) {
+            nbt.remove(KEY_SPACE_GRAVITY_UNTIL);
+            nbt.remove(KEY_SPACE_GRAVITY_CASTER);
+            return;
+        }
+
+        if (now >= until) {
+            nbt.remove(KEY_SPACE_GRAVITY_UNTIL);
+            nbt.remove(KEY_SPACE_GRAVITY_CASTER);
+            for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+                applyGravityMultiplier(p, modifierId, 1.0F);
+            }
+            return;
+        }
+
+        ServerWorld world = caster.getServerWorld();
+        int radius = GemsBalance.v().space().gravityFieldRadiusBlocks();
+        float allyMult = GemsBalance.v().space().gravityFieldAllyGravityMultiplier();
+        float enemyMult = GemsBalance.v().space().gravityFieldEnemyGravityMultiplier();
+        AbilityFeedback.ring(world, caster.getPos().add(0.0D, 0.25D, 0.0D), Math.min(7.0D, radius), net.minecraft.particle.ParticleTypes.END_ROD, 18);
+
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(caster) <= radius * (double) radius)) {
+            float mult = GemTrust.isTrusted(caster, other) ? allyMult : enemyMult;
+            applyGravityMultiplier(other, modifierId, mult);
+        }
+    }
+
+    private static void applyGravityMultiplier(ServerPlayerEntity player, Identifier modifierId, float multiplier) {
+        EntityAttributeInstance gravity = player.getAttributeInstance(EntityAttributes.GENERIC_GRAVITY);
+        if (gravity == null) {
+            return;
+        }
+        gravity.removeModifier(modifierId);
+        if (multiplier != 1.0F) {
+            double delta = (double) multiplier - 1.0D;
+            gravity.addTemporaryModifier(new EntityAttributeModifier(modifierId, delta, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        }
+    }
+
+    private static Identifier spaceGravityModifierId(UUID caster) {
+        return Identifier.of("gems", "space_gravity_" + caster);
     }
 
     private static void tickLifeCircle(ServerPlayerEntity caster, long now) {
@@ -464,6 +618,147 @@ public final class AbilityRuntime {
         NbtComponent.set(DataComponentTypes.CUSTOM_DATA, stack, data -> data.remove(CUSTOM_DATA_KEY_AMPLIFY));
     }
 
+    private static void tickReaperGraveSteed(ServerPlayerEntity player, long now) {
+        NbtCompound nbt = persistent(player);
+        long until = nbt.getLong(KEY_REAPER_STEED_UNTIL);
+        if (until <= 0) {
+            return;
+        }
+
+        MinecraftServer server = player.getServer();
+        if (server == null) {
+            nbt.remove(KEY_REAPER_STEED_UNTIL);
+            nbt.remove(KEY_REAPER_STEED_UUID);
+            return;
+        }
+
+        if (!nbt.contains(KEY_REAPER_STEED_UUID, NbtElement.INT_ARRAY_TYPE)) {
+            nbt.remove(KEY_REAPER_STEED_UNTIL);
+            return;
+        }
+        UUID steedUuid = nbt.getUuid(KEY_REAPER_STEED_UUID);
+        var e = SummonerSummons.findEntity(server, steedUuid);
+        if (!(e instanceof net.minecraft.entity.mob.SkeletonHorseEntity horse) || !horse.isAlive()) {
+            nbt.remove(KEY_REAPER_STEED_UNTIL);
+            nbt.remove(KEY_REAPER_STEED_UUID);
+            return;
+        }
+
+        if (now >= until) {
+            horse.discard();
+            nbt.remove(KEY_REAPER_STEED_UNTIL);
+            nbt.remove(KEY_REAPER_STEED_UUID);
+            return;
+        }
+
+        float decay = GemsBalance.v().reaper().graveSteedDecayDamagePerSecond();
+        if (decay > 0.0F) {
+            horse.damage(player.getDamageSources().magic(), decay);
+        }
+        AbilityFeedback.burstAt(player.getServerWorld(), horse.getPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.SMOKE, 1, 0.12D);
+    }
+
+    private static void tickReaperDeathOath(ServerPlayerEntity player, long now) {
+        NbtCompound nbt = persistent(player);
+        long until = nbt.getLong(KEY_REAPER_OATH_UNTIL);
+        if (until <= 0) {
+            return;
+        }
+        if (now >= until) {
+            clearReaperDeathOath(player);
+            return;
+        }
+
+        UUID targetUuid = reaperDeathOathTarget(player);
+        if (targetUuid == null) {
+            clearReaperDeathOath(player);
+            return;
+        }
+
+        MinecraftServer server = player.getServer();
+        if (server == null) {
+            clearReaperDeathOath(player);
+            return;
+        }
+
+        var e = SummonerSummons.findEntity(server, targetUuid);
+        if (!(e instanceof LivingEntity target) || !target.isAlive()) {
+            clearReaperDeathOath(player);
+            return;
+        }
+
+        float dmg = GemsBalance.v().reaper().deathOathSelfDamagePerSecond();
+        nonlethalDrain(player, dmg);
+        double dist = player.distanceTo(target);
+        player.sendMessage(Text.literal("Death Oath: " + target.getName().getString() + " (" + (int) dist + "m)"), true);
+    }
+
+    private static void tickReaperBloodChargeCharging(ServerPlayerEntity player, long now) {
+        NbtCompound nbt = persistent(player);
+        long until = nbt.getLong(ReaperBloodCharge.KEY_CHARGING_UNTIL);
+        if (until <= 0) {
+            return;
+        }
+        if (now >= until) {
+            ReaperBloodCharge.clearCharging(player);
+            player.sendMessage(Text.literal("Blood Charge fizzled."), true);
+            return;
+        }
+
+        float dmg = GemsBalance.v().reaper().bloodChargeSelfDamagePerSecond();
+        nonlethalDrain(player, dmg);
+        int charged = nbt.getInt(ReaperBloodCharge.KEY_CHARGED_TICKS);
+        charged = Math.addExact(charged, 20);
+        nbt.putInt(ReaperBloodCharge.KEY_CHARGED_TICKS, charged);
+    }
+
+    private static void tickReaperShadeClone(ServerPlayerEntity player, long now) {
+        NbtCompound nbt = persistent(player);
+        long until = nbt.getLong(KEY_REAPER_CLONE_UNTIL);
+        if (until <= 0) {
+            return;
+        }
+
+        MinecraftServer server = player.getServer();
+        if (server == null) {
+            nbt.remove(KEY_REAPER_CLONE_UNTIL);
+            nbt.remove(KEY_REAPER_CLONE_UUID);
+            return;
+        }
+
+        if (!nbt.contains(KEY_REAPER_CLONE_UUID, NbtElement.INT_ARRAY_TYPE)) {
+            nbt.remove(KEY_REAPER_CLONE_UNTIL);
+            return;
+        }
+        UUID cloneUuid = nbt.getUuid(KEY_REAPER_CLONE_UUID);
+        var e = SummonerSummons.findEntity(server, cloneUuid);
+        if (e == null || !e.isAlive()) {
+            nbt.remove(KEY_REAPER_CLONE_UNTIL);
+            nbt.remove(KEY_REAPER_CLONE_UUID);
+            return;
+        }
+
+        if (now >= until) {
+            e.discard();
+            nbt.remove(KEY_REAPER_CLONE_UNTIL);
+            nbt.remove(KEY_REAPER_CLONE_UUID);
+            return;
+        }
+
+        AbilityFeedback.burstAt(player.getServerWorld(), e.getPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.SOUL, 1, 0.08D);
+    }
+
+    private static void nonlethalDrain(ServerPlayerEntity player, float amount) {
+        if (amount <= 0.0F) {
+            return;
+        }
+        float health = player.getHealth();
+        float newHealth = Math.max(1.0F, health - amount);
+        if (newHealth < health) {
+            player.setHealth(newHealth);
+        }
+    }
+
     private static void applyMaxHealthModifier(ServerPlayerEntity player, Identifier id, double deltaHealth) {
         EntityAttributeInstance maxHealth = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         if (maxHealth == null) {
@@ -505,21 +800,55 @@ public final class AbilityRuntime {
 
     public static void cleanupOnDisconnect(MinecraftServer server, ServerPlayerEntity caster) {
         NbtCompound nbt = persistent(caster);
-        long until = nbt.getLong(KEY_LIFE_CIRCLE_UNTIL);
-        if (until <= 0) {
-            return;
+        long lifeCircleUntil = nbt.getLong(KEY_LIFE_CIRCLE_UNTIL);
+        if (lifeCircleUntil > 0) {
+            UUID casterId = nbt.contains(KEY_LIFE_CIRCLE_CASTER, NbtElement.INT_ARRAY_TYPE) ? nbt.getUuid(KEY_LIFE_CIRCLE_CASTER) : caster.getUuid();
+            Identifier bonusId = lifeCircleBonusId(casterId);
+            Identifier penaltyId = lifeCirclePenaltyId(casterId);
+            for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+                removeMaxHealthModifier(p, bonusId);
+                removeMaxHealthModifier(p, penaltyId);
+            }
+            nbt.remove(KEY_LIFE_CIRCLE_UNTIL);
+            nbt.remove(KEY_LIFE_CIRCLE_CASTER);
         }
 
-        UUID casterId = nbt.contains(KEY_LIFE_CIRCLE_CASTER, NbtElement.INT_ARRAY_TYPE) ? nbt.getUuid(KEY_LIFE_CIRCLE_CASTER) : caster.getUuid();
-        Identifier bonusId = lifeCircleBonusId(casterId);
-        Identifier penaltyId = lifeCirclePenaltyId(casterId);
-        for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
-            removeMaxHealthModifier(p, bonusId);
-            removeMaxHealthModifier(p, penaltyId);
+        long gravityUntil = nbt.getLong(KEY_SPACE_GRAVITY_UNTIL);
+        if (gravityUntil > 0) {
+            UUID casterId = nbt.contains(KEY_SPACE_GRAVITY_CASTER, NbtElement.INT_ARRAY_TYPE) ? nbt.getUuid(KEY_SPACE_GRAVITY_CASTER) : caster.getUuid();
+            Identifier modifierId = spaceGravityModifierId(casterId);
+            for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+                applyGravityMultiplier(p, modifierId, 1.0F);
+            }
+            nbt.remove(KEY_SPACE_GRAVITY_UNTIL);
+            nbt.remove(KEY_SPACE_GRAVITY_CASTER);
         }
 
-        nbt.remove(KEY_LIFE_CIRCLE_UNTIL);
-        nbt.remove(KEY_LIFE_CIRCLE_CASTER);
+        if (nbt.contains(KEY_REAPER_STEED_UUID, NbtElement.INT_ARRAY_TYPE)) {
+            UUID uuid = nbt.getUuid(KEY_REAPER_STEED_UUID);
+            var e = SummonerSummons.findEntity(server, uuid);
+            if (e != null) {
+                e.discard();
+            }
+        }
+        nbt.remove(KEY_REAPER_STEED_UNTIL);
+        nbt.remove(KEY_REAPER_STEED_UUID);
+
+        if (nbt.contains(KEY_REAPER_CLONE_UUID, NbtElement.INT_ARRAY_TYPE)) {
+            UUID uuid = nbt.getUuid(KEY_REAPER_CLONE_UUID);
+            var e = SummonerSummons.findEntity(server, uuid);
+            if (e != null) {
+                e.discard();
+            }
+        }
+        nbt.remove(KEY_REAPER_CLONE_UNTIL);
+        nbt.remove(KEY_REAPER_CLONE_UUID);
+
+        nbt.remove(KEY_REAPER_WITHERING_UNTIL);
+        clearReaperDeathOath(caster);
+        ReaperBloodCharge.clearCharging(caster);
+        ((GemsPersistentDataHolder) caster).gems$getPersistentData().remove(ReaperBloodCharge.KEY_BUFF_UNTIL);
+        ((GemsPersistentDataHolder) caster).gems$getPersistentData().remove(ReaperBloodCharge.KEY_BUFF_MULT);
     }
 
     private static GameMode parseGameMode(String name) {

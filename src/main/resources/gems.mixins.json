@@ -19,10 +19,13 @@
     "SculkShriekerSilenceMixin",
     "ServerPlayerEntityDeathMixin",
     "LivingEntitySoulNoDropsMixin",
+    "LivingEntitySoulNoExperienceMixin",
+    "EnderDragonSoulNoExperienceMixin",
     "LivingEntityFallDamageMixin",
     "LivingEntityFluxDamageStoreMixin",
     "LivingEntityRichRushLootMixin",
     "MobEntitySoulTargetingMixin",
+    "WitherEntitySoulTargetingMixin",
     "ServerPlayNetworkHandlerHotbarLockMixin",
     "ServerPlayerInteractionManagerRestrictionsMixin",
     "accessor.MobEntitySelectorsAccessor"

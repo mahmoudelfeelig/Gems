@@ -5,6 +5,7 @@ import com.feel.gems.item.ModItems;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.GemPowers;
+import com.feel.gems.power.AbilityRuntime;
 import com.feel.gems.state.GemPlayerState;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
@@ -38,7 +39,9 @@ public abstract class ServerPlayerEntityDeathMixin {
         int victimHeartsBefore = GemPlayerState.getMaxHearts(victim);
         if (victimHeartsBefore > GemPlayerState.MIN_MAX_HEARTS) {
             GemPlayerState.setMaxHearts(victim, victimHeartsBefore - 1);
-            victim.dropStack(new ItemStack(ModItems.HEART));
+            ItemStack heart = new ItemStack(ModItems.HEART);
+            AbilityRuntime.setOwnerIfMissing(heart, victim.getUuid());
+            victim.dropStack(heart);
         }
 
         GemPlayerState.applyMaxHearts(victim);

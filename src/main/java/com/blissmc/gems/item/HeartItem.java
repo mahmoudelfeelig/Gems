@@ -1,7 +1,9 @@
 package com.feel.gems.item;
 
 import com.feel.gems.net.GemStateSync;
+import com.feel.gems.power.AbilityRuntime;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -9,6 +11,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
+
+import java.util.UUID;
 
 public final class HeartItem extends Item {
     public HeartItem(Settings settings) {
@@ -23,6 +27,15 @@ public final class HeartItem extends Item {
         }
         if (!(user instanceof ServerPlayerEntity player)) {
             return TypedActionResult.pass(stack);
+        }
+
+        UUID ownerUuid = AbilityRuntime.getOwner(stack);
+        if (ownerUuid != null && !ownerUuid.equals(player.getUuid())) {
+            ServerPlayerEntity owner = player.getServer().getPlayerManager().getPlayer(ownerUuid);
+            if (owner != null && GemTrust.isTrusted(owner, player)) {
+                player.sendMessage(net.minecraft.text.Text.literal("You can't consume a teammate's heart."), true);
+                return TypedActionResult.fail(stack);
+            }
         }
 
         GemPlayerState.initIfNeeded(player);

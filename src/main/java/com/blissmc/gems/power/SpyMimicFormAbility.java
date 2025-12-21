@@ -1,0 +1,43 @@
+package com.feel.gems.power;
+
+import com.feel.gems.config.GemsBalance;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+
+public final class SpyMimicFormAbility implements GemAbility {
+    @Override
+    public Identifier id() {
+        return PowerIds.SPY_MIMIC_FORM;
+    }
+
+    @Override
+    public String name() {
+        return "Mimic Form";
+    }
+
+    @Override
+    public String description() {
+        return "Temporarily gain extra speed/health based on your last killed mob.";
+    }
+
+    @Override
+    public int cooldownTicks() {
+        return GemsBalance.v().spyMimic().mimicFormCooldownTicks();
+    }
+
+    @Override
+    public boolean activate(ServerPlayerEntity player) {
+        if (SpyMimicSystem.lastKilledType(player) == null) {
+            player.sendMessage(Text.literal("No recent mob to mimic."), true);
+            return false;
+        }
+        int duration = GemsBalance.v().spyMimic().mimicFormDurationTicks();
+        if (duration <= 0) {
+            return false;
+        }
+        SpyMimicSystem.startMimicForm(player, duration);
+        return true;
+    }
+}
+

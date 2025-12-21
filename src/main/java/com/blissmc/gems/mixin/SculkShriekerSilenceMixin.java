@@ -17,9 +17,8 @@ public abstract class SculkShriekerSilenceMixin {
         if (player == null) {
             return;
         }
-        if (GemPowers.isPassiveActive(player, PowerIds.SCULK_SILENCE)) {
+        if (GemPowers.isPassiveActive(player, PowerIds.SCULK_SILENCE) || GemPowers.isPassiveActive(player, PowerIds.SPY_SILENT_STEP)) {
             ci.cancel();
         }
     }
 }
-

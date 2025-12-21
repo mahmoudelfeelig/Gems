@@ -28,7 +28,7 @@ public final class EnergyUpgradeItem extends Item {
 
         GemPlayerState.initIfNeeded(player);
         int before = GemPlayerState.getEnergy(player);
-        if (before >= GemPlayerState.MAX_ENERGY) {
+        if (before >= GemPlayerState.getMaxEnergy(player)) {
             return TypedActionResult.fail(stack);
         }
 

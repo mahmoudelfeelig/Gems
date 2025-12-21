@@ -165,6 +165,112 @@ public final class ModPassives {
                 "Double Debris",
                 "Furnace outputs double netherite scrap."
         ));
+
+        register(new TerrorDreadAuraPassive());
+        register(new TerrorFearlessPassive());
+        register(new MarkerPassive(
+                PowerIds.TERROR_BLOOD_PRICE,
+                "Blood Price",
+                "On killing a player, gain a short burst of power."
+        ));
+
+        register(new MarkerPassive(
+                PowerIds.SUMMONER_BOND,
+                "Summoner's Bond",
+                "Your summons will never harm you or your trusted players."
+        ));
+        register(new MarkerPassive(
+                PowerIds.SUMMONER_COMMANDERS_MARK,
+                "Commander's Mark",
+                "Sword hits mark targets; summons prioritize and gain a short damage buff."
+        ));
+        register(new MarkerPassive(
+                PowerIds.SUMMONER_SOULBOUND,
+                "Soulbound Minions",
+                "Summons despawn when you die or log out."
+        ));
+        register(new MarkerPassive(
+                PowerIds.SUMMONER_FAMILIARS_BLESSING,
+                "Familiar's Blessing",
+                "Summons spawn with bonus health."
+        ));
+
+        // Space
+        register(new MarkerPassive(
+                PowerIds.SPACE_LUNAR_SCALING,
+                "Lunar Scaling",
+                "Outgoing damage and self-healing scale with the current moon phase (full moon strongest)."
+        ));
+        register(new StatusEffectPassive(
+                PowerIds.SPACE_LOW_GRAVITY,
+                "Low Gravity",
+                "Minor Slow Falling and no fall damage while the gem is active.",
+                StatusEffects.SLOW_FALLING,
+                0
+        ));
+        register(new MarkerPassive(
+                PowerIds.SPACE_STARSHIELD,
+                "Starshield",
+                "Reduces projectile damage while outdoors at night."
+        ));
+
+        // Reaper
+        register(new MarkerPassive(
+                PowerIds.REAPER_ROT_EATER,
+                "Rot Eater",
+                "Eating rotten flesh or spider eyes does not apply negative effects."
+        ));
+        register(new MarkerPassive(
+                PowerIds.REAPER_UNDEAD_WARD,
+                "Undead Ward",
+                "Reduces damage taken from undead mobs."
+        ));
+        register(new MarkerPassive(
+                PowerIds.REAPER_HARVEST,
+                "Harvest",
+                "Killing mobs grants a brief burst of regeneration."
+        ));
+
+        // Pillager
+        register(new MarkerPassive(
+                PowerIds.PILLAGER_RAIDERS_TRAINING,
+                "Raider's Training",
+                "Your fired projectiles travel faster."
+        ));
+        register(new MarkerPassive(
+                PowerIds.PILLAGER_SHIELDBREAKER,
+                "Shieldbreaker",
+                "Your melee hits can disable shields without using an axe."
+        ));
+        register(new MarkerPassive(
+                PowerIds.PILLAGER_ILLAGER_DISCIPLINE,
+                "Illager Discipline",
+                "When you drop low, gain a brief burst of Resistance (cooldown)."
+        ));
+
+        // Spy/Mimic
+        register(new MarkerPassive(
+                PowerIds.SPY_STILLNESS_CLOAK,
+                "Stillness Cloak",
+                "Stand still to become invisible with no particles; moving cancels."
+        ));
+        register(new MarkerPassive(
+                PowerIds.SPY_SILENT_STEP,
+                "Silent Step",
+                "Suppresses sculk sensor/shrieker activation from your actions."
+        ));
+        register(new MarkerPassive(
+                PowerIds.SPY_FALSE_SIGNATURE,
+                "False Signature",
+                "Reduces how much information enemies can infer from your effects."
+        ));
+        register(new StatusEffectPassive(
+                PowerIds.SPY_QUICK_HANDS,
+                "Quick Hands",
+                "Permanent minor Haste while the gem is active.",
+                StatusEffects.HASTE,
+                0
+        ));
     }
 
     private ModPassives() {

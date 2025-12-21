@@ -20,6 +20,12 @@ public final class ModItems {
     public static final Item SPEED_GEM = registerGem(GemId.SPEED);
     public static final Item STRENGTH_GEM = registerGem(GemId.STRENGTH);
     public static final Item WEALTH_GEM = registerGem(GemId.WEALTH);
+    public static final Item TERROR_GEM = registerGem(GemId.TERROR);
+    public static final Item SUMMONER_GEM = registerGem(GemId.SUMMONER);
+    public static final Item SPACE_GEM = registerGem(GemId.SPACE);
+    public static final Item REAPER_GEM = registerGem(GemId.REAPER);
+    public static final Item PILLAGER_GEM = registerGem(GemId.PILLAGER);
+    public static final Item SPY_MIMIC_GEM = registerGem(GemId.SPY_MIMIC);
 
     private ModItems() {
     }
@@ -39,6 +45,12 @@ public final class ModItems {
             case SPEED -> SPEED_GEM;
             case STRENGTH -> STRENGTH_GEM;
             case WEALTH -> WEALTH_GEM;
+            case TERROR -> TERROR_GEM;
+            case SUMMONER -> SUMMONER_GEM;
+            case SPACE -> SPACE_GEM;
+            case REAPER -> REAPER_GEM;
+            case PILLAGER -> PILLAGER_GEM;
+            case SPY_MIMIC -> SPY_MIMIC_GEM;
         };
     }
 

@@ -1,3 +1,8 @@
+gamerule doMobSpawning false
+gamerule doWeatherCycle false
+gamerule randomTickSpeed 0
+forceload add 0 0
+tp @a 0 64 0
 player bot1 spawn
 player bot2 spawn
 player bot3 spawn

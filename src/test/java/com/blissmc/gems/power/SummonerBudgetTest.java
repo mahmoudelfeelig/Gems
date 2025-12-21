@@ -1,0 +1,29 @@
+package com.feel.gems.power;
+
+import com.feel.gems.config.GemsBalance;
+import com.feel.gems.config.GemsBalanceConfig;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class SummonerBudgetTest {
+    @Test
+    void defaultLoadoutFitsBudget() {
+        GemsBalance.Values v = GemsBalance.Values.defaults();
+        int cost = SummonerBudget.totalLoadoutCost(v.summoner());
+        assertEquals(30, cost);
+        assertTrue(cost <= v.summoner().maxPoints());
+    }
+
+    @Test
+    void missingCostsDoNotContribute() {
+        var specs = List.of(new GemsBalanceConfig.Summoner.SummonSpec("minecraft:zombie", 3));
+        assertEquals(0, SummonerBudget.slotCost(Map.of(), specs));
+        assertEquals(0, SummonerBudget.slotCost(null, specs));
+    }
+}
+

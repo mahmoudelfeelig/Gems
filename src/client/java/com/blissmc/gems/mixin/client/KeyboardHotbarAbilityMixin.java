@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Keyboard.class)
 public abstract class KeyboardHotbarAbilityMixin {
-    @Inject(method = "onKey", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "onKey(JIIII)V", at = @At("HEAD"), cancellable = true, require = 0)
     private void gems$consumeHotbarWhenModifierDown(long window, int key, int scancode, int action, int modifiers, CallbackInfo ci) {
         if (action != GLFW.GLFW_PRESS) {
             return;
@@ -43,4 +43,3 @@ public abstract class KeyboardHotbarAbilityMixin {
         }
     }
 }
-

@@ -1,6 +1,7 @@
 package com.feel.gems.mixin;
 
 import com.feel.gems.power.SoulSummons;
+import com.feel.gems.power.SummonerSummons;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.world.ServerWorld;
@@ -14,9 +15,8 @@ public abstract class LivingEntitySoulNoDropsMixin {
     @Inject(method = "drop", at = @At("HEAD"), cancellable = true)
     private void gems$soulNoDrops(ServerWorld world, DamageSource source, CallbackInfo ci) {
         LivingEntity self = (LivingEntity) (Object) this;
-        if (SoulSummons.isSoul(self)) {
+        if (SoulSummons.isSoul(self) || SummonerSummons.isSummon(self)) {
             ci.cancel();
         }
     }
 }
-

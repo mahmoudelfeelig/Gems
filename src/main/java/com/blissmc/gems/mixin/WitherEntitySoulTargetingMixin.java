@@ -1,6 +1,7 @@
 package com.feel.gems.mixin;
 
 import com.feel.gems.power.SoulSummons;
+import com.feel.gems.power.SummonerSummons;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.boss.WitherEntity;
@@ -24,7 +25,9 @@ public abstract class WitherEntitySoulTargetingMixin {
         if (!(self.getWorld() instanceof ServerWorld world)) {
             return entityId;
         }
-        if (!SoulSummons.isSoul(self)) {
+        boolean soul = SoulSummons.isSoul(self);
+        boolean summon = SummonerSummons.isSummon(self);
+        if (!soul && !summon) {
             return entityId;
         }
 
@@ -33,7 +36,7 @@ public abstract class WitherEntitySoulTargetingMixin {
             return entityId;
         }
 
-        UUID ownerUuid = SoulSummons.ownerUuid(self);
+        UUID ownerUuid = soul ? SoulSummons.ownerUuid(self) : SummonerSummons.ownerUuid(self);
         if (ownerUuid == null) {
             return 0;
         }
@@ -47,4 +50,3 @@ public abstract class WitherEntitySoulTargetingMixin {
         return entityId;
     }
 }
-

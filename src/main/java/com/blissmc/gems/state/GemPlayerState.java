@@ -14,10 +14,12 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 import java.util.EnumSet;
+import com.feel.gems.assassin.AssassinState;
 
 public final class GemPlayerState {
     private static final String KEY_ACTIVE_GEM = "activeGem";
     private static final String KEY_ENERGY = "energy";
+    private static final String KEY_ENERGY_CAP_PENALTY = "energyCapPenalty";
     private static final String KEY_MAX_HEARTS = "maxHearts";
     private static final String KEY_OWNED_GEMS = "ownedGems";
 
@@ -44,6 +46,9 @@ public final class GemPlayerState {
 
         if (!data.contains(KEY_ENERGY, NbtElement.INT_TYPE)) {
             data.putInt(KEY_ENERGY, DEFAULT_ENERGY);
+        }
+        if (!data.contains(KEY_ENERGY_CAP_PENALTY, NbtElement.INT_TYPE)) {
+            data.putInt(KEY_ENERGY_CAP_PENALTY, 0);
         }
         if (!data.contains(KEY_MAX_HEARTS, NbtElement.INT_TYPE)) {
             data.putInt(KEY_MAX_HEARTS, DEFAULT_MAX_HEARTS);
@@ -74,6 +79,13 @@ public final class GemPlayerState {
 
     public static void setActiveGem(PlayerEntity player, GemId gem) {
         NbtCompound data = root(player);
+        GemId prev = getActiveGem(player);
+        if (prev != gem && player instanceof ServerPlayerEntity sp) {
+            com.feel.gems.power.AbilityDisables.clear(sp);
+            if (prev == GemId.SPY_MIMIC && gem != GemId.SPY_MIMIC) {
+                com.feel.gems.power.SpyMimicSystem.clearOnGemSwitchAway(sp);
+            }
+        }
         data.putString(KEY_ACTIVE_GEM, gem.name());
         addOwnedGem(player, gem);
     }
@@ -121,17 +133,43 @@ public final class GemPlayerState {
         if (!data.contains(KEY_ENERGY, NbtElement.INT_TYPE)) {
             return DEFAULT_ENERGY;
         }
-        return clamp(data.getInt(KEY_ENERGY), MIN_ENERGY, MAX_ENERGY);
+        return clamp(data.getInt(KEY_ENERGY), MIN_ENERGY, getMaxEnergy(player));
     }
 
     public static int setEnergy(PlayerEntity player, int energy) {
-        int clamped = clamp(energy, MIN_ENERGY, MAX_ENERGY);
+        int clamped = clamp(energy, MIN_ENERGY, getMaxEnergy(player));
         root(player).putInt(KEY_ENERGY, clamped);
         return clamped;
     }
 
     public static int addEnergy(PlayerEntity player, int delta) {
         return setEnergy(player, getEnergy(player) + delta);
+    }
+
+    public static int getEnergyCapPenalty(PlayerEntity player) {
+        NbtCompound data = root(player);
+        if (!data.contains(KEY_ENERGY_CAP_PENALTY, NbtElement.INT_TYPE)) {
+            return 0;
+        }
+        return clamp(data.getInt(KEY_ENERGY_CAP_PENALTY), 0, MAX_ENERGY);
+    }
+
+    public static int getMaxEnergy(PlayerEntity player) {
+        return Math.max(MIN_ENERGY, MAX_ENERGY - getEnergyCapPenalty(player));
+    }
+
+    /**
+     * Applies a permanent reduction to the player's maximum energy cap and clamps current energy down if needed.
+     *
+     * <p>This is used by certain abilities as a permanent "life" cost.</p>
+     */
+    public static int addEnergyCapPenalty(PlayerEntity player, int delta) {
+        NbtCompound data = root(player);
+        int next = clamp(getEnergyCapPenalty(player) + delta, 0, MAX_ENERGY);
+        data.putInt(KEY_ENERGY_CAP_PENALTY, next);
+        // Ensure current energy respects the new cap.
+        setEnergy(player, getEnergy(player));
+        return next;
     }
 
     public static int getMaxHearts(PlayerEntity player) {
@@ -159,7 +197,9 @@ public final class GemPlayerState {
         }
         maxHealth.removeModifier(HEARTS_MODIFIER_ID);
 
-        int hearts = getMaxHearts(player);
+        int hearts = AssassinState.isAssassin(player)
+                ? AssassinState.getAssassinHeartsForAttribute(player)
+                : getMaxHearts(player);
         double bonusHealth = (hearts - DEFAULT_MAX_HEARTS) * 2.0D;
         if (bonusHealth != 0.0D) {
             maxHealth.addPersistentModifier(new EntityAttributeModifier(

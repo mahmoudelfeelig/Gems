@@ -55,6 +55,10 @@ public final class GemAbilities {
             player.sendMessage(Text.literal("Ability not registered: " + abilityId), true);
             return;
         }
+        if (AbilityDisables.isDisabled(player, abilityId)) {
+            player.sendMessage(Text.literal("That ability has been stolen from you."), true);
+            return;
+        }
 
         long now = GemsTime.now(player);
         long nextAllowed = GemAbilityCooldowns.nextAllowedTick(player, abilityId);
@@ -68,6 +72,8 @@ public final class GemAbilities {
         if (!ok) {
             return;
         }
+
+        SpyMimicSystem.onAbilityUsed(player.getServer(), player, abilityId);
 
         int cooldown = Math.max(0, ability.cooldownTicks());
         if (cooldown > 0) {

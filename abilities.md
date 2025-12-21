@@ -4,7 +4,7 @@ This doc is player-facing and lists what each gem does, plus the default balanci
 
 ## Keybinds (default)
 
-- **Ability cast**: hold `Gems Modifier` (default: Left Alt) + press `Ability Slot N` (defaults: `1..9` and `0` for slot 10).
+- **Ability cast**: hold `Gems Modifier` (default: Left Alt) + press a hotbar number key (`1..9`).
 - **Astra Soul Release**: the slot **after** Astra’s last ability (ex: 7 abilities → Soul Release is `Alt + Ability Slot 8`).
 - All of these can be changed in `Options → Controls → Gems` (and hotbar number keys are suppressed while the modifier is held, so hotbar usage stays normal).
 
@@ -95,7 +95,7 @@ With Carpet installed, you can also spawn 20 fake players and run the same tests
   - Defaults: `staticBurstCooldownSeconds=30`, `staticBurstRadiusBlocks=8`, `staticBurstMaxDamage=20.0`, `staticBurstStoreWindowSeconds=120`
 
 **Charge item values**
-- Defaults: `chargeDiamondBlock=25`, `chargeGoldBlock=15`, `chargeCopperBlock=5`, `chargeEnchantedDiamondItem=20`
+- Defaults: `chargeDiamondBlock=25`, `chargeGoldBlock=15`, `chargeCopperBlock=5`, `chargeEmeraldBlock=20`, `chargeAmethystBlock=10`, `chargeNetheriteScrap=35`, `chargeEnchantedDiamondItem=20`
 - Overcharge defaults: `overchargeDelaySeconds=5`, `overchargePerSecond=5`, `overchargeSelfDamagePerSecond=1.0`
 
 ## Life Gem
@@ -185,13 +185,133 @@ With Carpet installed, you can also spawn 20 fake players and run the same tests
 - Rich Rush: temporarily boosts mob drops and ore yields.
   - Defaults: `richRushCooldownSeconds=540`, `richRushDurationSeconds=180`
 
+## Terror Gem
+
+**Passives**
+- Dread Aura: nearby untrusted players get Darkness.
+  - Defaults: `dreadAuraRadiusBlocks=10`, `dreadAuraAmplifier=0`
+- Fearless: cleanses Blindness and Darkness from the holder.
+- Blood Price: on killing a player, gain a short Strength/Resistance burst.
+  - Defaults: `bloodPriceDurationSeconds=6`, `bloodPriceStrengthAmplifier=1`, `bloodPriceResistanceAmplifier=0`
+
+**Abilities**
+- Terror Trade: target a player and sacrifice yourself to attempt to kill them.
+  - Totems will still save the target (totem pops).
+  - Costs: `terrorTradeHeartsCost=2` hearts, and `terrorTradePermanentEnergyPenalty=2` permanent max-energy (cap reduction).
+  - Limited uses: `terrorTradeMaxUses=3` uses per player total (persists across deaths and gem swaps).
+  - Defaults: `terrorTradeCooldownSeconds=180`, `terrorTradeRangeBlocks=30`
+- Panic Ring: spawns primed TNT around you.
+  - Defaults: `panicRingCooldownSeconds=60`, `panicRingTntCount=5`, `panicRingFuseTicks=50`, `panicRingRadiusBlocks=1.6`
+
+## Summoner Gem
+
+**Passives**
+- Summoner’s Bond: summons will not target you or your trusted players.
+- Commander’s Mark: sword hits “mark” the target; summons are commanded toward them and gain temporary Strength.
+  - Defaults: `commandersMarkDurationSeconds=3`, `commandersMarkStrengthAmplifier=0`, `commandRangeBlocks=32`
+- Soulbound Minions: summons despawn when you die or log out.
+- Familiar’s Blessing: summons spawn with bonus max health.
+  - Defaults: `summonBonusHealth=4.0`
+
+**Abilities**
+- Summon 1–5: spawns the configured minions for that slot.
+  - Budget: total loadout cost (all 5 slots combined) must be `<= maxPoints` and active summons are capped.
+  - Defaults: `maxPoints=50`, `maxActiveSummons=20`, `summonLifetimeSeconds=120`, `summonSlotCooldownSeconds=30`
+  - Default slot loadout:
+    - Slot 1: 2× zombie
+    - Slot 2: 2× skeleton
+    - Slot 3: 1× creeper
+- Recall: despawns all of your active summons.
+  - Defaults: `recallCooldownSeconds=20`
+
+## Space Gem
+
+**Passives**
+- Lunar Scaling: your outgoing damage and self-healing scale with the moon phase (full moon strongest).
+  - Defaults: `lunarMinMultiplier=0.85`, `lunarMaxMultiplier=1.20`
+- Low Gravity: minor Slow Falling and no fall damage while the gem is active.
+- Starshield: reduces projectile damage while outdoors at night.
+  - Defaults: `starshieldProjectileDamageMultiplier=0.80`
+
+**Abilities**
+- Orbital Laser: strikes the block you're looking at; `Sneak + cast` turns it into mining mode.
+  - Defaults: `orbitalLaserCooldownSeconds=60`, `orbitalLaserRangeBlocks=64`, `orbitalLaserDelaySeconds=1`, `orbitalLaserRadiusBlocks=4`, `orbitalLaserDamage=10.0`
+  - Mining defaults: `orbitalLaserMiningRadiusBlocks=2`, `orbitalLaserMiningHardnessCap=60.0`, `orbitalLaserMiningMaxBlocks=64`
+- Gravity Field: AOE around you that makes trusted players lighter and untrusted players heavier (movement feel changes via gravity).
+  - Defaults: `gravityFieldCooldownSeconds=45`, `gravityFieldDurationSeconds=10`, `gravityFieldRadiusBlocks=10`, `gravityFieldAllyGravityMultiplier=0.75`, `gravityFieldEnemyGravityMultiplier=1.25`
+- Black Hole: pulls entities inward and deals periodic damage.
+  - Defaults: `blackHoleCooldownSeconds=60`, `blackHoleDurationSeconds=6`, `blackHoleRadiusBlocks=8`, `blackHolePullStrength=0.10`, `blackHoleDamagePerSecond=2.0`
+- White Hole: pushes entities outward and deals periodic damage.
+  - Defaults: `whiteHoleCooldownSeconds=60`, `whiteHoleDurationSeconds=6`, `whiteHoleRadiusBlocks=8`, `whiteHolePushStrength=0.12`, `whiteHoleDamagePerSecond=1.0`
+
+## Reaper Gem
+
+**Passives**
+- Rot Eater: eating rotten flesh/spider eyes does not apply negative effects.
+- Undead Ward: reduced damage taken from undead mobs.
+  - Defaults: `undeadWardDamageMultiplier=0.80`
+- Harvest: killing mobs grants brief Regeneration.
+  - Defaults: `harvestRegenDurationSeconds=4`, `harvestRegenAmplifier=0`
+
+**Abilities**
+- Grave Steed: summons a saddled skeleton horse mount that decays over time.
+  - Defaults: `graveSteedCooldownSeconds=60`, `graveSteedDurationSeconds=30`, `graveSteedDecayDamagePerSecond=1.0`
+- Withering Strikes: temporarily makes your melee hits apply Wither.
+  - Defaults: `witheringStrikesCooldownSeconds=45`, `witheringStrikesDurationSeconds=10`, `witheringStrikesWitherDurationSeconds=4`, `witheringStrikesWitherAmplifier=0`
+- Death Oath: choose a target; you take damage over time until you hit them (or it expires).
+  - Defaults: `deathOathCooldownSeconds=60`, `deathOathDurationSeconds=12`, `deathOathRangeBlocks=48`, `deathOathSelfDamagePerSecond=1.0`
+- Scythe Sweep: wide melee cleave in front of you (5 block reach).
+  - Defaults: `scytheSweepCooldownSeconds=20`, `scytheSweepRangeBlocks=5`, `scytheSweepArcDegrees=110`, `scytheSweepDamage=7.0`, `scytheSweepKnockback=0.55`
+- Blood Charge: hold to sacrifice health; your next hit/ability is amplified for a short window.
+  - Defaults: `bloodChargeCooldownSeconds=60`, `bloodChargeMaxChargeSeconds=8`, `bloodChargeSelfDamagePerSecond=1.0`, `bloodChargeMaxMultiplier=1.60`, `bloodChargeBuffDurationSeconds=8`
+- Shade Clone: spawns a short-lived clone that looks real (no damage).
+  - Defaults: `shadeCloneCooldownSeconds=90`, `shadeCloneDurationSeconds=12`, `shadeCloneMaxHealth=20.0`
+
+## Pillager Gem
+
+**Passives**
+- Raider’s Training: your fired projectiles travel faster.
+  - Defaults: `raidersTrainingProjectileVelocityMultiplier=1.15`
+- Shieldbreaker: your melee hits can disable shields even without an axe (untrusted players only).
+  - Defaults: `shieldbreakerDisableCooldownTicks=80`
+- Illager Discipline: when you drop below a health threshold, gain a burst of Resistance (cooldown).
+  - Defaults: `illagerDisciplineThresholdHearts=4.0`, `illagerDisciplineResistanceDurationSeconds=4`, `illagerDisciplineResistanceAmplifier=0`, `illagerDisciplineCooldownSeconds=45`
+
+**Abilities**
+- Fangs: conjures an evoker-fangs line at the target zone (entity or block).
+  - Defaults: `fangsCooldownSeconds=25`, `fangsRangeBlocks=24`, `fangsCount=8`, `fangsSpacingBlocks=1.25`, `fangsWarmupStepTicks=2`
+- Ravage: bashes a target with heavy knockback (untrusted players only).
+  - Defaults: `ravageCooldownSeconds=20`, `ravageRangeBlocks=6`, `ravageDamage=6.0`, `ravageKnockback=1.25`
+- Vindicator Break: temporary buff that empowers melee hits and disables shields on contact (untrusted players only).
+  - Defaults: `vindicatorBreakCooldownSeconds=35`, `vindicatorBreakDurationSeconds=8`, `vindicatorBreakStrengthAmplifier=0`, `vindicatorBreakShieldDisableCooldownTicks=100`
+- Volley: automatically fires a short burst of arrows (does not require ammo).
+  - Defaults: `volleyCooldownSeconds=45`, `volleyDurationSeconds=3`, `volleyPeriodTicks=10`, `volleyArrowsPerShot=1`, `volleyArrowDamage=4.0`, `volleyArrowVelocity=3.0`, `volleyArrowInaccuracy=1.0`
+
+## Spy / Mimic Gem
+
+**Passives**
+- Stillness Cloak: stand still for a few seconds to become invisible with no particles (refreshes while still).
+  - Defaults: `stillnessSeconds=5`, `stillnessMoveEpsilonBlocks=0.05`, `stillnessInvisRefreshSeconds=2`
+- Silent Step: prevents sculk sensor/shrieker activations caused by you.
+- False Signature: makes you harder to track with “mark/track” style gem abilities.
+- Quick Hands: permanent minor Haste while active.
+
+**Abilities**
+- Mimic Form: requires a recent mob kill; temporarily grants invisibility + bonus max health + speed.
+  - Defaults: `mimicFormCooldownSeconds=60`, `mimicFormDurationSeconds=12`, `mimicFormBonusMaxHealth=4.0`, `mimicFormSpeedMultiplier=1.10`
+- Echo: replays the last observed ability used in front of you within a time window.
+  - Observation defaults: `observeRangeBlocks=24`, `observeWindowSeconds=600`
+  - Defaults: `echoCooldownSeconds=25`, `echoWindowSeconds=8`
+- Steal: after witnessing the same ability enough times (without dying), steal it into a limited list; the victim temporarily loses that ability until they swap gems.
+  - Defaults: `stealCooldownSeconds=60`, `stealRequiredWitnessCount=4`, `maxStolenAbilities=3`
+- Smoke Bomb: blinds/slows nearby untrusted players and briefly cloaks you.
+  - Defaults: `smokeBombCooldownSeconds=30`, `smokeBombRadiusBlocks=8`, `smokeBombDurationSeconds=6`, `smokeBombBlindnessAmplifier=0`, `smokeBombSlownessAmplifier=0`
+- Stolen Cast: casts your selected stolen ability; `Sneak + cast` cycles selection.
+  - Defaults: `stolenCastCooldownSeconds=20`
+
 ---
 
-# Planned / Design Notes (not implemented yet)
-
-This section is a design spec for the next iteration. Nothing below this header is guaranteed to exist in the current build.
-
-## Server Gameplay Loop: “Assassin” Endgame
+# Assassin Endgame
 
 - Everyone spawns normally with a random gem.
 - If a player dies while already at **5 max hearts**, they become an **Assassin**.
@@ -209,9 +329,11 @@ This section is a design spec for the next iteration. Nothing below this header 
     - “Final kill” = killing a player who was at 5 hearts and thereby turning them into an Assassin.
 - The Assassin with the most points is matched against the last non-Assassin survivor (admin-run duel).
 
-## Heart Items: teammate restriction (implemented)
+## Heart Items: teammate restriction
 
 - Heart items can be consumed by anyone *except* players trusted by the heart’s owner (prevents teammate boosting).
+
+# Planned / Design Notes (not implemented yet)
 
 ## Speed Gem: scaling + expansion (planned)
 
@@ -240,138 +362,6 @@ This section is a design spec for the next iteration. Nothing below this header 
   - Terminal Velocity: `duration` scales with momentum (cap to avoid over-long buffs).
 
 ## New Gems (planned)
-
-### Terror Gem
-- Abilities:
-  - “Terror Trade”: kill yourself to kill a target (totem pops instead of dying if held). Costs **-2 hearts** and **-2 permanent energy** (even if Assassin). Hard cap: **3 total uses per player** (persistent across gem changes and deaths).
-  - “Panic Ring”: spawn **5 primed TNT** around you.
-
-**Proposed Terror passives (level 1)**
-- Dread Aura: untrusted players within a radius get short Darkness pulses (pulse every second; no per-tick spam).
-- Fearless: immune to Darkness/Blindness from gem sources (including your own Dread Aura).
-- Blood Price: on killing a player, gain a short Strength burst (refreshes, stacks).
-
-### Summoner Gem
-
-**Proposed Summoner passives (level 1)**
-- Summon Mastery: summoned mobs never target you or your trusted list.
-- Commander’s Mark: if you hit a player with a sword, they become “marked” for 3s; your summons prioritize them and deal bonus damage to them.
-- Pack Tactics: summons gain a small damage bonus when multiple summons from the same owner are nearby.
-- Soulbound: your summons despawn cleanly on your death/logoff to prevent server clutter.
-
-- Core system:
-  - You have a configurable pool of “points/coins/mana” (ex: 50) and per-mob costs (ex: Zombie 5, Skeleton 5, Creeper 10, Piglin Brute 25).
-  - Ability slots 1–5 each spawn the configured summon for that slot.
-  - Summons are never hostile to you or your trust list.
-  - Summons prioritize a target you hit with a sword within the last 3 seconds and deal increased damage to that target.
-  - No summoned mobs drop loot or XP.
-  - Ender Dragon / Wither excluded.
-
-**Proposed Summoner abilities**
-- Summon Slot 1: spawns the configured summon set for slot 1.
-- Summon Slot 2: spawns the configured summon set for slot 2.
-- Summon Slot 3: spawns the configured summon set for slot 3.
-- Summon Slot 4: spawns the configured summon set for slot 4.
-- Summon Slot 5: spawns the configured summon set for slot 5.
-- Recall: teleports your active summons to you (short cooldown; fails if too far / in other dimension).
-
-### Space Gem
-- Passives:
-  - Damage/healing scaling based on moon phase.
-
-**Proposed Space passives (level 1)**
-- Lunar Scaling: damage/healing multipliers based on moon phase (new moon weakest → full moon strongest).
-- Low Gravity: permanent minor Slow Falling and no fall damage while gem is active.
-- Starshield: reduced projectile damage while outdoors at night (server-side check; no tick scanning).
-
-- Abilities:
-  - Orbital laser strike (area selection; “shift to mine” mode; can mine hard blocks like obsidian).
-  - Gravity control field (per-player control within range: lighter vs heavier).
-  - Black hole that pulls/damages mobs/players.
-  - White hole that pushes away mobs/players.
-
-**Proposed Space abilities**
-- Orbital Laser:
-  - Cast selects a target block position within range.
-  - Mode toggles between **Damage** and **Mining** (Mining breaks blocks with a whitelist + hardness cap).
-  - Telegraph: visible beam + warning particles before impact.
-- Gravity Field:
-  - Creates a radius around the caster.
-  - Second cast cycles targeting mode: **Allies Up / Enemies Down / Manual**.
-  - Manual mode lets you “tag” one player at a time for Up or Down within the field.
-- Black Hole:
-  - Spawns at your position (or targeted position) and pulls entities toward the center, dealing periodic damage.
-  - Pull strength and duration are configurable and clamped.
-- White Hole:
-  - Spawns at your position (or targeted position) and pushes entities away from the center, dealing periodic damage.
-  - Push strength and duration are configurable and clamped.
-
-### Reaper Gem
-- Passives:
-  - Reduced damage from undead 
-  - immunity to rotten flesh/spider eye debuffs.
-
-**Proposed Reaper passives (level 1)**
-- Rot Eater: eating rotten flesh/spider eyes does not apply negative effects.
-- Undead Ward: reduced damage from undead mobs.
-- Harvest: killing mobs grants brief Regeneration (small, capped).
-
-- Abilities:
-  - Summon a skeleton horse mount (saddled) that loses health over time.
-  - Attacks apply Wither temporarily.
-  - Track a player’s distance in blocks; you sacrifice health until you hit them.
-  - Scythe arc attack (5-block reach).
-  - Hold-to-charge health sacrifice that boosts next attack/abilities damage.
-  - Summon a clone illusion that looks real and attacks but deals no damage.
-
-**Proposed Reaper abilities (order)**
-- Grave Steed: summon saddled skeleton horse (decays over time).
-- Withering Strikes: timed buff where your hits apply Wither.
-- Death Oath: pick a target; while active you slowly lose health until you hit them (cancel on hit or time-out).
-- Scythe Sweep: cone/arc cleave attack (5 block reach) with knockback.
-- Blood Charge: hold to sacrifice health; next hit/ability is amplified.
-- Shade Clone: spawn a convincing clone that pathfinds/attacks but deals 0 damage.
-
-### Pillager Gem
-
-**Proposed Pillager passives (level 1)**
-- Raider’s Training: improved bow/crossbow handling (reduced draw time and increased projectile velocity).
-- Shieldbreaker: your attacks apply extra shield disable time (no axe required).
-- Illager Discipline: brief Resistance burst when you drop below a health threshold (cooldown).
-
-- Abilities:
-  - Evoker fangs (“teeth”) attack.
-  - Ravager-style knockback/charge hit.
-  - “Vindicator Break”: increase damage and disable shields like an axe hit (without using axe cooldown).
-  - Auto-arrow burst: shoots arrows every 0.5s for 3 seconds.
-
-**Proposed Pillager abilities (order)**
-- Fangs: evoker-fangs line attack.
-- Ravage: short charge that knocks back and damages.
-- Vindicator Break: temporarily grants bonus melee damage and disables shields on hit.
-- Volley: auto-shoot a burst for 3 seconds.
-
-### Spy / Mimic Gem
-- Passives:
-  - If you stand still for 5 seconds, become invisible (no particles).
-
-**Proposed Spy/Mimic passives (level 1)**
-- Stillness Cloak: stand still for 5s → invisibility with no particles; moving cancels.
-- Silent Step: muffles footsteps and prevents sculk sensor/shrieker triggers.
-- False Signature: hides your gem particles/ability indicators from enemies (your own HUD still shows everything).
-- Quick Hands: reduced item use slowdown while invisible.
-
-- Abilities:
-  - Transform into the last mob you killed (model + health/hitbox/speed).
-  - Copy an ability used in front of you.
-  - “Observe Theft”: if you witness an ability used 4 times within 10 minutes and stay alive, you can permanently steal it (until you switch gems; max 3 stolen abilities; you choose which one).
-
-**Proposed Spy/Mimic abilities (order)**
-- Mimic Form: transform into last mob you killed (model + movement + hitbox; clamp extremes).
-- Mirror Cast: if you saw an ability used recently in front of you, cast it once (copy is weaker and has its own cooldown).
-- Observe Theft: persistent steal system (max 3 stolen at once; choose which; resets on gem switch).
-- Decoy: spawn a fake player decoy that looks real and draws attention (no damage).
-- Wiretap: highlights nearby players’ last ability used for a short window (no exact cooldown numbers).
 
 ### Beacon Gem (support/utility)
 

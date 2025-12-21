@@ -5,8 +5,14 @@ import com.feel.gems.item.ModItems;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.GemPowers;
+import com.feel.gems.power.PowerIds;
+import com.feel.gems.power.SummonerSummons;
+import com.feel.gems.power.TerrorBloodPrice;
 import com.feel.gems.power.AbilityRuntime;
+import com.feel.gems.power.SpyMimicSystem;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.assassin.AssassinState;
+import com.feel.gems.assassin.AssassinTeams;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -24,6 +30,8 @@ public abstract class ServerPlayerEntityDeathMixin {
         if (victim.getWorld().isClient) {
             return;
         }
+        // Summoner summons are soulbound: despawn them immediately on owner death.
+        SummonerSummons.discardAll(victim);
         GemKeepOnDeath.stash(victim);
     }
 
@@ -32,35 +40,66 @@ public abstract class ServerPlayerEntityDeathMixin {
         ServerPlayerEntity victim = (ServerPlayerEntity) (Object) this;
 
         GemPlayerState.initIfNeeded(victim);
+        AssassinState.initIfNeeded(victim);
+        SpyMimicSystem.incrementDeaths(victim);
 
+        boolean victimWasAssassin = AssassinState.isAssassin(victim);
         int victimEnergyBefore = GemPlayerState.getEnergy(victim);
         GemPlayerState.addEnergy(victim, -1);
 
         int victimHeartsBefore = GemPlayerState.getMaxHearts(victim);
-        if (victimHeartsBefore > GemPlayerState.MIN_MAX_HEARTS) {
-            GemPlayerState.setMaxHearts(victim, victimHeartsBefore - 1);
-            ItemStack heart = new ItemStack(ModItems.HEART);
-            AbilityRuntime.setOwnerIfMissing(heart, victim.getUuid());
-            victim.dropStack(heart);
-        }
-
-        GemPlayerState.applyMaxHearts(victim);
-        GemPowers.sync(victim);
-        GemItemGlint.sync(victim);
-        GemStateSync.send(victim);
+        boolean victimAtFiveHearts = !victimWasAssassin && victimHeartsBefore <= GemPlayerState.MIN_MAX_HEARTS;
 
         Entity attacker = source.getAttacker();
         if (attacker instanceof ServerPlayerEntity killer && killer != victim) {
             GemPlayerState.initIfNeeded(killer);
+            AssassinState.initIfNeeded(killer);
+            boolean killerWasAssassin = AssassinState.isAssassin(killer);
             int killerEnergyBefore = GemPlayerState.getEnergy(killer);
             GemPlayerState.addEnergy(killer, 1);
             GemPowers.sync(killer);
             GemItemGlint.sync(killer);
             GemStateSync.send(killer);
 
+            boolean finalKill = victimAtFiveHearts;
+            AssassinState.recordKill(killer, finalKill, victimWasAssassin);
+
+            if (GemPowers.isPassiveActive(killer, PowerIds.TERROR_BLOOD_PRICE)) {
+                TerrorBloodPrice.onPlayerKill(killer);
+            }
+
+            if (victimWasAssassin && killerWasAssassin) {
+                int after = AssassinState.addAssassinHearts(victim, -2);
+                AssassinState.addAssassinHearts(killer, 2);
+                if (after <= 0) {
+                    AssassinState.setEliminated(victim, true);
+                }
+            }
+
+            AssassinTeams.sync(victim.getServer(), killer);
+
             if (killerEnergyBefore >= GemPlayerState.MAX_ENERGY && victimEnergyBefore > 0) {
                 victim.dropStack(new ItemStack(ModItems.ENERGY_UPGRADE));
             }
         }
+
+        // Heart drop / conversion rules:
+        if (!victimWasAssassin) {
+            if (victimAtFiveHearts) {
+                AssassinState.becomeAssassin(victim);
+            } else if (victimHeartsBefore > GemPlayerState.MIN_MAX_HEARTS) {
+                GemPlayerState.setMaxHearts(victim, victimHeartsBefore - 1);
+                ItemStack heart = new ItemStack(ModItems.HEART);
+                AbilityRuntime.setOwnerIfMissing(heart, victim.getUuid());
+                victim.dropStack(heart);
+            }
+        }
+
+        GemPlayerState.applyMaxHearts(victim);
+        GemPowers.sync(victim);
+        GemItemGlint.sync(victim);
+        GemStateSync.send(victim);
+        AssassinTeams.sync(victim.getServer(), victim);
     }
+
 }

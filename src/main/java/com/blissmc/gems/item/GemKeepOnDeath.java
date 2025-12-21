@@ -3,6 +3,7 @@ package com.feel.gems.item;
 import com.feel.gems.core.GemId;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.item.GemOwnership;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -85,6 +86,7 @@ public final class GemKeepOnDeath {
         for (int i = 0; i < inv.size(); i++) {
             ItemStack stack = inv.getStack(i);
             if (!stack.isEmpty()) {
+                GemOwnership.tagOwned(stack, player.getUuid(), GemPlayerState.getGemEpoch(player));
                 player.giveItemStack(stack);
             }
         }

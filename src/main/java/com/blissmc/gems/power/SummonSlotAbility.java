@@ -59,13 +59,14 @@ public final class SummonSlotAbility implements GemAbility {
         }
 
         var cfg = GemsBalance.v().summoner();
-        List<com.feel.gems.config.GemsBalanceConfig.Summoner.SummonSpec> specs = switch (slot) {
-            case 1 -> cfg.slot1();
-            case 2 -> cfg.slot2();
-            case 3 -> cfg.slot3();
-            case 4 -> cfg.slot4();
-            case 5 -> cfg.slot5();
-            default -> cfg.slot1();
+        SummonerLoadouts.Loadout loadout = SummonerLoadouts.resolve(player, cfg);
+        List<SummonerLoadouts.Entry> specs = switch (slot) {
+            case 1 -> loadout.slot1();
+            case 2 -> loadout.slot2();
+            case 3 -> loadout.slot3();
+            case 4 -> loadout.slot4();
+            case 5 -> loadout.slot5();
+            default -> loadout.slot1();
         };
         if (specs.isEmpty()) {
             player.sendMessage(Text.literal("No summons configured for slot " + slot + "."), true);
@@ -73,7 +74,7 @@ public final class SummonSlotAbility implements GemAbility {
         }
 
         int totalBudget = cfg.maxPoints();
-        int totalCost = SummonerBudget.totalLoadoutCost(cfg);
+        int totalCost = SummonerBudget.totalLoadoutCost(cfg.costs(), loadout);
         if (totalCost > totalBudget) {
             player.sendMessage(Text.literal("Summoner loadout exceeds budget (" + totalCost + " > " + totalBudget + ")."), true);
             return false;
@@ -94,7 +95,7 @@ public final class SummonSlotAbility implements GemAbility {
 
         int spawned = 0;
         for (var spec : specs) {
-            Identifier typeId = Identifier.tryParse(spec.entityId);
+            Identifier typeId = Identifier.tryParse(spec.entityId());
             if (typeId == null) {
                 continue;
             }
@@ -102,7 +103,7 @@ public final class SummonSlotAbility implements GemAbility {
             if (type == EntityType.ENDER_DRAGON || type == EntityType.WITHER) {
                 continue;
             }
-            for (int i = 0; i < spec.count && spawned < remainingSlots; i++) {
+            for (int i = 0; i < spec.count() && spawned < remainingSlots; i++) {
                 Entity e = type.create(player.getServerWorld());
                 if (!(e instanceof MobEntity mob)) {
                     continue;

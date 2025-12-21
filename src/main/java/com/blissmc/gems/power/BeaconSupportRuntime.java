@@ -37,11 +37,17 @@ public final class BeaconSupportRuntime {
         int amplifier = Math.max(0, (hearts / 2) - 1);
         ServerWorld world = player.getServerWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
-        for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
-            if (other != player && !GemTrust.isTrusted(player, other)) {
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.getBoundingBox().intersects(box))) {
+            if (other == player) {
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, duration, amplifier, true, true, false));
                 continue;
             }
-            other.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, duration, amplifier, true, true, false));
+
+            if (GemTrust.isTrusted(player, other)) {
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, duration, amplifier, true, true, false));
+            } else {
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, true, false));
+            }
         }
     }
 
@@ -67,11 +73,12 @@ public final class BeaconSupportRuntime {
 
         ServerWorld world = player.getServerWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
-        for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
-            if (other != player && !GemTrust.isTrusted(player, other)) {
-                continue;
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.getBoundingBox().intersects(box))) {
+            if (GemTrust.isTrusted(player, other) || other == player) {
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, amp, true, false, false));
+            } else {
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 0, true, false, false));
             }
-            other.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, amp, true, false, false));
         }
     }
 
@@ -87,27 +94,28 @@ public final class BeaconSupportRuntime {
 
         ServerWorld world = player.getServerWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
-        for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
-            if (other != player && !GemTrust.isTrusted(player, other)) {
-                continue;
-            }
-            for (StatusEffectInstance effect : java.util.List.copyOf(other.getStatusEffects())) {
-                if (effect.getEffectType().value().getCategory() != StatusEffectCategory.HARMFUL) {
-                    continue;
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.getBoundingBox().intersects(box))) {
+            if (GemTrust.isTrusted(player, other) || other == player) {
+                for (StatusEffectInstance effect : java.util.List.copyOf(other.getStatusEffects())) {
+                    if (effect.getEffectType().value().getCategory() != StatusEffectCategory.HARMFUL) {
+                        continue;
+                    }
+                    int remaining = effect.getDuration() - reduceTicks;
+                    if (remaining <= 0) {
+                        other.removeStatusEffect(effect.getEffectType());
+                        continue;
+                    }
+                    other.addStatusEffect(new StatusEffectInstance(
+                            effect.getEffectType(),
+                            remaining,
+                            effect.getAmplifier(),
+                            effect.isAmbient(),
+                            effect.shouldShowParticles(),
+                            effect.shouldShowIcon()
+                    ));
                 }
-                int remaining = effect.getDuration() - reduceTicks;
-                if (remaining <= 0) {
-                    other.removeStatusEffect(effect.getEffectType());
-                    continue;
-                }
-                other.addStatusEffect(new StatusEffectInstance(
-                        effect.getEffectType(),
-                        remaining,
-                        effect.getAmplifier(),
-                        effect.isAmbient(),
-                        effect.shouldShowParticles(),
-                        effect.shouldShowIcon()
-                ));
+            } else {
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, reduceTicks + 10, 0, true, false, false));
             }
         }
     }

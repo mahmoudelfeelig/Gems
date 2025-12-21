@@ -13,7 +13,7 @@
     "sources": "https://github.com/mahmoudelfeelig/Gems",
     "issues": "https://github.com/mahmoudelfeelig/Gems/issues"
   },
-  "license": "LICENSE",
+  "license": "GNU 3.0",
   "environment": "*",
   "entrypoints": {
     "main": [

@@ -5,7 +5,9 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.ActivateAbilityPayload;
 import com.feel.gems.net.FluxChargePayload;
+import com.feel.gems.net.SummonerLoadoutOpenRequestPayload;
 import com.feel.gems.net.SoulReleasePayload;
+import com.feel.gems.power.SummonerLoadouts;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
@@ -74,6 +76,12 @@ public final class GemsKeybinds {
 
         GemDefinition def = GemRegistry.definition(ClientGemState.activeGem());
         int abilityCount = def.abilities().size();
+
+        // Summoner: open loadout editor on the chord right after the last loadout slot.
+        if (ClientGemState.activeGem() == GemId.SUMMONER && slotNumber == SummonerLoadouts.SLOT_COUNT + 1) {
+            ClientPlayNetworking.send(SummonerLoadoutOpenRequestPayload.INSTANCE);
+            return;
+        }
 
         // Flux: insert "Charge" as slot 2 (between ability 1 and ability 2).
         if (ClientGemState.activeGem() == GemId.FLUX) {

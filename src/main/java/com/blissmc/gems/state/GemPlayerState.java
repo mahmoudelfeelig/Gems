@@ -22,6 +22,7 @@ public final class GemPlayerState {
     private static final String KEY_ENERGY_CAP_PENALTY = "energyCapPenalty";
     private static final String KEY_MAX_HEARTS = "maxHearts";
     private static final String KEY_OWNED_GEMS = "ownedGems";
+    private static final String KEY_GEM_EPOCH = "gemEpoch";
 
     public static final int DEFAULT_ENERGY = 3;
     public static final int MIN_ENERGY = 0;
@@ -52,6 +53,9 @@ public final class GemPlayerState {
         }
         if (!data.contains(KEY_MAX_HEARTS, NbtElement.INT_TYPE)) {
             data.putInt(KEY_MAX_HEARTS, DEFAULT_MAX_HEARTS);
+        }
+        if (!data.contains(KEY_GEM_EPOCH, NbtElement.INT_TYPE)) {
+            data.putInt(KEY_GEM_EPOCH, 0);
         }
         if (!data.contains(KEY_ACTIVE_GEM, NbtElement.STRING_TYPE)) {
             GemId assigned = randomGem(player);
@@ -134,6 +138,22 @@ public final class GemPlayerState {
             return DEFAULT_ENERGY;
         }
         return clamp(data.getInt(KEY_ENERGY), MIN_ENERGY, getMaxEnergy(player));
+    }
+
+    public static int getGemEpoch(PlayerEntity player) {
+        NbtCompound data = root(player);
+        if (!data.contains(KEY_GEM_EPOCH, NbtElement.INT_TYPE)) {
+            data.putInt(KEY_GEM_EPOCH, 0);
+            return 0;
+        }
+        return data.getInt(KEY_GEM_EPOCH);
+    }
+
+    public static int bumpGemEpoch(PlayerEntity player) {
+        NbtCompound data = root(player);
+        int next = getGemEpoch(player) + 1;
+        data.putInt(KEY_GEM_EPOCH, next);
+        return next;
     }
 
     public static int setEnergy(PlayerEntity player, int energy) {

@@ -1,7 +1,7 @@
 package com.feel.gems.power;
 
 import com.feel.gems.config.GemsBalance;
-import com.feel.gems.config.GemsBalanceConfig;
+import com.feel.gems.power.SummonerLoadouts;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -21,7 +21,7 @@ public class SummonerBudgetTest {
 
     @Test
     void missingCostsDoNotContribute() {
-        var specs = List.of(new GemsBalanceConfig.Summoner.SummonSpec("minecraft:zombie", 3));
+        var specs = List.of(new SummonerLoadouts.Entry("minecraft:zombie", 3));
         assertEquals(0, SummonerBudget.slotCost(Map.of(), specs));
         assertEquals(0, SummonerBudget.slotCost(null, specs));
     }

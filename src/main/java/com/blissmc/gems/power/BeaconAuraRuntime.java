@@ -107,11 +107,16 @@ public final class BeaconAuraRuntime {
 
         ServerWorld world = player.getServerWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
-        for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
-            if (other != player && !GemTrust.isTrusted(player, other)) {
-                continue;
+        for (ServerPlayerEntity other : world.getPlayers(p -> p.getBoundingBox().intersects(box))) {
+            boolean trusted = GemTrust.isTrusted(player, other) || other == player;
+            if (trusted) {
+                other.addStatusEffect(new StatusEffectInstance(type.effect(), refresh, amplifier, true, false, false));
+            } else {
+                // Ensure enemies do not retain the positive aura from prior ticks or sources.
+                other.removeStatusEffect(type.effect());
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, refresh, 0, true, false, false));
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, refresh, 0, true, false, false));
             }
-            other.addStatusEffect(new StatusEffectInstance(type.effect(), refresh, amplifier, true, false, false));
         }
     }
 

@@ -1,6 +1,7 @@
 package com.feel.gems.trade;
 
 import com.feel.gems.item.GemItemGlint;
+import com.feel.gems.item.GemOwnership;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.GemPowers;
@@ -32,15 +33,17 @@ public final class GemTrading {
         EnumSet<GemId> ownedBefore = GemPlayerState.getOwnedGems(player);
         boolean alreadyOwned = ownedBefore.contains(gemId);
 
-        // Trading is a "wipe + reroll": keep only the newly selected gem.
-        GemPlayerState.setOwnedGemsExact(player, EnumSet.of(gemId));
+        // Trading resets ownership to only the traded gem and equips it as active.
+        EnumSet<GemId> newOwned = EnumSet.of(gemId);
         GemPlayerState.setActiveGem(player, gemId);
-        pruneGemItems(player, gemId);
+        GemPlayerState.setOwnedGemsExact(player, newOwned);
 
         GemPowers.sync(player);
         GemItemGlint.sync(player);
         GemStateSync.send(player);
-        ensurePlayerHasItem(player, ModItems.gemItem(gemId));
+        Item keep = ModItems.gemItem(gemId);
+        removeOtherGemItems(player, keep);
+        ensurePlayerHasItem(player, keep);
 
         return new Result(true, true, alreadyOwned);
     }
@@ -96,34 +99,30 @@ public final class GemTrading {
                 return;
             }
         }
-        player.giveItemStack(new ItemStack(item));
+        ItemStack stack = new ItemStack(item);
+        GemOwnership.tagOwned(stack, player.getUuid(), GemPlayerState.getGemEpoch(player));
+        player.giveItemStack(stack);
     }
 
-    private static void pruneGemItems(ServerPlayerEntity player, GemId keep) {
-        boolean kept = false;
-
-        for (int i = 0; i < player.getInventory().main.size(); i++) {
-            ItemStack stack = player.getInventory().main.get(i);
-            kept = keepOrRemoveGemStack(player.getInventory().main, i, stack, keep, kept);
-        }
-        for (int i = 0; i < player.getInventory().offHand.size(); i++) {
-            ItemStack stack = player.getInventory().offHand.get(i);
-            kept = keepOrRemoveGemStack(player.getInventory().offHand, i, stack, keep, kept);
-        }
-        for (int i = 0; i < player.getInventory().armor.size(); i++) {
-            ItemStack stack = player.getInventory().armor.get(i);
-            kept = keepOrRemoveGemStack(player.getInventory().armor, i, stack, keep, kept);
-        }
+    private static void removeOtherGemItems(ServerPlayerEntity player, Item keep) {
+        purgeInv(player.getInventory().main, keep);
+        purgeInv(player.getInventory().offHand, keep);
+        purgeInv(player.getInventory().armor, keep);
     }
 
-    private static boolean keepOrRemoveGemStack(java.util.List<ItemStack> list, int index, ItemStack stack, GemId keep, boolean kept) {
-        if (!(stack.getItem() instanceof com.feel.gems.item.GemItem gemItem)) {
-            return kept;
+    private static void purgeInv(java.util.List<ItemStack> stacks, Item keep) {
+        for (int i = 0; i < stacks.size(); i++) {
+            ItemStack stack = stacks.get(i);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            if (!(stack.getItem() instanceof com.feel.gems.item.GemItem)) {
+                continue;
+            }
+            if (stack.isOf(keep)) {
+                continue;
+            }
+            stacks.set(i, ItemStack.EMPTY);
         }
-        if (gemItem.gemId() == keep && !kept) {
-            return true;
-        }
-        list.set(index, ItemStack.EMPTY);
-        return kept;
     }
 }

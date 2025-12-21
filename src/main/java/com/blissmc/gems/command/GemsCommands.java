@@ -69,6 +69,9 @@ public final class GemsCommands {
                                         .executes(ctx -> untrust(ctx.getSource().getPlayerOrThrow(), EntityArgumentType.getPlayer(ctx, "player")))))
                         .then(CommandManager.literal("trustlist")
                                 .executes(ctx -> trustList(ctx.getSource().getPlayerOrThrow())))
+                        .then(CommandManager.literal("summoner")
+                            .then(CommandManager.literal("loadout")
+                                .executes(ctx -> openSummonerLoadout(ctx.getSource().getPlayerOrThrow()))))
                         .then(CommandManager.literal("trade")
                                 .then(CommandManager.argument("gem", StringArgumentType.word())
                                         .suggests((ctx, builder) -> suggestGems(builder))
@@ -235,6 +238,11 @@ public final class GemsCommands {
     private static int perfReset(ServerCommandSource source) {
         GemsPerfMonitor.reset();
         source.sendFeedback(() -> Text.literal("GEMS_PERF reset"), true);
+        return 1;
+    }
+
+    private static int openSummonerLoadout(ServerPlayerEntity player) {
+        com.feel.gems.net.ServerSummonerNetworking.openEditor(player);
         return 1;
     }
 

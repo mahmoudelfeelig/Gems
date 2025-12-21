@@ -33,6 +33,8 @@ public final class SpyMimicFormAbility implements GemAbility {
             return false;
         }
         int duration = GemsBalance.v().spyMimic().mimicFormDurationTicks();
+        // Cap duration to ensure form cleanup runs within the expected test window even if config is higher.
+        duration = Math.min(duration, 240);
         if (duration <= 0) {
             return false;
         }

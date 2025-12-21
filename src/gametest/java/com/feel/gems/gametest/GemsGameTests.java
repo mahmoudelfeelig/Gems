@@ -7,11 +7,20 @@ import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.power.AbilityRuntime;
 import com.feel.gems.power.AbilityDisables;
+import com.feel.gems.power.AirDashAbility;
+import com.feel.gems.power.AirUpdraftZoneAbility;
+import com.feel.gems.power.AirWindJumpAbility;
+import com.feel.gems.power.BeaconAuraAbility;
+import com.feel.gems.power.BeaconAuraRuntime;
 import com.feel.gems.power.FluxBeamAbility;
 import com.feel.gems.power.FluxCharge;
 import com.feel.gems.power.GemPowers;
 import com.feel.gems.power.PanicRingAbility;
+import com.feel.gems.power.PillagerDiscipline;
 import com.feel.gems.power.PillagerFangsAbility;
+import com.feel.gems.power.PillagerVolleyAbility;
+import com.feel.gems.power.PillagerVolleyRuntime;
+import com.feel.gems.power.SpyMimicFormAbility;
 import com.feel.gems.power.SpyMimicSystem;
 import com.feel.gems.power.SpyStealAbility;
 import com.feel.gems.power.SummonRecallAbility;
@@ -19,6 +28,7 @@ import com.feel.gems.power.SummonSlotAbility;
 import com.feel.gems.power.SummonerSummons;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.trade.GemTrading;
+import com.feel.gems.trust.GemTrust;
 import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.config.GemsBalance;
 
@@ -30,6 +40,7 @@ import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.EvokerFangsEntity;
+import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -631,6 +642,332 @@ public final class GemsGameTests {
             }
             if (!stolen.equals(SpyMimicSystem.selectedStolenAbility(spy))) {
                 context.throwGameTestException("Expected stolen ability to be selected after steal");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void airDashAppliesVelocityAndIFrames(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+
+        context.runAtTick(2L, () -> {
+            boolean ok = new AirDashAbility().activate(player);
+            if (!ok) {
+                context.throwGameTestException("Air Dash did not activate");
+            }
+        });
+
+        context.runAtTick(8L, () -> {
+            Vec3d vel = player.getVelocity();
+            if (vel.lengthSquared() < 0.01D) {
+                context.throwGameTestException("Dash did not apply forward velocity");
+                return;
+            }
+            var res = player.getStatusEffect(StatusEffects.RESISTANCE);
+            if (res == null || res.getDuration() <= 0) {
+                context.throwGameTestException("Dash did not grant temporary i-frames");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void airWindJumpResetsFallAndLaunchesUp(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+
+        context.runAtTick(2L, () -> {
+            player.fallDistance = 10.0F;
+            boolean ok = new AirWindJumpAbility().activate(player);
+            if (!ok) {
+                context.throwGameTestException("Wind Jump did not activate");
+            }
+        });
+
+        context.runAtTick(8L, () -> {
+            if (player.fallDistance != 0.0F) {
+                context.throwGameTestException("Wind Jump did not reset fall distance");
+                return;
+            }
+            if (player.getVelocity().y <= 0.0D) {
+                context.throwGameTestException("Wind Jump did not add upward velocity");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void airUpdraftLiftsTrustedAndDamagesEnemies(TestContext context) {
+        ServerWorld world = context.getWorld();
+
+        ServerPlayerEntity caster = context.createMockCreativeServerPlayerInWorld();
+        caster.changeGameMode(GameMode.SURVIVAL);
+
+        ServerPlayerEntity ally = context.createMockCreativeServerPlayerInWorld();
+        ally.changeGameMode(GameMode.SURVIVAL);
+
+        ServerPlayerEntity enemy = context.createMockCreativeServerPlayerInWorld();
+        enemy.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        caster.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        ally.teleport(world, pos.x + 1.0D, pos.y, pos.z, 0.0F, 0.0F);
+        enemy.teleport(world, pos.x - 1.0D, pos.y, pos.z, 180.0F, 0.0F);
+
+        GemTrust.trust(caster, ally.getUuid());
+        final float enemyHealthBefore = enemy.getHealth();
+
+        context.runAtTick(2L, () -> {
+            boolean ok = new AirUpdraftZoneAbility().activate(caster);
+            if (!ok) {
+                context.throwGameTestException("Updraft Zone did not activate");
+            }
+        });
+
+        context.runAtTick(10L, () -> {
+            if (!ally.hasStatusEffect(StatusEffects.SLOW_FALLING)) {
+                context.throwGameTestException("Trusted ally did not receive slow falling");
+                return;
+            }
+            if (ally.getVelocity().y <= 0.0D) {
+                context.throwGameTestException("Trusted ally was not lifted by updraft");
+                return;
+            }
+            if (enemy.hasStatusEffect(StatusEffects.SLOW_FALLING)) {
+                context.throwGameTestException("Enemy should not receive ally buff effects");
+                return;
+            }
+            if (enemy.getHealth() >= enemyHealthBefore) {
+                context.throwGameTestException("Enemy did not take damage from updraft zone");
+                return;
+            }
+            if (enemy.getVelocity().lengthSquared() <= 0.0D) {
+                context.throwGameTestException("Enemy did not receive knockback/launch");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 220)
+    public void beaconAuraAppliesOnlyToTrusted(TestContext context) {
+        ServerWorld world = context.getWorld();
+
+        ServerPlayerEntity beacon = context.createMockCreativeServerPlayerInWorld();
+        beacon.changeGameMode(GameMode.SURVIVAL);
+
+        ServerPlayerEntity trusted = context.createMockCreativeServerPlayerInWorld();
+        trusted.changeGameMode(GameMode.SURVIVAL);
+
+        ServerPlayerEntity untrusted = context.createMockCreativeServerPlayerInWorld();
+        untrusted.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        beacon.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        trusted.teleport(world, pos.x + 1.5D, pos.y, pos.z, 0.0F, 0.0F);
+        untrusted.teleport(world, pos.x + 3.0D, pos.y, pos.z, 0.0F, 0.0F);
+
+        GemPlayerState.initIfNeeded(beacon);
+        GemPlayerState.setActiveGem(beacon, GemId.BEACON);
+        GemPlayerState.setEnergy(beacon, 10);
+        GemPowers.sync(beacon);
+        GemTrust.trust(beacon, trusted.getUuid());
+
+        context.runAtTick(4L, () -> {
+            boolean ok = new BeaconAuraAbility(BeaconAuraRuntime.AuraType.SPEED).activate(beacon);
+            if (!ok) {
+                context.throwGameTestException("Beacon aura did not activate");
+            }
+        });
+
+        for (long tick = 8L; tick <= 32L; tick += 8L) {
+            long at = tick;
+            context.runAtTick(at, () -> BeaconAuraRuntime.tickEverySecond(beacon));
+        }
+
+        context.runAtTick(40L, () -> {
+            var eff = trusted.getStatusEffect(StatusEffects.SPEED);
+            if (eff == null) {
+                context.throwGameTestException("Trusted player did not receive beacon aura");
+                return;
+            }
+            int expectedAmp = GemsBalance.v().beacon().auraSpeedAmplifier();
+            if (eff.getAmplifier() != expectedAmp) {
+                context.throwGameTestException("Unexpected aura amplifier: " + eff.getAmplifier() + " expected=" + expectedAmp);
+                return;
+            }
+            if (untrusted.hasStatusEffect(StatusEffects.SPEED)) {
+                context.throwGameTestException("Untrusted player should not receive beacon aura");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 260)
+    public void pillagerVolleyFiresAndStopsWhenEnergyGone(TestContext context) {
+        ServerWorld world = context.getWorld();
+        var server = world.getServer();
+        if (server == null) {
+            context.throwGameTestException("No server instance");
+            return;
+        }
+
+        final int[] arrowsAtStop = new int[1];
+
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+
+        GemPlayerState.initIfNeeded(player);
+        GemPlayerState.setActiveGem(player, GemId.PILLAGER);
+        GemPlayerState.setEnergy(player, 10);
+        GemPowers.sync(player);
+
+        context.runAtTick(2L, () -> {
+            boolean ok = new PillagerVolleyAbility().activate(player);
+            if (!ok) {
+                context.throwGameTestException("Pillager Volley did not activate");
+            }
+        });
+
+        for (long tick = 5L; tick <= 80L; tick += 10L) {
+            long at = tick;
+            context.runAtTick(at, () -> PillagerVolleyRuntime.tick(server));
+        }
+
+        context.runAtTick(90L, () -> {
+            Box box = new Box(player.getBlockPos()).expand(24.0D);
+            int arrows = world.getEntitiesByClass(ArrowEntity.class, box, e -> true).size();
+            if (arrows <= 0) {
+                context.throwGameTestException("Volley did not spawn arrows");
+                return;
+            }
+            arrowsAtStop[0] = arrows;
+        });
+
+        context.runAtTick(100L, () -> GemPlayerState.setEnergy(player, 0));
+        for (long tick = 110L; tick <= 200L; tick += 20L) {
+            long at = tick;
+            context.runAtTick(at, () -> PillagerVolleyRuntime.tick(server));
+        }
+
+        context.runAtTick(220L, () -> {
+            Box box = new Box(player.getBlockPos()).expand(24.0D);
+            int arrowsAfter = world.getEntitiesByClass(ArrowEntity.class, box, e -> true).size();
+            // Energy drop should stop spawning new arrows; count should stay stable after the stop tick window.
+            if (arrowsAfter != arrowsAtStop[0]) {
+                context.throwGameTestException("Volley continued firing after energy hit zero (before=" + arrowsAtStop[0] + " after=" + arrowsAfter + ")");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void pillagerDisciplineTriggersBelowThreshold(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+
+        GemPlayerState.initIfNeeded(player);
+        GemPlayerState.setActiveGem(player, GemId.PILLAGER);
+        GemPlayerState.setEnergy(player, 10);
+
+        context.runAtTick(2L, () -> {
+            player.setHealth(20.0F);
+            PillagerDiscipline.tick(player);
+            if (player.hasStatusEffect(StatusEffects.RESISTANCE)) {
+                context.throwGameTestException("Discipline should not trigger at high health");
+            }
+            player.setHealth(6.0F);
+            PillagerDiscipline.tick(player);
+        });
+
+        context.runAtTick(40L, () -> {
+            var res = player.getStatusEffect(StatusEffects.RESISTANCE);
+            if (res == null || res.getDuration() <= 0) {
+                context.throwGameTestException("Discipline did not grant resistance when low health");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 340)
+    public void spyMimicFormAppliesAndCleansUp(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity spy = context.createMockCreativeServerPlayerInWorld();
+        spy.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        spy.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+
+        var pig = EntityType.PIG.create(world);
+        if (pig == null) {
+            context.throwGameTestException("Failed to spawn pig to mimic");
+            return;
+        }
+        pig.refreshPositionAndAngles(spy.getX(), spy.getY(), spy.getZ(), 0.0F, 0.0F);
+        world.spawnEntity(pig);
+
+        GemPlayerState.initIfNeeded(spy);
+        GemPlayerState.setActiveGem(spy, GemId.SPY_MIMIC);
+        GemPlayerState.setEnergy(spy, 10);
+
+        context.runAtTick(10L, () -> {
+            SpyMimicSystem.recordLastKilledMob(spy, pig);
+            pig.discard();
+            boolean ok = new SpyMimicFormAbility().activate(spy);
+            if (!ok) {
+                context.throwGameTestException("Mimic Form did not activate after recording kill");
+            }
+        });
+
+        context.runAtTick(20L, () -> {
+            double baseMax = spy.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH);
+            spy.damage(spy.getDamageSources().outOfWorld(), 0.0F); // force attribute sync
+            if (baseMax <= 20.0D) {
+                context.throwGameTestException("Mimic Form did not increase max health");
+                return;
+            }
+            if (!spy.hasStatusEffect(StatusEffects.INVISIBILITY)) {
+                context.throwGameTestException("Mimic Form should grant invisibility during the form");
+                return;
+            }
+        });
+
+        for (long tick = 40L; tick <= 260L; tick += 20L) {
+            long at = tick;
+            context.runAtTick(at, () -> SpyMimicSystem.tickEverySecond(spy));
+        }
+
+        context.runAtTick(300L, () -> {
+            double after = spy.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH);
+            if (after > 20.1D) {
+                context.throwGameTestException("Mimic Form buffs did not clear");
+                return;
+            }
+            if (spy.hasStatusEffect(StatusEffects.INVISIBILITY)) {
+                context.throwGameTestException("Mimic Form invisibility should expire after duration");
                 return;
             }
             context.complete();

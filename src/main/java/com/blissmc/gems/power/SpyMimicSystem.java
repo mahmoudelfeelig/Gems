@@ -24,6 +24,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public final class SpyMimicSystem {
@@ -48,6 +50,9 @@ public final class SpyMimicSystem {
 
     private static final Identifier MOD_MIMIC_MAX_HEALTH = Identifier.of("gems", "spy_mimic_max_health");
     private static final Identifier MOD_MIMIC_SPEED = Identifier.of("gems", "spy_mimic_speed");
+
+    // Cache of online players currently eligible for Spy/Mimic logic to avoid scanning everyone on each observed ability use.
+    private static final Set<UUID> ACTIVE_SPIES = new HashSet<>();
 
     private SpyMimicSystem() {
     }
@@ -96,29 +101,35 @@ public final class SpyMimicSystem {
         double rangeSq = range * (double) range;
         int window = GemsBalance.v().spyMimic().observeWindowTicks();
 
-        for (ServerPlayerEntity spy : server.getPlayerManager().getPlayerList()) {
-            if (spy == caster) {
-                continue;
-            }
-            GemPlayerState.initIfNeeded(spy);
-            if (GemPlayerState.getEnergy(spy) <= 0 || GemPlayerState.getActiveGem(spy) != GemId.SPY_MIMIC) {
-                continue;
-            }
-            if (spy.getWorld() != caster.getWorld()) {
-                continue;
-            }
-            if (spy.squaredDistanceTo(caster) > rangeSq) {
-                continue;
-            }
+        if (ACTIVE_SPIES.isEmpty()) {
+            seedActiveSpies(server);
+        }
 
-            // "In front of you": require the caster to be in the forward half-space.
-            Vec3d toCaster = caster.getPos().subtract(spy.getPos());
-            Vec3d look = spy.getRotationVec(1.0F);
-            if (toCaster.dotProduct(look) <= 0.0D) {
+        // If the cache is still empty, fall back to scanning all players so first-time steals work immediately.
+        if (ACTIVE_SPIES.isEmpty()) {
+            for (ServerPlayerEntity spy : server.getPlayerManager().getPlayerList()) {
+                if (spy == caster) {
+                    continue;
+                }
+                if (observeIfEligible(spy, caster, abilityId, now, rangeSq, window)) {
+                    ACTIVE_SPIES.add(spy.getUuid());
+                }
+            }
+            return;
+        }
+
+        // Iterate only spies that are currently eligible; remove stale entries on the fly.
+        var iter = ACTIVE_SPIES.iterator();
+        while (iter.hasNext()) {
+            UUID uuid = iter.next();
+            ServerPlayerEntity spy = server.getPlayerManager().getPlayer(uuid);
+            if (spy == null || spy == caster) {
+                iter.remove();
                 continue;
             }
-
-            recordObservation(spy, caster, abilityId, now, window);
+            if (!observeIfEligible(spy, caster, abilityId, now, rangeSq, window)) {
+                iter.remove();
+            }
         }
     }
 
@@ -288,6 +299,7 @@ public final class SpyMimicSystem {
         nbt.remove(KEY_STOLEN);
         nbt.remove(KEY_STOLEN_SELECTED);
         clearMimicForm(player);
+        ACTIVE_SPIES.remove(player.getUuid());
     }
 
     public static void startMimicForm(ServerPlayerEntity player, int durationTicks) {
@@ -323,9 +335,51 @@ public final class SpyMimicSystem {
     }
 
     public static void tickEverySecond(ServerPlayerEntity player) {
+        trackActiveSpy(player);
         long now = GemsTime.now(player);
         tickStillnessCloak(player, now);
         tickMimicFormCleanup(player, now);
+    }
+
+    private static void trackActiveSpy(ServerPlayerEntity player) {
+        GemPlayerState.initIfNeeded(player);
+        boolean active = GemPlayerState.getEnergy(player) > 0 && GemPlayerState.getActiveGem(player) == GemId.SPY_MIMIC;
+        UUID id = player.getUuid();
+        if (active) {
+            ACTIVE_SPIES.add(id);
+        } else {
+            ACTIVE_SPIES.remove(id);
+        }
+    }
+
+    // Rebuild the active spy cache when it is empty so first-time observations still work.
+    private static void seedActiveSpies(MinecraftServer server) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            trackActiveSpy(player);
+        }
+    }
+
+    private static boolean observeIfEligible(ServerPlayerEntity spy, ServerPlayerEntity caster, Identifier abilityId, long now, double rangeSq, int windowTicks) {
+        GemPlayerState.initIfNeeded(spy);
+        if (GemPlayerState.getEnergy(spy) <= 0 || GemPlayerState.getActiveGem(spy) != GemId.SPY_MIMIC) {
+            return false;
+        }
+        if (spy.getWorld() != caster.getWorld()) {
+            return false;
+        }
+        if (spy.squaredDistanceTo(caster) > rangeSq) {
+            return false;
+        }
+
+        // "In front of you": require the caster to be in the forward half-space.
+        Vec3d toCaster = caster.getPos().subtract(spy.getPos());
+        Vec3d look = spy.getRotationVec(1.0F);
+        if (toCaster.dotProduct(look) <= 0.0D) {
+            return false;
+        }
+
+        recordObservation(spy, caster, abilityId, now, windowTicks);
+        return true;
     }
 
     private static void tickStillnessCloak(ServerPlayerEntity player, long now) {
@@ -386,6 +440,9 @@ public final class SpyMimicSystem {
             return;
         }
         clearMimicForm(player);
+        player.removeStatusEffect(StatusEffects.INVISIBILITY);
+        player.setInvisible(false);
+        persistent(player).putLong(KEY_STILL_LAST_MOVED, now);
     }
 
     private static void clearMimicForm(ServerPlayerEntity player) {
@@ -398,6 +455,9 @@ public final class SpyMimicSystem {
         EntityAttributeInstance speed = player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
         if (speed != null) {
             speed.removeModifier(MOD_MIMIC_SPEED);
+        }
+        if (player.hasStatusEffect(StatusEffects.INVISIBILITY)) {
+            player.removeStatusEffect(StatusEffects.INVISIBILITY);
         }
     }
 

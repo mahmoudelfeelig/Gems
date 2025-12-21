@@ -38,10 +38,16 @@ public final class PillagerVolleyRuntime {
     }
 
     public static void stop(ServerPlayerEntity player) {
+        stop(player, true);
+    }
+
+    private static void stop(ServerPlayerEntity player, boolean removeFromActive) {
         NbtCompound nbt = persistent(player);
         nbt.remove(KEY_UNTIL);
         nbt.remove(KEY_NEXT_SHOT);
-        ACTIVE.remove(player.getUuid());
+        if (removeFromActive) {
+            ACTIVE.remove(player.getUuid());
+        }
     }
 
     public static void tick(MinecraftServer server) {
@@ -58,7 +64,7 @@ public final class PillagerVolleyRuntime {
             }
             GemPlayerState.initIfNeeded(player);
             if (GemPlayerState.getEnergy(player) <= 1 || GemPlayerState.getActiveGem(player) != GemId.PILLAGER) {
-                stop(player);
+                stop(player, false);
                 it.remove();
                 continue;
             }
@@ -67,7 +73,7 @@ public final class PillagerVolleyRuntime {
             long now = GemsTime.now(player);
             long until = nbt.getLong(KEY_UNTIL);
             if (until <= 0 || now >= until) {
-                stop(player);
+                stop(player, false);
                 it.remove();
                 continue;
             }

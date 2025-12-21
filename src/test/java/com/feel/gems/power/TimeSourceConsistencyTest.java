@@ -15,8 +15,8 @@ public class TimeSourceConsistencyTest {
     @Test
     void powerAndNetCodeDoesNotUsePerWorldTime() throws IOException {
         List<Path> roots = List.of(
-                Path.of("src/main/java/com/blissmc/gems/power"),
-                Path.of("src/main/java/com/blissmc/gems/net")
+                Path.of("src/main/java/com/feel/gems/power"),
+                Path.of("src/main/java/com/feel/gems/net")
         );
 
         List<String> offenders = new ArrayList<>();

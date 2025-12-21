@@ -16,7 +16,7 @@
 - Trader (`gems:trader`): shaped `DBD / BWB / DBD` where `D=diamond_block`, `B=dragon_breath`, `W=wither_skeleton_skull`.
   - Use: opens a GUI to pick a new gem; consumes 1 Trader and replaces your owned gems with the selected gem (which becomes active).
 
-## Gem abilities and passives (detailed)
+## Gem abilities and passives
 - Astra
   - Passives:
     - Soul Capture: stores the most recently killed mob; can be released later as a summon or resource.

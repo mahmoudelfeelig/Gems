@@ -6,9 +6,9 @@
     "DBD"
   ],
   "key": {
-    "D": "minecraft:diamond_block",
-    "B": "minecraft:dragon_breath",
-    "W": "minecraft:wither_skeleton_skull"
+    "D": { "item": "minecraft:diamond_block" },
+    "B": { "item": "minecraft:dragon_breath" },
+    "W": { "item": "minecraft:wither_skeleton_skull" }
   },
   "result": {
     "id": "gems:trader",

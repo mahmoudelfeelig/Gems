@@ -1,29 +1,30 @@
 package com.feel.gems.gametest;
 
-import com.feel.gems.item.ModItems;
+import java.util.EnumSet;
+
+import com.feel.gems.core.GemId;
 import com.feel.gems.item.GemKeepOnDeath;
+import com.feel.gems.item.ModItems;
 import com.feel.gems.power.AbilityRuntime;
-import com.feel.gems.power.GemPowers;
 import com.feel.gems.power.FluxBeamAbility;
 import com.feel.gems.power.FluxCharge;
-import com.feel.gems.core.GemId;
+import com.feel.gems.power.GemPowers;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.trade.GemTrading;
+
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
-
-import java.util.EnumSet;
 
 public final class GemsGameTests {
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
@@ -68,7 +69,8 @@ public final class GemsGameTests {
             context.throwGameTestException("Failed to create target entity");
             return;
         }
-        Vec3d targetPos = startPos.add(0.0D, 0.0D, 3.0D);
+        // Keep the target very close so it stays within the default EMPTY_STRUCTURE bounds (avoids barrier occlusion).
+        Vec3d targetPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 1.5D));
         target.refreshPositionAndAngles(targetPos.x, targetPos.y, targetPos.z, 0.0F, 0.0F);
         target.setNoGravity(true);
         world.spawnEntity(target);
@@ -105,17 +107,22 @@ public final class GemsGameTests {
         Vec3d startPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         player.teleport(world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
 
-        GemPlayerState.initIfNeeded(player);
-        GemPlayerState.setActiveGem(player, GemId.ASTRA);
-        player.giveItemStack(new ItemStack(ModItems.ASTRA_GEM));
-        player.giveItemStack(new ItemStack(ModItems.FIRE_GEM));
+        // GameTest creates "embedded" players and runs normal join callbacks; to avoid racey interactions with
+        // JOIN/COPY_FROM logic (e.g. ensureActiveGemItem), perform test setup after the player is fully connected.
+        context.runAtTick(20L, () -> {
+            player.getInventory().clear();
+            GemPlayerState.initIfNeeded(player);
+            GemPlayerState.setActiveGem(player, GemId.ASTRA);
+            player.giveItemStack(new ItemStack(ModItems.ASTRA_GEM));
+            player.giveItemStack(new ItemStack(ModItems.FIRE_GEM));
+        });
 
         // GameTest servers often run with gamerules that can affect drops (e.g. keepInventory).
         // Validate the core stash/restore behavior directly:
         // - stash removes exactly one active gem item (kept across death)
         // - stash does not remove non-active gems
         // - restore returns the active gem item
-        context.runAtTick(2L, () -> {
+        context.runAtTick(40L, () -> {
             if (!hasItem(player, ModItems.ASTRA_GEM)) {
                 context.throwGameTestException("Setup error: missing active Astra gem item");
             }
@@ -123,18 +130,25 @@ public final class GemsGameTests {
                 context.throwGameTestException("Setup error: missing non-active Fire gem item");
             }
 
+            int astraBefore = countItem(player, ModItems.ASTRA_GEM);
+            int fireBefore = countItem(player, ModItems.FIRE_GEM);
+
             GemKeepOnDeath.stash(player);
 
-            if (hasItem(player, ModItems.ASTRA_GEM)) {
-                context.throwGameTestException("Active gem item should be removed from inventory after stash");
+            int astraAfterStash = countItem(player, ModItems.ASTRA_GEM);
+            int fireAfterStash = countItem(player, ModItems.FIRE_GEM);
+
+            if (astraAfterStash != Math.max(0, astraBefore - 1)) {
+                context.throwGameTestException("Active gem item should decrement by 1 after stash, before=" + astraBefore + " after=" + astraAfterStash);
             }
-            if (!hasItem(player, ModItems.FIRE_GEM)) {
-                context.throwGameTestException("Non-active gem item should remain in inventory after stash");
+            if (fireAfterStash != fireBefore) {
+                context.throwGameTestException("Non-active gem item should not change after stash, before=" + fireBefore + " after=" + fireAfterStash);
             }
 
             GemKeepOnDeath.restore(player);
-            if (!hasItem(player, ModItems.ASTRA_GEM)) {
-                context.throwGameTestException("Active gem item should be restored after stash+restore");
+            int astraAfterRestore = countItem(player, ModItems.ASTRA_GEM);
+            if (astraAfterRestore != astraBefore) {
+                context.throwGameTestException("Active gem item should be restored after stash+restore, before=" + astraBefore + " after=" + astraAfterRestore);
             }
 
             context.complete();

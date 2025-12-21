@@ -6,9 +6,9 @@
     "NIN"
   ],
   "key": {
-    "N": "minecraft:netherite_scrap",
-    "G": "minecraft:gold_block",
-    "I": "minecraft:iron_block"
+    "N": { "item": "minecraft:netherite_scrap" },
+    "G": { "item": "minecraft:gold_block" },
+    "I": { "item": "minecraft:iron_block" }
   },
   "result": {
     "id": "gems:heart",

@@ -76,7 +76,10 @@ public final class SoulSystem {
         EntityType<?> type = Registries.ENTITY_TYPE.get(id);
         ServerWorld world = player.getServerWorld();
 
-        Vec3d pos = player.getPos().add(player.getRotationVec(1.0F).multiply(2.0D));
+        // Spawn slightly above the ground so summons don't clip into the floor (common with foot-position spawning).
+        Vec3d pos = player.getPos()
+                .add(player.getRotationVec(1.0F).multiply(2.0D))
+                .add(0.0D, 0.35D, 0.0D);
         Entity entity = type.create(world);
         if (entity == null) {
             player.sendMessage(Text.literal("Cannot summon: " + id), true);

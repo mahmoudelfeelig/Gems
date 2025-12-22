@@ -3,6 +3,7 @@ package com.feel.gems.mixin;
 import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.item.GemItemGlint;
+import com.feel.gems.item.GemOwnership;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.GemPowers;
 import com.feel.gems.power.PowerIds;
@@ -42,6 +43,7 @@ public abstract class ServerPlayerEntityDeathMixin {
         GemPlayerState.initIfNeeded(victim);
         AssassinState.initIfNeeded(victim);
         SpyMimicSystem.incrementDeaths(victim);
+        boolean skipHeartDrop = GemOwnership.consumeSkipHeartDrop(victim);
 
         boolean victimWasAssassin = AssassinState.isAssassin(victim);
         int victimEnergyBefore = GemPlayerState.getEnergy(victim);
@@ -87,7 +89,7 @@ public abstract class ServerPlayerEntityDeathMixin {
         if (!victimWasAssassin) {
             if (victimAtFiveHearts) {
                 AssassinState.becomeAssassin(victim);
-            } else if (victimHeartsBefore > GemPlayerState.MIN_MAX_HEARTS) {
+            } else if (!skipHeartDrop && victimHeartsBefore > GemPlayerState.MIN_MAX_HEARTS) {
                 GemPlayerState.setMaxHearts(victim, victimHeartsBefore - 1);
                 ItemStack heart = new ItemStack(ModItems.HEART);
                 AbilityRuntime.setOwnerIfMissing(heart, victim.getUuid());

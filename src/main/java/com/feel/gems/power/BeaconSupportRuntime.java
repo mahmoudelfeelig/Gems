@@ -37,7 +37,7 @@ public final class BeaconSupportRuntime {
         int amplifier = Math.max(0, (hearts / 2) - 1);
         ServerWorld world = player.getServerWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.getBoundingBox().intersects(box))) {
+        for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
             if (other == player) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, duration, amplifier, true, true, false));
                 continue;
@@ -73,7 +73,7 @@ public final class BeaconSupportRuntime {
 
         ServerWorld world = player.getServerWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.getBoundingBox().intersects(box))) {
+        for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
             if (GemTrust.isTrusted(player, other) || other == player) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, amp, true, false, false));
             } else {
@@ -94,7 +94,7 @@ public final class BeaconSupportRuntime {
 
         ServerWorld world = player.getServerWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.getBoundingBox().intersects(box))) {
+        for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
             if (GemTrust.isTrusted(player, other) || other == player) {
                 for (StatusEffectInstance effect : java.util.List.copyOf(other.getStatusEffects())) {
                     if (effect.getEffectType().value().getCategory() != StatusEffectCategory.HARMFUL) {

@@ -42,15 +42,15 @@ public final class SummonerLoadoutScreen extends Screen {
         super(Text.literal("Summoner Loadout"));
         this.maxPoints = payload.maxPoints();
         this.maxActive = payload.maxActiveSummons();
-        this.costs = payload.costs();
+        this.costs = payload.costs() == null ? Map.of() : payload.costs();
         this.initial = List.of(
-                payload.slot1(),
-                payload.slot2(),
-                payload.slot3(),
-                payload.slot4(),
-                payload.slot5()
+            safeEntries(payload.slot1()),
+            safeEntries(payload.slot2()),
+            safeEntries(payload.slot3()),
+            safeEntries(payload.slot4()),
+            safeEntries(payload.slot5())
         );
-        this.options = buildOptions(costs);
+        this.options = buildOptions(this.costs);
     }
 
     @Override
@@ -99,7 +99,9 @@ public final class SummonerLoadoutScreen extends Screen {
         );
 
         for (SlotEditor slot : slots) {
-            slot.renderLabels(context, this.textRenderer);
+            if (slot != null) {
+                slot.renderLabels(context, this.textRenderer);
+            }
         }
 
         super.render(context, mouseX, mouseY, delta);
@@ -145,6 +147,9 @@ public final class SummonerLoadoutScreen extends Screen {
     private void updateCost() {
         int total = 0;
         for (SlotEditor slot : slots) {
+            if (slot == null) {
+                continue;
+            }
             for (SummonerLoadouts.Entry entry : slot.entries()) {
                 Integer cost = costs.get(entry.entityId());
                 if (cost != null && cost > 0) {
@@ -186,12 +191,19 @@ public final class SummonerLoadoutScreen extends Screen {
             if (id == null) {
                 continue;
             }
-            EntityType<?> type = Registries.ENTITY_TYPE.get(id);
+            EntityType<?> type = Registries.ENTITY_TYPE.getOrEmpty(id).orElse(null);
+            if (type == null) {
+                continue;
+            }
             Text name = type.getName();
             opts.add(new EntityOption(id.toString(), name, entry.getValue()));
         }
         opts.sort(Comparator.comparingInt(EntityOption::cost).thenComparing(o -> o.name.getString()));
         return opts;
+    }
+
+    private static List<SummonerLoadouts.Entry> safeEntries(List<SummonerLoadouts.Entry> entries) {
+        return entries == null ? List.of() : entries;
     }
 
     private final class SlotEditor {

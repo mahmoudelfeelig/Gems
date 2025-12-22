@@ -20,8 +20,15 @@ public class HeartRecipeTest {
         assertEquals("minecraft:crafting_shaped", root.get("type").getAsString());
 
         JsonObject key = root.getAsJsonObject("key");
-        assertEquals("minecraft:netherite_scrap", key.getAsJsonObject("S").get("item").getAsString());
+        assertEquals("minecraft:netherite_scrap", key.getAsJsonObject("N").get("item").getAsString());
+        assertEquals("minecraft:iron_block", key.getAsJsonObject("I").get("item").getAsString());
         assertEquals("minecraft:gold_block", key.getAsJsonObject("G").get("item").getAsString());
+
+        var pattern = root.getAsJsonArray("pattern");
+        assertEquals(3, pattern.size());
+        assertEquals("NIN", pattern.get(0).getAsString());
+        assertEquals("IGI", pattern.get(1).getAsString());
+        assertEquals("NIN", pattern.get(2).getAsString());
 
         JsonObject result = root.getAsJsonObject("result");
         assertEquals("gems:heart", result.get("id").getAsString());

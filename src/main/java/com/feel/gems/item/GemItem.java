@@ -37,11 +37,18 @@ public final class GemItem extends Item {
         }
 
         GemPlayerState.initIfNeeded(player);
+        GemOwnership.ensureOwner(stack, player); // tag immediately so stale/no-owner items belong to the clicker
 
-        if (GemOwnership.purgeIfInvalid(player.getServer(), stack)) {
-            player.setStackInHand(hand, ItemStack.EMPTY);
-            player.sendMessage(Text.literal("This gem has been reclaimed by its owner."), true);
-            return TypedActionResult.fail(ItemStack.EMPTY);
+        boolean ownedByPlayer = GemOwnership.isOwnedBy(stack, player.getUuid());
+        if (GemOwnership.isInvalidForEpoch(player.getServer(), stack)) {
+            if (ownedByPlayer) {
+                // Refresh epoch for your own stale gem so it can still be activated (common when carrying multiple gems across deaths).
+                GemOwnership.tagOwned(stack, player.getUuid(), GemPlayerState.getGemEpoch(player));
+            } else if (GemOwnership.purgeIfInvalid(player.getServer(), stack)) {
+                player.setStackInHand(hand, ItemStack.EMPTY);
+                player.sendMessage(Text.literal("This gem has been reclaimed by its owner."), true);
+                return TypedActionResult.fail(ItemStack.EMPTY);
+            }
         }
 
         var ownerUuid = GemOwnership.ownerUuid(stack);
@@ -54,8 +61,6 @@ public final class GemItem extends Item {
                 GemOwnership.queueOfflinePenalty(player.getServer(), ownerUuid);
             }
         }
-
-        GemOwnership.ensureOwner(stack, player);
 
         GemPlayerState.setActiveGem(player, gemId);
         GemPowers.sync(player);

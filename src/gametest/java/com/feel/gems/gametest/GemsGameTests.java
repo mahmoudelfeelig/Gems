@@ -229,8 +229,9 @@ public final class GemsGameTests {
             if (GemPlayerState.getActiveGem(player) != GemId.FLUX) {
                 context.throwGameTestException("Active gem was not set to FLUX");
             }
-            if (!GemPlayerState.getOwnedGems(player).equals(EnumSet.of(GemId.FLUX))) {
-                context.throwGameTestException("Owned gems were not reset to only FLUX");
+            EnumSet<GemId> expectedOwned = EnumSet.of(GemId.FIRE, GemId.FLUX);
+            if (!GemPlayerState.getOwnedGems(player).equals(expectedOwned)) {
+                context.throwGameTestException("Owned gems mismatch, expected " + expectedOwned + " got " + GemPlayerState.getOwnedGems(player));
             }
 
             int gemItems = 0;
@@ -242,8 +243,8 @@ public final class GemsGameTests {
             if (!hasFlux) {
                 context.throwGameTestException("Player inventory did not contain the new FLUX gem item");
             }
-            if (gemItems != 1) {
-                context.throwGameTestException("Expected exactly 1 gem item after trading, found " + gemItems);
+            if (gemItems != 3) { // fire + life carried in + new flux
+                context.throwGameTestException("Expected 3 gem items (kept others) after trading, found " + gemItems);
             }
 
             context.complete();

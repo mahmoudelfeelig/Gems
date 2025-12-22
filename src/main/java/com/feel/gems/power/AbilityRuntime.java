@@ -123,10 +123,6 @@ public final class AbilityRuntime {
 
     public static void startSpeedStorm(ServerPlayerEntity player, int durationTicks, float scale) {
         long now = GemsTime.now(player);
-        if ((now % 3) != 0) {
-            return; // cut box scan frequency
-        }
-
         NbtCompound nbt = persistent(player);
         nbt.putLong(KEY_SPEED_STORM_UNTIL, now + durationTicks);
         nbt.putFloat(KEY_SPEED_STORM_SCALE, scale);
@@ -364,7 +360,7 @@ public final class AbilityRuntime {
         int radius = GemsBalance.v().fire().cosyCampfireRadiusBlocks();
         int amp = GemsBalance.v().fire().cosyCampfireRegenAmplifier();
         AbilityFeedback.ring(world, player.getPos().add(0.0D, 0.2D, 0.0D), Math.min(6.0D, radius), net.minecraft.particle.ParticleTypes.CAMPFIRE_COSY_SMOKE, 20);
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
+        for (ServerPlayerEntity other : playersInRadius(world, player.getPos(), radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 40, amp, true, false, false));
                 AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.HEART, 1, 0.1D);
@@ -382,7 +378,7 @@ public final class AbilityRuntime {
         int fatigueAmp = GemsBalance.v().fire().heatHazeEnemyMiningFatigueAmplifier();
         int weaknessAmp = GemsBalance.v().fire().heatHazeEnemyWeaknessAmplifier();
         AbilityFeedback.ring(world, player.getPos().add(0.0D, 0.2D, 0.0D), Math.min(7.0D, radius), net.minecraft.particle.ParticleTypes.FLAME, 24);
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
+        for (ServerPlayerEntity other : playersInRadius(world, player.getPos(), radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, duration, 0, true, false, false));
                 AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.FLAME, 1, 0.05D);
@@ -399,6 +395,9 @@ public final class AbilityRuntime {
         if (nbt.getLong(KEY_SPEED_STORM_UNTIL) <= now) {
             return;
         }
+        if ((now % 3) != 0) {
+            return; // reduce scan frequency while keeping activation reliable
+        }
         ServerWorld world = player.getServerWorld();
         float scale = nbt.contains(KEY_SPEED_STORM_SCALE, NbtElement.FLOAT_TYPE) ? nbt.getFloat(KEY_SPEED_STORM_SCALE) : 1.0F;
         if (scale <= 0.0F) {
@@ -410,7 +409,7 @@ public final class AbilityRuntime {
         int enemySlow = SpeedMomentum.scaleInt(GemsBalance.v().speed().speedStormEnemySlownessAmplifier(), scale, 0);
         int enemyFatigue = SpeedMomentum.scaleInt(GemsBalance.v().speed().speedStormEnemyMiningFatigueAmplifier(), scale, 0);
         AbilityFeedback.ring(world, player.getPos().add(0.0D, 0.2D, 0.0D), Math.min(7.0D, radius), net.minecraft.particle.ParticleTypes.CLOUD, 24);
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
+        for (ServerPlayerEntity other : playersInRadius(world, player.getPos(), radius)) {
             if (GemTrust.isTrusted(player, other)) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 40, allySpeed, true, false, false));
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, 40, allyHaste, true, false, false));
@@ -976,6 +975,11 @@ public final class AbilityRuntime {
 
     private static Identifier heartLockModifierId(UUID caster) {
         return Identifier.of("gems", "heart_lock_" + caster);
+    }
+
+    private static java.util.List<ServerPlayerEntity> playersInRadius(ServerWorld world, Vec3d center, double radius) {
+        Box box = Box.of(center, radius * 2.0D, radius * 2.0D, radius * 2.0D);
+        return world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> p.squaredDistanceTo(center) <= radius * radius);
     }
 
     public static void cleanupOnDisconnect(MinecraftServer server, ServerPlayerEntity caster) {

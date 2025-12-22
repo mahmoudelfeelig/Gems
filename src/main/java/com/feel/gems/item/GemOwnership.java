@@ -33,6 +33,7 @@ import java.util.UUID;
 public final class GemOwnership {
     private static final String KEY_OWNER = "GemOwner";
     private static final String KEY_EPOCH = "GemOwnerEpoch";
+    private static final String KEY_SKIP_HEART_DROP = "gemsSkipHeartDropOnce";
 
     private static final int PLAYER_PURGE_BUDGET = 8;
     private static final int CHUNK_PURGE_BUDGET = 6;
@@ -137,8 +138,18 @@ public final class GemOwnership {
         int energy = GemPlayerState.getEnergy(owner);
         GemPlayerState.setEnergy(owner, Math.min(energy, 1));
         GemPlayerState.applyMaxHearts(owner);
+        ((com.feel.gems.state.GemsPersistentDataHolder) owner).gems$getPersistentData().putBoolean(KEY_SKIP_HEART_DROP, true);
         owner.damage(owner.getDamageSources().magic(), Float.MAX_VALUE);
         owner.sendMessage(net.minecraft.text.Text.literal("Your gem was activated by another player. You paid the cost."), false);
+    }
+
+    public static boolean consumeSkipHeartDrop(ServerPlayerEntity player) {
+        var data = ((com.feel.gems.state.GemsPersistentDataHolder) player).gems$getPersistentData();
+        boolean skip = data.getBoolean(KEY_SKIP_HEART_DROP);
+        if (skip) {
+            data.remove(KEY_SKIP_HEART_DROP);
+        }
+        return skip;
     }
 
     private static final class OfflinePenaltyState extends PersistentState {
@@ -242,6 +253,9 @@ public final class GemOwnership {
                         long key = chunk.toLong();
                         if (!seenChunks.add(key)) {
                             continue;
+                        }
+                        if (!world.isChunkLoaded(chunk.x, chunk.z)) {
+                            continue; // skip unloaded chunks to keep the purge queue small
                         }
                         int minX = chunk.getStartX();
                         int minZ = chunk.getStartZ();

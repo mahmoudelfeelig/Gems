@@ -2,13 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "S S",
-    " D ",
-    "S S"
+    "NEN",
+    "EDE",
+    "NEN"
   ],
   "key": {
-    "S": {
+    "N": {
       "item": "minecraft:netherite_scrap"
+    },
+    "E": {
+      "item": "minecraft:emerald_block"
     },
     "D": {
       "item": "minecraft:diamond_block"

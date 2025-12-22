@@ -2,13 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "S S",
-    " G ",
-    "S S"
+    "NIN",
+    "IGI",
+    "NIN"
   ],
   "key": {
-    "S": {
+    "N": {
       "item": "minecraft:netherite_scrap"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
     },
     "G": {
       "item": "minecraft:gold_block"

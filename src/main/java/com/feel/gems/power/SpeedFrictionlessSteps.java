@@ -13,6 +13,9 @@ public final class SpeedFrictionlessSteps {
     }
 
     public static void tick(MinecraftServer server) {
+        if ((server.getTicks() % 5) != 0) {
+            return; // run every 5 ticks to cut per-tick scans
+        }
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             tickPlayer(player);
         }

@@ -29,12 +29,14 @@ public final class GemTrading {
             player.sendMessage(Text.literal("You need a Gem Trader to trade."), true);
             return new Result(false, false, false);
         }
-
+        GemId activeBefore = GemPlayerState.getActiveGem(player);
         EnumSet<GemId> ownedBefore = GemPlayerState.getOwnedGems(player);
         boolean alreadyOwned = ownedBefore.contains(gemId);
 
-        // Trading resets ownership to only the traded gem and equips it as active.
-        EnumSet<GemId> newOwned = EnumSet.of(gemId);
+        EnumSet<GemId> newOwned = EnumSet.copyOf(ownedBefore);
+        newOwned.remove(activeBefore); // trade away only the active gem
+        newOwned.add(gemId);
+
         GemPlayerState.setActiveGem(player, gemId);
         GemPlayerState.setOwnedGemsExact(player, newOwned);
 
@@ -42,7 +44,8 @@ public final class GemTrading {
         GemItemGlint.sync(player);
         GemStateSync.send(player);
         Item keep = ModItems.gemItem(gemId);
-        removeOtherGemItems(player, keep);
+        Item tradedAway = ModItems.gemItem(activeBefore);
+        removeGemItems(player, tradedAway, keep);
         ensurePlayerHasItem(player, keep);
 
         return new Result(true, true, alreadyOwned);
@@ -104,13 +107,13 @@ public final class GemTrading {
         player.giveItemStack(stack);
     }
 
-    private static void removeOtherGemItems(ServerPlayerEntity player, Item keep) {
-        purgeInv(player.getInventory().main, keep);
-        purgeInv(player.getInventory().offHand, keep);
-        purgeInv(player.getInventory().armor, keep);
+    private static void removeGemItems(ServerPlayerEntity player, Item toRemove, Item toKeep) {
+        purgeInv(player.getInventory().main, toRemove, toKeep);
+        purgeInv(player.getInventory().offHand, toRemove, toKeep);
+        purgeInv(player.getInventory().armor, toRemove, toKeep);
     }
 
-    private static void purgeInv(java.util.List<ItemStack> stacks, Item keep) {
+    private static void purgeInv(java.util.List<ItemStack> stacks, Item toRemove, Item toKeep) {
         for (int i = 0; i < stacks.size(); i++) {
             ItemStack stack = stacks.get(i);
             if (stack.isEmpty()) {
@@ -119,7 +122,10 @@ public final class GemTrading {
             if (!(stack.getItem() instanceof com.feel.gems.item.GemItem)) {
                 continue;
             }
-            if (stack.isOf(keep)) {
+            if (stack.isOf(toKeep)) {
+                continue;
+            }
+            if (!stack.isOf(toRemove)) {
                 continue;
             }
             stacks.set(i, ItemStack.EMPTY);

@@ -37,7 +37,15 @@ replay_pid*
 *.ipr
 *.iws
 
-
 # Virtual environments
 .env/
 .venv/
+
+# CurseForge files
+CurseForge/
+
+# Local experiments
+experiments/
+
+# Assets
+assets/

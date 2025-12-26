@@ -1,7 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "gems:item/terror_gem"
+    "layer0": "gems:item/gems/terror_gem"
   }
 }
-

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "gems:item/beacon_gem"
+    "layer0": "gems:item/gems/beacon_gem"
   }
 }

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "gems:item/strength_gem"
+    "layer0": "gems:item/gems/strength_gem"
   }
 }

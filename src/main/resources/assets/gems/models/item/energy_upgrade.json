@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "gems:item/energy_upgrade"
+    "layer0": "gems:item/items/energy_upgrade"
   }
 }

@@ -5,23 +5,30 @@ Source of truth: specs live in checklist.md and abilities.md. This document maps
 ## Existing tests
 
 - **GameTests**
-  - GemsGameTests (src/gametest/java/com/feel/gems/gametest/GemsGameTests.java)
-    - Astral camera returns to start
-    - Flux beam consumes charge and resets to 0
-      - Beacon aura applies only to trusted allies
-      - Pillager volley stops when energy hits zero; discipline triggers under threshold
+  - Core (src/gametest/java/com/feel/gems/gametest/core/GemsCoreGameTests.java)
     - Death keeps active gem only (GemKeepOnDeath stash/restore)
+    - Unlock order follows energy spec (per gem definitions)
+    - Energy ladder gates abilities and loses 1 on death
+    - Passives apply/stop when disables are toggled
+    - Ability disables clear + cooldown snapshot persists
+  - Trader (src/gametest/java/com/feel/gems/gametest/trade/GemsTradeGameTests.java)
     - Trader consumes item and keeps only new gem
-      - Unlock order follows energy spec (per gem definitions)
-      - Energy ladder gates abilities and loses 1 on death
-      - Trader requires trader item and consumes exactly one
-      - Spy steal records required observations even on cold cache
-      - Summoner recall cleans tracked summons
-      - Glint applies only to the active gem at energy cap and clears on switch/low energy
-         - Hearts drop above the 5-heart floor and clamp; at the floor no drop and assassin conversion
-         - Energy upgrade raises energy by one and caps; heart item respects max cap
-         - Pockets inventory persists through save/load
-    - (Many other ability- and item-focused cases inside this suite)
+    - Trader fails without trader item
+    - Trader requires trader item and consumes exactly one
+  - Flux (src/gametest/java/com/feel/gems/gametest/power/GemsFluxGameTests.java)
+    - Flux beam consumes charge and resets to 0
+    - Flux charge consumes exactly one item
+  - Items (src/gametest/java/com/feel/gems/gametest/item/GemsItemGameTests.java)
+    - Recipes registered
+    - Glint applies only to the active gem at energy cap and clears on switch/low energy
+    - Energy upgrade raises energy by one and caps
+    - Heart item respects max cap
+    - Pockets inventory persists through save/load
+  - Hearts/Assassin (src/gametest/java/com/feel/gems/gametest/item/GemsHeartAndAssassinGameTests.java)
+    - Assassin conversion and hearts applied
+    - Hearts drop above the 5-heart floor and clamp; at the floor no drop and assassin conversion
+  - Abilities (src/gametest/java/com/feel/gems/gametest/ability/GemsAbilityGameTests.java)
+    - (All other end-to-end ability-focused cases)
 
 - **Unit/Integration (JUnit)**
   - GemsBalanceDefaultsTest (balance defaults match config)

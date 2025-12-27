@@ -67,7 +67,7 @@ import net.minecraft.network.RegistryByteBuf;
 
 public final class GemsTradeGameTests {
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void traderConsumesAndKeepsOnlyNewGem(TestContext context) {
+    public void gemTraderConsumesAndKeepsOnlyNewGem(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
         player.changeGameMode(GameMode.SURVIVAL);
@@ -81,20 +81,20 @@ public final class GemsTradeGameTests {
 
         // Keep the main hand occupied so "ensurePlayerHasItem" doesn't accidentally place the new gem into the hand.
         player.setStackInHand(Hand.MAIN_HAND, new ItemStack(Items.STICK));
-        player.setStackInHand(Hand.OFF_HAND, new ItemStack(ModItems.TRADER));
+        player.setStackInHand(Hand.OFF_HAND, new ItemStack(ModItems.GEM_TRADER));
         player.giveItemStack(new ItemStack(ModItems.ASTRA_GEM));
         player.giveItemStack(new ItemStack(ModItems.FIRE_GEM));
         player.giveItemStack(new ItemStack(ModItems.LIFE_GEM));
 
         context.runAtTick(2L, () -> {
-            int tradersBefore = GemsGameTestUtil.countItem(player, ModItems.TRADER);
+            int tradersBefore = GemsGameTestUtil.countItem(player, ModItems.GEM_TRADER);
             GemTrading.Result result = GemTrading.trade(player, GemId.FLUX);
             if (!result.success() || !result.consumedTrader()) {
-                context.throwGameTestException("Trade did not succeed / did not consume trader");
+                context.throwGameTestException("Trade did not succeed / did not consume gem_trader");
             }
-            int tradersAfter = GemsGameTestUtil.countItem(player, ModItems.TRADER);
+            int tradersAfter = GemsGameTestUtil.countItem(player, ModItems.GEM_TRADER);
             if (tradersAfter != Math.max(0, tradersBefore - 1)) {
-                context.throwGameTestException("Expected trader count to decrement by 1, before=" + tradersBefore + " after=" + tradersAfter);
+                context.throwGameTestException("Expected gem_trader count to decrement by 1, before=" + tradersBefore + " after=" + tradersAfter);
             }
             if (GemPlayerState.getActiveGem(player) != GemId.FLUX) {
                 context.throwGameTestException("Active gem was not set to FLUX");
@@ -122,7 +122,7 @@ public final class GemsTradeGameTests {
     }
 
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void traderFailsWithoutTrader(TestContext context) {
+    public void gemTraderFailsWithoutTrader(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
         player.changeGameMode(GameMode.SURVIVAL);
@@ -150,7 +150,7 @@ public final class GemsTradeGameTests {
     }
 
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void traderRequiresItemAndConsumesExactlyOne(TestContext context) {
+    public void gemTraderRequiresItemAndConsumesExactlyOne(TestContext context) {
         ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
         player.changeGameMode(GameMode.SURVIVAL);
 
@@ -158,10 +158,10 @@ public final class GemsTradeGameTests {
         GemPlayerState.setActiveGem(player, GemId.ASTRA);
         GemPlayerState.setOwnedGemsExact(player, java.util.EnumSet.of(GemId.ASTRA));
 
-        // No trader item present: should fail and not change state.
+        // No gem_trader item present: should fail and not change state.
         GemTrading.Result fail = GemTrading.trade(player, GemId.FLUX);
         if (fail.success() || fail.consumedTrader()) {
-            context.throwGameTestException("Trade should fail without a trader item");
+            context.throwGameTestException("Trade should fail without a gem_trader item");
             return;
         }
         if (GemPlayerState.getActiveGem(player) != GemId.ASTRA) {
@@ -174,18 +174,18 @@ public final class GemsTradeGameTests {
             player.getInventory().main.set(i, new ItemStack(Items.DIRT));
         }
 
-        // Add exactly one trader item and trade again.
-        player.giveItemStack(new ItemStack(ModItems.TRADER));
-        int tradersBefore = GemsGameTestUtil.countItem(player, ModItems.TRADER);
+        // Add exactly one gem_trader item and trade again.
+        player.giveItemStack(new ItemStack(ModItems.GEM_TRADER));
+        int tradersBefore = GemsGameTestUtil.countItem(player, ModItems.GEM_TRADER);
 
         GemTrading.Result ok = GemTrading.trade(player, GemId.FLUX);
         if (!ok.success() || !ok.consumedTrader()) {
-            context.throwGameTestException("Trade should succeed and consume a trader item");
+            context.throwGameTestException("Trade should succeed and consume a gem_trader item");
             return;
         }
-        int tradersAfter = GemsGameTestUtil.countItem(player, ModItems.TRADER);
+        int tradersAfter = GemsGameTestUtil.countItem(player, ModItems.GEM_TRADER);
         if (tradersAfter != Math.max(0, tradersBefore - 1)) {
-            context.throwGameTestException("Trader count did not decrement by 1");
+            context.throwGameTestException("Gem_trader count did not decrement by 1");
             return;
         }
 
@@ -207,6 +207,52 @@ public final class GemsTradeGameTests {
         }
 
         context.complete();
+    }
+
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void purchaseConsumesTokenAndKeepsAllOwned(TestContext context) {
+        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        GemPlayerState.initIfNeeded(player);
+        GemPlayerState.setActiveGem(player, GemId.ASTRA);
+        GemPlayerState.setOwnedGemsExact(player, EnumSet.of(GemId.ASTRA, GemId.FIRE));
+
+        player.getInventory().clear();
+        player.giveItemStack(new ItemStack(ModItems.GEM_PURCHASE));
+        player.giveItemStack(new ItemStack(ModItems.ASTRA_GEM));
+        player.giveItemStack(new ItemStack(ModItems.FIRE_GEM));
+
+        context.runAtTick(2L, () -> {
+            int tokensBefore = GemsGameTestUtil.countItem(player, ModItems.GEM_PURCHASE);
+            GemTrading.PurchaseResult result = GemTrading.purchase(player, GemId.FLUX);
+            if (!result.success() || !result.consumedToken()) {
+                context.throwGameTestException("Purchase did not succeed / did not consume token");
+            }
+            int tokensAfter = GemsGameTestUtil.countItem(player, ModItems.GEM_PURCHASE);
+            if (tokensAfter != Math.max(0, tokensBefore - 1)) {
+                context.throwGameTestException("Expected gem purchase token count to decrement by 1");
+            }
+            if (GemPlayerState.getActiveGem(player) != GemId.FLUX) {
+                context.throwGameTestException("Active gem was not set to FLUX");
+            }
+            EnumSet<GemId> expectedOwned = EnumSet.of(GemId.ASTRA, GemId.FIRE, GemId.FLUX);
+            if (!GemPlayerState.getOwnedGems(player).equals(expectedOwned)) {
+                context.throwGameTestException("Owned gems mismatch, expected " + expectedOwned + " got " + GemPlayerState.getOwnedGems(player));
+            }
+
+            int gemItems = GemsGameTestUtil.countGemItems(player.getInventory().main)
+                    + GemsGameTestUtil.countGemItems(player.getInventory().offHand)
+                    + GemsGameTestUtil.countGemItems(player.getInventory().armor);
+            if (!GemsGameTestUtil.hasItem(player, ModItems.FLUX_GEM)) {
+                context.throwGameTestException("Player inventory did not contain the new FLUX gem item");
+            }
+            if (gemItems != 3) {
+                context.throwGameTestException("Expected 3 gem items after purchase, found " + gemItems);
+            }
+
+            context.complete();
+        });
     }
 
 }

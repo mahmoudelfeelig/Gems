@@ -21,12 +21,27 @@ public final class AbilityFeedback {
         world.playSound(null, player.getX(), player.getY(), player.getZ(), sound, SoundCategory.PLAYERS, volume, pitch);
     }
 
+    public static void soundAt(ServerWorld world, Vec3d pos, SoundEvent sound, float volume, float pitch) {
+        if (!GemsBalance.v().visual().enableSounds()) {
+            return;
+        }
+        world.playSound(null, pos.x, pos.y, pos.z, sound, SoundCategory.PLAYERS, volume, pitch);
+    }
+
     public static void sound(ServerPlayerEntity player, RegistryEntry.Reference<SoundEvent> sound, float volume, float pitch) {
         sound(player, sound.value(), volume, pitch);
     }
 
     public static void sound(ServerPlayerEntity player, RegistryEntry<SoundEvent> sound, float volume, float pitch) {
         sound(player, sound.value(), volume, pitch);
+    }
+
+    public static void soundAt(ServerWorld world, Vec3d pos, RegistryEntry.Reference<SoundEvent> sound, float volume, float pitch) {
+        soundAt(world, pos, sound.value(), volume, pitch);
+    }
+
+    public static void soundAt(ServerWorld world, Vec3d pos, RegistryEntry<SoundEvent> sound, float volume, float pitch) {
+        soundAt(world, pos, sound.value(), volume, pitch);
     }
 
     public static void burst(ServerPlayerEntity player, ParticleEffect particle, int count, double spread) {

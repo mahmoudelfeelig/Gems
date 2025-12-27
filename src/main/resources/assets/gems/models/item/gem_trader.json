@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "gems:item/items/trader"
+    "layer0": "gems:item/items/gem_trader"
   }
 }

@@ -18,6 +18,7 @@ Optional (recommended for profiling/testing):
 - Main balance file: `config/gems/balance.json`
 - Reload at runtime (op level 2+): `/gems reloadBalance`
 - Dump effective (clamped) values (op level 2+): `/gems dumpBalance` → writes `config/gems/balance.effective.json`
+- ModMenu config edits are op-only in multiplayer; non-ops see a read-only view.
 
 ### Permissions
 - Player commands: `/gems status`, `/gems trust`, `/gems untrust`, `/gems trustlist`, `/gems trade ...`
@@ -31,7 +32,7 @@ Optional (recommended for profiling/testing):
   - `/gems admin setGem <player> <gem>`
   - `/gems admin setEnergy <players> <energy>`
   - `/gems admin setHearts <player> <hearts>`
-  - `/gems admin giveItem <player> <heart|energy_upgrade|trader>`
+  - `/gems admin giveItem <player> <heart|energy_upgrade|gem_trader|gem_purchase>`
 - Casting (for testing):
   - `/gems admin cast <player> <slot>`
 - Perf/stress (for CI + profiling):

@@ -21,6 +21,9 @@ public final class GemTrading {
     public record Result(boolean success, boolean consumedTrader, boolean alreadyOwned) {
     }
 
+    public record PurchaseResult(boolean success, boolean consumedToken, boolean alreadyOwned) {
+    }
+
     public static Result trade(ServerPlayerEntity player, GemId gemId) {
         GemPlayerState.initIfNeeded(player);
 
@@ -51,8 +54,35 @@ public final class GemTrading {
         return new Result(true, true, alreadyOwned);
     }
 
+    public static PurchaseResult purchase(ServerPlayerEntity player, GemId gemId) {
+        GemPlayerState.initIfNeeded(player);
+
+        boolean consumedToken = consumePurchaseToken(player);
+        if (!consumedToken) {
+            player.sendMessage(Text.literal("You need a Gem Purchase Token to buy a gem."), true);
+            return new PurchaseResult(false, false, false);
+        }
+
+        EnumSet<GemId> ownedBefore = GemPlayerState.getOwnedGems(player);
+        boolean alreadyOwned = ownedBefore.contains(gemId);
+        EnumSet<GemId> newOwned = EnumSet.copyOf(ownedBefore);
+        newOwned.add(gemId);
+
+        GemPlayerState.setActiveGem(player, gemId);
+        GemPlayerState.setOwnedGemsExact(player, newOwned);
+
+        GemPowers.sync(player);
+        GemItemGlint.sync(player);
+        GemStateSync.send(player);
+
+        Item keep = ModItems.gemItem(gemId);
+        ensurePlayerHasItem(player, keep);
+
+        return new PurchaseResult(true, true, alreadyOwned);
+    }
+
     private static boolean consumeTrader(ServerPlayerEntity player) {
-        Item trader = ModItems.TRADER;
+        Item trader = ModItems.GEM_TRADER;
         ItemStack main = player.getMainHandStack();
         if (main.isOf(trader)) {
             main.decrement(1);
@@ -76,6 +106,41 @@ public final class GemTrading {
         for (int i = 0; i < player.getInventory().offHand.size(); i++) {
             ItemStack stack = player.getInventory().offHand.get(i);
             if (stack.isOf(trader)) {
+                stack.decrement(1);
+                if (stack.isEmpty()) {
+                    player.getInventory().offHand.set(i, ItemStack.EMPTY);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean consumePurchaseToken(ServerPlayerEntity player) {
+        Item token = ModItems.GEM_PURCHASE;
+        ItemStack main = player.getMainHandStack();
+        if (main.isOf(token)) {
+            main.decrement(1);
+            return true;
+        }
+        ItemStack off = player.getOffHandStack();
+        if (off.isOf(token)) {
+            off.decrement(1);
+            return true;
+        }
+        for (int i = 0; i < player.getInventory().main.size(); i++) {
+            ItemStack stack = player.getInventory().main.get(i);
+            if (stack.isOf(token)) {
+                stack.decrement(1);
+                if (stack.isEmpty()) {
+                    player.getInventory().main.set(i, ItemStack.EMPTY);
+                }
+                return true;
+            }
+        }
+        for (int i = 0; i < player.getInventory().offHand.size(); i++) {
+            ItemStack stack = player.getInventory().offHand.get(i);
+            if (stack.isOf(token)) {
                 stack.decrement(1);
                 if (stack.isEmpty()) {
                     player.getInventory().offHand.set(i, ItemStack.EMPTY);

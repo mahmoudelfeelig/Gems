@@ -49,7 +49,8 @@ public final class ModItemGroups {
 
                             entries.add(ModItems.ENERGY_UPGRADE);
                             entries.add(ModItems.HEART);
-                            entries.add(ModItems.TRADER);
+                            entries.add(ModItems.GEM_TRADER);
+                            entries.add(ModItems.GEM_PURCHASE);
                         })
                         .build()
         );

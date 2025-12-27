@@ -15,8 +15,11 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
+import com.feel.gems.state.GemsPersistentDataHolder;
+
 public final class AirMacePassive implements GemMaintainedPassive {
     private static final String TAG_AIR_MACE = "gemsAirMace";
+    private static final String KEY_GRANTED = "airMaceGranted";
 
     private final Identifier id;
     private final String name;
@@ -51,6 +54,12 @@ public final class AirMacePassive implements GemMaintainedPassive {
     @Override
     public void maintain(ServerPlayerEntity player) {
         if (hasAirMace(player)) {
+            setGranted(player, true);
+            return;
+        }
+        if (isGranted(player)) {
+            // Player explicitly got rid of the mace (dropped/stashed/etc). Do not respawn spam;
+            // they can re-enable the passive (energy/gem switch) to get a new one.
             return;
         }
         ItemStack mace = createAirMace(player);
@@ -58,11 +67,13 @@ public final class AirMacePassive implements GemMaintainedPassive {
             return;
         }
         player.giveItemStack(mace);
+        setGranted(player, true);
     }
 
     @Override
     public void remove(ServerPlayerEntity player) {
         // Intentionally does not remove the mace to avoid deleting player-owned items.
+        setGranted(player, false);
     }
 
     public static boolean isHoldingMace(ServerPlayerEntity player) {
@@ -125,6 +136,16 @@ public final class AirMacePassive implements GemMaintainedPassive {
             }
         });
         return mace;
+    }
+
+    private static boolean isGranted(ServerPlayerEntity player) {
+        NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        return data.getBoolean(KEY_GRANTED);
+    }
+
+    private static void setGranted(ServerPlayerEntity player, boolean granted) {
+        NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        data.putBoolean(KEY_GRANTED, granted);
     }
 
     private static RegistryEntry<Enchantment> resolve(ServerPlayerEntity player, RegistryKey<Enchantment> key) {

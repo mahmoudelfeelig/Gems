@@ -250,7 +250,8 @@ public final class GemsModEvents {
         List<Identifier> ids = List.of(
                 Identifier.of(GemsMod.MOD_ID, "heart"),
                 Identifier.of(GemsMod.MOD_ID, "energy_upgrade"),
-                Identifier.of(GemsMod.MOD_ID, "trader")
+                Identifier.of(GemsMod.MOD_ID, "gem_trader"),
+                Identifier.of(GemsMod.MOD_ID, "gem_purchase")
         );
 
         List<RecipeEntry<?>> entries = new ArrayList<>(ids.size());

@@ -1,16 +1,30 @@
 package com.feel.gems.screen;
 
 import com.feel.gems.core.GemId;
+import com.feel.gems.item.GemPurchaseItem;
 import com.feel.gems.trade.GemTrading;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.screen.Property;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 
 public final class TraderScreenHandler extends ScreenHandler {
+    private static final int MODE_TRADE = 0;
+    private static final int MODE_PURCHASE = 1;
+
+    private final Property mode = Property.create();
+
     public TraderScreenHandler(int syncId, PlayerInventory playerInventory) {
         super(ModScreenHandlers.TRADER, syncId);
+        addProperty(mode);
+
+        if (playerInventory.player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+            if (GemPurchaseItem.consumePending(serverPlayer)) {
+                mode.set(MODE_PURCHASE);
+            }
+        }
     }
 
     @Override
@@ -35,13 +49,24 @@ public final class TraderScreenHandler extends ScreenHandler {
         }
 
         GemId gemId = gems[id];
-        GemTrading.Result result = GemTrading.trade(serverPlayer, gemId);
-        if (!result.success()) {
-            return false;
+        if (isPurchaseMode()) {
+            GemTrading.PurchaseResult result = GemTrading.purchase(serverPlayer, gemId);
+            if (!result.success()) {
+                return false;
+            }
+            serverPlayer.sendMessage(Text.literal("Purchased " + gemId.name()), true);
+        } else {
+            GemTrading.Result result = GemTrading.trade(serverPlayer, gemId);
+            if (!result.success()) {
+                return false;
+            }
+            serverPlayer.sendMessage(Text.literal("Traded for " + gemId.name()), true);
         }
-
-        serverPlayer.sendMessage(Text.literal("Traded for " + gemId.name()), true);
         serverPlayer.closeHandledScreen();
         return true;
+    }
+
+    public boolean isPurchaseMode() {
+        return mode.get() == MODE_PURCHASE;
     }
 }

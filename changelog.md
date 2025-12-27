@@ -1,6 +1,6 @@
 # Changelog
 
-## 2025-12-22 — New Gems & Assassin Endgame
+## 22.12.2025: New Gems & Assassin Endgame
 
 - Added **eight new gems** with full passives, ability unlock ordering, config knobs, and GameTest coverage:
   - **Terror**: Darkness aura + self-sacrifice execute (totem-respect), TNT panic ring, limited-use heart/energy costing assassination.

@@ -13,8 +13,8 @@ Source of truth: specs live in checklist.md and abilities.md. This document maps
     - Ability disables clear + cooldown snapshot persists
   - Trader (src/gametest/java/com/feel/gems/gametest/trade/GemsTradeGameTests.java)
     - Trader consumes item and keeps only new gem
-    - Trader fails without trader item
-    - Trader requires trader item and consumes exactly one
+    - Gem Trader fails without gem_trader item
+    - Gem Trader requires gem_trader item and consumes exactly one
   - Flux (src/gametest/java/com/feel/gems/gametest/power/GemsFluxGameTests.java)
     - Flux beam consumes charge and resets to 0
     - Flux charge consumes exactly one item
@@ -29,6 +29,12 @@ Source of truth: specs live in checklist.md and abilities.md. This document maps
     - Hearts drop above the 5-heart floor and clamp; at the floor no drop and assassin conversion
   - Abilities (src/gametest/java/com/feel/gems/gametest/ability/GemsAbilityGameTests.java)
     - (All other end-to-end ability-focused cases)
+  - Space (src/gametest/java/com/feel/gems/gametest/space/GemsSpaceMiningGameTests.java)
+    - Orbital laser mining breaks normal blocks (regression for mining-mode filtering)
+  - Air (src/gametest/java/com/feel/gems/gametest/air/GemsAirMaceGameTests.java)
+    - Air mace does not respawn when dropped; re-grants after passive re-enabled
+  - Terror (src/gametest/java/com/feel/gems/gametest/terror/GemsTerrorTradeGameTests.java)
+    - Normal-player Terror Trade kills both, bypasses totems, and applies 2-heart penalty to target
 
 - **Unit/Integration (JUnit)**
   - GemsBalanceDefaultsTest (balance defaults match config)

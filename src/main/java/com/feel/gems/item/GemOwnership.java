@@ -152,6 +152,11 @@ public final class GemOwnership {
         return skip;
     }
 
+    public static void markSkipHeartDropOnce(ServerPlayerEntity player) {
+        var data = ((com.feel.gems.state.GemsPersistentDataHolder) player).gems$getPersistentData();
+        data.putBoolean(KEY_SKIP_HEART_DROP, true);
+    }
+
     private static final class OfflinePenaltyState extends PersistentState {
         private final Set<UUID> queued = new HashSet<>();
 

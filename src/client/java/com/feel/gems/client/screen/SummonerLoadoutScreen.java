@@ -24,6 +24,7 @@ import java.util.Map;
  */
 public final class SummonerLoadoutScreen extends Screen {
     private static final int MAX_ROWS = 3;
+    private static final int MIN_COLUMN_WIDTH = 190;
 
     private final int maxPoints;
     private final int maxActive;
@@ -37,6 +38,16 @@ public final class SummonerLoadoutScreen extends Screen {
     private ButtonWidget resetButton;
     private ButtonWidget cancelButton;
     private int totalCost;
+    private int panelLeft;
+    private int panelRight;
+    private int panelTop;
+    private int panelBottom;
+    private int columns;
+    private int columnWidth;
+    private int gapX;
+    private int startY;
+    private java.util.List<net.minecraft.text.OrderedText> hintLines = java.util.List.of();
+    private int hintY;
 
     public SummonerLoadoutScreen(SummonerLoadoutScreenPayload payload) {
         super(Text.literal("Summoner Loadout"));
@@ -58,15 +69,17 @@ public final class SummonerLoadoutScreen extends Screen {
         super.init();
         clearChildren();
 
+        computeLayout();
+
         for (int i = 0; i < slots.length; i++) {
-            slots[i] = new SlotEditor("Slot " + (i + 1), options);
+            slots[i] = new SlotEditor("Slot " + (i + 1), options, columnWidth);
             slots[i].applyEntries(initial.get(i));
         }
 
         layoutSlots();
 
         int buttonWidth = 110;
-        int buttonHeight = 20; // Ensure button height is consistent
+        int buttonHeight = 20;
         int centerX = this.width / 2;
         int bottomY = this.height - 40;
 
@@ -81,22 +94,17 @@ public final class SummonerLoadoutScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
 
-        int panelLeft = (this.width / 2) - 270;
-        int panelRight = (this.width / 2) + 270;
-        int panelTop = 32;
-        int panelBottom = this.height - 60;
         context.fill(panelLeft, panelTop, panelRight, panelBottom, 0xAA101010);
         context.fill(panelLeft, panelTop, panelRight, panelTop + 1, 0x44FFFFFF);
         context.fill(panelLeft, panelBottom - 1, panelRight, panelBottom, 0x44111111);
 
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 12, 0xFFFFFF);
-        context.drawCenteredTextWithShadow(
-                this.textRenderer,
-                Text.literal("Pick minions for each Summon ability. Budget and active caps apply."),
-                this.width / 2,
-                22,
-                0xA0A0A0
-        );
+        int centerX = this.width / 2;
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, centerX, 12, 0xFFFFFF);
+        int textY = hintY;
+        for (var line : hintLines) {
+            context.drawCenteredTextWithShadow(this.textRenderer, line, centerX, textY, 0xA0A0A0);
+            textY += this.textRenderer.fontHeight;
+        }
 
         for (SlotEditor slot : slots) {
             if (slot != null) {
@@ -108,8 +116,8 @@ public final class SummonerLoadoutScreen extends Screen {
 
         int color = totalCost > maxPoints ? 0xFF5555 : 0x80FF80;
         String budget = "Budget: " + totalCost + " / " + maxPoints + " pts";
-        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal(budget), this.width / 2, this.height - 68, color);
-        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Active summon cap: " + maxActive), this.width / 2, this.height - 56, 0xA0A0A0);
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal(budget), centerX, this.height - 68, color);
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Active summon cap: " + maxActive), centerX, this.height - 56, 0xA0A0A0);
     }
 
     @Override
@@ -125,23 +133,56 @@ public final class SummonerLoadoutScreen extends Screen {
     }
 
     private void layoutSlots() {
-        int columnWidth = 250;
-        int gapX = 30;
-        int gapY = 24;
-        int startY = 52;
-        int centerX = this.width / 2; // Center X position for layout
-        int leftX = centerX - columnWidth - (gapX / 2);
-        int rightX = centerX + (gapX / 2);
+        int gridWidth = columns * columnWidth + (columns - 1) * gapX;
+        int centerX = this.width / 2;
+        int leftX = centerX - (gridWidth / 2);
+        int rightX = leftX + columnWidth + gapX;
+
+        panelLeft = Math.max(8, leftX - 16);
+        panelRight = Math.min(this.width - 8, leftX + gridWidth + 16);
+        panelTop = 8;
+        panelBottom = Math.min(this.height - 48, startY + (rowsForLayout() * (MAX_ROWS * 28 + 26)) + 12);
 
         for (int i = 0; i < slots.length; i++) {
             SlotEditor slot = slots[i];
-            int col = i % 2;
-            int row = i / 2;
+            int col = columns == 1 ? 0 : i % 2;
+            int row = columns == 1 ? i : i / 2;
             int x = col == 0 ? leftX : rightX;
-            int y = startY + row * ((MAX_ROWS * 28) + gapY);
+            int y = startY + row * ((MAX_ROWS * 28) + 26);
             slot.position(x, y);
             slot.addWidgets(widget -> this.addDrawableChild(widget)); // Use lambda for clarity
         }
+    }
+
+    private int rowsForLayout() {
+        return columns == 1 ? slots.length : (slots.length + 1) / 2;
+    }
+
+    private void computeLayout() {
+        columns = this.width < 640 ? 1 : 2;
+        gapX = columns == 1 ? 0 : 24;
+        int maxTextWidth = Math.min(this.width - 32, 520);
+        hintLines = this.textRenderer.wrapLines(
+                Text.literal("Pick minions for each Summon ability. Budget and active caps apply."),
+                maxTextWidth
+        );
+        hintY = 24;
+        int hintHeight = hintLines.size() * this.textRenderer.fontHeight;
+        startY = hintY + hintHeight + 12;
+
+        int totalWidth = Math.min(this.width - 32, 540);
+        if (columns == 2) {
+            columnWidth = Math.max(MIN_COLUMN_WIDTH, (totalWidth - gapX) / 2);
+        } else {
+            columnWidth = Math.max(MIN_COLUMN_WIDTH, totalWidth);
+        }
+
+        int gridWidth = columns * columnWidth + (columns - 1) * gapX;
+        int leftX = (this.width / 2) - (gridWidth / 2);
+        panelLeft = Math.max(8, leftX - 16);
+        panelRight = Math.min(this.width - 8, leftX + gridWidth + 16);
+        panelTop = 8;
+        panelBottom = Math.min(this.height - 48, startY + (rowsForLayout() * (MAX_ROWS * 28 + 26)) + 12);
     }
 
     private void updateCost() {
@@ -214,11 +255,14 @@ public final class SummonerLoadoutScreen extends Screen {
         private int baseX;
         private int baseY;
 
-        private SlotEditor(String title, List<EntityOption> options) {
+        private final int columnWidth;
+
+        private SlotEditor(String title, List<EntityOption> options, int columnWidth) {
             this.title = title;
             this.options = options;
+            this.columnWidth = columnWidth;
             for (int i = 0; i < MAX_ROWS; i++) {
-                rows[i] = new Row(options);
+                rows[i] = new Row(options, columnWidth);
             }
         }
 
@@ -235,7 +279,7 @@ public final class SummonerLoadoutScreen extends Screen {
                 adder.accept(row.removeButton);
             }
             if (addButton == null) {
-                addButton = ButtonWidget.builder(Text.literal("Add row"), btn -> addRow()).dimensions(baseX, baseY + (MAX_ROWS * 28) + 6, 200, 20).build();
+                addButton = ButtonWidget.builder(Text.literal("Add row"), btn -> addRow()).dimensions(baseX, baseY + (MAX_ROWS * 28) + 6, columnWidth - 26, 20).build();
             }
             adder.accept(addButton);
             refreshVisibility();
@@ -328,12 +372,14 @@ public final class SummonerLoadoutScreen extends Screen {
             private final CyclingButtonWidget<Integer> countButton;
             private final ButtonWidget removeButton;
             private Runnable removeAction = () -> {};
+            private final int mobWidth;
 
-            Row(List<EntityOption> options) {
+            Row(List<EntityOption> options, int columnWidth) {
+                mobWidth = Math.max(60, columnWidth - 108);
                 this.mobButton = CyclingButtonWidget.builder(EntityOption::label)
                         .values(options)
                         .initially(options.get(0))
-                        .build(0, 0, 150, 20, Text.literal("Mob"), (btn, value) -> {
+                        .build(0, 0, mobWidth, 20, Text.literal("Mob"), (btn, value) -> {
                             refreshVisibility();
                             SummonerLoadoutScreen.this.updateCost();
                         });
@@ -348,8 +394,8 @@ public final class SummonerLoadoutScreen extends Screen {
 
             void setPosition(int x, int y) {
                 mobButton.setPosition(x, y);
-                countButton.setPosition(x + 158, y);
-                removeButton.setPosition(x + 158 + 76 + 4, y);
+                countButton.setPosition(x + mobWidth + 6, y);
+                removeButton.setPosition(x + mobWidth + 6 + 76, y);
             }
 
             void setRemoveHandler(Runnable runnable) {

@@ -5,8 +5,12 @@
 
   "item.gems.heart": "Heart",
   "item.gems.energy_upgrade": "Energy Upgrade",
-  "item.gems.trader": "Gem Trader",
-  "screen.gems.trader.title": "Gem Trader",
+  "item.gems.gem_trader": "Gem Trader",
+  "item.gems.gem_purchase": "Gem Purchase Token",
+  "screen.gems.gem_trader.title": "Gem Trader",
+  "screen.gems.purchase.title": "Gem Purchase",
+  "screen.gems.gem_trader.hint": "Pick a gem to activate. Trading consumes a Gem Trader.",
+  "screen.gems.purchase.hint": "Pick any gem to add. Purchasing consumes a Gem Purchase Token.",
 
   "item.gems.astra_gem": "Astra Gem",
   "item.gems.fire_gem": "Fire Gem",

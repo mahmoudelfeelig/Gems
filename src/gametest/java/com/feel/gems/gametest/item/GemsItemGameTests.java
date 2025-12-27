@@ -75,7 +75,7 @@ public final class GemsItemGameTests {
             return;
         }
         var manager = server.getRecipeManager();
-        for (String path : new String[]{"heart", "energy_upgrade", "trader"}) {
+        for (String path : new String[]{"heart", "energy_upgrade", "gem_trader", "gem_purchase"}) {
             Identifier id = Identifier.of("gems", path);
             if (manager.get(id).isEmpty()) {
                 context.throwGameTestException("Missing recipe: " + id);

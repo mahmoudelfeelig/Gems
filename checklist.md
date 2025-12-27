@@ -1,105 +1,24 @@
 # Mod spec checklist
 
-- Core gems: Astra, Fire, Flux, Life, Puff, Speed, Strength, Wealth; default gem given to players.
+- Gems: see `gameplay.md` for abilities, passives, and gem lists.
 - Leveling: level 1 unlocks all passives. Levels 2-4 unlock abilities sequentially. Level 5 unlocks all remaining abilities (so if a gem has 5+ abilities, the extras all arrive at level 5; if it has fewer, you stop as soon as all are unlocked). Levels 6-10 are buffer levels with no new powers; max level 10.
-- Energy/life: start at 3 energy. Death (any cause) loses 1 energy. The tiers are Legendary 5 → Mythical 4 → Elite 3 → Rare 2 → Common 1 → Broken 0; overflow uses Legendary +1…+5 (6-10). Ability availability scales with energy: at 0-1 energy you have no abilities; at 2-4 energy you keep the first (energy-1) abilities (e.g., energy 3 → first two abilities stay active); at 5+ energy you have all abilities. Kills grant +1 energy up to Legendary +5 (10). Legendary +5 adds an enchant glint; if a Legendary +5 player kills a non-broken player, that victim also drops an upgrade item that anyone can consume to gain a level (not usable by a Legendary +5 player).
-- Energy gain overflow: above Legendary uses +1…+5 suffix; death reduces suffix before lowering tiers.
-- Gem swapping: a Trader item swaps your gem for another gem of your choice of the same level (you keep both gems but only one is active).
+- Energy/life: start at 3 energy. Death (any cause) loses 1 energy. The tiers are Legendary 5 -> Mythical 4 -> Elite 3 -> Rare 2 -> Common 1 -> Broken 0; overflow uses Legendary +1...+5 (6-10). Ability availability scales with energy: at 0-1 energy you have no abilities; at 2-4 energy you keep the first (energy-1) abilities (e.g., energy 3 -> first two abilities stay active); at 5+ energy you have all abilities. Kills grant +1 energy up to Legendary +5 (10). Legendary +5 adds an enchant glint; if a Legendary +5 player kills a non-broken player, that victim also drops an upgrade item that anyone can consume to gain a level (not usable by a Legendary +5 player).
+- Energy gain overflow: above Legendary uses +1...+5 suffix; death reduces suffix before lowering tiers.
+- Gem swapping: a Gem Trader item swaps only your active gem for another gem of your choice; other owned gems stay owned, and the selected gem becomes active.
+- Gem purchase token: a consumable item that lets you pick any gem to add to your owned set and activate.
 - Level/energy upgrade items: craftable upgrade item -> increases gem energy; crafting hearts adds a heart (up to 20 total hearts max).
 - Hearts on death: on death drop one consumable heart item (nether star texture). Right-click to gain max health. Cannot drop below 5 max hearts; if at 5, no heart drops and cannot increase past 20 max total hearts (including the original 10 you spawn as).
 - Textures: shared gem base texture with palette swaps per gem; custom textures for upgrade items and heart drops.
 - Performance/architecture: composition-first modular system; keep per-tick load minimal; abilities and passives should register/unregister cleanly; add tests/benchmarks as we go.
+- Gem definitions: data-driven via `data/gems/gem_definitions.json`.
 
 ## Recipes
 - Heart (`gems:heart`): shaped `NIN / IGI / NIN` where `N=netherite_scrap`, `I=iron_block`, `G=gold_block`.
 - Energy Upgrade (`gems:energy_upgrade`): shaped `NEN / EDE / NEN` where `N=netherite_scrap`, `E=emerald_block`, `D=diamond_block`.
-- Trader (`gems:trader`): shaped `DBD / BWB / DBD` where `D=diamond_block`, `B=dragon_breath`, `W=wither_skeleton_skull`.
-  - Use: opens a GUI to pick a new gem; consumes 1 Trader and replaces your owned gems with the selected gem (which becomes active).
-
-## Gem abilities and passives
-- Astra
-  - Passives:
-    - Soul Capture: stores the most recently killed mob; can be released later as a summon or resource.
-    - Soul Healing: heals the holder on successful soul capture or release; minor regen pulse.
-  - Abilities:
-    - Shadow Anchor: first activation places an anchor; second activation within a short window returns you to the anchor location.
-    - Dimensional Void: suppress gem abilities of enemies in a radius for a brief duration.
-    - Astral Daggers: fire rapid, accurate daggers that deal ranged damage.
-    - Unbounded: briefly enter Spectator mode, then return to normal gameplay automatically.
-    - Astral Camera: enter Spectator mode for scouting, then return to your original position automatically.
-    - Spook: apply a brief fear/disorient effect to nearby enemies.
-    - Tag: mark a target so they remain tracked/visible through walls for a short time.
-- Fire
-  - Passives:
-    - Fire Resistance: permanent immunity to fire/lava damage.
-    - Auto-smelt: smelts broken blocks on drop (ores to ingots, etc.).
-    - Auto-enchant Fire Aspect: applies Fire Aspect to held melee weapons.
-  - Abilities:
-    - Cosy Campfire: place a campfire aura granting allies Regeneration IV in range.
-    - Heat Haze Zone: for a short duration, allies in the radius gain Fire Resistance while enemies gain Mining Fatigue and Weakness (no block replacement).
-    - Fireball: charge-and-release explosive fireball; charge decays unless standing on obsidian.
-    - Meteor Shower: call multiple meteors that explode on impact around a target zone.
-- Flux
-  - Passives:
-    - Charge Storage: consume valuables (diamond/gold/copper blocks, enchanted diamond gear/tools) to charge the beam up to 100%.
-    - Ally Inversion: offensive beam effects on trusted players repair their armor durability instead of dealing damage.
-    - Overcharge Ramp: once at 100%, after 5s begins charging toward 200% while dealing self-damage each second.
-  - Abilities:
-    - Flux Beam: long-range beam whose damage/durability shred scales with stored charge (up to 200% one-shot potential).
-    - Static Burst: burst built from recent damage taken (archival ability; can be disabled if unused).
-- Life
-  - Passives:
-    - Auto-enchant Unbreaking: applies Unbreaking to held gear.
-    - Double Saturation: food restores twice the normal saturation.
-  - Abilities:
-    - Vitality Vortex: area pulse that provides buffs/heals allies and debuffs enemies based on surroundings (Aquatic near water, Infernal in Nether/near lava, Sculk near sculk blocks, Verdant near plants/leaves, End in the End, otherwise Default).
-    - Health Drain: siphon health from a target to heal the user.
-    - Life Circle: aura that lowers enemy max health while boosting the user's and trusted allies' max health.
-    - Heart Lock: temporarily locks an enemy's max health to their health at cast time.
-- Puff
-  - Passives:
-    - Fall Damage Immunity: negates fall damage entirely.
-    - Auto-enchant Power: auto-applies Power to bows.
-    - Auto-enchant Punch: auto-applies Punch to bows.
-    - Sculk Silence: immune to triggering sculk shriekers.
-    - Crop-Trample Immunity: cannot trample farmland.
-  - Abilities:
-    - Double Jump: midair jump reset with short cooldown.
-    - Dash: rapid dash that damages/knocks back targets passed through.
-    - Breezy Bash (Uppercut + Impact): launch a target upward; if they land within a short window, they take bonus impact damage.
-    - Group Breezy Bash: radial knock-up/knockback on all untrusted players nearby.
-- Speed
-  - Passives:
-    - Speed I: permanent movement speed bonus (tuneable; previously Speed II).
-  - Abilities:
-    - Arc Shot: fire a lightning arc down a line that strikes up to several enemies along the path, dealing damage and knockback.
-    - Speed Storm: field that freezes enemies while granting speed/haste to allies.
-    - Terminal Velocity: short burst of Speed III + Haste II.
-- Strength
-  - Passives:
-    - Strength I (intended II): flat damage buff.
-    - Auto-enchant Sharpness: Sharpness III at tier 1.
-  - Abilities:
-    - Nullify: strip active potion/status effects from enemies.
-    - Frailer: apply Weakness to enemies.
-    - Bounty Hunting: track the owner of an input item for a limited time; item consumed.
-    - Chad Strength: every fourth hit deals bonus (~3.5 hearts) damage.
-- Wealth
-  - Passives:
-    - Auto-enchant Mending: applies Mending to tools/armor.
-    - Auto-enchant Fortune: applies Fortune to tools.
-    - Auto-enchant Looting: applies Looting to weapons.
-    - Luck: permanent Luck effect.
-    - Hero of the Village: permanent hero status.
-    - Durability chip: extra armor damage dealt to enemies per strike.
-    - Armor mend on hit: slowly repairs the holder's armor when hitting enemies.
-    - Double Debris: furnace outputs double netherite scrap.
-  - Abilities:
-    - Pockets: opens 9-slot extra inventory UI.
-    - Fumble: for a short duration, enemies cannot use their offhand and cannot eat (no other action-cancels).
-    - Hotbar Lock: lock an enemy to their current hotbar slot for a short duration (they can still act, but cannot switch away).
-    - Amplification: boosts all enchants on tools/armor for ~45 seconds (3-minute cooldown).
-    - Rich Rush: boosts mob drops and ore yields for ~3 minutes (9-minute cooldown).
+- Gem Trader (`gems:gem_trader`): shaped `DBD / BWB / DBD` where `D=diamond_block`, `B=dragon_breath`, `W=wither_skeleton_skull`.
+  - Use: opens a GUI to pick a new gem; consumes 1 Gem Trader and replaces only your active gem with the selected gem (which becomes active).
+- Gem Purchase Token (`gems:gem_purchase`): shaped `EBE / DND / EBE` where `N=netherite_block`, `B=beacon`, `D=diamond_block`, `E=end_crystal`.
+  - Use: opens a GUI to pick any gem; consumes 1 token, adds the gem to your owned set, and sets it active.
 
 ## Level unlock mapping (per gem)
 - Level 1: all passives.
@@ -109,9 +28,9 @@
 
 ---
 
-# Implemented expansions
+# Systems
 
-## Server gameplay loop: Assassin endgame (implemented)
+## Server gameplay loop: Assassin endgame
 
 - If a player dies while already at **5 max hearts**, they become an **Assassin**.
 - Assassins are highlighted **red** in the player list/tab UI.
@@ -128,110 +47,3 @@
     - Final kill = killing a player who was at 5 hearts and thereby turning them into an Assassin.
 - Winner selection uses points (admin-run duel afterwards):
   - Highest-point Assassin vs last surviving non-Assassin.
-
-## Heart items: team restriction (implemented)
-
-- Heart items should not be consumable by teammates (trusted players), to prevent team boosting.
-
-## Speed gem: scaling + expansion (implemented)
-
-- Added **Haste I**, **Momentum** scaling, and **Frictionless Steps** passives.
-- Momentum snapshots at cast time and scales Speed ability potency.
-- Added **Slipstream** and **Afterimage** abilities.
-
-## New gems implemented
-
-### 1) Terror gem
-
-- Ability: kill yourself to kill a target player; if they have a Totem their Totem pops instead.
-- Cost: **-2 hearts and -2 permanent energy** (even for Assassins).
-- Hard cap: **3 uses per player total**, persistent across gem changes and deaths.
-- Ability: spawn 5 primed TNT around you.
-- Passives:
-  - Dread Aura (Darkness pulses on untrusted nearby)
-  - Fearless (cleanses Blindness/Darkness from the holder)
-  - Blood Price (short Strength/Resistance burst on player kill)
-
-### 2) Summoner gem
-
-- Passives:
-  - Summoner’s Bond (summons never target owner/trusted players)
-  - Commander’s Mark (sword-hit mark → summons prioritize + bonus damage)
-  - Soulbound Minions (despawn on owner death/logoff)
-  - Familiar’s Blessing (summons spawn with bonus health)
-- “Mana/coin” point system:
-  - Total point budget and per-mob costs.
-  - Ability slots 1–5 spawn the configured summon for that slot.
-  - Summons prioritize targets you hit with a sword within 3 seconds and gain temporary Strength.
-  - All costs + max points configurable; excludes Wither/Ender Dragon.
-  - Summons drop no loot or XP.
-  - Recall: despawn all active summons.
-
-### 3) Space gem
-
-- Passives:
-  - Lunar Scaling (moon phase multiplier)
-  - Low Gravity (minor slow falling / no fall damage)
-  - Starshield (reduced projectile damage outdoors at night)
-- Ability: orbital laser strike in a selected area (shift mining mode; can mine hard blocks like obsidian).
-- Ability: gravity control in an area (per-player “lighter/heavier” control).
-- Ability: black hole on your location that pulls/damages mobs and players.
-- Ability: white hole that pushes/damages mobs and players.
-
-### 4) Reaper gem
-
-- Passives:
-  - Rot Eater (no negative effects from rotten flesh/spider eyes)
-  - Undead Ward (reduced damage from undead mobs)
-  - Harvest (brief regen on mob kills, capped)
-- Ability: summon a skeleton horse mount (saddled) that loses health over time.
-- Ability: apply Wither on hit temporarily.
-- Ability: reveal distance to a player; sacrifice health until you hit them.
-- Ability: scythe arc attack (5-block reach).
-- Ability: hold-to-charge health sacrifice that buffs next attacks/abilities.
-- Ability: summon a clone illusion (looks real, attacks, but deals no damage).
-
-### 5) Pillager gem
-
-- Passives:
-  - Raider’s Training (faster projectiles)
-  - Shieldbreaker (disable shields even without an axe)
-  - Illager Discipline (brief Resistance at low HP, cooldown)
-- Ability: evoker fangs attack.
-- Ability: ravager-style knockback hit.
-- Ability: “vindicator break”: add damage and disable shields like an axe hit (without axe cooldown).
-- Ability: auto-arrow burst (every 0.5s for 3 seconds).
-
-### 6) Spy / mimic gem
-
-- Passives:
-  - Stillness Cloak (stand still to become invisible with no particles)
-  - Silent Step (no sculk triggers)
-  - False Signature (harder to track)
-  - Quick Hands (minor Haste)
-- Ability: mimic form (temporary invis + bonus health/speed based on last mob killed).
-- Ability: echo (replay last observed ability in front of you).
-- Ability: steal (after enough observation, steal an ability and disable it for the victim).
-- Ability: smoke bomb (blind/slowness + brief cloak).
-- Ability: stolen cast (cast a selected stolen ability; sneak to cycle).
-
-### 7) Beacon gem (support/utility)
-
-- Passives:
-  - Beacon Core (regen pulses for trusted allies nearby)
-  - Stabilize (reduces negative effect durations on trusted allies nearby)
-  - Rally (absorption burst when you cast a beacon aura)
-- Abilities 1–6: moving beacon effects for you + trusted allies:
-  - Speed, Haste, Resistance, Jump Boost, Strength, Regeneration.
-
-### 8) Air gem (mace-focused)
-
-- Passives:
-  - Windburst Mace (Breach IV, Wind Burst III, Mending, Unbreaking III, Fire Aspect II)
-  - Aerial Guard (reduced fall damage/knockback while holding the mace)
-  - Skyborn (brief slow falling after taking damage while airborne, cooldown)
-- Ability: wind-charge style high jump.
-- Air abilities:
-  - Gale Slam (empower next mace slam: stronger wind burst)
-  - Updraft Zone (pillar that lifts trusted allies, disrupts enemies)
-  - Air Dash (mid-air dash with brief i-frames)

@@ -29,6 +29,7 @@ import java.util.UUID;
 public final class SpaceAnomalies {
     private static final List<Anomaly> ACTIVE = new ArrayList<>();
     private static final int HOLE_TICK_STRIDE = 3; // reduce per-tick physics work
+    private static final int HOLE_VFX_TICK_STRIDE = 5; // keep particles/sounds less frequent than physics
 
     private SpaceAnomalies() {
     }
@@ -37,25 +38,38 @@ public final class SpaceAnomalies {
         ServerWorld world = caster.getServerWorld();
         long now = GemsTime.now(world);
         ACTIVE.add(Anomaly.blackHole(caster.getUuid(), world.getRegistryKey(), pos, now));
+
+        AbilityFeedback.burstAt(world, pos, ParticleTypes.REVERSE_PORTAL, 18, 0.35D);
+        AbilityFeedback.ring(world, pos.add(0.0D, 0.15D, 0.0D), Math.min(6.0D, GemsBalance.v().space().blackHoleRadiusBlocks()), ParticleTypes.REVERSE_PORTAL, 28);
         AbilityFeedback.sound(caster, SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, 0.9F, 0.8F);
         AbilityFeedback.sound(caster, SoundEvents.ENTITY_WARDEN_SONIC_CHARGE, 0.6F, 0.7F);
+        AbilityFeedback.soundAt(world, pos, SoundEvents.BLOCK_PORTAL_AMBIENT, 0.35F, 0.7F);
     }
 
     public static void spawnWhiteHole(ServerPlayerEntity caster, Vec3d pos) {
         ServerWorld world = caster.getServerWorld();
         long now = GemsTime.now(world);
         ACTIVE.add(Anomaly.whiteHole(caster.getUuid(), world.getRegistryKey(), pos, now));
+
+        AbilityFeedback.burstAt(world, pos, ParticleTypes.END_ROD, 14, 0.35D);
+        AbilityFeedback.burstAt(world, pos, ParticleTypes.CLOUD, 10, 0.45D);
+        AbilityFeedback.ring(world, pos.add(0.0D, 0.15D, 0.0D), Math.min(6.0D, GemsBalance.v().space().whiteHoleRadiusBlocks()), ParticleTypes.END_ROD, 28);
         AbilityFeedback.sound(caster, SoundEvents.BLOCK_BEACON_POWER_SELECT, 0.9F, 1.4F);
         AbilityFeedback.sound(caster, SoundEvents.ENTITY_WARDEN_SONIC_CHARGE, 0.6F, 1.6F);
+        AbilityFeedback.soundAt(world, pos, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 0.5F, 1.4F);
     }
 
     public static void scheduleOrbitalLaser(ServerPlayerEntity caster, BlockPos target, boolean miningMode) {
         ServerWorld world = caster.getServerWorld();
         long now = GemsTime.now(world);
         ACTIVE.add(Anomaly.laser(caster.getUuid(), world.getRegistryKey(), target, miningMode, now));
-        AbilityFeedback.burstAt(world, Vec3d.ofCenter(target), ParticleTypes.END_ROD, 16, 0.35D);
-        AbilityFeedback.ring(world, Vec3d.ofCenter(target).add(0.0D, 0.2D, 0.0D), 3.0D, ParticleTypes.END_ROD, 32);
+        Vec3d center = Vec3d.ofCenter(target);
+        AbilityFeedback.burstAt(world, center, ParticleTypes.END_ROD, 16, 0.35D);
+        AbilityFeedback.burstAt(world, center, ParticleTypes.ELECTRIC_SPARK, 10, 0.35D);
+        AbilityFeedback.ring(world, center.add(0.0D, 0.2D, 0.0D), 3.0D, ParticleTypes.END_ROD, 32);
+        AbilityFeedback.ring(world, center.add(0.0D, 0.2D, 0.0D), 2.0D, ParticleTypes.ELECTRIC_SPARK, 18);
         AbilityFeedback.sound(caster, SoundEvents.BLOCK_BEACON_ACTIVATE, 0.8F, miningMode ? 0.7F : 1.2F);
+        AbilityFeedback.soundAt(world, center, SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, 0.6F, miningMode ? 0.8F : 1.2F);
     }
 
     public static void tick(MinecraftServer server) {
@@ -89,7 +103,12 @@ public final class SpaceAnomalies {
                 if (a.strikeAtTick > now) {
                     // Telegraph a small pulse while waiting.
                     if ((now % 5) == 0) {
-                        AbilityFeedback.burstAt(world, Vec3d.ofCenter(a.laserTarget), ParticleTypes.END_ROD, 2, 0.15D);
+                        Vec3d center = Vec3d.ofCenter(a.laserTarget);
+                        AbilityFeedback.burstAt(world, center, ParticleTypes.END_ROD, 2, 0.15D);
+                        AbilityFeedback.burstAt(world, center, ParticleTypes.ELECTRIC_SPARK, 2, 0.15D);
+                    }
+                    if ((now % 20) == 0) {
+                        AbilityFeedback.soundAt(world, Vec3d.ofCenter(a.laserTarget), SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 0.35F, a.miningMode ? 0.7F : 1.2F);
                     }
                     continue;
                 }
@@ -113,8 +132,18 @@ public final class SpaceAnomalies {
         Vec3d from = new Vec3d(center.x, fromY, center.z);
         AbilityFeedback.beam(world, from, center, ParticleTypes.END_ROD, 64);
         AbilityFeedback.burstAt(world, center, ParticleTypes.FLASH, 1, 0.0D);
-        AbilityFeedback.sound(caster, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5F, a.miningMode ? 0.9F : 1.3F);
-        AbilityFeedback.sound(caster, SoundEvents.ENTITY_GENERIC_EXPLODE, 0.35F, a.miningMode ? 0.8F : 1.1F);
+        AbilityFeedback.burstAt(world, center, ParticleTypes.ELECTRIC_SPARK, 22, 0.45D);
+        AbilityFeedback.burstAt(world, center, ParticleTypes.SMOKE, 16, 0.55D);
+        AbilityFeedback.ring(world, center.add(0.0D, 0.2D, 0.0D), 3.5D, ParticleTypes.END_ROD, 36);
+
+        float thunderVol = a.miningMode ? 0.35F : 0.5F;
+        float explodeVol = a.miningMode ? 0.25F : 0.4F;
+        float pitch = a.miningMode ? 0.9F : 1.3F;
+        AbilityFeedback.sound(caster, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, thunderVol, pitch);
+        AbilityFeedback.sound(caster, SoundEvents.ENTITY_GENERIC_EXPLODE, explodeVol, a.miningMode ? 0.8F : 1.1F);
+        AbilityFeedback.soundAt(world, center, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, thunderVol, pitch);
+        AbilityFeedback.soundAt(world, center, SoundEvents.ENTITY_GENERIC_EXPLODE, explodeVol, a.miningMode ? 0.8F : 1.1F);
+        AbilityFeedback.soundAt(world, center, SoundEvents.BLOCK_BEACON_DEACTIVATE, 0.55F, a.miningMode ? 1.2F : 0.8F);
 
         if (a.miningMode) {
             mineAt(caster, world, target);
@@ -179,7 +208,24 @@ public final class SpaceAnomalies {
     }
 
     private static boolean isMiningAllowed(BlockState state) {
-        return state.isOf(Blocks.OBSIDIAN) || state.isOf(Blocks.CRYING_OBSIDIAN) || state.isOf(Blocks.ANCIENT_DEBRIS);
+        // Mining mode should be useful on most blocks (and can mine hard blocks like obsidian),
+        // but it must not break special/protected blocks.
+        if (state.isOf(Blocks.BEDROCK) || state.isOf(Blocks.BARRIER)) {
+            return false;
+        }
+        if (state.isOf(Blocks.END_PORTAL) || state.isOf(Blocks.END_PORTAL_FRAME)) {
+            return false;
+        }
+        if (state.isOf(Blocks.NETHER_PORTAL)) {
+            return false;
+        }
+        if (state.isOf(Blocks.COMMAND_BLOCK) || state.isOf(Blocks.CHAIN_COMMAND_BLOCK) || state.isOf(Blocks.REPEATING_COMMAND_BLOCK)) {
+            return false;
+        }
+        if (state.isOf(Blocks.STRUCTURE_BLOCK) || state.isOf(Blocks.JIGSAW)) {
+            return false;
+        }
+        return true;
     }
 
     private static void tickHole(ServerPlayerEntity caster, ServerWorld world, Anomaly a, long now) {
@@ -193,6 +239,7 @@ public final class SpaceAnomalies {
         List<LivingEntity> targets = world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive());
 
         float strength = a.strength;
+        int vfxTargets = 0;
         for (LivingEntity living : targets) {
             if (living == caster) {
                 continue;
@@ -205,6 +252,13 @@ public final class SpaceAnomalies {
             Vec3d push = delta.normalize().multiply(strength / dist);
             living.setVelocity(living.getVelocity().add(push));
             living.velocityModified = true;
+
+            // Bounded per-tick VFX to hint the direction of force without spamming on large mobs clusters.
+            if ((now % HOLE_VFX_TICK_STRIDE) == 0 && vfxTargets < 6) {
+                var trail = (a.kind == Kind.BLACK_HOLE) ? ParticleTypes.REVERSE_PORTAL : ParticleTypes.CLOUD;
+                AbilityFeedback.burstAt(world, living.getPos().add(0.0D, living.getHeight() * 0.6D, 0.0D), trail, 1, 0.08D);
+                vfxTargets++;
+            }
         }
 
         if (now >= a.nextDamageTick) {
@@ -223,9 +277,24 @@ public final class SpaceAnomalies {
             }
         }
 
-        if ((now % 5) == 0) {
-            var core = (a.kind == Kind.BLACK_HOLE) ? ParticleTypes.PORTAL : ParticleTypes.END_ROD;
+        if ((now % HOLE_VFX_TICK_STRIDE) == 0) {
+            var core = (a.kind == Kind.BLACK_HOLE) ? ParticleTypes.REVERSE_PORTAL : ParticleTypes.END_ROD;
+            var haze = (a.kind == Kind.BLACK_HOLE) ? ParticleTypes.SMOKE : ParticleTypes.CLOUD;
             AbilityFeedback.burstAt(world, center, core, 6, 0.25D);
+            AbilityFeedback.burstAt(world, center, haze, 4, 0.35D);
+        }
+
+        if ((now % 20) == 0) {
+            double ringRadius = Math.min(7.0D, radius);
+            if (a.kind == Kind.BLACK_HOLE) {
+                AbilityFeedback.ring(world, center.add(0.0D, 0.15D, 0.0D), ringRadius, ParticleTypes.PORTAL, 18);
+                AbilityFeedback.ring(world, center.add(0.0D, 0.15D, 0.0D), Math.max(0.8D, ringRadius * 0.55D), ParticleTypes.SMOKE, 14);
+                AbilityFeedback.soundAt(world, center, SoundEvents.BLOCK_PORTAL_AMBIENT, 0.22F, 0.65F);
+            } else {
+                AbilityFeedback.ring(world, center.add(0.0D, 0.15D, 0.0D), ringRadius, ParticleTypes.END_ROD, 18);
+                AbilityFeedback.ring(world, center.add(0.0D, 0.15D, 0.0D), Math.max(0.8D, ringRadius * 0.55D), ParticleTypes.ELECTRIC_SPARK, 14);
+                AbilityFeedback.soundAt(world, center, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 0.22F, 1.45F);
+            }
         }
     }
 

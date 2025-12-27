@@ -354,11 +354,12 @@ public final class GemsCommands {
         Item item = switch (rawItem.toLowerCase(Locale.ROOT)) {
             case "heart" -> ModItems.HEART;
             case "energy_upgrade" -> ModItems.ENERGY_UPGRADE;
-            case "trader" -> ModItems.TRADER;
+            case "gem_trader" -> ModItems.GEM_TRADER;
+            case "gem_purchase" -> ModItems.GEM_PURCHASE;
             default -> null;
         };
         if (item == null) {
-            source.sendError(Text.literal("Unknown item '" + rawItem + "'. Use: heart, energy_upgrade, trader"));
+            source.sendError(Text.literal("Unknown item '" + rawItem + "'. Use: heart, energy_upgrade, gem_trader, gem_purchase"));
             return 0;
         }
         player.giveItemStack(new ItemStack(item));
@@ -479,7 +480,7 @@ public final class GemsCommands {
     }
 
     private static CompletableFuture<Suggestions> suggestAdminItems(SuggestionsBuilder builder) {
-        for (String id : List.of("heart", "energy_upgrade", "trader")) {
+        for (String id : List.of("heart", "energy_upgrade", "gem_trader", "gem_purchase")) {
             builder.suggest(id);
         }
         return builder.buildFuture();

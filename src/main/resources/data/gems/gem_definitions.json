@@ -1,0 +1,243 @@
+{
+  "gems": [
+    {
+      "id": "astra",
+      "passives": [
+        "gems:soul_capture",
+        "gems:soul_healing"
+      ],
+      "abilities": [
+        "gems:shadow_anchor",
+        "gems:dimensional_void",
+        "gems:astral_daggers",
+        "gems:unbounded",
+        "gems:astral_camera",
+        "gems:spook",
+        "gems:tag"
+      ]
+    },
+    {
+      "id": "fire",
+      "passives": [
+        "gems:fire_resistance",
+        "gems:auto_smelt",
+        "gems:auto_enchant_fire_aspect"
+      ],
+      "abilities": [
+        "gems:cosy_campfire",
+        "gems:heat_haze_zone",
+        "gems:fireball",
+        "gems:meteor_shower"
+      ]
+    },
+    {
+      "id": "flux",
+      "passives": [
+        "gems:flux_charge_storage",
+        "gems:flux_ally_inversion",
+        "gems:flux_overcharge_ramp"
+      ],
+      "abilities": [
+        "gems:flux_beam",
+        "gems:static_burst"
+      ]
+    },
+    {
+      "id": "life",
+      "passives": [
+        "gems:auto_enchant_unbreaking",
+        "gems:double_saturation"
+      ],
+      "abilities": [
+        "gems:vitality_vortex",
+        "gems:health_drain",
+        "gems:life_circle",
+        "gems:heart_lock"
+      ]
+    },
+    {
+      "id": "puff",
+      "passives": [
+        "gems:fall_damage_immunity",
+        "gems:auto_enchant_power",
+        "gems:auto_enchant_punch",
+        "gems:sculk_silence",
+        "gems:crop_trample_immunity"
+      ],
+      "abilities": [
+        "gems:double_jump",
+        "gems:dash",
+        "gems:breezy_bash",
+        "gems:group_breezy_bash"
+      ]
+    },
+    {
+      "id": "speed",
+      "passives": [
+        "gems:speed_i",
+        "gems:speed_haste",
+        "gems:speed_momentum",
+        "gems:speed_frictionless"
+      ],
+      "abilities": [
+        "gems:arc_shot",
+        "gems:speed_storm",
+        "gems:terminal_velocity",
+        "gems:speed_slipstream",
+        "gems:speed_afterimage"
+      ]
+    },
+    {
+      "id": "strength",
+      "passives": [
+        "gems:strength_i",
+        "gems:auto_enchant_sharpness"
+      ],
+      "abilities": [
+        "gems:nullify",
+        "gems:frailer",
+        "gems:bounty_hunting",
+        "gems:chad_strength"
+      ]
+    },
+    {
+      "id": "wealth",
+      "passives": [
+        "gems:auto_enchant_mending",
+        "gems:auto_enchant_fortune",
+        "gems:auto_enchant_looting",
+        "gems:luck",
+        "gems:hero_of_the_village",
+        "gems:durability_chip",
+        "gems:armor_mend_on_hit",
+        "gems:double_debris"
+      ],
+      "abilities": [
+        "gems:pockets",
+        "gems:fumble",
+        "gems:hotbar_lock",
+        "gems:amplification",
+        "gems:rich_rush"
+      ]
+    },
+    {
+      "id": "terror",
+      "passives": [
+        "gems:terror_dread_aura",
+        "gems:terror_fearless",
+        "gems:terror_blood_price"
+      ],
+      "abilities": [
+        "gems:terror_trade",
+        "gems:terror_panic_ring"
+      ]
+    },
+    {
+      "id": "summoner",
+      "passives": [
+        "gems:summoner_bond",
+        "gems:summoner_commanders_mark",
+        "gems:summoner_soulbound",
+        "gems:summoner_familiars_blessing"
+      ],
+      "abilities": [
+        "gems:summon_slot_1",
+        "gems:summon_slot_2",
+        "gems:summon_slot_3",
+        "gems:summon_slot_4",
+        "gems:summon_slot_5",
+        "gems:summon_recall"
+      ]
+    },
+    {
+      "id": "space",
+      "passives": [
+        "gems:space_lunar_scaling",
+        "gems:space_low_gravity",
+        "gems:space_starshield"
+      ],
+      "abilities": [
+        "gems:space_orbital_laser",
+        "gems:space_gravity_field",
+        "gems:space_black_hole",
+        "gems:space_white_hole"
+      ]
+    },
+    {
+      "id": "reaper",
+      "passives": [
+        "gems:reaper_rot_eater",
+        "gems:reaper_undead_ward",
+        "gems:reaper_harvest"
+      ],
+      "abilities": [
+        "gems:reaper_grave_steed",
+        "gems:reaper_withering_strikes",
+        "gems:reaper_death_oath",
+        "gems:reaper_scythe_sweep",
+        "gems:reaper_blood_charge",
+        "gems:reaper_shade_clone"
+      ]
+    },
+    {
+      "id": "pillager",
+      "passives": [
+        "gems:pillager_raiders_training",
+        "gems:pillager_shieldbreaker",
+        "gems:pillager_illager_discipline"
+      ],
+      "abilities": [
+        "gems:pillager_fangs",
+        "gems:pillager_ravage",
+        "gems:pillager_vindicator_break",
+        "gems:pillager_volley"
+      ]
+    },
+    {
+      "id": "spy_mimic",
+      "passives": [
+        "gems:spy_stillness_cloak",
+        "gems:spy_silent_step",
+        "gems:spy_false_signature",
+        "gems:spy_quick_hands"
+      ],
+      "abilities": [
+        "gems:spy_mimic_form",
+        "gems:spy_echo",
+        "gems:spy_steal",
+        "gems:spy_smoke_bomb",
+        "gems:spy_stolen_cast"
+      ]
+    },
+    {
+      "id": "beacon",
+      "passives": [
+        "gems:beacon_core",
+        "gems:beacon_stabilize",
+        "gems:beacon_rally"
+      ],
+      "abilities": [
+        "gems:beacon_aura_speed",
+        "gems:beacon_aura_haste",
+        "gems:beacon_aura_resistance",
+        "gems:beacon_aura_jump",
+        "gems:beacon_aura_strength",
+        "gems:beacon_aura_regen"
+      ]
+    },
+    {
+      "id": "air",
+      "passives": [
+        "gems:air_windburst_mace",
+        "gems:air_aerial_guard",
+        "gems:air_skyborn"
+      ],
+      "abilities": [
+        "gems:air_wind_jump",
+        "gems:air_gale_slam",
+        "gems:air_updraft_zone",
+        "gems:air_dash"
+      ]
+    }
+  ]
+}

@@ -1,17 +1,21 @@
 package com.feel.gems.item;
 
+import com.feel.gems.screen.TraderScreenHandler;
+import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
-import com.feel.gems.screen.TraderScreenHandler;
 
-public final class TraderItem extends Item {
-    public TraderItem(Settings settings) {
+public final class GemPurchaseItem extends Item {
+    private static final String KEY_PENDING = "gemPurchasePending";
+
+    public GemPurchaseItem(Settings settings) {
         super(settings);
     }
 
@@ -25,10 +29,11 @@ public final class TraderItem extends Item {
             return TypedActionResult.pass(stack);
         }
 
+        markPending(player);
         player.openHandledScreen(new net.minecraft.screen.NamedScreenHandlerFactory() {
             @Override
             public Text getDisplayName() {
-                return Text.translatable("screen.gems.gem_trader.title");
+                return Text.translatable("screen.gems.purchase.title");
             }
 
             @Override
@@ -37,5 +42,19 @@ public final class TraderItem extends Item {
             }
         });
         return TypedActionResult.success(stack);
+    }
+
+    public static boolean consumePending(ServerPlayerEntity player) {
+        NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        if (!data.getBoolean(KEY_PENDING)) {
+            return false;
+        }
+        data.remove(KEY_PENDING);
+        return true;
+    }
+
+    private static void markPending(ServerPlayerEntity player) {
+        NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        data.putBoolean(KEY_PENDING, true);
     }
 }

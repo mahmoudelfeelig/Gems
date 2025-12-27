@@ -2,13 +2,16 @@ package com.feel.gems.gametest.air;
 
 import com.feel.gems.core.GemId;
 import com.feel.gems.gametest.util.GemsGameTestUtil;
-import com.feel.gems.power.GemPowers;
+import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
 import net.minecraft.world.GameMode;
+
+
+
 
 public final class GemsAirMaceGameTests {
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)

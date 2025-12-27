@@ -5,19 +5,22 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.net.GemStateSync;
-import com.feel.gems.power.GemAbilities;
-import com.feel.gems.power.GemPowers;
-import com.feel.gems.power.SoulSystem;
+import com.feel.gems.power.gem.astra.SoulSystem;
+import com.feel.gems.power.registry.ModAbilities;
+import com.feel.gems.power.runtime.GemAbilities;
+import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+
+
+
 
 /**
  * Simple in-game stress runner to drive ability code paths for profiling (spark/JFR).
@@ -128,7 +131,7 @@ public final class GemsStressTest {
                     SoulSystem.release(player);
                 } else if (task.mode == Mode.FORCE) {
                     var id = GemRegistry.definition(active).abilities().get(slot);
-                    var ability = com.feel.gems.power.ModAbilities.get(id);
+                    var ability = com.feel.gems.power.registry.ModAbilities.get(id);
                     if (ability != null) {
                         ability.activate(player);
                     }

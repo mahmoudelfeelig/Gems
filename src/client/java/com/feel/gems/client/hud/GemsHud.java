@@ -10,15 +10,17 @@ import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemEnergyTier;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
-import com.feel.gems.power.GemAbility;
-import com.feel.gems.power.ModAbilities;
+import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.registry.ModAbilities;
+import java.util.List;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.Identifier;
 
-import java.util.List;
+
+
 
 public final class GemsHud {
     private static boolean registered = false;

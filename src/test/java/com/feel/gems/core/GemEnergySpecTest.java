@@ -1,12 +1,10 @@
 package com.feel.gems.core;
 
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import net.minecraft.util.Identifier;
-
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+
 
 public class GemEnergySpecTest {
 

@@ -1,20 +1,19 @@
 package com.feel.gems.power;
 
 import com.feel.gems.net.ServerAbilityNetworking;
+import com.feel.gems.power.gem.spy.SpyMimicSystem;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.trade.GemTrading;
 import com.feel.gems.trust.GemTrust;
-
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+
 
 public class TimeSourceConsistencyTest {
 

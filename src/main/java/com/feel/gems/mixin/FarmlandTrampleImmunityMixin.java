@@ -1,7 +1,7 @@
 package com.feel.gems.mixin;
 
-import com.feel.gems.power.GemPowers;
-import com.feel.gems.power.PowerIds;
+import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.GemPowers;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.FarmlandBlock;
 import net.minecraft.entity.Entity;
@@ -12,6 +12,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+
+
 
 @Mixin(FarmlandBlock.class)
 public abstract class FarmlandTrampleImmunityMixin {

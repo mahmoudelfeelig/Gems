@@ -2,6 +2,10 @@ package com.feel.gems.client.modmenu;
 
 import com.feel.gems.config.GemsBalanceConfig;
 import com.feel.gems.config.GemsConfigManager;
+import java.nio.file.Path;
+import java.util.Locale;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -10,10 +14,8 @@ import net.minecraft.client.gui.widget.CyclingButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 
-import java.nio.file.Path;
-import java.util.Locale;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+
+
 
 public final class GemsConfigScreen extends Screen {
     private static final int ROW_H = 22;
@@ -558,7 +560,6 @@ public final class GemsConfigScreen extends Screen {
         TextFieldWidget field = new TextFieldWidget(this.textRenderer, fieldX, y, fieldW, 20, Text.empty());
         field.setText(Integer.toString(getter.get()));
         field.setEditable(canEdit);
-        field.setSelectable(canEdit);
         field.setChangedListener(s -> {
             Integer parsed = tryParseInt(s);
             boolean ok = parsed != null;
@@ -580,7 +581,6 @@ public final class GemsConfigScreen extends Screen {
         TextFieldWidget field = new TextFieldWidget(this.textRenderer, fieldX, y, fieldW, 20, Text.empty());
         field.setText(String.format(Locale.ROOT, "%.3f", getter.get()));
         field.setEditable(canEdit);
-        field.setSelectable(canEdit);
         field.setChangedListener(s -> {
             Float parsed = tryParseFloat(s);
             boolean ok = parsed != null;
@@ -602,7 +602,6 @@ public final class GemsConfigScreen extends Screen {
         TextFieldWidget field = new TextFieldWidget(this.textRenderer, fieldX, y, fieldW, 20, Text.empty());
         field.setText(String.format(Locale.ROOT, "%.3f", getter.get()));
         field.setEditable(canEdit);
-        field.setSelectable(canEdit);
         field.setChangedListener(s -> {
             Double parsed = tryParseDouble(s);
             boolean ok = parsed != null;
@@ -712,8 +711,7 @@ public final class GemsConfigScreen extends Screen {
         if (client.getNetworkHandler() == null) {
             return false;
         }
-        var entry = client.getNetworkHandler().getPlayerListEntry(client.player.getUuid());
-        return entry != null && entry.getPermissionLevel() >= 2;
+        return client.player.hasPermissionLevel(2);
     }
 
     private enum Section {

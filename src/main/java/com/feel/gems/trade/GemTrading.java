@@ -1,18 +1,20 @@
 package com.feel.gems.trade;
 
+import com.feel.gems.core.GemId;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.GemOwnership;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.GemStateSync;
-import com.feel.gems.power.GemPowers;
+import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
-import com.feel.gems.core.GemId;
+import java.util.EnumSet;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import java.util.EnumSet;
+
+
 
 public final class GemTrading {
     private GemTrading() {

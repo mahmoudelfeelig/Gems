@@ -1,5 +1,8 @@
 package com.feel.gems.core;
 
+
+
+
 /**
  * Tracks a player's current gem energy. Immutable so transitions are explicit.
  */

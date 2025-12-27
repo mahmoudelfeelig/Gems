@@ -1,33 +1,36 @@
 package com.feel.gems.command;
 
+import com.feel.gems.assassin.AssassinState;
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
-import com.feel.gems.config.GemsBalance;
-import com.feel.gems.item.ModItems;
+import com.feel.gems.debug.GemsPerfMonitor;
+import com.feel.gems.debug.GemsStressTest;
 import com.feel.gems.item.GemItemGlint;
+import com.feel.gems.item.ModItems;
 import com.feel.gems.net.GemStateSync;
-import com.feel.gems.power.GemAbility;
-import com.feel.gems.power.FluxCharge;
-import com.feel.gems.power.GemPassive;
-import com.feel.gems.power.GemPowers;
-import com.feel.gems.power.ModAbilities;
-import com.feel.gems.power.ModPassives;
-import com.feel.gems.power.GemAbilities;
-import com.feel.gems.power.SoulSystem;
+import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.api.GemPassive;
+import com.feel.gems.power.gem.astra.SoulSystem;
+import com.feel.gems.power.gem.flux.FluxCharge;
+import com.feel.gems.power.registry.ModAbilities;
+import com.feel.gems.power.registry.ModPassives;
+import com.feel.gems.power.runtime.GemAbilities;
+import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
-import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.trade.GemTrading;
 import com.feel.gems.trust.GemTrust;
-import com.feel.gems.debug.GemsStressTest;
-import com.feel.gems.debug.GemsPerfMonitor;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.item.Item;
@@ -38,9 +41,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
+
+
 
 public final class GemsCommands {
     private GemsCommands() {

@@ -1,8 +1,9 @@
 package com.feel.gems.testutil;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 
 public final class MinecraftBootstrap {
     private static final AtomicBoolean DONE = new AtomicBoolean(false);

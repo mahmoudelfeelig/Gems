@@ -1,14 +1,14 @@
 package com.feel.gems.power;
 
 import com.feel.gems.config.GemsBalance;
-import com.feel.gems.power.SummonerLoadouts;
-import org.junit.jupiter.api.Test;
-
+import com.feel.gems.power.gem.summoner.SummonerBudget;
+import com.feel.gems.power.gem.summoner.SummonerLoadouts;
 import java.util.List;
 import java.util.Map;
-
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class SummonerBudgetTest {
     @Test

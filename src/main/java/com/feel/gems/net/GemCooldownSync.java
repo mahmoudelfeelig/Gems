@@ -3,15 +3,17 @@ package com.feel.gems.net;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
-import com.feel.gems.power.GemAbilityCooldowns;
+import com.feel.gems.power.runtime.GemAbilityCooldowns;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.util.GemsTime;
+import java.util.ArrayList;
+import java.util.List;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
-import java.util.List;
+
+
 
 public final class GemCooldownSync {
     private GemCooldownSync() {

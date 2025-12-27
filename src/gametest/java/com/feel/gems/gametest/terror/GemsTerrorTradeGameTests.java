@@ -1,7 +1,7 @@
 package com.feel.gems.gametest.terror;
 
 import com.feel.gems.core.GemId;
-import com.feel.gems.power.TerrorTradeAbility;
+import com.feel.gems.power.ability.terror.TerrorTradeAbility;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.PlayerNbt;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
@@ -13,6 +13,9 @@ import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+
+
+
 
 public final class GemsTerrorTradeGameTests {
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)

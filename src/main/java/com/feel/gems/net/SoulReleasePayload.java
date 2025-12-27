@@ -6,6 +6,9 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
+
+
+
 public enum SoulReleasePayload implements CustomPayload {
     INSTANCE;
 

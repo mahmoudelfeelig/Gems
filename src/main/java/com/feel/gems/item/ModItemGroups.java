@@ -9,6 +9,9 @@ import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+
+
+
 public final class ModItemGroups {
     private static boolean initialized = false;
 

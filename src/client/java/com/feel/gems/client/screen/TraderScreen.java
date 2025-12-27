@@ -9,6 +9,9 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 
+
+
+
 public final class TraderScreen extends HandledScreen<TraderScreenHandler> {
     private static final Text TITLE_TRADE = Text.translatable("screen." + GemsMod.MOD_ID + ".gem_trader.title");
     private static final Text TITLE_PURCHASE = Text.translatable("screen." + GemsMod.MOD_ID + ".purchase.title");

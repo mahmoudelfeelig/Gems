@@ -1,17 +1,20 @@
 package com.feel.gems.mixin;
 
-import com.feel.gems.power.GemPowers;
-import com.feel.gems.power.PowerIds;
-import com.feel.gems.power.AbilityRuntime;
+import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.AbilityRuntime;
+import com.feel.gems.power.runtime.GemPowers;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.screen.slot.FurnaceOutputSlot;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+
+
 
 @Mixin(FurnaceOutputSlot.class)
 public abstract class FurnaceOutputDoubleDebrisMixin {

@@ -7,6 +7,9 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
+
+
+
 public record StateSyncPayload(int activeGemOrdinal, int energy, int maxHearts) implements CustomPayload {
     public static final Id<StateSyncPayload> ID = new Id<>(Identifier.of(GemsMod.MOD_ID, "state_sync"));
     public static final PacketCodec<RegistryByteBuf, StateSyncPayload> CODEC = PacketCodec.tuple(

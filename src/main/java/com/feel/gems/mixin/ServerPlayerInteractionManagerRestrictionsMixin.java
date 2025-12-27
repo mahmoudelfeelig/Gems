@@ -1,7 +1,7 @@
 package com.feel.gems.mixin;
 
-import com.feel.gems.power.AbilityRestrictions;
-import com.feel.gems.power.WealthFumble;
+import com.feel.gems.power.gem.wealth.WealthFumble;
+import com.feel.gems.power.runtime.AbilityRestrictions;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -17,6 +17,9 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+
+
 
 @Mixin(ServerPlayerInteractionManager.class)
 public abstract class ServerPlayerInteractionManagerRestrictionsMixin {

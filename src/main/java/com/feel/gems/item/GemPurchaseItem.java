@@ -12,6 +12,9 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 
+
+
+
 public final class GemPurchaseItem extends Item {
     private static final String KEY_PENDING = "gemPurchasePending";
 

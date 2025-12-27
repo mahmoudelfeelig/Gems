@@ -1,7 +1,7 @@
 package com.feel.gems.gametest.space;
 
 import com.feel.gems.config.GemsBalance;
-import com.feel.gems.power.SpaceAnomalies;
+import com.feel.gems.power.gem.space.SpaceAnomalies;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -11,6 +11,9 @@ import net.minecraft.test.TestContext;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+
+
+
 
 public final class GemsSpaceMiningGameTests {
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)

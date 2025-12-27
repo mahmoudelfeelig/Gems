@@ -1,7 +1,7 @@
 package com.feel.gems.mixin;
 
 import com.feel.gems.config.GemsBalance;
-import com.feel.gems.power.AbilityRuntime;
+import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -11,6 +11,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+
+
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityChadStrengthMixin {

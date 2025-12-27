@@ -10,6 +10,9 @@ import net.minecraft.screen.Property;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 
+
+
+
 public final class TraderScreenHandler extends ScreenHandler {
     private static final int MODE_TRADE = 0;
     private static final int MODE_PURCHASE = 1;

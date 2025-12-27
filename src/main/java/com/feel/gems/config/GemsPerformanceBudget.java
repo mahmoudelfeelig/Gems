@@ -3,6 +3,9 @@ package com.feel.gems.config;
 import java.util.ArrayList;
 import java.util.List;
 
+
+
+
 /**
  * Deterministic safeguards that keep default balancing values within sane bounds.
  * This is not a runtime profiler; it's a "prevent accidental O(n^3) radii" check.

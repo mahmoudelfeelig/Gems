@@ -1,9 +1,11 @@
 package com.feel.gems.mixin;
 
-import com.feel.gems.power.AutoSmeltCache;
-import com.feel.gems.power.AbilityRuntime;
-import com.feel.gems.power.GemPowers;
-import com.feel.gems.power.PowerIds;
+import com.feel.gems.power.gem.fire.AutoSmeltCache;
+import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.AbilityRuntime;
+import com.feel.gems.power.runtime.GemPowers;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -18,8 +20,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
-import java.util.List;
+
+
 
 @Mixin(Block.class)
 public abstract class BlockAutoSmeltMixin {

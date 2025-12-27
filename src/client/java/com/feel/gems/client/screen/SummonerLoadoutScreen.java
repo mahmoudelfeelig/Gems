@@ -2,7 +2,11 @@ package com.feel.gems.client.screen;
 
 import com.feel.gems.net.SummonerLoadoutSavePayload;
 import com.feel.gems.net.SummonerLoadoutScreenPayload;
-import com.feel.gems.power.SummonerLoadouts;
+import com.feel.gems.power.gem.summoner.SummonerLoadouts;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -14,10 +18,8 @@ import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+
+
 
 /**
  * Client UI for choosing Summoner minions per slot.

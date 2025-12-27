@@ -1,14 +1,17 @@
 package com.feel.gems.mixin;
 
 import com.feel.gems.config.GemsBalance;
-import com.feel.gems.power.AirMacePassive;
-import com.feel.gems.power.GemPowers;
-import com.feel.gems.power.PowerIds;
+import com.feel.gems.power.gem.air.AirMacePassive;
+import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.GemPowers;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+
+
+
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityAirKnockbackMixin {

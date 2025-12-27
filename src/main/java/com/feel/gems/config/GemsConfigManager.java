@@ -4,13 +4,15 @@ import com.feel.gems.GemsMod;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import net.fabricmc.loader.api.FabricLoader;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import net.fabricmc.loader.api.FabricLoader;
+
+
+
 
 public final class GemsConfigManager {
     private static final Gson GSON = new GsonBuilder()

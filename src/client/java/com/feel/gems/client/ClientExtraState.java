@@ -1,5 +1,8 @@
 package com.feel.gems.client;
 
+
+
+
 public final class ClientExtraState {
     private static int fluxChargePercent = 0;
     private static boolean hasSoul = false;

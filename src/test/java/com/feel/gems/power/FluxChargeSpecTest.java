@@ -1,13 +1,13 @@
 package com.feel.gems.power;
 
-import org.junit.jupiter.api.Test;
-
+import com.feel.gems.power.gem.flux.FluxCharge;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class FluxChargeSpecTest {
     private static String stringConstant(String fieldName) throws Exception {

@@ -7,6 +7,9 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
+
+
+
 /**
  * S2C: extra HUD-only state (server-authoritative but not gameplay-critical).
  */

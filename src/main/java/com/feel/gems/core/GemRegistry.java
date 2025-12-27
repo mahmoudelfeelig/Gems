@@ -3,11 +3,13 @@ package com.feel.gems.core;
 import com.feel.gems.GemsMod;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
-import net.minecraft.util.Identifier;
-
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.util.Identifier;
+
+
+
 
 /**
  * Lightweight in-memory registry for gem definitions. Meant to be bridged to the loader's registry system.

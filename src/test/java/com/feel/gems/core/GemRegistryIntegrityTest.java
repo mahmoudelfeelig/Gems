@@ -1,11 +1,11 @@
 package com.feel.gems.core;
 
-import com.feel.gems.power.ModAbilities;
-import com.feel.gems.power.ModPassives;
+import com.feel.gems.power.registry.ModAbilities;
+import com.feel.gems.power.registry.ModPassives;
 import com.feel.gems.testutil.MinecraftBootstrap;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
 
 public class GemRegistryIntegrityTest {
     @Test

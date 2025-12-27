@@ -7,6 +7,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+
+
+
 public final class AssassinTeams {
     private static final String TEAM_NAME = "gems_assassins";
 

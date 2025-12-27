@@ -1,5 +1,6 @@
 package com.feel.gems.item;
 
+import com.feel.gems.screen.TraderScreenHandler;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -8,7 +9,9 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
-import com.feel.gems.screen.TraderScreenHandler;
+
+
+
 
 public final class TraderItem extends Item {
     public TraderItem(Settings settings) {
@@ -28,7 +31,7 @@ public final class TraderItem extends Item {
         player.openHandledScreen(new net.minecraft.screen.NamedScreenHandlerFactory() {
             @Override
             public Text getDisplayName() {
-                return Text.translatable("screen.gems.trader.title");
+                return Text.translatable("screen.gems.gem_trader.title");
             }
 
             @Override

@@ -1,7 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "gems:item/pillager_gem"
+    "layer0": "gems:item/gems/pillager_gem"
   }
 }
-

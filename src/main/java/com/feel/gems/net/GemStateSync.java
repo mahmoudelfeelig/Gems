@@ -5,6 +5,9 @@ import com.feel.gems.state.GemPlayerState;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+
+
+
 public final class GemStateSync {
     private GemStateSync() {
     }

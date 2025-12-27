@@ -8,6 +8,9 @@ import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+
+
+
 public final class PocketsScreenHandler extends GenericContainerScreenHandler {
     private final ServerPlayerEntity owner;
     private final SimpleInventory pockets;

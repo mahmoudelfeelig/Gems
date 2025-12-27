@@ -9,6 +9,9 @@ import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+
+
+
 public final class ModItemGroups {
     private static boolean initialized = false;
 
@@ -49,7 +52,8 @@ public final class ModItemGroups {
 
                             entries.add(ModItems.ENERGY_UPGRADE);
                             entries.add(ModItems.HEART);
-                            entries.add(ModItems.TRADER);
+                            entries.add(ModItems.GEM_TRADER);
+                            entries.add(ModItems.GEM_PURCHASE);
                         })
                         .build()
         );

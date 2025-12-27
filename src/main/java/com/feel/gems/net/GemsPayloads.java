@@ -2,6 +2,9 @@ package com.feel.gems.net;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 
+
+
+
 public final class GemsPayloads {
     private static boolean registered = false;
 

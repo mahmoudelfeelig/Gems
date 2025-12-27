@@ -1,16 +1,18 @@
 package com.feel.gems.net;
 
 import com.feel.gems.GemsMod;
-import com.feel.gems.power.SummonerLoadouts;
+import com.feel.gems.power.gem.summoner.SummonerLoadouts;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+
 
 /**
  * S2C: opens the Summoner loadout editor with the current loadout and cost map.

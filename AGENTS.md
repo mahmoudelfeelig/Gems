@@ -7,5 +7,4 @@ Use this as the house rules for AI contributions.
 - Specs: source-of-truth is `checklist.md` for abilities, energy, items, and unlock rules.
 - Unlock rules: level 1 unlocks all passives; abilities unlock in order at levels 2-4; any remaining abilities unlock together at level 5; levels 6-10 are buffer only.
 - Energy rules: follow `checklist.md` (Legendary→Broken ladder, start at 3 energy, kill gains, death losses, Legendary +5 glint and upgrade-item drops; abilities scale with energy: 0-1 none, 2-4 first energy-1 abilities, 5+ all abilities).
-- Items/recipes: heart drop/consume with 5-heart floor, energy upgrade item, trader item same-level swap, expensive heart crafting, upgrade crafting—textures customized per checklist.
 - Performance: avoid per-tick heavy scans; cache player state; keep abilities server-authoritative; cleanly register/unregister listeners; add tests or benchmarks around hot paths and state transitions.

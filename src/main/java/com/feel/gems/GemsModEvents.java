@@ -1,56 +1,58 @@
 package com.feel.gems;
 
-import com.feel.gems.state.GemPlayerState;
-import com.feel.gems.item.ModItems;
-import com.feel.gems.item.GemItemGlint;
-import com.feel.gems.item.GemKeepOnDeath;
-import com.feel.gems.item.GemOwnership;
-import com.feel.gems.net.GemStateSync;
-import com.feel.gems.power.FluxCharge;
-import com.feel.gems.power.AbilityRuntime;
-import com.feel.gems.power.BeaconAuraRuntime;
-import com.feel.gems.power.BeaconSupportRuntime;
-import com.feel.gems.power.BreezyBashTracker;
-import com.feel.gems.power.GemPowers;
-import com.feel.gems.power.SoulSystem;
-import com.feel.gems.power.AutoSmeltCache;
-import com.feel.gems.power.PowerIds;
-import com.feel.gems.power.SummonerCommanderMark;
-import com.feel.gems.power.SummonerSummons;
-import com.feel.gems.power.SpaceAnomalies;
-import com.feel.gems.power.PillagerVolleyRuntime;
-import com.feel.gems.power.PillagerVindicatorBreakAbility;
-import com.feel.gems.power.PillagerDiscipline;
-import com.feel.gems.power.SpyMimicSystem;
-import com.feel.gems.power.SpeedFrictionlessSteps;
-import com.feel.gems.trust.GemTrust;
-import com.feel.gems.debug.GemsStressTest;
-import com.feel.gems.debug.GemsPerfMonitor;
 import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.assassin.AssassinTeams;
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.core.GemId;
+import com.feel.gems.debug.GemsPerfMonitor;
+import com.feel.gems.debug.GemsStressTest;
+import com.feel.gems.item.GemItemGlint;
+import com.feel.gems.item.GemKeepOnDeath;
+import com.feel.gems.item.GemOwnership;
+import com.feel.gems.item.ModItems;
+import com.feel.gems.net.GemStateSync;
+import com.feel.gems.power.ability.pillager.PillagerVindicatorBreakAbility;
+import com.feel.gems.power.gem.astra.SoulSystem;
+import com.feel.gems.power.gem.beacon.BeaconAuraRuntime;
+import com.feel.gems.power.gem.beacon.BeaconSupportRuntime;
+import com.feel.gems.power.gem.fire.AutoSmeltCache;
+import com.feel.gems.power.gem.flux.FluxCharge;
+import com.feel.gems.power.gem.pillager.PillagerDiscipline;
+import com.feel.gems.power.gem.pillager.PillagerVolleyRuntime;
+import com.feel.gems.power.gem.puff.BreezyBashTracker;
+import com.feel.gems.power.gem.space.SpaceAnomalies;
+import com.feel.gems.power.gem.speed.SpeedFrictionlessSteps;
+import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.summoner.SummonerCommanderMark;
+import com.feel.gems.power.gem.summoner.SummonerSummons;
+import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.AbilityRuntime;
+import com.feel.gems.power.runtime.GemPowers;
+import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.trust.GemTrust;
+import java.util.ArrayList;
+import java.util.List;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.SwordItem;
 import net.minecraft.item.Items;
+import net.minecraft.item.SwordItem;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.ActionResult;
-import com.feel.gems.core.GemId;
+import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
-import java.util.List;
+
+
 
 public final class GemsModEvents {
     private static int tickCounter = 0;
@@ -250,7 +252,8 @@ public final class GemsModEvents {
         List<Identifier> ids = List.of(
                 Identifier.of(GemsMod.MOD_ID, "heart"),
                 Identifier.of(GemsMod.MOD_ID, "energy_upgrade"),
-                Identifier.of(GemsMod.MOD_ID, "trader")
+                Identifier.of(GemsMod.MOD_ID, "gem_trader"),
+                Identifier.of(GemsMod.MOD_ID, "gem_purchase")
         );
 
         List<RecipeEntry<?>> entries = new ArrayList<>(ids.size());

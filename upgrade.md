@@ -2,7 +2,7 @@
 
 This mod is set up for Fabric + modern Minecraft. When updating to a newer Minecraft version, expect small churn in Yarn names, mixin targets, and Fabric API.
 
-## 1) Bump versions
+## 1: Bump versions
 
 Edit `gradle.properties`:
 
@@ -14,12 +14,12 @@ Edit `gradle.properties`:
 
 If you update Minecraft, update `fabric.mod.json` `depends.minecraft` as well.
 
-## 2) Update build tooling
+## 2: Update build tooling
 
 - Keep using a supported Gradle + Loom combo (Loom releases track MC/Fabric changes).
 - Run `./gradlew build` and fix compilation errors first (these are usually straightforward Yarn renames).
 
-## 3) Fix mixins and mappings drift
+## 3: Fix mixins and mappings drift
 
 When MC updates, the most common breakages are:
 
@@ -32,13 +32,13 @@ Recommendation:
 - Run `./gradlew runClient` and `./gradlew runServer` once after bumping versions.
 - If a crash mentions a mixin apply error, start with the exact method signature in the crash report.
 
-## 4) Re-run tests and perf CI
+## 4: Re-run tests and perf CI
 
 - Unit tests: `./gradlew test`
 - GameTests: `./gradlew gametest`
 - Perf workflow: validate that your server can start headless and that the RCON handshake still works.
 
-## 5) Resource pack metadata
+## 5: Resource pack metadata
 
 If Minecraft bumps the pack format, update `src/main/resources/pack.mcmeta` accordingly.
 

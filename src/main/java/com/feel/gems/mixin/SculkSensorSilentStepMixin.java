@@ -1,7 +1,7 @@
 package com.feel.gems.mixin;
 
-import com.feel.gems.power.GemPowers;
-import com.feel.gems.power.PowerIds;
+import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.GemPowers;
 import net.minecraft.block.entity.SculkSensorBlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -11,9 +11,12 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.event.GameEvent;
 import net.minecraft.world.event.Vibrations;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+
+
 
 @Mixin(SculkSensorBlockEntity.class)
 public abstract class SculkSensorSilentStepMixin {

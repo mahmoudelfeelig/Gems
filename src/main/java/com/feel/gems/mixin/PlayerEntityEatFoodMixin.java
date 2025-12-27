@@ -1,7 +1,7 @@
 package com.feel.gems.mixin;
 
-import com.feel.gems.power.GemPowers;
-import com.feel.gems.power.PowerIds;
+import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.GemPowers;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
@@ -13,6 +13,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+
+
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityEatFoodMixin {

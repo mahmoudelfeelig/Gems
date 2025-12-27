@@ -2,6 +2,10 @@ package com.feel.gems.client.modmenu;
 
 import com.feel.gems.config.GemsBalanceConfig;
 import com.feel.gems.config.GemsConfigManager;
+import java.nio.file.Path;
+import java.util.Locale;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -10,10 +14,8 @@ import net.minecraft.client.gui.widget.CyclingButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 
-import java.nio.file.Path;
-import java.util.Locale;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+
+
 
 public final class GemsConfigScreen extends Screen {
     private static final int ROW_H = 22;
@@ -22,6 +24,7 @@ public final class GemsConfigScreen extends Screen {
 
     private GemsBalanceConfig cfg;
     private String loadError = null;
+    private boolean canEdit = false;
 
     private Section section = Section.VISUAL;
     private boolean dirty = false;
@@ -50,6 +53,7 @@ public final class GemsConfigScreen extends Screen {
         this.loadError = result.error();
         this.dirty = false;
         this.scrollPx = 0;
+        this.canEdit = canEditConfig();
         this.validation.reset();
     }
 
@@ -451,23 +455,23 @@ public final class GemsConfigScreen extends Screen {
 
         saveButton = addDrawableChild(ButtonWidget.builder(Text.literal("Save"), b -> save(false)).dimensions(footerX, footerY, 110, 20).build());
         saveReloadButton = addDrawableChild(ButtonWidget.builder(Text.literal("Save + Reload"), b -> save(true)).dimensions(footerX + 116, footerY, 130, 20).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("Reload from disk"), b -> {
+        ButtonWidget reloadButton = addDrawableChild(ButtonWidget.builder(Text.literal("Reload from disk"), b -> {
             load();
             rebuild();
         }).dimensions(footerX + 252, footerY, 140, 20).build());
 
         footerY += 24;
 
-        addDrawableChild(ButtonWidget.builder(Text.literal("Reset section"), b -> {
+        ButtonWidget resetSectionButton = addDrawableChild(ButtonWidget.builder(Text.literal("Reset section"), b -> {
             resetSection();
             rebuild();
         }).dimensions(footerX, footerY, 130, 20).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("Reset all"), b -> {
+        ButtonWidget resetAllButton = addDrawableChild(ButtonWidget.builder(Text.literal("Reset all"), b -> {
             cfg = normalize(new GemsBalanceConfig());
             dirty = true;
             rebuild();
         }).dimensions(footerX + 136, footerY, 110, 20).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("Copy config path"), b -> {
+        ButtonWidget copyPathButton = addDrawableChild(ButtonWidget.builder(Text.literal("Copy config path"), b -> {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client != null) {
                 client.keyboard.setClipboard(balancePath().toString());
@@ -476,22 +480,34 @@ public final class GemsConfigScreen extends Screen {
 
         footerY += 24;
 
-        addDrawableChild(ButtonWidget.builder(Text.literal("Dump effective"), b -> ClientCommandSender.sendCommand("gems dumpBalance")).dimensions(footerX, footerY, 130, 20).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> close()).dimensions(footerX + 136, footerY, 110, 20).build());
+        ButtonWidget dumpButton = addDrawableChild(ButtonWidget.builder(Text.literal("Dump effective"), b -> ClientCommandSender.sendCommand("gems dumpBalance")).dimensions(footerX, footerY, 130, 20).build());
+        ButtonWidget doneButton = addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> close()).dimensions(footerX + 136, footerY, 110, 20).build());
+
+        saveButton.active = canEdit && dirty && validation.isValid();
+        saveReloadButton.active = canEdit && dirty && validation.isValid();
+        resetSectionButton.active = canEdit;
+        resetAllButton.active = canEdit;
+        dumpButton.active = canEdit;
+        reloadButton.active = true;
+        copyPathButton.active = true;
+        doneButton.active = true;
 
         updateButtonState();
     }
 
     private void updateButtonState() {
         if (saveButton != null) {
-            saveButton.active = dirty && validation.isValid();
+            saveButton.active = canEdit && dirty && validation.isValid();
         }
         if (saveReloadButton != null) {
-            saveReloadButton.active = dirty && validation.isValid();
+            saveReloadButton.active = canEdit && dirty && validation.isValid();
         }
     }
 
     private void save(boolean reload) {
+        if (!canEdit) {
+            return;
+        }
         if (!validation.isValid()) {
             return;
         }
@@ -532,6 +548,7 @@ public final class GemsConfigScreen extends Screen {
                     dirty = true;
                     updateButtonState();
                 });
+        btn.active = canEdit;
         addDrawableChild(btn);
         return y + ROW_H;
     }
@@ -542,6 +559,7 @@ public final class GemsConfigScreen extends Screen {
         ValidationTracker.Flag flag = validation.flag();
         TextFieldWidget field = new TextFieldWidget(this.textRenderer, fieldX, y, fieldW, 20, Text.empty());
         field.setText(Integer.toString(getter.get()));
+        field.setEditable(canEdit);
         field.setChangedListener(s -> {
             Integer parsed = tryParseInt(s);
             boolean ok = parsed != null;
@@ -562,6 +580,7 @@ public final class GemsConfigScreen extends Screen {
         ValidationTracker.Flag flag = validation.flag();
         TextFieldWidget field = new TextFieldWidget(this.textRenderer, fieldX, y, fieldW, 20, Text.empty());
         field.setText(String.format(Locale.ROOT, "%.3f", getter.get()));
+        field.setEditable(canEdit);
         field.setChangedListener(s -> {
             Float parsed = tryParseFloat(s);
             boolean ok = parsed != null;
@@ -582,6 +601,7 @@ public final class GemsConfigScreen extends Screen {
         ValidationTracker.Flag flag = validation.flag();
         TextFieldWidget field = new TextFieldWidget(this.textRenderer, fieldX, y, fieldW, 20, Text.empty());
         field.setText(String.format(Locale.ROOT, "%.3f", getter.get()));
+        field.setEditable(canEdit);
         field.setChangedListener(s -> {
             Double parsed = tryParseDouble(s);
             boolean ok = parsed != null;
@@ -671,11 +691,27 @@ public final class GemsConfigScreen extends Screen {
             context.drawCenteredTextWithShadow(textRenderer, Text.literal(loadError), centerX, this.height - 18, 0xFF5555);
         }
 
-        if (!validation.isValid()) {
+        if (!canEdit) {
+            context.drawCenteredTextWithShadow(textRenderer, Text.literal("Config edits require op permissions on multiplayer servers."), centerX, this.height - 56, 0xFFAA00);
+        } else if (!validation.isValid()) {
             context.drawCenteredTextWithShadow(textRenderer, Text.literal("Fix invalid values to enable Save."), centerX, this.height - 42, 0xFF5555);
         } else if (dirty) {
             context.drawCenteredTextWithShadow(textRenderer, Text.literal("Unsaved changes."), centerX, this.height - 42, 0xFFFF55);
         }
+    }
+
+    private static boolean canEditConfig() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client == null || client.player == null) {
+            return false;
+        }
+        if (client.isInSingleplayer()) {
+            return true;
+        }
+        if (client.getNetworkHandler() == null) {
+            return false;
+        }
+        return client.player.hasPermissionLevel(2);
     }
 
     private enum Section {

@@ -1,7 +1,11 @@
 package com.feel.gems.state;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.core.GemId;
+import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.runtime.AbilityDisables;
+import java.util.EnumSet;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -13,8 +17,8 @@ import net.minecraft.nbt.NbtString;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
-import java.util.EnumSet;
-import com.feel.gems.assassin.AssassinState;
+
+
 
 public final class GemPlayerState {
     private static final String KEY_ACTIVE_GEM = "activeGem";
@@ -85,9 +89,9 @@ public final class GemPlayerState {
         NbtCompound data = root(player);
         GemId prev = getActiveGem(player);
         if (prev != gem && player instanceof ServerPlayerEntity sp) {
-            com.feel.gems.power.AbilityDisables.clear(sp);
+            com.feel.gems.power.runtime.AbilityDisables.clear(sp);
             if (prev == GemId.SPY_MIMIC && gem != GemId.SPY_MIMIC) {
-                com.feel.gems.power.SpyMimicSystem.clearOnGemSwitchAway(sp);
+                com.feel.gems.power.gem.spy.SpyMimicSystem.clearOnGemSwitchAway(sp);
             }
         }
         data.putString(KEY_ACTIVE_GEM, gem.name());

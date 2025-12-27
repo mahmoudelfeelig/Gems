@@ -1,8 +1,14 @@
 package com.feel.gems.item;
 
 import com.feel.gems.state.GemPlayerState;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
@@ -19,13 +25,9 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
-import net.minecraft.datafixer.DataFixTypes;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+
+
 
 /**
  * Ownership tagging and validation for gem items.
@@ -150,6 +152,11 @@ public final class GemOwnership {
             data.remove(KEY_SKIP_HEART_DROP);
         }
         return skip;
+    }
+
+    public static void markSkipHeartDropOnce(ServerPlayerEntity player) {
+        var data = ((com.feel.gems.state.GemsPersistentDataHolder) player).gems$getPersistentData();
+        data.putBoolean(KEY_SKIP_HEART_DROP, true);
     }
 
     private static final class OfflinePenaltyState extends PersistentState {

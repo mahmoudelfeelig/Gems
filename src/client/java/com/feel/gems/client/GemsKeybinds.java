@@ -5,9 +5,8 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.ActivateAbilityPayload;
 import com.feel.gems.net.FluxChargePayload;
-import com.feel.gems.net.SummonerLoadoutOpenRequestPayload;
 import com.feel.gems.net.SoulReleasePayload;
-import com.feel.gems.power.SummonerLoadouts;
+import com.feel.gems.net.SummonerLoadoutOpenRequestPayload;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
@@ -16,6 +15,9 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
+
+
+
 
 public final class GemsKeybinds {
     private static final String CATEGORY = "category.gems";
@@ -77,8 +79,8 @@ public final class GemsKeybinds {
         GemDefinition def = GemRegistry.definition(ClientGemState.activeGem());
         int abilityCount = def.abilities().size();
 
-        // Summoner: open loadout editor on the chord right after the last loadout slot.
-        if (ClientGemState.activeGem() == GemId.SUMMONER && slotNumber == SummonerLoadouts.SLOT_COUNT + 1) {
+        // Summoner: open loadout editor on the chord after the last ability slot.
+        if (ClientGemState.activeGem() == GemId.SUMMONER && slotNumber == abilityCount + 1) {
             ClientPlayNetworking.send(SummonerLoadoutOpenRequestPayload.INSTANCE);
             return;
         }

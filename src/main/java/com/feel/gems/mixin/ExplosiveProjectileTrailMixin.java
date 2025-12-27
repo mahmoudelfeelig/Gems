@@ -1,6 +1,6 @@
 package com.feel.gems.mixin;
 
-import com.feel.gems.power.AbilityFeedback;
+import com.feel.gems.power.runtime.AbilityFeedback;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.projectile.ExplosiveProjectileEntity;
 import net.minecraft.particle.ParticleTypes;
@@ -10,6 +10,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+
+
 
 @Mixin(ExplosiveProjectileEntity.class)
 public abstract class ExplosiveProjectileTrailMixin {

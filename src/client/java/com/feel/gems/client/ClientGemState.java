@@ -2,6 +2,9 @@ package com.feel.gems.client;
 
 import com.feel.gems.core.GemId;
 
+
+
+
 public final class ClientGemState {
     private static boolean initialized = false;
     private static GemId activeGem = GemId.ASTRA;

@@ -2,12 +2,15 @@ package com.feel.gems.net;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
-import com.feel.gems.power.SummonerBudget;
-import com.feel.gems.power.SummonerLoadouts;
+import com.feel.gems.power.gem.summoner.SummonerBudget;
+import com.feel.gems.power.gem.summoner.SummonerLoadouts;
 import com.feel.gems.state.GemPlayerState;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+
+
+
 
 public final class ServerSummonerNetworking {
     private ServerSummonerNetworking() {

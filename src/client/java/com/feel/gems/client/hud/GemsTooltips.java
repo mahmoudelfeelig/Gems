@@ -1,21 +1,23 @@
 package com.feel.gems.client.hud;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
-import com.feel.gems.config.GemsBalance;
 import com.feel.gems.item.GemItem;
-import com.feel.gems.power.GemAbility;
-import com.feel.gems.power.GemPassive;
-import com.feel.gems.power.ModAbilities;
-import com.feel.gems.power.ModPassives;
+import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.api.GemPassive;
+import com.feel.gems.power.registry.ModAbilities;
+import com.feel.gems.power.registry.ModPassives;
+import java.util.List;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
-import java.util.List;
+
+
 
 public final class GemsTooltips {
     private static boolean registered = false;

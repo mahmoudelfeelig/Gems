@@ -1,9 +1,11 @@
 package com.feel.gems.item;
 
 import com.feel.gems.core.GemId;
+import com.feel.gems.item.GemOwnership;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
-import com.feel.gems.item.GemOwnership;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -11,8 +13,8 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-import java.util.ArrayList;
-import java.util.List;
+
+
 
 /**
  * Keeps gem items from dropping on death by stashing them into persistent player NBT and restoring on respawn.

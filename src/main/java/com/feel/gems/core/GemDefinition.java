@@ -1,9 +1,11 @@
 package com.feel.gems.core;
 
-import net.minecraft.util.Identifier;
-
 import java.util.Collections;
 import java.util.List;
+import net.minecraft.util.Identifier;
+
+
+
 
 /**
  * Static definition of a gem: ordered abilities and passives.

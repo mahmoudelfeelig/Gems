@@ -7,6 +7,9 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
+
+
+
 public record ActivateAbilityPayload(int abilityIndex) implements CustomPayload {
     public static final Id<ActivateAbilityPayload> ID = new Id<>(Identifier.of(GemsMod.MOD_ID, "activate_ability"));
     public static final PacketCodec<RegistryByteBuf, ActivateAbilityPayload> CODEC =

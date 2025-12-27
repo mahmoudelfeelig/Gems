@@ -1,8 +1,10 @@
 package com.feel.gems.core;
 
+import java.util.List;
 import net.minecraft.util.Identifier;
 
-import java.util.List;
+
+
 
 /**
  * Player-facing gem state: identity and energy.

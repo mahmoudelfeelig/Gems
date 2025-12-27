@@ -1,8 +1,8 @@
 package com.feel.gems.mixin;
 
 import com.feel.gems.config.GemsBalance;
-import com.feel.gems.power.GemPowers;
-import com.feel.gems.power.PowerIds;
+import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.GemPowers;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -12,6 +12,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+
+
 
 @Mixin(PersistentProjectileEntity.class)
 public abstract class PersistentProjectileEntityRaidersTrainingMixin {

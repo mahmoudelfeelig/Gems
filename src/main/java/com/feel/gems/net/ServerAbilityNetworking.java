@@ -1,12 +1,15 @@
 package com.feel.gems.net;
 
 import com.feel.gems.core.GemId;
-import com.feel.gems.power.FluxCharge;
-import com.feel.gems.power.GemAbilities;
+import com.feel.gems.power.gem.astra.SoulSystem;
+import com.feel.gems.power.gem.flux.FluxCharge;
+import com.feel.gems.power.runtime.GemAbilities;
 import com.feel.gems.state.GemPlayerState;
-import com.feel.gems.power.SoulSystem;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.text.Text;
+
+
+
 
 public final class ServerAbilityNetworking {
     private ServerAbilityNetworking() {

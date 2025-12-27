@@ -1,10 +1,10 @@
 package com.feel.gems.item;
 
 import com.feel.gems.core.GemId;
-import com.feel.gems.net.GemStateSync;
-import com.feel.gems.power.GemPowers;
-import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.item.GemOwnership;
+import com.feel.gems.net.GemStateSync;
+import com.feel.gems.power.runtime.GemPowers;
+import com.feel.gems.state.GemPlayerState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -13,6 +13,9 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
+
+
+
 
 public final class GemItem extends Item {
     private final GemId gemId;

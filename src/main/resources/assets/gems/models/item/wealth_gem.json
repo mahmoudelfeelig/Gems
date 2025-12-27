@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "gems:item/wealth_gem"
+    "layer0": "gems:item/gems/wealth_gem"
   }
 }

@@ -1,11 +1,14 @@
 package com.feel.gems.net;
 
 import com.feel.gems.core.GemId;
-import com.feel.gems.power.FluxCharge;
-import com.feel.gems.power.SoulSystem;
+import com.feel.gems.power.gem.astra.SoulSystem;
+import com.feel.gems.power.gem.flux.FluxCharge;
 import com.feel.gems.state.GemPlayerState;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
+
+
+
 
 public final class GemExtraStateSync {
     private GemExtraStateSync() {

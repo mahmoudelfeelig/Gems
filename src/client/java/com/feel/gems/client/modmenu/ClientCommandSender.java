@@ -1,8 +1,10 @@
 package com.feel.gems.client.modmenu;
 
+import java.lang.reflect.Method;
 import net.minecraft.client.MinecraftClient;
 
-import java.lang.reflect.Method;
+
+
 
 final class ClientCommandSender {
     private ClientCommandSender() {

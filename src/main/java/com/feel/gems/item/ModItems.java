@@ -7,10 +7,14 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
+
+
+
 public final class ModItems {
     public static final Item HEART = register("heart", new HeartItem(new Item.Settings().maxCount(16)));
     public static final Item ENERGY_UPGRADE = register("energy_upgrade", new EnergyUpgradeItem(new Item.Settings().maxCount(16)));
-    public static final Item TRADER = register("trader", new TraderItem(new Item.Settings().maxCount(1)));
+    public static final Item GEM_TRADER = register("gem_trader", new TraderItem(new Item.Settings().maxCount(1)));
+    public static final Item GEM_PURCHASE = register("gem_purchase", new GemPurchaseItem(new Item.Settings().maxCount(1)));
 
     public static final Item ASTRA_GEM = registerGem(GemId.ASTRA);
     public static final Item FIRE_GEM = registerGem(GemId.FIRE);

@@ -6,6 +6,9 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
+
+
+
 /**
  * C2S: request to consume 1 charge item for the Flux gem.
  */

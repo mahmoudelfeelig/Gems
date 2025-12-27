@@ -21,7 +21,7 @@ Optional (recommended for profiling/testing):
 - ModMenu config edits are op-only in multiplayer; non-ops see a read-only view.
 
 ### Permissions
-- Player commands: `/gems status`, `/gems trust`, `/gems untrust`, `/gems trustlist`, `/gems trade ...`
+- Player commands: `/gems status`, `/gems trust`, `/gems untrust`, `/gems trustlist`, `/gems trade ...`, `/gems track <player>`
 - Operator-only commands require permission level **2+** under `/gems admin ...`
 
 ### Admin commands (op 2+)
@@ -32,7 +32,7 @@ Optional (recommended for profiling/testing):
   - `/gems admin setGem <player> <gem>`
   - `/gems admin setEnergy <players> <energy>`
   - `/gems admin setHearts <player> <hearts>`
-  - `/gems admin giveItem <player> <heart|energy_upgrade|gem_trader|gem_purchase>`
+  - `/gems admin giveItem <player> <heart|energy_upgrade|gem_trader|gem_purchase|tracker_compass|recall_relic|hypno_staff|earthsplitter_pick|supreme_helmet|supreme_chestplate|supreme_leggings|supreme_boots|blood_oath_blade|demolition_blade|hunters_sight_bow|third_strike_blade|vampiric_edge>`
 - Casting (for testing):
   - `/gems admin cast <player> <slot>`
 - Perf/stress (for CI + profiling):

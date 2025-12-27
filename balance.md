@@ -156,3 +156,17 @@ These are the default values generated in `config/gems/balance.json`.
 - Gale Slam: `galeSlamCooldownSeconds=30`, `galeSlamWindowSeconds=8`, `galeSlamRadiusBlocks=4`, `galeSlamBonusDamage=6.0`, `galeSlamKnockback=1.0`
 - Updraft Zone: `updraftZoneCooldownSeconds=25`, `updraftZoneRadiusBlocks=8`, `updraftZoneUpVelocity=0.9`, `updraftZoneEnemyDamage=3.0`, `updraftZoneEnemyKnockback=0.6`
 - Air Dash: `dashCooldownSeconds=6`, `dashVelocity=1.6`, `dashUpVelocity=0.1`, `dashIFrameDurationSeconds=1`, `dashIFrameResistanceAmplifier=4`
+
+### Legendary Items
+- Legendary crafting: `craftSeconds=600`
+- Tracker Compass: `trackerRefreshSeconds=2`, `trackerMaxDistanceBlocks=0`
+- Recall Relic: `recallCooldownSeconds=60`
+- Hypno Staff: `hypnoHoldSeconds=3`, `hypnoRangeBlocks=24`, `hypnoMaxControlled=10`, `hypnoDurationSeconds=0`
+- Universal mob blacklist (Hypno/Summoner/Astra): `mobBlacklist=[minecraft:ender_dragon,minecraft:wither]`
+- Earthsplitter Pick: `earthsplitterRadiusBlocks=1`
+- Blood Oath Blade: `bloodOathSharpnessCap=10`
+- Demolition Blade: `demolitionCooldownSeconds=5`, `demolitionFuseTicks=80`
+- Hunter's Sight Bow: `hunterAimRangeBlocks=50`, `hunterAimTimeoutSeconds=15`, `hunterAimAssistStrength=1.0`
+- Third-Strike Blade: `thirdStrikeWindowSeconds=5`, `thirdStrikeBonusDamage=4.0`
+- Vampiric Edge: `vampiricHealAmount=2.0`
+- Supreme set: `supremeHelmetNightVisionAmplifier=0`, `supremeHelmetWaterBreathingAmplifier=0`, `supremeChestStrengthAmplifier=0`, `supremeLeggingsFireResAmplifier=0`, `supremeBootsSpeedAmplifier=0`, `supremeSetResistanceAmplifier=2`

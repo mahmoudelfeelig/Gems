@@ -46,12 +46,12 @@ public final class GemTrading {
         GemPlayerState.setOwnedGemsExact(player, newOwned);
 
         GemPowers.sync(player);
-        GemItemGlint.sync(player);
         GemStateSync.send(player);
         Item keep = ModItems.gemItem(gemId);
         Item tradedAway = ModItems.gemItem(activeBefore);
         removeGemItems(player, tradedAway, keep);
         ensurePlayerHasItem(player, keep);
+        GemItemGlint.sync(player);
 
         return new Result(true, true, alreadyOwned);
     }
@@ -74,11 +74,11 @@ public final class GemTrading {
         GemPlayerState.setOwnedGemsExact(player, newOwned);
 
         GemPowers.sync(player);
-        GemItemGlint.sync(player);
         GemStateSync.send(player);
 
         Item keep = ModItems.gemItem(gemId);
         ensurePlayerHasItem(player, keep);
+        GemItemGlint.sync(player);
 
         return new PurchaseResult(true, true, alreadyOwned);
     }

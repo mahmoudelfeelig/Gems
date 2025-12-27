@@ -80,14 +80,18 @@ public final class SummonerLoadoutScreen extends Screen {
 
         layoutSlots();
 
-        int buttonWidth = 110;
+        int buttonWidth = 96;
         int buttonHeight = 20;
         int centerX = this.width / 2;
         int bottomY = this.height - 40;
 
-        saveButton = addDrawableChild(ButtonWidget.builder(Text.literal("Save"), btn -> save()).dimensions(centerX - buttonWidth - 8, bottomY, buttonWidth, buttonHeight).build());
-        resetButton = addDrawableChild(ButtonWidget.builder(Text.literal("Reset"), btn -> reset()).dimensions(centerX - (buttonWidth / 2), bottomY, buttonWidth, buttonHeight).build());
-        cancelButton = addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), btn -> close()).dimensions(centerX + 8 + (buttonWidth / 2), bottomY, buttonWidth, buttonHeight).build());
+        int gap = 8;
+        int totalWidth = (buttonWidth * 3) + (gap * 2);
+        int startX = centerX - (totalWidth / 2);
+
+        saveButton = addDrawableChild(ButtonWidget.builder(Text.literal("Save"), btn -> save()).dimensions(startX, bottomY, buttonWidth, buttonHeight).build());
+        resetButton = addDrawableChild(ButtonWidget.builder(Text.literal("Reset"), btn -> reset()).dimensions(startX + buttonWidth + gap, bottomY, buttonWidth, buttonHeight).build());
+        cancelButton = addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), btn -> close()).dimensions(startX + ((buttonWidth + gap) * 2), bottomY, buttonWidth, buttonHeight).build());
 
         updateCost(); // Update cost after buttons are initialized
     }

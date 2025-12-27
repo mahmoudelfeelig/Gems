@@ -19,6 +19,24 @@
 - Energy upgrade items add a level (up to Legendary +5).
 - Gem Trader swaps only your active gem and consumes the item.
 - Gem Purchase Token adds any gem to your owned set, activates it, and consumes the token.
+- All recipes unlock automatically when you join the server.
+- Players drop their heads on death.
+
+## Legendary items
+
+- All legendary items are one-of-a-kind crafts, take 10 minutes to craft, and announce the crafter's location to all online players when crafting starts.
+- Crafting progress is shown to all players via a boss bar with coordinates; on completion the item drops at the crafting table.
+- Tracker Compass: right-click to pick a player (including offline); shows current/last-known coords, respawn coords, and points toward them.
+- Recall Relic: mark current coords; reuse to teleport back (consumes mark); item persists; has cooldown; forceload while marked and released after teleport/no mark.
+- Hypno Staff: hold a beam on a mob for 3s to convert; works on all mobs except the universal mob blacklist (shared with Summoner/Astra); control is temporary and does not persist.
+- Earthsplitter Pick: netherite-tier silk touch pick; sneak mines 3x3x3 (silk touch applies to the whole area); respects unbreakable/blacklisted blocks.
+- Supreme set: helmet (Night Vision + Water Breathing), chestplate (Strength I), leggings (Fire Resistance), boots (Speed I), full set (Resistance III); stronger effects override temporarily.
+- Blood Oath Blade: gains +1 Sharpness per unique player kill, capped at Sharpness X.
+- Demolition Blade: right-click spawns 3 primed TNT 2 blocks along cursor direction; cooldown.
+- Hunter's Sight Bow: aim assist toward last hit player within 50 blocks and line of sight.
+- Third-Strike Blade: every 3rd crit within a 5s chain window deals bonus damage.
+- Vampiric Edge: each crit heals 1 heart.
+- Universal mob blacklist (config): applies to Hypno Staff, Summoner summons, and Astra Soul Capture.
 
 ## Trust and ownership
 
@@ -49,7 +67,7 @@ Abilities:
 - Astral Camera: scout in Spectator, then return to your start.
 - Spook: disorient nearby enemies.
 - Tag: mark a target through walls briefly.
-- Soul Release: summon the captured mob type as a soul summon (no loot/XP, hostile targets untrusted players).
+- Soul Release: summon the captured mob as a soul summon (no loot/XP, hostile targets untrusted players), preserving its name/gear/attributes and restoring it to full health.
 
 ### Fire Gem
 
@@ -131,7 +149,7 @@ Abilities:
 
 Passives:
 - Auto-enchant Mending, Fortune, and Looting.
-- Luck and Hero of the Village.
+- Luck and Hero of the Village V.
 - Durability chip and armor mend on hit.
 - Double Debris from furnaces.
 

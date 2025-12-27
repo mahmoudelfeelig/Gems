@@ -28,6 +28,9 @@ public final class SummonerSummons {
     private static final String TAG_UNTIL_PREFIX = "gems_summon_until:";
 
     private static final String KEY_SUMMONS = "summonerSummons";
+    private static final double FOLLOW_START_SQ = 36.0D;
+    private static final double FOLLOW_STOP_SQ = 9.0D;
+    private static final double FOLLOW_SPEED = 1.1D;
 
     private static final Identifier BONUS_HEALTH_MODIFIER_ID = Identifier.of(GemsMod.MOD_ID, "summoner_bonus_health");
 
@@ -157,6 +160,31 @@ public final class SummonerSummons {
             mob.setTarget(target);
             if (strengthAmplifier >= 0 && durationTicks > 0) {
                 mob.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.STRENGTH, durationTicks, strengthAmplifier, true, false, false));
+            }
+        }
+    }
+
+    public static void followOwner(ServerPlayerEntity owner) {
+        MinecraftServer server = owner.getServer();
+        if (server == null) {
+            return;
+        }
+        for (UUID uuid : ownedSummonUuids(owner)) {
+            Entity e = findEntity(server, uuid);
+            if (!(e instanceof MobEntity mob) || !mob.isAlive() || !isSummon(mob)) {
+                continue;
+            }
+            if (mob.getWorld() != owner.getWorld()) {
+                continue;
+            }
+            if (mob.getTarget() != null || mob.getAttacker() != null) {
+                continue;
+            }
+            double distSq = mob.squaredDistanceTo(owner);
+            if (distSq > FOLLOW_START_SQ) {
+                mob.getNavigation().startMovingTo(owner, FOLLOW_SPEED);
+            } else if (distSq < FOLLOW_STOP_SQ) {
+                mob.getNavigation().stop();
             }
         }
     }

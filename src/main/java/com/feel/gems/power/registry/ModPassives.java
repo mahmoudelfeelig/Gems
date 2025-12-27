@@ -174,7 +174,7 @@ public final class ModPassives {
                 "Hero of the Village",
                 "Permanent Hero of the Village effect.",
                 StatusEffects.HERO_OF_THE_VILLAGE,
-                0
+                4
         ));
         register(new MarkerPassive(
                 PowerIds.DURABILITY_CHIP,

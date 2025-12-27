@@ -10,6 +10,7 @@ import com.feel.gems.debug.GemsPerfMonitor;
 import com.feel.gems.debug.GemsStressTest;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.ModItems;
+import com.feel.gems.item.legendary.TrackerCompassItem;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.api.GemPassive;
@@ -71,6 +72,10 @@ public final class GemsCommands {
                                         .executes(ctx -> untrust(ctx.getSource().getPlayerOrThrow(), EntityArgumentType.getPlayer(ctx, "player")))))
                         .then(CommandManager.literal("trustlist")
                                 .executes(ctx -> trustList(ctx.getSource().getPlayerOrThrow())))
+                        .then(CommandManager.literal("track")
+                                .then(CommandManager.argument("player", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> suggestOnlinePlayers(ctx.getSource(), builder))
+                                        .executes(ctx -> track(ctx.getSource().getPlayerOrThrow(), StringArgumentType.getString(ctx, "player")))))
                         .then(CommandManager.literal("summoner")
                             .then(CommandManager.literal("loadout")
                                 .executes(ctx -> openSummonerLoadout(ctx.getSource().getPlayerOrThrow()))))
@@ -342,6 +347,11 @@ public final class GemsCommands {
         return 1;
     }
 
+    private static int track(ServerPlayerEntity player, String name) {
+        TrackerCompassItem.setTarget(player, name);
+        return 1;
+    }
+
     private static String passiveName(Identifier id) {
         GemPassive passive = ModPassives.get(id);
         return passive == null ? id.toString() : passive.name();
@@ -358,10 +368,23 @@ public final class GemsCommands {
             case "energy_upgrade" -> ModItems.ENERGY_UPGRADE;
             case "gem_trader" -> ModItems.GEM_TRADER;
             case "gem_purchase" -> ModItems.GEM_PURCHASE;
+            case "tracker_compass" -> ModItems.TRACKER_COMPASS;
+            case "recall_relic" -> ModItems.RECALL_RELIC;
+            case "hypno_staff" -> ModItems.HYPNO_STAFF;
+            case "earthsplitter_pick" -> ModItems.EARTHSPLITTER_PICK;
+            case "supreme_helmet" -> ModItems.SUPREME_HELMET;
+            case "supreme_chestplate" -> ModItems.SUPREME_CHESTPLATE;
+            case "supreme_leggings" -> ModItems.SUPREME_LEGGINGS;
+            case "supreme_boots" -> ModItems.SUPREME_BOOTS;
+            case "blood_oath_blade" -> ModItems.BLOOD_OATH_BLADE;
+            case "demolition_blade" -> ModItems.DEMOLITION_BLADE;
+            case "hunters_sight_bow" -> ModItems.HUNTERS_SIGHT_BOW;
+            case "third_strike_blade" -> ModItems.THIRD_STRIKE_BLADE;
+            case "vampiric_edge" -> ModItems.VAMPIRIC_EDGE;
             default -> null;
         };
         if (item == null) {
-            source.sendError(Text.literal("Unknown item '" + rawItem + "'. Use: heart, energy_upgrade, gem_trader, gem_purchase"));
+            source.sendError(Text.literal("Unknown item '" + rawItem + "'."));
             return 0;
         }
         player.giveItemStack(new ItemStack(item));
@@ -474,6 +497,13 @@ public final class GemsCommands {
         player.giveItemStack(new ItemStack(item));
     }
 
+    private static CompletableFuture<Suggestions> suggestOnlinePlayers(ServerCommandSource source, SuggestionsBuilder builder) {
+        for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
+            builder.suggest(player.getGameProfile().getName());
+        }
+        return builder.buildFuture();
+    }
+
     private static CompletableFuture<Suggestions> suggestGems(SuggestionsBuilder builder) {
         for (GemId gemId : GemId.values()) {
             builder.suggest(gemId.name().toLowerCase(Locale.ROOT));
@@ -482,7 +512,25 @@ public final class GemsCommands {
     }
 
     private static CompletableFuture<Suggestions> suggestAdminItems(SuggestionsBuilder builder) {
-        for (String id : List.of("heart", "energy_upgrade", "gem_trader", "gem_purchase")) {
+        for (String id : List.of(
+                "heart",
+                "energy_upgrade",
+                "gem_trader",
+                "gem_purchase",
+                "tracker_compass",
+                "recall_relic",
+                "hypno_staff",
+                "earthsplitter_pick",
+                "supreme_helmet",
+                "supreme_chestplate",
+                "supreme_leggings",
+                "supreme_boots",
+                "blood_oath_blade",
+                "demolition_blade",
+                "hunters_sight_bow",
+                "third_strike_blade",
+                "vampiric_edge"
+        )) {
             builder.suggest(id);
         }
         return builder.buildFuture();

@@ -28,6 +28,15 @@ public final class GemsBalanceConfig {
     public SpyMimic spyMimic = new SpyMimic();
     public Beacon beacon = new Beacon();
     public Air air = new Air();
+    public Legendary legendary = new Legendary();
+
+    /**
+     * Universal mob blacklist for Hypno Staff, Summoner summons, and Astra soul captures.
+     */
+    public java.util.List<String> mobBlacklist = java.util.List.of(
+            "minecraft:ender_dragon",
+            "minecraft:wither"
+    );
 
     public static final class Visual {
         public boolean enableParticles = true;
@@ -543,5 +552,37 @@ public final class GemsBalanceConfig {
         public double dashUpVelocity = 0.1D;
         public int dashIFrameDurationSeconds = 1;
         public int dashIFrameResistanceAmplifier = 4;
+    }
+
+    public static final class Legendary {
+        public int craftSeconds = 600;
+        public int trackerRefreshSeconds = 2;
+        public int trackerMaxDistanceBlocks = 0; // 0 = unlimited
+
+        public int recallCooldownSeconds = 60;
+
+        public int hypnoHoldSeconds = 3;
+        public int hypnoRangeBlocks = 24;
+        public int hypnoMaxControlled = 10;
+        public int hypnoDurationSeconds = 0; // 0 = infinite while online
+
+        public int earthsplitterRadiusBlocks = 1;
+
+        public int bloodOathSharpnessCap = 10;
+        public int demolitionCooldownSeconds = 5;
+        public int demolitionFuseTicks = 80;
+        public int hunterAimRangeBlocks = 50;
+        public int hunterAimTimeoutSeconds = 15;
+        public float hunterAimAssistStrength = 1.0F;
+        public int thirdStrikeWindowSeconds = 5;
+        public float thirdStrikeBonusDamage = 4.0F;
+        public float vampiricHealAmount = 2.0F;
+
+        public int supremeHelmetNightVisionAmplifier = 0;
+        public int supremeHelmetWaterBreathingAmplifier = 0;
+        public int supremeChestStrengthAmplifier = 0;
+        public int supremeLeggingsFireResAmplifier = 0;
+        public int supremeBootsSpeedAmplifier = 0;
+        public int supremeSetResistanceAmplifier = 2;
     }
 }

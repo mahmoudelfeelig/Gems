@@ -10,6 +10,12 @@ import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.GemOwnership;
 import com.feel.gems.item.ModItems;
+import com.feel.gems.item.legendary.RecallRelicItem;
+import com.feel.gems.legendary.HypnoControl;
+import com.feel.gems.legendary.LegendaryCrafting;
+import com.feel.gems.legendary.LegendaryPlayerTracker;
+import com.feel.gems.legendary.LegendaryTargeting;
+import com.feel.gems.legendary.SupremeSetRuntime;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.ability.pillager.PillagerVindicatorBreakAbility;
 import com.feel.gems.power.gem.astra.SoulSystem;
@@ -74,6 +80,9 @@ public final class GemsModEvents {
                     }
                 }
             }
+            if (entity instanceof ServerPlayerEntity killer && killedEntity instanceof ServerPlayerEntity victim) {
+                com.feel.gems.legendary.LegendaryWeapons.onPlayerKill(killer, victim);
+            }
         });
 
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
@@ -97,6 +106,10 @@ public final class GemsModEvents {
                     int strengthAmp = GemsBalance.v().summoner().commandersMarkStrengthAmplifier();
                     SummonerSummons.commandSummons(sp, living, range, strengthAmp, duration);
                 }
+            }
+
+            if (living instanceof ServerPlayerEntity targetPlayer) {
+                LegendaryTargeting.recordHit(sp, targetPlayer);
             }
 
             // Pillager: shieldbreaker + Vindicator Break shield disabling.
@@ -130,6 +143,9 @@ public final class GemsModEvents {
             GemStateSync.send(player);
             unlockStartingRecipes(server, player);
             AssassinTeams.sync(server, player);
+            LegendaryCrafting.deliverPending(player);
+            RecallRelicItem.ensureForceload(player);
+            HypnoControl.releaseAll(player);
 
             if (AssassinState.isEliminated(player)) {
                 player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
@@ -143,6 +159,7 @@ public final class GemsModEvents {
             GemTrust.clearRuntimeCache(player.getUuid());
             SummonerSummons.discardAll(player);
             PillagerVolleyRuntime.stop(player);
+            HypnoControl.releaseAll(player);
         });
 
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
@@ -162,6 +179,9 @@ public final class GemsModEvents {
             GemStateSync.send(newPlayer);
             unlockStartingRecipes(newPlayer.getServer(), newPlayer);
             AssassinTeams.sync(newPlayer.getServer(), newPlayer);
+            LegendaryCrafting.deliverPending(newPlayer);
+            RecallRelicItem.ensureForceload(newPlayer);
+            HypnoControl.releaseAll(newPlayer);
 
             if (AssassinState.isEliminated(newPlayer)) {
                 newPlayer.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
@@ -184,6 +204,11 @@ public final class GemsModEvents {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                 if (doMaintain) {
                     GemPowers.maintain(player);
+                    SupremeSetRuntime.tick(player);
+                    HypnoControl.pruneAndCount(player);
+                    HypnoControl.followOwner(player);
+                    SummonerSummons.followOwner(player);
+                    RecallRelicItem.clearIfMissingItem(player);
                 }
                 if (doFluxOvercharge) {
                     GemPlayerState.initIfNeeded(player);
@@ -196,6 +221,13 @@ public final class GemsModEvents {
                     BeaconSupportRuntime.tickEverySecond(player);
                     BeaconAuraRuntime.tickEverySecond(player);
                 }
+            }
+        });
+
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            if (tickCounter % 20 == 0) {
+                LegendaryCrafting.tick(server);
+                LegendaryPlayerTracker.tick(server);
             }
         });
 
@@ -253,7 +285,20 @@ public final class GemsModEvents {
                 Identifier.of(GemsMod.MOD_ID, "heart"),
                 Identifier.of(GemsMod.MOD_ID, "energy_upgrade"),
                 Identifier.of(GemsMod.MOD_ID, "gem_trader"),
-                Identifier.of(GemsMod.MOD_ID, "gem_purchase")
+                Identifier.of(GemsMod.MOD_ID, "gem_purchase"),
+                Identifier.of(GemsMod.MOD_ID, "tracker_compass"),
+                Identifier.of(GemsMod.MOD_ID, "recall_relic"),
+                Identifier.of(GemsMod.MOD_ID, "hypno_staff"),
+                Identifier.of(GemsMod.MOD_ID, "earthsplitter_pick"),
+                Identifier.of(GemsMod.MOD_ID, "supreme_helmet"),
+                Identifier.of(GemsMod.MOD_ID, "supreme_chestplate"),
+                Identifier.of(GemsMod.MOD_ID, "supreme_leggings"),
+                Identifier.of(GemsMod.MOD_ID, "supreme_boots"),
+                Identifier.of(GemsMod.MOD_ID, "blood_oath_blade"),
+                Identifier.of(GemsMod.MOD_ID, "demolition_blade"),
+                Identifier.of(GemsMod.MOD_ID, "hunters_sight_bow"),
+                Identifier.of(GemsMod.MOD_ID, "third_strike_blade"),
+                Identifier.of(GemsMod.MOD_ID, "vampiric_edge")
         );
 
         List<RecipeEntry<?>> entries = new ArrayList<>(ids.size());

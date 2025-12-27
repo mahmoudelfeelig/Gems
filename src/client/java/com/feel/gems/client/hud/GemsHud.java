@@ -189,6 +189,19 @@ public final class GemsHud {
                 );
             }
         }
+        if (gem == GemId.SUMMONER) {
+            int customizeSlot = abilities.size() + 1;
+            if (customizeSlot <= 10) {
+                boolean selected = selectedSlot == customizeSlot;
+                ctx.drawTextWithShadow(
+                        tr,
+                        (selected ? "» " : "") + GemsKeybinds.chordSlotLabel(customizeSlot) + " Customize",
+                        x,
+                        y,
+                        selected ? 0x55FF55 : 0x55FFFF
+                );
+            }
+        }
     }
 
     private static int seconds(int remainingTicks) {

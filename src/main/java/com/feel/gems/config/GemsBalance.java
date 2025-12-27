@@ -1,6 +1,9 @@
 package com.feel.gems.config;
 
 import com.feel.gems.GemsMod;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.util.Identifier;
 
 
 
@@ -393,6 +396,32 @@ public final class GemsBalance {
         cfg.air.dashIFrameDurationSeconds = ticksToSeconds(v.air().dashIFrameDurationTicks());
         cfg.air.dashIFrameResistanceAmplifier = v.air().dashIFrameResistanceAmplifier();
 
+        cfg.legendary.craftSeconds = ticksToSeconds(v.legendary().craftTicks());
+        cfg.legendary.trackerRefreshSeconds = ticksToSeconds(v.legendary().trackerRefreshTicks());
+        cfg.legendary.trackerMaxDistanceBlocks = v.legendary().trackerMaxDistanceBlocks();
+        cfg.legendary.recallCooldownSeconds = ticksToSeconds(v.legendary().recallCooldownTicks());
+        cfg.legendary.hypnoHoldSeconds = ticksToSeconds(v.legendary().hypnoHoldTicks());
+        cfg.legendary.hypnoRangeBlocks = v.legendary().hypnoRangeBlocks();
+        cfg.legendary.hypnoMaxControlled = v.legendary().hypnoMaxControlled();
+        cfg.legendary.hypnoDurationSeconds = ticksToSeconds(v.legendary().hypnoDurationTicks());
+        cfg.legendary.earthsplitterRadiusBlocks = v.legendary().earthsplitterRadiusBlocks();
+        cfg.legendary.bloodOathSharpnessCap = v.legendary().bloodOathSharpnessCap();
+        cfg.legendary.demolitionCooldownSeconds = ticksToSeconds(v.legendary().demolitionCooldownTicks());
+        cfg.legendary.demolitionFuseTicks = v.legendary().demolitionFuseTicks();
+        cfg.legendary.hunterAimRangeBlocks = v.legendary().hunterAimRangeBlocks();
+        cfg.legendary.hunterAimTimeoutSeconds = ticksToSeconds(v.legendary().hunterAimTimeoutTicks());
+        cfg.legendary.hunterAimAssistStrength = v.legendary().hunterAimAssistStrength();
+        cfg.legendary.thirdStrikeWindowSeconds = ticksToSeconds(v.legendary().thirdStrikeWindowTicks());
+        cfg.legendary.thirdStrikeBonusDamage = v.legendary().thirdStrikeBonusDamage();
+        cfg.legendary.vampiricHealAmount = v.legendary().vampiricHealAmount();
+        cfg.legendary.supremeHelmetNightVisionAmplifier = v.legendary().supremeHelmetNightVisionAmplifier();
+        cfg.legendary.supremeHelmetWaterBreathingAmplifier = v.legendary().supremeHelmetWaterBreathingAmplifier();
+        cfg.legendary.supremeChestStrengthAmplifier = v.legendary().supremeChestStrengthAmplifier();
+        cfg.legendary.supremeLeggingsFireResAmplifier = v.legendary().supremeLeggingsFireResAmplifier();
+        cfg.legendary.supremeBootsSpeedAmplifier = v.legendary().supremeBootsSpeedAmplifier();
+        cfg.legendary.supremeSetResistanceAmplifier = v.legendary().supremeSetResistanceAmplifier();
+        cfg.mobBlacklist = v.mobBlacklist().stream().map(Identifier::toString).toList();
+
         return cfg;
     }
 
@@ -420,7 +449,9 @@ public final class GemsBalance {
             Pillager pillager,
             SpyMimic spyMimic,
             Beacon beacon,
-            Air air
+            Air air,
+            Legendary legendary,
+            List<Identifier> mobBlacklist
     ) {
         public static Values defaults() {
             return from(new GemsBalanceConfig());
@@ -444,7 +475,9 @@ public final class GemsBalance {
                     Pillager.from(cfg.pillager != null ? cfg.pillager : new GemsBalanceConfig.Pillager()),
                     SpyMimic.from(cfg.spyMimic != null ? cfg.spyMimic : new GemsBalanceConfig.SpyMimic()),
                     Beacon.from(cfg.beacon != null ? cfg.beacon : new GemsBalanceConfig.Beacon()),
-                    Air.from(cfg.air != null ? cfg.air : new GemsBalanceConfig.Air())
+                    Air.from(cfg.air != null ? cfg.air : new GemsBalanceConfig.Air()),
+                    Legendary.from(cfg.legendary != null ? cfg.legendary : new GemsBalanceConfig.Legendary()),
+                    parseIdentifierList(cfg.mobBlacklist)
             );
         }
     }
@@ -1258,6 +1291,79 @@ public final class GemsBalance {
                     clampInt(cfg.dashIFrameResistanceAmplifier, 0, 10)
             );
         }
+    }
+
+    public record Legendary(
+            int craftTicks,
+            int trackerRefreshTicks,
+            int trackerMaxDistanceBlocks,
+            int recallCooldownTicks,
+            int hypnoHoldTicks,
+            int hypnoRangeBlocks,
+            int hypnoMaxControlled,
+            int hypnoDurationTicks,
+            int earthsplitterRadiusBlocks,
+            int bloodOathSharpnessCap,
+            int demolitionCooldownTicks,
+            int demolitionFuseTicks,
+            int hunterAimRangeBlocks,
+            int hunterAimTimeoutTicks,
+            float hunterAimAssistStrength,
+            int thirdStrikeWindowTicks,
+            float thirdStrikeBonusDamage,
+            float vampiricHealAmount,
+            int supremeHelmetNightVisionAmplifier,
+            int supremeHelmetWaterBreathingAmplifier,
+            int supremeChestStrengthAmplifier,
+            int supremeLeggingsFireResAmplifier,
+            int supremeBootsSpeedAmplifier,
+            int supremeSetResistanceAmplifier
+    ) {
+        static Legendary from(GemsBalanceConfig.Legendary cfg) {
+            return new Legendary(
+                    secClamped(cfg.craftSeconds, 1, 24 * 3600),
+                    secClamped(cfg.trackerRefreshSeconds, 1, 60),
+                    clampInt(cfg.trackerMaxDistanceBlocks, 0, 200000),
+                    secClamped(cfg.recallCooldownSeconds, 0, 3600),
+                    secClamped(cfg.hypnoHoldSeconds, 1, 30),
+                    clampInt(cfg.hypnoRangeBlocks, 1, 64),
+                    clampInt(cfg.hypnoMaxControlled, 1, 64),
+                    secClamped(cfg.hypnoDurationSeconds, 0, 24 * 3600),
+                    clampInt(cfg.earthsplitterRadiusBlocks, 0, 2),
+                    clampInt(cfg.bloodOathSharpnessCap, 1, 10),
+                    secClamped(cfg.demolitionCooldownSeconds, 0, 3600),
+                    clampInt(cfg.demolitionFuseTicks, 1, 200),
+                    clampInt(cfg.hunterAimRangeBlocks, 1, 256),
+                    secClamped(cfg.hunterAimTimeoutSeconds, 0, 3600),
+                    clampFloat(cfg.hunterAimAssistStrength, 0.0F, 1.0F),
+                    secClamped(cfg.thirdStrikeWindowSeconds, 1, 60),
+                    clampFloat(cfg.thirdStrikeBonusDamage, 0.0F, 40.0F),
+                    clampFloat(cfg.vampiricHealAmount, 0.0F, 40.0F),
+                    clampInt(cfg.supremeHelmetNightVisionAmplifier, 0, 10),
+                    clampInt(cfg.supremeHelmetWaterBreathingAmplifier, 0, 10),
+                    clampInt(cfg.supremeChestStrengthAmplifier, 0, 10),
+                    clampInt(cfg.supremeLeggingsFireResAmplifier, 0, 10),
+                    clampInt(cfg.supremeBootsSpeedAmplifier, 0, 10),
+                    clampInt(cfg.supremeSetResistanceAmplifier, 0, 10)
+            );
+        }
+    }
+
+    private static List<Identifier> parseIdentifierList(List<String> raw) {
+        if (raw == null || raw.isEmpty()) {
+            return List.of();
+        }
+        List<Identifier> out = new ArrayList<>();
+        for (String entry : raw) {
+            if (entry == null || entry.isBlank()) {
+                continue;
+            }
+            Identifier id = Identifier.tryParse(entry);
+            if (id != null) {
+                out.add(id);
+            }
+        }
+        return List.copyOf(out);
     }
 
     private static int secClamped(int seconds, int minSeconds, int maxSeconds) {

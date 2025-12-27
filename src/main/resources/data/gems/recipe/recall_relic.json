@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ECE",
+    "NSN",
+    "ECE"
+  ],
+  "key": {
+    "E": {
+      "item": "minecraft:end_crystal"
+    },
+    "C": {
+      "item": "minecraft:chorus_fruit"
+    },
+    "N": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "S": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:recall_relic"
+  }
+}

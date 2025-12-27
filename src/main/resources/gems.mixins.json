@@ -8,14 +8,18 @@
     "ExplosiveProjectileRangeLimitMixin",
     "ExplosiveProjectileTrailMixin",
     "PersistentProjectileEntityRaidersTrainingMixin",
+    "PersistentProjectileEntityLegendaryHitMixin",
+    "PersistentProjectileEntityHunterAimMixin",
     "FarmlandTrampleImmunityMixin",
     "FurnaceOutputDoubleDebrisMixin",
     "CraftingResultSlotOwnerTagMixin",
+    "SlotLegendaryCraftMixin",
     "ItemEntityOwnerTagMixin",
     "PlayerEntityDoubleSaturationMixin",
     "PlayerEntityDataMixin",
     "PlayerEntityWealthDurabilityMixin",
     "PlayerEntityChadStrengthMixin",
+    "PlayerEntityLegendaryCritMixin",
     "PlayerEntityRestrictionsMixin",
     "SculkShriekerSilenceMixin",
     "SculkSensorSilentStepMixin",
@@ -38,7 +42,8 @@
     "WitherEntitySoulTargetingMixin",
     "ServerPlayNetworkHandlerHotbarLockMixin",
     "ServerPlayerInteractionManagerRestrictionsMixin",
-    "accessor.MobEntitySelectorsAccessor"
+    "accessor.MobEntitySelectorsAccessor",
+    "accessor.CraftingScreenHandlerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

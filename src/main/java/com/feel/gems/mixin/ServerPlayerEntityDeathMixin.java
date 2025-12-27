@@ -14,9 +14,12 @@ import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -99,6 +102,10 @@ public abstract class ServerPlayerEntityDeathMixin {
                 victim.dropStack(heart);
             }
         }
+
+        ItemStack head = new ItemStack(Items.PLAYER_HEAD);
+        head.set(DataComponentTypes.PROFILE, new ProfileComponent(victim.getGameProfile()));
+        victim.dropStack(head);
 
         GemPlayerState.applyMaxHearts(victim);
         GemPowers.sync(victim);

@@ -1,5 +1,6 @@
 package com.feel.gems.mixin;
 
+import com.feel.gems.legendary.HypnoControl;
 import com.feel.gems.power.gem.astra.SoulSummons;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.trust.GemTrust;
@@ -32,11 +33,12 @@ public abstract class MobEntitySoulTargetingMixin {
         }
         boolean soul = SoulSummons.isSoul(self);
         boolean summon = SummonerSummons.isSummon(self);
-        if (!soul && !summon) {
+        boolean hypno = HypnoControl.isHypno(self);
+        if (!soul && !summon && !hypno) {
             return;
         }
 
-        UUID ownerUuid = soul ? SoulSummons.ownerUuid(self) : SummonerSummons.ownerUuid(self);
+        UUID ownerUuid = soul ? SoulSummons.ownerUuid(self) : (summon ? SummonerSummons.ownerUuid(self) : HypnoControl.ownerUuid(self));
         if (ownerUuid == null) {
             // no owner tag => safest is "do not target players"
             self.setTarget(null);

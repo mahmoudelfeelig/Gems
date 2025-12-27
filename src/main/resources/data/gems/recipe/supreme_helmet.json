@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "BNB",
+    "NAN",
+    "BNB"
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:beacon"
+    },
+    "N": {
+      "item": "minecraft:netherite_block"
+    },
+    "A": {
+      "item": "minecraft:netherite_helmet"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:supreme_helmet"
+  }
+}

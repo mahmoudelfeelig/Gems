@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "gems-gametest",
-  "version": "1.1",
+  "version": "1.2",
   "name": "Gems GameTests",
   "description": "End-to-end integration tests for the Gems mod (development-only).",
   "environment": "*",

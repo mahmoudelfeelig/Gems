@@ -760,6 +760,9 @@ public final class GemsConfigScreen extends Screen {
         if (cfg.wealth == null) {
             cfg.wealth = new GemsBalanceConfig.Wealth();
         }
+        if (cfg.legendary == null) {
+            cfg.legendary = new GemsBalanceConfig.Legendary();
+        }
         return cfg;
     }
 

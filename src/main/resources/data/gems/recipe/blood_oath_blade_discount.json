@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "combat",
+  "pattern": [
+    "GHG",
+    "DSD",
+    "GHG"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:ghast_tear"
+    },
+    "H": {
+      "item": "minecraft:player_head"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "S": {
+      "item": "minecraft:netherite_sword"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:blood_oath_blade"
+  }
+}

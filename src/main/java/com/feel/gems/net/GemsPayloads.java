@@ -20,11 +20,14 @@ public final class GemsPayloads {
         PayloadTypeRegistry.playC2S().register(FluxChargePayload.ID, FluxChargePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(SummonerLoadoutOpenRequestPayload.ID, SummonerLoadoutOpenRequestPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(SummonerLoadoutSavePayload.ID, SummonerLoadoutSavePayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(TrackerCompassSelectPayload.ID, TrackerCompassSelectPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(StateSyncPayload.ID, StateSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(CooldownSnapshotPayload.ID, CooldownSnapshotPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(AbilityCooldownPayload.ID, AbilityCooldownPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ExtraStatePayload.ID, ExtraStatePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(SummonerLoadoutScreenPayload.ID, SummonerLoadoutScreenPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(TrackerCompassScreenPayload.ID, TrackerCompassScreenPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(SpySkinshiftPayload.ID, SpySkinshiftPayload.CODEC);
         registered = true;
     }
 }

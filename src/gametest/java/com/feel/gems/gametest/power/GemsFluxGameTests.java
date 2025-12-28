@@ -11,7 +11,6 @@ import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.CooldownSnapshotPayload;
 import com.feel.gems.power.ability.air.AirDashAbility;
-import com.feel.gems.power.ability.air.AirUpdraftZoneAbility;
 import com.feel.gems.power.ability.air.AirWindJumpAbility;
 import com.feel.gems.power.ability.beacon.BeaconAuraAbility;
 import com.feel.gems.power.ability.flux.FluxBeamAbility;

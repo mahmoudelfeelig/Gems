@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "tools",
+  "pattern": [
+    "ODO",
+    "NPN",
+    "ODO"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "N": {
+      "item": "minecraft:netherite_scrap"
+    },
+    "P": {
+      "item": "minecraft:netherite_pickaxe"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:earthsplitter_pick"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EHE",
+    "LCL",
+    "EHE"
+  ],
+  "key": {
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "H": {
+      "item": "minecraft:player_head"
+    },
+    "L": {
+      "item": "minecraft:lodestone"
+    },
+    "C": {
+      "item": "minecraft:compass"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:tracker_compass"
+  }
+}

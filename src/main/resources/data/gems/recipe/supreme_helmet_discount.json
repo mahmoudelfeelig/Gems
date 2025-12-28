@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "AGA",
+    "PHP",
+    "AGA"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "P": {
+      "item": "minecraft:prismarine_shard"
+    },
+    "H": {
+      "item": "minecraft:netherite_helmet"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:supreme_helmet"
+  }
+}

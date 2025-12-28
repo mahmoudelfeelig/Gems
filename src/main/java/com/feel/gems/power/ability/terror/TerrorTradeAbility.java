@@ -34,7 +34,7 @@ public final class TerrorTradeAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Sacrifice yourself to attempt to kill a targeted player. Target totems will still save them.";
+        return "Sacrifice yourself to attempt to kill a targeted enemy. Target totems will still save players.";
     }
 
     @Override
@@ -45,21 +45,35 @@ public final class TerrorTradeAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().terror().terrorTradeRangeBlocks());
-        if (!(target instanceof ServerPlayerEntity victim)) {
-            player.sendMessage(Text.literal("No player target."), true);
+        if (target == null) {
+            player.sendMessage(Text.literal("No target."), true);
             return false;
         }
-        if (victim == player) {
+        if (target == player) {
             return false;
         }
 
         AssassinState.initIfNeeded(player);
 
+        if (!(target instanceof ServerPlayerEntity victim)) {
+            return activateMobTrade(player, target);
+        }
         boolean casterIsAssassin = AssassinState.isAssassin(player);
         if (casterIsAssassin) {
             return activateAssassinTrade(player, victim);
         }
         return activateNormalTrade(player, victim);
+    }
+
+    private static boolean activateMobTrade(ServerPlayerEntity player, LivingEntity target) {
+        var world = player.getServerWorld();
+        AbilityFeedback.beam(world, player.getEyePos(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SOUL_FIRE_FLAME, 24);
+        AbilityFeedback.burstAt(world, target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.FLASH, 1, 0.0D);
+        AbilityFeedback.sound(player, SoundEvents.ITEM_TOTEM_USE, 0.7F, 0.9F);
+
+        target.damage(target.getDamageSources().playerAttack(player), 10_000.0F);
+        player.damage(player.getDamageSources().outOfWorld(), 10_000.0F);
+        return true;
     }
 
     private static boolean activateNormalTrade(ServerPlayerEntity player, ServerPlayerEntity victim) {

@@ -1,7 +1,7 @@
 # Gems
 a Minecraft mod that adds gems with unique powers for each holder.
 
-- Specs: see `checklist.md` for the feature list.
+- Specs: see `checklist.md` and `gameplay.md` for the source-of-truth feature list.
 - Server setup/ops: see `server-ops.md`.
 - Player docs: `gameplay.md` (what each gem does) and `balance.md` (balancing knobs + clamps).
 - Balancing: edit `config/gems/balance.json` (generated on first run) and run `/gems reloadBalance` (op level 2+) to apply.
@@ -19,3 +19,15 @@ a Minecraft mod that adds gems with unique powers for each holder.
 
 - Unit tests: `./gradlew test`
 - End-to-end integration (Fabric GameTest): `./gradlew gametest` (writes `build/reports/gametest.xml`, uses `run/gametest/`)
+
+## Developer setup
+
+- Prereqs: JDK 21, Git, and a recent Gradle wrapper (included).
+- Clone and open the project:
+  - `git clone <repo-url>`
+  - `cd Gems`
+- Run in dev:
+  - Client: `./gradlew runClient`
+  - Server: `./gradlew runServer`
+  - GameTest server: `./gradlew gametest`
+- Build a release jar: `./gradlew build` (output in `build/libs/`).

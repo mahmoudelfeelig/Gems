@@ -13,6 +13,8 @@ import net.minecraft.util.math.Vec3d;
 
 
 public final class AbilityFeedback {
+    private static final double VISUAL_BOOST = 1.5D;
+
     private AbilityFeedback() {
     }
 
@@ -121,6 +123,6 @@ public final class AbilityFeedback {
         if (scale <= 0) {
             return 0;
         }
-        return (int) Math.round(count * (scale / 100.0D));
+        return (int) Math.round(count * (scale / 100.0D) * VISUAL_BOOST);
     }
 }

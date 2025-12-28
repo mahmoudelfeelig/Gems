@@ -137,7 +137,8 @@ public final class SummonerLoadouts {
             if (type == EntityType.WITHER || type == EntityType.ENDER_DRAGON) {
                 continue;
             }
-            int count = clamp(entry.count, 0, cfg.maxActiveSummons());
+            int maxPerSlot = Math.max(0, cfg.maxPoints());
+            int count = clamp(entry.count, 0, maxPerSlot);
             if (count <= 0) {
                 continue;
             }

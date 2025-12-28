@@ -32,7 +32,7 @@ public final class BeaconAuraAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Becomes a moving beacon that grants " + type.label() + " to trusted allies nearby.";
+        return "Sets your active beacon aura to " + type.label() + " until switched off.";
     }
 
     @Override
@@ -42,16 +42,20 @@ public final class BeaconAuraAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int duration = GemsBalance.v().beacon().auraDurationTicks();
-        if (duration <= 0) {
-            player.sendMessage(Text.literal("Beacon aura is disabled."), true);
-            return false;
+        BeaconAuraRuntime.AuraType active = BeaconAuraRuntime.activeType(player);
+        if (active == type) {
+            BeaconAuraRuntime.setActive(player, null);
+            AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_DEACTIVATE, 0.7F, 0.9F);
+            player.sendMessage(Text.literal("Beacon aura disabled."), true);
+            return true;
         }
+
         BeaconSupportRuntime.applyRally(player);
-        BeaconAuraRuntime.start(player, type, duration);
+        BeaconAuraRuntime.setActive(player, type);
 
         AbilityFeedback.ring(player.getServerWorld(), player.getPos().add(0.0D, 0.1D, 0.0D), 2.5D, ParticleTypes.END_ROD, 24);
         AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_POWER_SELECT, 0.8F, 1.2F);
+        player.sendMessage(Text.literal("Beacon aura set to " + type.label() + "."), true);
         return true;
     }
 }

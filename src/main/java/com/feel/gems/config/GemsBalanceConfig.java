@@ -28,6 +28,15 @@ public final class GemsBalanceConfig {
     public SpyMimic spyMimic = new SpyMimic();
     public Beacon beacon = new Beacon();
     public Air air = new Air();
+    public Legendary legendary = new Legendary();
+
+    /**
+     * Universal mob blacklist for Hypno Staff, Summoner summons, and Astra soul captures.
+     */
+    public java.util.List<String> mobBlacklist = java.util.List.of(
+            "minecraft:ender_dragon",
+            "minecraft:wither"
+    );
 
     public static final class Visual {
         public boolean enableParticles = true;
@@ -134,6 +143,29 @@ public final class GemsBalanceConfig {
         public int overchargeDelaySeconds = 5;
         public int overchargePerSecond = 5;
         public float overchargeSelfDamagePerSecond = 1.0F;
+
+        public int fluxCapacitorChargeThreshold = 140;
+        public int fluxCapacitorAbsorptionAmplifier = 0;
+        public int fluxConductivityChargePerDamage = 2;
+        public int fluxConductivityMaxChargePerHit = 12;
+        public int fluxInsulationChargeThreshold = 150;
+        public float fluxInsulationDamageMultiplier = 0.75F;
+
+        public int fluxSurgeCooldownSeconds = 35;
+        public int fluxSurgeDurationSeconds = 6;
+        public int fluxSurgeSpeedAmplifier = 1;
+        public int fluxSurgeResistanceAmplifier = 0;
+        public int fluxSurgeChargeCost = 30;
+        public int fluxSurgeRadiusBlocks = 5;
+        public double fluxSurgeKnockback = 0.7D;
+
+        public int fluxDischargeCooldownSeconds = 40;
+        public int fluxDischargeRadiusBlocks = 8;
+        public float fluxDischargeBaseDamage = 4.0F;
+        public float fluxDischargeDamagePerCharge = 0.2F;
+        public float fluxDischargeMaxDamage = 20.0F;
+        public int fluxDischargeMinCharge = 25;
+        public double fluxDischargeKnockback = 0.8D;
     }
 
     public static final class Life {
@@ -179,6 +211,17 @@ public final class GemsBalanceConfig {
         public int groupBashRadiusBlocks = 10;
         public double groupBashKnockback = 1.2D;
         public double groupBashUpVelocityY = 0.8D;
+
+        public int gustCooldownSeconds = 30;
+        public int gustRadiusBlocks = 8;
+        public double gustUpVelocityY = 0.7D;
+        public double gustKnockback = 1.0D;
+        public int gustSlownessDurationSeconds = 5;
+        public int gustSlownessAmplifier = 1;
+        public int gustSlowFallingDurationSeconds = 4;
+
+        public int windborneDurationSeconds = 2;
+        public int windborneSlowFallingAmplifier = 0;
     }
 
     public static final class Speed {
@@ -218,6 +261,12 @@ public final class GemsBalanceConfig {
         public int afterimageCooldownSeconds = 30;
         public int afterimageDurationSeconds = 6;
         public int afterimageSpeedAmplifier = 1;
+
+        public int tempoShiftCooldownSeconds = 60;
+        public int tempoShiftDurationSeconds = 10;
+        public int tempoShiftRadiusBlocks = 12;
+        public int tempoShiftAllyCooldownTicksPerSecond = 10;
+        public int tempoShiftEnemyCooldownTicksPerSecond = 10;
     }
 
     public static final class Strength {
@@ -235,6 +284,10 @@ public final class GemsBalanceConfig {
         public int chadDurationSeconds = 45;
         public int chadEveryHits = 4;
         public float chadBonusDamage = 7.0F;
+
+        public float adrenalineThresholdHearts = 4.0F;
+        public int adrenalineDurationSeconds = 4;
+        public int adrenalineResistanceAmplifier = 0;
     }
 
     public static final class Wealth {
@@ -272,6 +325,20 @@ public final class GemsBalanceConfig {
         public int panicRingTntCount = 5;
         public int panicRingFuseTicks = 50;
         public double panicRingRadiusBlocks = 1.6D;
+
+        public int rigCooldownSeconds = 45;
+        public int rigRangeBlocks = 12;
+        public int rigDurationSeconds = 90;
+        public int rigFuseTicks = 20;
+
+        public int remoteChargeArmWindowSeconds = 10;
+        public int remoteChargeDetonateWindowSeconds = 60;
+        public int remoteChargeFuseTicks = 20;
+
+        public int breachChargeCooldownSeconds = 75;
+        public int breachChargeRangeBlocks = 18;
+        public int breachChargeFuseTicks = 40;
+        public float breachChargeExplosionPower = 3.0F;
     }
 
     public static final class Summoner {
@@ -402,6 +469,11 @@ public final class GemsBalanceConfig {
         public int deathOathDurationSeconds = 12;
         public int deathOathRangeBlocks = 48;
         public float deathOathSelfDamagePerSecond = 1.0F;
+        public float deathOathBonusDamage = 4.0F;
+
+        public int retributionCooldownSeconds = 90;
+        public int retributionDurationSeconds = 6;
+        public float retributionDamageMultiplier = 1.0F;
 
         public int scytheSweepCooldownSeconds = 20;
         public int scytheSweepRangeBlocks = 5;
@@ -415,9 +487,11 @@ public final class GemsBalanceConfig {
         public float bloodChargeMaxMultiplier = 1.60F;
         public int bloodChargeBuffDurationSeconds = 8;
 
-        public int shadeCloneCooldownSeconds = 90;
-        public int shadeCloneDurationSeconds = 12;
-        public float shadeCloneMaxHealth = 20.0F;
+        public int shadowCloneCooldownSeconds = 90;
+        public int shadowCloneDurationSeconds = 12;
+        public float shadowCloneMaxHealth = 20.0F;
+        public int shadowCloneCount = 10;
+        public String shadowCloneEntityId = "minecraft:zombie";
     }
 
     public static final class Pillager {
@@ -460,6 +534,11 @@ public final class GemsBalanceConfig {
         public int stillnessSeconds = 5;
         public float stillnessMoveEpsilonBlocks = 0.05F;
         public int stillnessInvisRefreshSeconds = 2;
+        public int backstepCooldownSeconds = 12;
+        public double backstepVelocity = 0.7D;
+        public double backstepUpVelocity = 0.15D;
+        public float backstabBonusDamage = 3.0F;
+        public int backstabAngleDegrees = 60;
 
         // Observation
         public int observeRangeBlocks = 24;
@@ -485,6 +564,10 @@ public final class GemsBalanceConfig {
         public int smokeBombSlownessAmplifier = 0;
 
         public int stolenCastCooldownSeconds = 20;
+
+        public int skinshiftCooldownSeconds = 90;
+        public int skinshiftDurationSeconds = 20;
+        public int skinshiftRangeBlocks = 24;
     }
 
     public static final class Beacon {
@@ -517,9 +600,11 @@ public final class GemsBalanceConfig {
     public static final class Air {
         // Passives
         public float aerialGuardFallDamageMultiplier = 0.50F;
+        public float aerialGuardDamageMultiplier = 0.85F;
         public float aerialGuardKnockbackMultiplier = 0.60F;
-        public int skybornDurationSeconds = 3;
-        public int skybornCooldownSeconds = 20;
+        public double windShearKnockback = 0.6D;
+        public int windShearSlownessDurationSeconds = 3;
+        public int windShearSlownessAmplifier = 0;
 
         // Abilities
         public int windJumpCooldownSeconds = 8;
@@ -532,16 +617,79 @@ public final class GemsBalanceConfig {
         public float galeSlamBonusDamage = 6.0F;
         public double galeSlamKnockback = 1.0D;
 
-        public int updraftZoneCooldownSeconds = 25;
-        public int updraftZoneRadiusBlocks = 8;
-        public double updraftZoneUpVelocity = 0.9D;
-        public float updraftZoneEnemyDamage = 3.0F;
-        public double updraftZoneEnemyKnockback = 0.6D;
+        public int crosswindCooldownSeconds = 30;
+        public int crosswindRangeBlocks = 18;
+        public int crosswindRadiusBlocks = 3;
+        public float crosswindDamage = 4.0F;
+        public double crosswindKnockback = 0.8D;
+        public int crosswindSlownessDurationSeconds = 4;
+        public int crosswindSlownessAmplifier = 1;
 
         public int dashCooldownSeconds = 6;
         public double dashVelocity = 1.6D;
         public double dashUpVelocity = 0.1D;
         public int dashIFrameDurationSeconds = 1;
         public int dashIFrameResistanceAmplifier = 4;
+    }
+
+    public static final class Legendary {
+        public int craftSeconds = 600;
+        public int trackerRefreshSeconds = 2;
+        public int trackerMaxDistanceBlocks = 0; // 0 = unlimited
+
+        public int recallCooldownSeconds = 60;
+
+        public int hypnoHoldSeconds = 3;
+        public int hypnoRangeBlocks = 40;
+        public int hypnoViewRangeBlocks = 10;
+        public float hypnoHealHearts = 10.0F;
+        public int hypnoMaxControlled = 10;
+        public int hypnoDurationSeconds = 0; // 0 = infinite while online
+
+        public int earthsplitterRadiusBlocks = 1;
+        public int earthsplitterTunnelLengthBlocks = 9;
+
+        public int bloodOathSharpnessCap = 10;
+        public int demolitionCooldownSeconds = 5;
+        public int demolitionFuseTicks = 80;
+        public int demolitionRangeBlocks = 12;
+        public float demolitionExplosionPower = 3.0F;
+        public int hunterAimRangeBlocks = 50;
+        public int hunterAimTimeoutSeconds = 15;
+        public float hunterAimAssistStrength = 1.0F;
+        public int thirdStrikeWindowSeconds = 5;
+        public float thirdStrikeBonusDamage = 4.0F;
+        public float vampiricHealAmount = 2.0F;
+
+        public int supremeHelmetNightVisionAmplifier = 0;
+        public int supremeHelmetWaterBreathingAmplifier = 0;
+        public int supremeChestStrengthAmplifier = 0;
+        public int supremeLeggingsFireResAmplifier = 0;
+        public int supremeBootsSpeedAmplifier = 0;
+        public int supremeSetResistanceAmplifier = 2;
+
+        /**
+         * Map of discount recipe ids to gem ids. Any listed recipe is only craftable while
+         * the matching gem is active (multiple recipes can point at the same output item).
+         */
+        public java.util.Map<String, String> recipeGemRequirements = defaultRecipeGemRequirements();
+
+        private static java.util.Map<String, String> defaultRecipeGemRequirements() {
+            java.util.Map<String, String> map = new java.util.HashMap<>();
+            map.put("gems:tracker_compass_discount", "spy_mimic");
+            map.put("gems:recall_relic_discount", "space");
+            map.put("gems:hypno_staff_discount", "summoner");
+            map.put("gems:earthsplitter_pick_discount", "wealth");
+            map.put("gems:supreme_helmet_discount", "beacon");
+            map.put("gems:supreme_chestplate_discount", "beacon");
+            map.put("gems:supreme_leggings_discount", "beacon");
+            map.put("gems:supreme_boots_discount", "beacon");
+            map.put("gems:blood_oath_blade_discount", "reaper");
+            map.put("gems:demolition_blade_discount", "terror");
+            map.put("gems:hunters_sight_bow_discount", "puff");
+            map.put("gems:third_strike_blade_discount", "strength");
+            map.put("gems:vampiric_edge_discount", "life");
+            return map;
+        }
     }
 }

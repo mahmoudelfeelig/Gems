@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "gems:blood_oath_blade",
+    "gems:demolition_blade",
+    "gems:third_strike_blade",
+    "gems:vampiric_edge"
+  ]
+}

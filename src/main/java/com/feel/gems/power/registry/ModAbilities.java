@@ -48,6 +48,8 @@ public final class ModAbilities {
         // Flux
         register(new FluxBeamAbility());
         register(new StaticBurstAbility());
+        register(new FluxSurgeAbility());
+        register(new FluxDischargeAbility());
 
         // Life
         register(new VitalityVortexAbility());
@@ -60,6 +62,7 @@ public final class ModAbilities {
         register(new DashAbility());
         register(new BreezyBashAbility());
         register(new GroupBreezyBashAbility());
+        register(new PuffGustAbility());
 
         // Speed
         register(new ArcShotAbility());
@@ -67,6 +70,7 @@ public final class ModAbilities {
         register(new TerminalVelocityAbility());
         register(new SpeedSlipstreamAbility());
         register(new SpeedAfterimageAbility());
+        register(new SpeedTempoShiftAbility());
 
         // Strength
         register(new NullifyAbility());
@@ -84,6 +88,9 @@ public final class ModAbilities {
         // Terror
         register(new TerrorTradeAbility());
         register(new PanicRingAbility());
+        register(new TerrorRigAbility());
+        register(new TerrorBreachChargeAbility());
+        register(new TerrorRemoteChargeAbility());
 
         // Summoner
         register(new SummonSlotAbility(1));
@@ -103,9 +110,10 @@ public final class ModAbilities {
         register(new ReaperGraveSteedAbility());
         register(new ReaperWitheringStrikesAbility());
         register(new ReaperDeathOathAbility());
+        register(new ReaperRetributionAbility());
         register(new ReaperScytheSweepAbility());
         register(new ReaperBloodChargeAbility());
-        register(new ReaperShadeCloneAbility());
+        register(new ReaperShadowCloneAbility());
 
         // Pillager
         register(new PillagerFangsAbility());
@@ -119,6 +127,7 @@ public final class ModAbilities {
         register(new SpyStealAbility());
         register(new SpySmokeBombAbility());
         register(new SpyStolenCastAbility());
+        register(new SpySkinshiftAbility());
 
         // Beacon
         register(new BeaconAuraAbility(BeaconAuraRuntime.AuraType.SPEED));
@@ -131,7 +140,7 @@ public final class ModAbilities {
         // Air
         register(new AirWindJumpAbility());
         register(new AirGaleSlamAbility());
-        register(new AirUpdraftZoneAbility());
+        register(new AirCrosswindAbility());
         register(new AirDashAbility());
     }
 

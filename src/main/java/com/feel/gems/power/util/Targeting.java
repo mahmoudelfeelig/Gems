@@ -18,6 +18,10 @@ public final class Targeting {
     }
 
     public static LivingEntity raycastLiving(ServerPlayerEntity player, double maxDistance) {
+        return raycastLiving(player, maxDistance, 1.0D);
+    }
+
+    public static LivingEntity raycastLiving(ServerPlayerEntity player, double maxDistance, double viewRange) {
         Vec3d start = player.getCameraPosVec(1.0F);
         Vec3d direction = player.getRotationVec(1.0F);
         Vec3d end = start.add(direction.multiply(maxDistance));
@@ -29,7 +33,8 @@ public final class Targeting {
             maxDistanceSq = start.squaredDistanceTo(end);
         }
 
-        Box box = player.getBoundingBox().stretch(direction.multiply(maxDistance)).expand(1.0D);
+        double expand = Math.max(0.0D, viewRange);
+        Box box = player.getBoundingBox().stretch(direction.multiply(maxDistance)).expand(expand);
         Predicate<Entity> predicate = entity -> entity instanceof LivingEntity living && living.isAlive() && living != player;
         EntityHitResult entityHit = ProjectileUtil.raycast(player, start, end, box, predicate, maxDistanceSq);
         if (entityHit == null) {

@@ -1,12 +1,15 @@
 package com.feel.gems.client;
 
 import com.feel.gems.client.screen.SummonerLoadoutScreen;
+import com.feel.gems.client.screen.TrackerCompassScreen;
 import com.feel.gems.core.GemId;
 import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.net.CooldownSnapshotPayload;
 import com.feel.gems.net.ExtraStatePayload;
 import com.feel.gems.net.StateSyncPayload;
 import com.feel.gems.net.SummonerLoadoutScreenPayload;
+import com.feel.gems.net.TrackerCompassScreenPayload;
+import com.feel.gems.net.SpySkinshiftPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
@@ -24,6 +27,7 @@ public final class ClientNetworking {
             ClientCooldowns.reset();
             ClientExtraState.reset();
             ClientAbilitySelection.reset();
+            ClientDisguiseState.reset();
         }));
 
         ClientPlayNetworking.registerGlobalReceiver(StateSyncPayload.ID, (payload, context) ->
@@ -60,6 +64,17 @@ public final class ClientNetworking {
                         client.setScreen(new SummonerLoadoutScreen(payload));
                     }
                 }));
+
+        ClientPlayNetworking.registerGlobalReceiver(TrackerCompassScreenPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    MinecraftClient client = context.client();
+                    if (client != null) {
+                        client.setScreen(new TrackerCompassScreen(payload));
+                    }
+                }));
+        ClientPlayNetworking.registerGlobalReceiver(SpySkinshiftPayload.ID, (payload, context) ->
+                context.client().execute(() -> ClientDisguiseState.update(payload.player(), payload.target()))
+        );
     }
 
     private static GemId safeGemId(int ordinal) {

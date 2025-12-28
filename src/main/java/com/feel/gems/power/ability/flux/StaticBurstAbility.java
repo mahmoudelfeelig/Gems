@@ -5,9 +5,12 @@ import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemPowers;
+import com.feel.gems.power.gem.flux.FluxCharge;
+import com.feel.gems.net.GemExtraStateSync;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTime;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.particle.ParticleTypes;
@@ -16,6 +19,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Box;
 
 
 
@@ -56,8 +60,9 @@ public final class StaticBurstAbility implements GemAbility {
         int hits = 0;
         float damage = Math.min(GemsBalance.v().flux().staticBurstMaxDamage(), stored);
         int radius = GemsBalance.v().flux().staticBurstRadiusBlocks();
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
-            if (GemTrust.isTrusted(player, other)) {
+        Box box = new Box(player.getBlockPos()).expand(radius);
+        for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player)) {
+            if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
                 continue;
             }
             other.damage(player.getDamageSources().magic(), damage);
@@ -68,7 +73,7 @@ public final class StaticBurstAbility implements GemAbility {
         nbt.putLong(KEY_STORED_AT, GemsTime.now(world));
         AbilityFeedback.sound(player, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5F, 1.4F);
         AbilityFeedback.burst(player, ParticleTypes.ELECTRIC_SPARK, 24, 0.5D);
-        player.sendMessage(Text.literal("Static Burst hit " + hits + " players."), true);
+        player.sendMessage(Text.literal("Static Burst hit " + hits + " targets."), true);
         return true;
     }
 
@@ -87,6 +92,21 @@ public final class StaticBurstAbility implements GemAbility {
             nbt.putLong(KEY_STORED_AT, now);
         }
         nbt.putFloat(KEY_STORED_DAMAGE, nbt.getFloat(KEY_STORED_DAMAGE) + amount);
+
+        if (GemPowers.isPassiveActive(player, PowerIds.FLUX_CONDUCTIVITY)) {
+            int perDamage = GemsBalance.v().flux().fluxConductivityChargePerDamage();
+            int maxPerHit = GemsBalance.v().flux().fluxConductivityMaxChargePerHit();
+            int add = Math.min(maxPerHit, Math.round(amount * perDamage));
+            if (add > 0) {
+                int before = FluxCharge.get(player);
+                int next = Math.min(200, before + add);
+                if (next != before) {
+                    FluxCharge.set(player, next);
+                    FluxCharge.clearIfBelow100(player);
+                    GemExtraStateSync.send(player);
+                }
+            }
+        }
     }
 
     private static NbtCompound persistent(ServerPlayerEntity player) {

@@ -7,6 +7,9 @@ import com.feel.gems.power.gem.terror.TerrorFearlessPassive;
 import com.feel.gems.power.passive.AutoEnchantPassive;
 import com.feel.gems.power.passive.MarkerPassive;
 import com.feel.gems.power.passive.StatusEffectPassive;
+import com.feel.gems.power.passive.flux.FluxCapacitorPassive;
+import com.feel.gems.power.passive.puff.PuffWindbornePassive;
+import com.feel.gems.power.passive.strength.StrengthAdrenalinePassive;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,6 +68,17 @@ public final class ModPassives {
                 "Overcharge Ramp",
                 "At 100% charge, begins charging toward 200% while damaging the holder."
         ));
+        register(new FluxCapacitorPassive());
+        register(new MarkerPassive(
+                PowerIds.FLUX_CONDUCTIVITY,
+                "Flux Conductivity",
+                "Taking damage also converts some of it into Flux charge."
+        ));
+        register(new MarkerPassive(
+                PowerIds.FLUX_INSULATION,
+                "Flux Insulation",
+                "While highly charged, incoming damage is reduced."
+        ));
 
         register(AutoEnchantPassive.unbreaking(
                 PowerIds.AUTO_ENCHANT_UNBREAKING,
@@ -105,6 +119,7 @@ public final class ModPassives {
                 "Crop-Trample Immunity",
                 "Prevents trampling farmland."
         ));
+        register(new PuffWindbornePassive());
 
         register(new StatusEffectPassive(
                 PowerIds.SPEED_I,
@@ -144,6 +159,7 @@ public final class ModPassives {
                 "Automatically applies Sharpness to melee weapons.",
                 3
         ));
+        register(new StrengthAdrenalinePassive());
 
         register(AutoEnchantPassive.mending(
                 PowerIds.AUTO_ENCHANT_MENDING,
@@ -174,7 +190,7 @@ public final class ModPassives {
                 "Hero of the Village",
                 "Permanent Hero of the Village effect.",
                 StatusEffects.HERO_OF_THE_VILLAGE,
-                0
+                4
         ));
         register(new MarkerPassive(
                 PowerIds.DURABILITY_CHIP,
@@ -290,6 +306,11 @@ public final class ModPassives {
                 "False Signature",
                 "Reduces how much information enemies can infer from your effects."
         ));
+        register(new MarkerPassive(
+                PowerIds.SPY_BACKSTEP,
+                "Backstab",
+                "Attacking from behind deals bonus damage."
+        ));
         register(new StatusEffectPassive(
                 PowerIds.SPY_QUICK_HANDS,
                 "Quick Hands",
@@ -324,12 +345,12 @@ public final class ModPassives {
         register(new MarkerPassive(
                 PowerIds.AIR_AERIAL_GUARD,
                 "Aerial Guard",
-                "Reduced fall damage and knockback while holding the mace."
+                "Reduced damage and knockback while holding the mace."
         ));
         register(new MarkerPassive(
-                PowerIds.AIR_SKYBORN,
-                "Skyborn",
-                "Taking damage midair grants brief Slow Falling (cooldown)."
+                PowerIds.AIR_WIND_SHEAR,
+                "Wind Shear",
+                "Mace strikes add extra knockback and a short slow."
         ));
     }
 

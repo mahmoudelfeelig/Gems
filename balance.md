@@ -59,6 +59,11 @@ These are the default values generated in `config/gems/balance.json`.
 - Static Burst: `staticBurstCooldownSeconds=30`, `staticBurstRadiusBlocks=8`, `staticBurstMaxDamage=20.0`, `staticBurstStoreWindowSeconds=120`
 - Charge item values: `chargeDiamondBlock=25`, `chargeGoldBlock=15`, `chargeCopperBlock=5`, `chargeEmeraldBlock=20`, `chargeAmethystBlock=10`, `chargeNetheriteScrap=35`, `chargeEnchantedDiamondItem=20`
 - Overcharge: `overchargeDelaySeconds=5`, `overchargePerSecond=5`, `overchargeSelfDamagePerSecond=1.0`
+- Flux Capacitor: `fluxCapacitorChargeThreshold=140`, `fluxCapacitorAbsorptionAmplifier=0`
+- Flux Conductivity: `fluxConductivityChargePerDamage=2`, `fluxConductivityMaxChargePerHit=12`
+- Flux Insulation: `fluxInsulationChargeThreshold=150`, `fluxInsulationDamageMultiplier=0.75`
+- Flux Surge: `fluxSurgeCooldownSeconds=35`, `fluxSurgeDurationSeconds=6`, `fluxSurgeSpeedAmplifier=1`, `fluxSurgeResistanceAmplifier=0`, `fluxSurgeChargeCost=30`, `fluxSurgeRadiusBlocks=5`, `fluxSurgeKnockback=0.7`
+- Flux Discharge: `fluxDischargeCooldownSeconds=40`, `fluxDischargeRadiusBlocks=8`, `fluxDischargeBaseDamage=4.0`, `fluxDischargeDamagePerCharge=0.2`, `fluxDischargeMaxDamage=20.0`, `fluxDischargeMinCharge=25`, `fluxDischargeKnockback=0.8`
 
 ### Life Gem
 - Vitality Vortex: `vitalityVortexCooldownSeconds=30`, `vitalityVortexRadiusBlocks=8`, `vitalityVortexDurationSeconds=8`, `vitalityVortexScanRadiusBlocks=3`, `vitalityVortexVerdantThreshold=10`, `vitalityVortexAllyHeal=2.0`
@@ -71,6 +76,8 @@ These are the default values generated in `config/gems/balance.json`.
 - Dash: `dashCooldownSeconds=6`, `dashVelocity=1.8`, `dashDamage=6.0`, `dashHitRangeBlocks=4.0`
 - Breezy Bash: `breezyBashCooldownSeconds=20`, `breezyBashRangeBlocks=10`, `breezyBashUpVelocityY=1.2`, `breezyBashKnockback=0.6`, `breezyBashInitialDamage=4.0`, `breezyBashImpactDamage=6.0`, `breezyBashImpactWindowSeconds=6`
 - Group Breezy Bash: `groupBashCooldownSeconds=45`, `groupBashRadiusBlocks=10`, `groupBashKnockback=1.2`, `groupBashUpVelocityY=0.8`
+- Gust: `gustCooldownSeconds=30`, `gustRadiusBlocks=8`, `gustUpVelocityY=0.7`, `gustKnockback=1.0`, `gustSlownessDurationSeconds=5`, `gustSlownessAmplifier=1`, `gustSlowFallingDurationSeconds=4`
+- Windborne: `windborneDurationSeconds=2`, `windborneSlowFallingAmplifier=0`
 
 ### Speed Gem
 - Momentum: `momentumMinSpeed=0.10`, `momentumMaxSpeed=0.60`, `momentumMinMultiplier=0.90`, `momentumMaxMultiplier=1.30`
@@ -80,12 +87,14 @@ These are the default values generated in `config/gems/balance.json`.
 - Terminal Velocity: `terminalVelocityCooldownSeconds=30`, `terminalVelocityDurationSeconds=10`, `terminalVelocitySpeedAmplifier=2`, `terminalVelocityHasteAmplifier=1`
 - Slipstream: `slipstreamCooldownSeconds=45`, `slipstreamDurationSeconds=8`, `slipstreamLengthBlocks=18`, `slipstreamRadiusBlocks=3`, `slipstreamAllySpeedAmplifier=1`, `slipstreamEnemySlownessAmplifier=1`, `slipstreamEnemyKnockback=0.35`
 - Afterimage: `afterimageCooldownSeconds=30`, `afterimageDurationSeconds=6`, `afterimageSpeedAmplifier=1`
+- Tempo Shift: `tempoShiftCooldownSeconds=60`, `tempoShiftDurationSeconds=10`, `tempoShiftRadiusBlocks=12`, `tempoShiftAllyCooldownTicksPerSecond=10`, `tempoShiftEnemyCooldownTicksPerSecond=10`
 
 ### Strength Gem
 - Nullify: `nullifyCooldownSeconds=20`, `nullifyRadiusBlocks=10`
 - Frailer: `frailerCooldownSeconds=20`, `frailerRangeBlocks=20`, `frailerDurationSeconds=8`
 - Bounty Hunting: `bountyCooldownSeconds=60`, `bountyDurationSeconds=60`
 - Chad Strength: `chadCooldownSeconds=90`, `chadDurationSeconds=45`, `chadEveryHits=4`, `chadBonusDamage=7.0`
+- Adrenaline: `adrenalineThresholdHearts=4.0`, `adrenalineDurationSeconds=4`, `adrenalineResistanceAmplifier=0`
 
 ### Wealth Gem
 - Fumble: `fumbleCooldownSeconds=30`, `fumbleDurationSeconds=8`, `fumbleRadiusBlocks=10`
@@ -98,11 +107,14 @@ These are the default values generated in `config/gems/balance.json`.
 - Blood Price: `bloodPriceDurationSeconds=6`, `bloodPriceStrengthAmplifier=1`, `bloodPriceResistanceAmplifier=0`
 - Terror Trade: `terrorTradeCooldownSeconds=180`, `terrorTradeRangeBlocks=30`
 - Panic Ring: `panicRingCooldownSeconds=60`, `panicRingTntCount=5`, `panicRingFuseTicks=50`, `panicRingRadiusBlocks=1.6`
+- Rig: `rigCooldownSeconds=45`, `rigRangeBlocks=12`, `rigDurationSeconds=90`, `rigFuseTicks=20`
+- Remote Charge: `remoteChargeArmWindowSeconds=10`, `remoteChargeDetonateWindowSeconds=60`, `remoteChargeFuseTicks=20`
+- Breach Charge: `breachChargeCooldownSeconds=75`, `breachChargeRangeBlocks=18`, `breachChargeFuseTicks=40`
 
 ### Summoner Gem
 - Commander's Mark: `commandersMarkDurationSeconds=3`, `commandersMarkStrengthAmplifier=0`, `commandRangeBlocks=32`
 - Familiar's Blessing: `summonBonusHealth=4.0`
-- Summon slots: `maxPoints=50`, `maxActiveSummons=20`, `summonLifetimeSeconds=120`, `summonSlotCooldownSeconds=30`
+- Summon slots: `maxPoints=50` (active summon points cap), `summonLifetimeSeconds=120`, `summonSlotCooldownSeconds=30`
 - Recall: `recallCooldownSeconds=20`
 
 ### Space Gem
@@ -120,9 +132,11 @@ These are the default values generated in `config/gems/balance.json`.
 - Grave Steed: `graveSteedCooldownSeconds=60`, `graveSteedDurationSeconds=30`, `graveSteedDecayDamagePerSecond=1.0`
 - Withering Strikes: `witheringStrikesCooldownSeconds=45`, `witheringStrikesDurationSeconds=10`, `witheringStrikesWitherDurationSeconds=4`, `witheringStrikesWitherAmplifier=0`
 - Death Oath: `deathOathCooldownSeconds=60`, `deathOathDurationSeconds=12`, `deathOathRangeBlocks=48`, `deathOathSelfDamagePerSecond=1.0`
+- Death Oath bonus damage: `deathOathBonusDamage=4.0`
+- Retribution: `retributionCooldownSeconds=90`, `retributionDurationSeconds=6`, `retributionDamageMultiplier=1.0`
 - Scythe Sweep: `scytheSweepCooldownSeconds=20`, `scytheSweepRangeBlocks=5`, `scytheSweepArcDegrees=110`, `scytheSweepDamage=7.0`, `scytheSweepKnockback=0.55`
 - Blood Charge: `bloodChargeCooldownSeconds=60`, `bloodChargeMaxChargeSeconds=8`, `bloodChargeSelfDamagePerSecond=1.0`, `bloodChargeMaxMultiplier=1.60`, `bloodChargeBuffDurationSeconds=8`
-- Shade Clone: `shadeCloneCooldownSeconds=90`, `shadeCloneDurationSeconds=12`, `shadeCloneMaxHealth=20.0`
+- Shadow Clone: `shadowCloneCooldownSeconds=90`, `shadowCloneDurationSeconds=12`, `shadowCloneMaxHealth=20.0`, `shadowCloneCount=10`, `shadowCloneEntityId=minecraft:zombie`
 
 ### Pillager Gem
 - Raider's Training: `raidersTrainingProjectileVelocityMultiplier=1.15`
@@ -135,24 +149,41 @@ These are the default values generated in `config/gems/balance.json`.
 
 ### Spy / Mimic Gem
 - Stillness Cloak: `stillnessSeconds=5`, `stillnessMoveEpsilonBlocks=0.05`, `stillnessInvisRefreshSeconds=2`
+- Backstab: `backstabBonusDamage=3.0`, `backstabAngleDegrees=60`
 - Mimic Form: `mimicFormCooldownSeconds=60`, `mimicFormDurationSeconds=12`, `mimicFormBonusMaxHealth=4.0`, `mimicFormSpeedMultiplier=1.10`
 - Echo: `echoCooldownSeconds=25`, `echoWindowSeconds=8`
 - Steal: `stealCooldownSeconds=60`, `stealRequiredWitnessCount=4`, `maxStolenAbilities=3`
 - Smoke Bomb: `smokeBombCooldownSeconds=30`, `smokeBombRadiusBlocks=8`, `smokeBombDurationSeconds=6`, `smokeBombBlindnessAmplifier=0`, `smokeBombSlownessAmplifier=0`
 - Stolen Cast: `stolenCastCooldownSeconds=20`
+- Skinshift: `skinshiftCooldownSeconds=90`, `skinshiftDurationSeconds=20`, `skinshiftRangeBlocks=24`
 - Echo observation: `observeRangeBlocks=24`, `observeWindowSeconds=600`
 
 ### Beacon Gem
 - Beacon Core: `coreRadiusBlocks=8`, `corePulsePeriodSeconds=2`, `coreRegenDurationSeconds=3`, `coreRegenAmplifier=0`
 - Stabilize: `stabilizeRadiusBlocks=8`, `stabilizeReduceTicksPerSecond=20`
 - Rally: `rallyRadiusBlocks=10`, `rallyAbsorptionHearts=4`, `rallyDurationSeconds=8`
-- Aura pulses: `auraCooldownSeconds=30`, `auraDurationSeconds=12`, `auraRadiusBlocks=10`, `auraRefreshSeconds=2`
+- Aura pulses: `auraCooldownSeconds=30`, `auraDurationSeconds=12` (unused), `auraRadiusBlocks=10`, `auraRefreshSeconds=2`
 - Aura amplifiers: `auraSpeedAmplifier=1`, `auraHasteAmplifier=1`, `auraResistanceAmplifier=0`, `auraJumpAmplifier=1`, `auraStrengthAmplifier=0`, `auraRegenAmplifier=0`
 
 ### Air Gem
-- Aerial Guard: `aerialGuardFallDamageMultiplier=0.50`, `aerialGuardKnockbackMultiplier=0.60`
-- Skyborn: `skybornDurationSeconds=3`, `skybornCooldownSeconds=20`
+- Aerial Guard: `aerialGuardFallDamageMultiplier=0.50`, `aerialGuardDamageMultiplier=0.85`, `aerialGuardKnockbackMultiplier=0.60`
+- Wind Shear: `windShearKnockback=0.6`, `windShearSlownessDurationSeconds=3`, `windShearSlownessAmplifier=0`
 - Wind Jump: `windJumpCooldownSeconds=8`, `windJumpVerticalVelocity=1.0`, `windJumpForwardVelocity=0.2`
 - Gale Slam: `galeSlamCooldownSeconds=30`, `galeSlamWindowSeconds=8`, `galeSlamRadiusBlocks=4`, `galeSlamBonusDamage=6.0`, `galeSlamKnockback=1.0`
-- Updraft Zone: `updraftZoneCooldownSeconds=25`, `updraftZoneRadiusBlocks=8`, `updraftZoneUpVelocity=0.9`, `updraftZoneEnemyDamage=3.0`, `updraftZoneEnemyKnockback=0.6`
+- Crosswind: `crosswindCooldownSeconds=30`, `crosswindRangeBlocks=18`, `crosswindRadiusBlocks=3`, `crosswindDamage=4.0`, `crosswindKnockback=0.8`, `crosswindSlownessDurationSeconds=4`, `crosswindSlownessAmplifier=1`
 - Air Dash: `dashCooldownSeconds=6`, `dashVelocity=1.6`, `dashUpVelocity=0.1`, `dashIFrameDurationSeconds=1`, `dashIFrameResistanceAmplifier=4`
+
+### Legendary Items
+- Legendary crafting: `craftSeconds=600`
+- Tracker Compass: `trackerRefreshSeconds=2`, `trackerMaxDistanceBlocks=0`
+- Recall Relic: `recallCooldownSeconds=60`
+- Hypno Staff: `hypnoHoldSeconds=3`, `hypnoRangeBlocks=24`, `hypnoMaxControlled=10`, `hypnoDurationSeconds=0`
+- Universal mob blacklist (Hypno/Summoner/Astra): `mobBlacklist=[minecraft:ender_dragon,minecraft:wither]`
+- Earthsplitter Pick: `earthsplitterRadiusBlocks=1`, `earthsplitterTunnelLengthBlocks=9`
+- Blood Oath Blade: `bloodOathSharpnessCap=10`
+- Demolition Blade: `demolitionCooldownSeconds=5`, `demolitionFuseTicks=80`, `demolitionRangeBlocks=12` (TNT power is vanilla).
+- Hunter's Sight Bow: `hunterAimRangeBlocks=50`, `hunterAimTimeoutSeconds=15`, `hunterAimAssistStrength=1.0`
+- Third-Strike Blade: `thirdStrikeWindowSeconds=5`, `thirdStrikeBonusDamage=4.0`
+- Vampiric Edge: `vampiricHealAmount=2.0`
+- Recipe discounts: `legendary.recipeGemRequirements` (map of discount recipe id -> gem id; add multiple recipes per item if desired)
+- Supreme set: `supremeHelmetNightVisionAmplifier=0`, `supremeHelmetWaterBreathingAmplifier=0`, `supremeChestStrengthAmplifier=0`, `supremeLeggingsFireResAmplifier=0`, `supremeBootsSpeedAmplifier=0`, `supremeSetResistanceAmplifier=2`

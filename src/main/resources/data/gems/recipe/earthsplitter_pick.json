@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "tools",
+  "pattern": [
+    "ADA",
+    "NPN",
+    "ADA"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:ancient_debris"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "N": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "P": {
+      "item": "minecraft:netherite_pickaxe"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:earthsplitter_pick"
+  }
+}

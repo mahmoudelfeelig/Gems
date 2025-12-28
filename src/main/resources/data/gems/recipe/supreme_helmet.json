@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "AEA",
+    "PHP",
+    "AEA"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "P": {
+      "item": "minecraft:prismarine_crystals"
+    },
+    "H": {
+      "item": "minecraft:netherite_helmet"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:supreme_helmet"
+  }
+}

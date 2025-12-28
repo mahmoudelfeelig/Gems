@@ -6,12 +6,16 @@ import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.gem.wealth.WealthFumble;
 import com.feel.gems.trust.GemTrust;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Box;
 
 
 public final class FumbleAbility implements GemAbility {
@@ -40,16 +44,23 @@ public final class FumbleAbility implements GemAbility {
         ServerWorld world = player.getServerWorld();
         int radius = GemsBalance.v().wealth().fumbleRadiusBlocks();
         int affected = 0;
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
-            if (GemTrust.isTrusted(player, other)) {
-                continue;
+        int duration = GemsBalance.v().wealth().fumbleDurationTicks();
+        Box box = new Box(player.getBlockPos()).expand(radius);
+        for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player)) {
+            if (other instanceof ServerPlayerEntity otherPlayer) {
+                if (GemTrust.isTrusted(player, otherPlayer)) {
+                    continue;
+                }
+                WealthFumble.apply(otherPlayer, duration);
+            } else {
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 0, true, false, false));
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
             }
-            WealthFumble.apply(other, GemsBalance.v().wealth().fumbleDurationTicks());
             AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SMOKE, 10, 0.25D);
             affected++;
         }
         AbilityFeedback.sound(player, SoundEvents.ENTITY_WITCH_THROW, 0.8F, 1.1F);
-        player.sendMessage(Text.literal("Fumble affected " + affected + " players."), true);
+        player.sendMessage(Text.literal("Fumble affected " + affected + " targets."), true);
         return true;
     }
 }

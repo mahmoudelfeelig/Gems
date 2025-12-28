@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "FHF",
+    "DBD",
+    "FHF"
+  ],
+  "key": {
+    "F": {
+      "item": "minecraft:phantom_membrane"
+    },
+    "H": {
+      "item": "minecraft:feather"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "B": {
+      "item": "minecraft:netherite_boots"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:supreme_boots"
+  }
+}

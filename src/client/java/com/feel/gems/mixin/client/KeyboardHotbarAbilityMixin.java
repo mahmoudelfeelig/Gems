@@ -26,6 +26,9 @@ public abstract class KeyboardHotbarAbilityMixin {
         if (client.currentScreen != null) {
             return;
         }
+        if (!GemsKeybinds.useChordControls()) {
+            return;
+        }
         if (!GemsKeybinds.isModifierDown()) {
             return;
         }

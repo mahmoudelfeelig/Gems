@@ -8,6 +8,8 @@ import com.feel.gems.power.util.Targeting;
 import com.feel.gems.power.gem.wealth.HotbarLock;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvents;
@@ -39,18 +41,23 @@ public final class HotbarLockAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().wealth().hotbarLockRangeBlocks());
-        if (!(target instanceof ServerPlayerEntity other)) {
-            player.sendMessage(Text.literal("No player target."), true);
+        if (target == null) {
+            player.sendMessage(Text.literal("No target."), true);
             return false;
         }
-        if (GemTrust.isTrusted(player, other)) {
-            player.sendMessage(Text.literal("Target is trusted."), true);
-            return false;
+        int duration = GemsBalance.v().wealth().hotbarLockDurationTicks();
+        if (target instanceof ServerPlayerEntity other) {
+            if (GemTrust.isTrusted(player, other)) {
+                player.sendMessage(Text.literal("Target is trusted."), true);
+                return false;
+            }
+            HotbarLock.lock(other, other.getInventory().selectedSlot, duration);
+        } else {
+            target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 0, true, false, false));
+            target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
         }
-
-        HotbarLock.lock(other, other.getInventory().selectedSlot, GemsBalance.v().wealth().hotbarLockDurationTicks());
         AbilityFeedback.sound(player, SoundEvents.BLOCK_CHAIN_PLACE, 0.8F, 1.1F);
-        AbilityFeedback.burstAt(other.getServerWorld(), other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.CRIT, 12, 0.2D);
+        AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.CRIT, 12, 0.2D);
         player.sendMessage(Text.literal("Hotbar locked."), true);
         return true;
     }

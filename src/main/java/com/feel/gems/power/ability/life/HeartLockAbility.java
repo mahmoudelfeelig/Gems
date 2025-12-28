@@ -7,6 +7,8 @@ import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.util.Targeting;
 import com.feel.gems.trust.GemTrust;
+import com.feel.gems.power.gem.life.HeartLockRuntime;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvents;
@@ -28,7 +30,7 @@ public final class HeartLockAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Temporarily locks an enemy player's max health to their current health.";
+        return "Temporarily locks an enemy's max health to their current health.";
     }
 
     @Override
@@ -38,19 +40,25 @@ public final class HeartLockAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        var target = Targeting.raycastLiving(player, GemsBalance.v().life().heartLockRangeBlocks());
-        if (!(target instanceof ServerPlayerEntity other)) {
-            player.sendMessage(Text.literal("No player target."), true);
+        LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().life().heartLockRangeBlocks());
+        if (target == null) {
+            player.sendMessage(Text.literal("No target."), true);
             return false;
         }
-        if (GemTrust.isTrusted(player, other)) {
-            player.sendMessage(Text.literal("Target is trusted."), true);
-            return false;
+        int duration = GemsBalance.v().life().heartLockDurationTicks();
+        if (target instanceof ServerPlayerEntity other) {
+            if (GemTrust.isTrusted(player, other)) {
+                player.sendMessage(Text.literal("Target is trusted."), true);
+                return false;
+            }
+            AbilityRuntime.startHeartLock(player, other, duration);
+        } else {
+            if (target instanceof net.minecraft.entity.mob.MobEntity mob) {
+                HeartLockRuntime.apply(player, mob, duration);
+            }
         }
-
-        AbilityRuntime.startHeartLock(player, other, GemsBalance.v().life().heartLockDurationTicks());
         AbilityFeedback.sound(player, SoundEvents.BLOCK_CHAIN_PLACE, 0.8F, 0.9F);
-        AbilityFeedback.burstAt(other.getServerWorld(), other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ENCHANT, 18, 0.25D);
+        AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ENCHANT, 18, 0.25D);
         player.sendMessage(Text.literal("Heart Lock applied."), true);
         return true;
     }

@@ -6,12 +6,16 @@ import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.AbilityRestrictions;
 import com.feel.gems.trust.GemTrust;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Box;
 
 
 
@@ -42,17 +46,23 @@ public final class DimensionalVoidAbility implements GemAbility {
         int duration = GemsBalance.v().astra().dimensionalVoidDurationTicks();
         int radius = GemsBalance.v().astra().dimensionalVoidRadiusBlocks();
         int affected = 0;
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
-            if (GemTrust.isTrusted(player, other)) {
+        Box box = new Box(player.getBlockPos()).expand(radius);
+        for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player)) {
+            if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
                 continue;
             }
-            AbilityRestrictions.suppress(other, duration);
+            if (other instanceof ServerPlayerEntity otherPlayer) {
+                AbilityRestrictions.suppress(otherPlayer, duration);
+            } else {
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 1, true, false, false));
+                other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
+            }
             AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.REVERSE_PORTAL, 10, 0.25D);
             affected++;
         }
         AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_DEACTIVATE, 0.8F, 0.8F);
         AbilityFeedback.burst(player, ParticleTypes.REVERSE_PORTAL, 18, 0.35D);
-        player.sendMessage(Text.literal("Dimensional Void: suppressed " + affected + " players."), true);
+        player.sendMessage(Text.literal("Dimensional Void: suppressed " + affected + " targets."), true);
         return true;
     }
 }

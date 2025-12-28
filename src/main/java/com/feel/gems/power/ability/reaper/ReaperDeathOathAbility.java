@@ -26,7 +26,7 @@ public final class ReaperDeathOathAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Bind yourself to a target; you slowly lose health until you hit them.";
+        return "Bind yourself to a target; you lose health over time but deal bonus damage to them.";
     }
 
     @Override
@@ -38,11 +38,11 @@ public final class ReaperDeathOathAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int range = GemsBalance.v().reaper().deathOathRangeBlocks();
         LivingEntity target = Targeting.raycastLiving(player, range);
-        if (!(target instanceof ServerPlayerEntity other)) {
-            player.sendMessage(Text.literal("No player target."), true);
+        if (target == null) {
+            player.sendMessage(Text.literal("No target."), true);
             return false;
         }
-        if (GemTrust.isTrusted(player, other)) {
+        if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
             player.sendMessage(Text.literal("Target is trusted."), true);
             return false;
         }
@@ -51,8 +51,8 @@ public final class ReaperDeathOathAbility implements GemAbility {
             player.sendMessage(Text.literal("Death Oath is disabled."), true);
             return false;
         }
-        AbilityRuntime.startReaperDeathOath(player, other.getUuid(), duration);
-        player.sendMessage(Text.literal("Death Oath: " + other.getName().getString()), true);
+        AbilityRuntime.startReaperDeathOath(player, target.getUuid(), duration);
+        player.sendMessage(Text.literal("Death Oath: " + target.getName().getString()), true);
         return true;
     }
 }

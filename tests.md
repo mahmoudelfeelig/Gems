@@ -1,6 +1,6 @@
 # Tests
 
-Source of truth: specs live in checklist.md and abilities.md. This document maps existing and planned tests to those specs.
+Source of truth: specs live in checklist.md and gameplay.md. This document maps existing and planned tests to those specs.
 
 ## Existing tests
 
@@ -46,7 +46,6 @@ Source of truth: specs live in checklist.md and abilities.md. This document maps
    - DataSpecRegressionTest (all gem definitions present with passives/abilities)
   - AssassinStateTest (assassin state logic)
   - HotbarLockTest (hotbar lock enforcement)
-  - SummonerBudgetTest (summoner budget math)
    - TimeSourceConsistencyTest (forbids per-world time in power/net/state/trade/trust packages)
    - TelemetryParsingTest (perf snapshot regex guard)
    - GemItemGlintTest (glint flag toggles component)
@@ -56,6 +55,6 @@ Source of truth: specs live in checklist.md and abilities.md. This document maps
 
 ## Notes
 
-- Always align expected values and unlock/energy rules with checklist.md and abilities.md (single source of truth).
+- Always align expected values and unlock/energy rules with checklist.md and gameplay.md (single source of truth).
 - Prefer GameTests for integration/stateful flows; JUnit for pure logic/format guards.
 - When adding tests, include brief comments referencing the relevant spec section/row for traceability.

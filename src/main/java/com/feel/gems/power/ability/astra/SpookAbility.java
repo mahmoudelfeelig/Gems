@@ -5,6 +5,7 @@ import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.ParticleTypes;
@@ -13,6 +14,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Box;
 
 
 
@@ -43,8 +45,9 @@ public final class SpookAbility implements GemAbility {
         int duration = GemsBalance.v().astra().spookDurationTicks();
         int radius = GemsBalance.v().astra().spookRadiusBlocks();
         int affected = 0;
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
-            if (GemTrust.isTrusted(player, other)) {
+        Box box = new Box(player.getBlockPos()).expand(radius);
+        for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player)) {
+            if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
                 continue;
             }
             other.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, duration, 0, true, false, false));
@@ -53,7 +56,7 @@ public final class SpookAbility implements GemAbility {
             affected++;
         }
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ENDERMAN_STARE, 0.8F, 0.8F);
-        player.sendMessage(Text.literal("Spooked " + affected + " players."), true);
+        player.sendMessage(Text.literal("Spooked " + affected + " targets."), true);
         return true;
     }
 }

@@ -2,18 +2,21 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "pattern": [
-    "BNB",
-    "NAN",
-    "BNB"
+    "BFB",
+    "NCN",
+    "BFB"
   ],
   "key": {
     "B": {
-      "item": "minecraft:beacon"
+      "item": "minecraft:blaze_powder"
+    },
+    "F": {
+      "item": "minecraft:magma_cream"
     },
     "N": {
-      "item": "minecraft:netherite_block"
+      "item": "minecraft:netherite_ingot"
     },
-    "A": {
+    "C": {
       "item": "minecraft:netherite_chestplate"
     }
   },

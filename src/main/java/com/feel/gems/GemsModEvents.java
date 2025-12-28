@@ -28,6 +28,7 @@ import com.feel.gems.power.gem.pillager.PillagerVolleyRuntime;
 import com.feel.gems.power.gem.puff.BreezyBashTracker;
 import com.feel.gems.power.gem.space.SpaceAnomalies;
 import com.feel.gems.power.gem.speed.SpeedFrictionlessSteps;
+import com.feel.gems.power.gem.terror.TerrorRigRuntime;
 import com.feel.gems.power.gem.spy.SpyMimicSystem;
 import com.feel.gems.power.gem.summoner.SummonerCommanderMark;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
@@ -43,6 +44,9 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -50,12 +54,12 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.SwordItem;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.network.message.MessageType;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Identifier;
 
 
 
@@ -85,6 +89,19 @@ public final class GemsModEvents {
             }
         });
 
+        ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, sender, params) -> {
+            if (!(sender instanceof ServerPlayerEntity player)) {
+                return true;
+            }
+            Text disguiseName = SpyMimicSystem.chatDisguiseName(player);
+            if (disguiseName == null || player.getServer() == null) {
+                return true;
+            }
+            MessageType.Parameters fakeParams = new MessageType.Parameters(params.type(), disguiseName, params.targetName());
+            player.getServer().getPlayerManager().broadcast(message, player, fakeParams);
+            return false;
+        });
+
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
             if (world.isClient) {
                 return ActionResult.PASS;
@@ -96,8 +113,8 @@ public final class GemsModEvents {
                 return ActionResult.PASS;
             }
 
-            // Summoner: commander's mark (requires sword hit).
-            if (sp.getStackInHand(hand).getItem() instanceof SwordItem && GemPowers.isPassiveActive(sp, PowerIds.SUMMONER_COMMANDERS_MARK)) {
+            // Summoner: commander's mark.
+            if (GemPowers.isPassiveActive(sp, PowerIds.SUMMONER_COMMANDERS_MARK)) {
                 if (!(living instanceof ServerPlayerEntity other && GemTrust.isTrusted(sp, other))) {
                     int duration = GemsBalance.v().summoner().commandersMarkDurationTicks();
                     SummonerCommanderMark.mark(sp, living, duration);
@@ -108,9 +125,9 @@ public final class GemsModEvents {
                 }
             }
 
-            if (living instanceof ServerPlayerEntity targetPlayer) {
-                LegendaryTargeting.recordHit(sp, targetPlayer);
-            }
+            HypnoControl.commandMobs(sp, living, GemsBalance.v().legendary().hypnoRangeBlocks());
+
+            LegendaryTargeting.recordHit(sp, living);
 
             // Pillager: shieldbreaker + Vindicator Break shield disabling.
             if (living instanceof ServerPlayerEntity victim && victim.isBlocking()) {
@@ -130,6 +147,34 @@ public final class GemsModEvents {
             return ActionResult.PASS;
         });
 
+        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+            if (world.isClient) {
+                return ActionResult.PASS;
+            }
+            if (!(player instanceof ServerPlayerEntity sp)) {
+                return ActionResult.PASS;
+            }
+            if (com.feel.gems.power.gem.terror.TerrorRemoteChargeRuntime.tryArm(sp, hitResult.getBlockPos())) {
+                com.feel.gems.power.runtime.AbilityFeedback.sound(sp, net.minecraft.sound.SoundEvents.ENTITY_TNT_PRIMED, 0.8F, 1.2F);
+                sp.sendMessage(net.minecraft.text.Text.literal("Remote charge armed."), true);
+                return ActionResult.SUCCESS;
+            }
+            if (TerrorRigRuntime.tryTriggerUse(sp, hitResult.getBlockPos())) {
+                return ActionResult.SUCCESS;
+            }
+            return ActionResult.PASS;
+        });
+
+        PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
+            if (world.isClient) {
+                return true;
+            }
+            if (player instanceof ServerPlayerEntity sp) {
+                TerrorRigRuntime.tryTriggerBreak(sp, pos);
+            }
+            return true;
+        });
+
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
             GemPlayerState.initIfNeeded(player);
@@ -141,6 +186,8 @@ public final class GemsModEvents {
             GemPowers.sync(player);
             GemItemGlint.sync(player);
             GemStateSync.send(player);
+            SpyMimicSystem.syncSkinshifts(player);
+            SpyMimicSystem.syncSkinshiftSelf(player);
             unlockStartingRecipes(server, player);
             AssassinTeams.sync(server, player);
             LegendaryCrafting.deliverPending(player);
@@ -177,6 +224,8 @@ public final class GemsModEvents {
             GemPowers.sync(newPlayer);
             GemItemGlint.sync(newPlayer);
             GemStateSync.send(newPlayer);
+            SpyMimicSystem.syncSkinshifts(newPlayer);
+            SpyMimicSystem.syncSkinshiftSelf(newPlayer);
             unlockStartingRecipes(newPlayer.getServer(), newPlayer);
             AssassinTeams.sync(newPlayer.getServer(), newPlayer);
             LegendaryCrafting.deliverPending(newPlayer);
@@ -206,7 +255,9 @@ public final class GemsModEvents {
                     GemPowers.maintain(player);
                     SupremeSetRuntime.tick(player);
                     HypnoControl.pruneAndCount(player);
+                    com.feel.gems.power.gem.astra.SoulSummons.pruneAndCount(player);
                     HypnoControl.followOwner(player);
+                    com.feel.gems.power.gem.astra.SoulSummons.followOwner(player);
                     SummonerSummons.followOwner(player);
                     RecallRelicItem.clearIfMissingItem(player);
                 }
@@ -228,6 +279,7 @@ public final class GemsModEvents {
             if (tickCounter % 20 == 0) {
                 LegendaryCrafting.tick(server);
                 LegendaryPlayerTracker.tick(server);
+                TerrorRigRuntime.tick(server);
             }
         });
 
@@ -237,6 +289,11 @@ public final class GemsModEvents {
         ServerTickEvents.END_SERVER_TICK.register(SpeedFrictionlessSteps::tick);
         ServerTickEvents.END_SERVER_TICK.register(GemsStressTest::tick);
         ServerTickEvents.END_SERVER_TICK.register(server -> com.feel.gems.item.GemOwnership.tickPurgeQueue(server));
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                TerrorRigRuntime.checkStep(player);
+            }
+        });
         ServerTickEvents.END_SERVER_TICK.register(server -> GemsPerfMonitor.onTickEnd());
     }
 
@@ -276,34 +333,16 @@ public final class GemsModEvents {
         com.feel.gems.item.GemOwnership.requestDeferredPurge(player.getServer(), player.getUuid());
     }
 
-    private static void unlockStartingRecipes(net.minecraft.server.MinecraftServer server, ServerPlayerEntity player) {
+    public static void unlockStartingRecipes(net.minecraft.server.MinecraftServer server, ServerPlayerEntity player) {
         if (server == null) {
             return;
         }
         var manager = server.getRecipeManager();
-        List<Identifier> ids = List.of(
-                Identifier.of(GemsMod.MOD_ID, "heart"),
-                Identifier.of(GemsMod.MOD_ID, "energy_upgrade"),
-                Identifier.of(GemsMod.MOD_ID, "gem_trader"),
-                Identifier.of(GemsMod.MOD_ID, "gem_purchase"),
-                Identifier.of(GemsMod.MOD_ID, "tracker_compass"),
-                Identifier.of(GemsMod.MOD_ID, "recall_relic"),
-                Identifier.of(GemsMod.MOD_ID, "hypno_staff"),
-                Identifier.of(GemsMod.MOD_ID, "earthsplitter_pick"),
-                Identifier.of(GemsMod.MOD_ID, "supreme_helmet"),
-                Identifier.of(GemsMod.MOD_ID, "supreme_chestplate"),
-                Identifier.of(GemsMod.MOD_ID, "supreme_leggings"),
-                Identifier.of(GemsMod.MOD_ID, "supreme_boots"),
-                Identifier.of(GemsMod.MOD_ID, "blood_oath_blade"),
-                Identifier.of(GemsMod.MOD_ID, "demolition_blade"),
-                Identifier.of(GemsMod.MOD_ID, "hunters_sight_bow"),
-                Identifier.of(GemsMod.MOD_ID, "third_strike_blade"),
-                Identifier.of(GemsMod.MOD_ID, "vampiric_edge")
-        );
-
-        List<RecipeEntry<?>> entries = new ArrayList<>(ids.size());
-        for (Identifier id : ids) {
-            manager.get(id).ifPresent(entries::add);
+        List<RecipeEntry<?>> entries = new ArrayList<>();
+        for (RecipeEntry<?> entry : manager.values()) {
+            if (GemsMod.MOD_ID.equals(entry.id().getNamespace())) {
+                entries.add(entry);
+            }
         }
         if (!entries.isEmpty()) {
             player.unlockRecipes(entries);

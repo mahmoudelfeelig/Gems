@@ -2,16 +2,19 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "ENE",
-    "NCN",
-    "ENE"
+    "EHE",
+    "LCL",
+    "EHE"
   ],
   "key": {
     "E": {
       "item": "minecraft:ender_eye"
     },
-    "N": {
-      "item": "minecraft:netherite_ingot"
+    "H": {
+      "item": "minecraft:player_head"
+    },
+    "L": {
+      "item": "minecraft:lodestone"
     },
     "C": {
       "item": "minecraft:compass"

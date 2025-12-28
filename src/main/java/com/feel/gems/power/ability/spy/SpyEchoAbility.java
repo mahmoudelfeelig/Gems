@@ -59,6 +59,8 @@ public final class SpyEchoAbility implements GemAbility {
         boolean ok = ability.activate(player);
         if (!ok) {
             player.sendMessage(Text.literal("Echo failed."), true);
+        } else {
+            player.sendMessage(Text.literal("Echoed " + ability.name() + "."), true);
         }
         return ok;
     }

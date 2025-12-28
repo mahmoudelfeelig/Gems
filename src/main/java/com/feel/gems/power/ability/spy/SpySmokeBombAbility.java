@@ -5,6 +5,7 @@ import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.ParticleTypes;
@@ -48,8 +49,8 @@ public final class SpySmokeBombAbility implements GemAbility {
         int slowAmp = GemsBalance.v().spyMimic().smokeBombSlownessAmplifier();
 
         Box box = new Box(player.getBlockPos()).expand(radius);
-        for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> p != player)) {
-            if (!SpyMimicSystem.canAffect(player, other)) {
+        for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, p -> p != player)) {
+            if (other instanceof ServerPlayerEntity otherPlayer && !SpyMimicSystem.canAffect(player, otherPlayer)) {
                 continue;
             }
             other.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, duration, blindAmp, true, false, false));

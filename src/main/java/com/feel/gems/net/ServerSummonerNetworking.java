@@ -2,7 +2,6 @@ package com.feel.gems.net;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
-import com.feel.gems.power.gem.summoner.SummonerBudget;
 import com.feel.gems.power.gem.summoner.SummonerLoadouts;
 import com.feel.gems.state.GemPlayerState;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -61,14 +60,7 @@ public final class ServerSummonerNetworking {
                 payload.slot5()
         );
         SummonerLoadouts.Loadout sanitized = SummonerLoadouts.sanitize(requested, cfg);
-
-        int totalCost = SummonerBudget.totalLoadoutCost(cfg.costs(), sanitized);
-        if (totalCost > cfg.maxPoints()) {
-            player.sendMessage(Text.literal("Loadout exceeds max points: " + totalCost + " > " + cfg.maxPoints()), true);
-            return;
-        }
-
         SummonerLoadouts.save(player, sanitized);
-        player.sendMessage(Text.literal("Saved Summoner loadout (" + totalCost + "/" + cfg.maxPoints() + " points)."), true);
+        player.sendMessage(Text.literal("Saved Summoner loadout."), true);
     }
 }

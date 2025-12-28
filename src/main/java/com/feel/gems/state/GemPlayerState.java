@@ -1,6 +1,7 @@
 package com.feel.gems.state;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.GemsModEvents;
 import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.core.GemId;
 import com.feel.gems.power.gem.spy.SpyMimicSystem;
@@ -96,6 +97,9 @@ public final class GemPlayerState {
         }
         data.putString(KEY_ACTIVE_GEM, gem.name());
         addOwnedGem(player, gem);
+        if (player instanceof ServerPlayerEntity sp) {
+            GemsModEvents.unlockStartingRecipes(sp.getServer(), sp);
+        }
     }
 
     public static void resetToNew(ServerPlayerEntity player, GemId gem) {

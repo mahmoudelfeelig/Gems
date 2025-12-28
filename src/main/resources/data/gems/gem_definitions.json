@@ -35,11 +35,16 @@
       "passives": [
         "gems:flux_charge_storage",
         "gems:flux_ally_inversion",
-        "gems:flux_overcharge_ramp"
+        "gems:flux_overcharge_ramp",
+        "gems:flux_capacitor",
+        "gems:flux_conductivity",
+        "gems:flux_insulation"
       ],
       "abilities": [
         "gems:flux_beam",
-        "gems:static_burst"
+        "gems:static_burst",
+        "gems:flux_surge",
+        "gems:flux_discharge"
       ]
     },
     {
@@ -62,13 +67,15 @@
         "gems:auto_enchant_power",
         "gems:auto_enchant_punch",
         "gems:sculk_silence",
-        "gems:crop_trample_immunity"
+        "gems:crop_trample_immunity",
+        "gems:puff_windborne"
       ],
       "abilities": [
         "gems:double_jump",
         "gems:dash",
         "gems:breezy_bash",
-        "gems:group_breezy_bash"
+        "gems:group_breezy_bash",
+        "gems:puff_gust"
       ]
     },
     {
@@ -84,14 +91,16 @@
         "gems:speed_storm",
         "gems:terminal_velocity",
         "gems:speed_slipstream",
-        "gems:speed_afterimage"
+        "gems:speed_afterimage",
+        "gems:speed_tempo_shift"
       ]
     },
     {
       "id": "strength",
       "passives": [
         "gems:strength_i",
-        "gems:auto_enchant_sharpness"
+        "gems:auto_enchant_sharpness",
+        "gems:strength_adrenaline"
       ],
       "abilities": [
         "gems:nullify",
@@ -128,8 +137,11 @@
         "gems:terror_blood_price"
       ],
       "abilities": [
-        "gems:terror_trade",
-        "gems:terror_panic_ring"
+        "gems:terror_rig",
+        "gems:terror_remote_charge",
+        "gems:terror_panic_ring",
+        "gems:terror_breach_charge",
+        "gems:terror_trade"
       ]
     },
     {
@@ -174,9 +186,10 @@
         "gems:reaper_grave_steed",
         "gems:reaper_withering_strikes",
         "gems:reaper_death_oath",
+        "gems:reaper_retribution",
         "gems:reaper_scythe_sweep",
         "gems:reaper_blood_charge",
-        "gems:reaper_shade_clone"
+        "gems:reaper_shadow_clone"
       ]
     },
     {
@@ -199,6 +212,7 @@
         "gems:spy_stillness_cloak",
         "gems:spy_silent_step",
         "gems:spy_false_signature",
+        "gems:spy_backstep",
         "gems:spy_quick_hands"
       ],
       "abilities": [
@@ -206,7 +220,8 @@
         "gems:spy_echo",
         "gems:spy_steal",
         "gems:spy_smoke_bomb",
-        "gems:spy_stolen_cast"
+        "gems:spy_stolen_cast",
+        "gems:spy_skinshift"
       ]
     },
     {
@@ -230,12 +245,12 @@
       "passives": [
         "gems:air_windburst_mace",
         "gems:air_aerial_guard",
-        "gems:air_skyborn"
+        "gems:air_wind_shear"
       ],
       "abilities": [
         "gems:air_wind_jump",
         "gems:air_gale_slam",
-        "gems:air_updraft_zone",
+        "gems:air_crosswind",
         "gems:air_dash"
       ]
     }

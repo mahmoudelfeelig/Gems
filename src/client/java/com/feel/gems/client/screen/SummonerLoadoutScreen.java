@@ -29,7 +29,6 @@ public final class SummonerLoadoutScreen extends Screen {
     private static final int MIN_COLUMN_WIDTH = 190;
 
     private final int maxPoints;
-    private final int maxActive;
     private final Map<String, Integer> costs;
     private final List<List<SummonerLoadouts.Entry>> initial;
 
@@ -39,7 +38,6 @@ public final class SummonerLoadoutScreen extends Screen {
     private ButtonWidget saveButton;
     private ButtonWidget resetButton;
     private ButtonWidget cancelButton;
-    private int totalCost;
     private int panelLeft;
     private int panelRight;
     private int panelTop;
@@ -54,7 +52,6 @@ public final class SummonerLoadoutScreen extends Screen {
     public SummonerLoadoutScreen(SummonerLoadoutScreenPayload payload) {
         super(Text.literal("Summoner Loadout"));
         this.maxPoints = payload.maxPoints();
-        this.maxActive = payload.maxActiveSummons();
         this.costs = payload.costs() == null ? Map.of() : payload.costs();
         this.initial = List.of(
             safeEntries(payload.slot1()),
@@ -93,7 +90,6 @@ public final class SummonerLoadoutScreen extends Screen {
         resetButton = addDrawableChild(ButtonWidget.builder(Text.literal("Reset"), btn -> reset()).dimensions(startX + buttonWidth + gap, bottomY, buttonWidth, buttonHeight).build());
         cancelButton = addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), btn -> close()).dimensions(startX + ((buttonWidth + gap) * 2), bottomY, buttonWidth, buttonHeight).build());
 
-        updateCost(); // Update cost after buttons are initialized
     }
 
     @Override
@@ -120,10 +116,12 @@ public final class SummonerLoadoutScreen extends Screen {
 
         super.render(context, mouseX, mouseY, delta);
 
-        int color = totalCost > maxPoints ? 0xFF5555 : 0x80FF80;
-        String budget = "Budget: " + totalCost + " / " + maxPoints + " pts";
-        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal(budget), centerX, this.height - 68, color);
-        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Active summon cap: " + maxActive), centerX, this.height - 56, 0xA0A0A0);
+        int bottomLine = this.height - 62;
+        if (maxPoints > 0) {
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Active points cap: " + maxPoints), centerX, bottomLine, 0xA0A0A0);
+            bottomLine += 12;
+        }
+        // No per-slot cap; only active points limit.
     }
 
     @Override
@@ -169,7 +167,7 @@ public final class SummonerLoadoutScreen extends Screen {
         gapX = columns == 1 ? 0 : 24;
         int maxTextWidth = Math.min(this.width - 32, 520);
         hintLines = this.textRenderer.wrapLines(
-                Text.literal("Pick minions for each Summon ability. Budget and active caps apply."),
+                Text.literal("Pick minions for each Summon ability. Slots are presets; the only limit is the active summon point cap. Cooldown starts after recall or a summon dies."),
                 maxTextWidth
         );
         hintY = 24;
@@ -191,27 +189,6 @@ public final class SummonerLoadoutScreen extends Screen {
         panelBottom = Math.min(this.height - 48, startY + (rowsForLayout() * (MAX_ROWS * 28 + 26)) + 12);
     }
 
-    private void updateCost() {
-        int total = 0;
-        for (SlotEditor slot : slots) {
-            if (slot == null) {
-                continue;
-            }
-            for (SummonerLoadouts.Entry entry : slot.entries()) {
-                Integer cost = costs.get(entry.entityId());
-                if (cost != null && cost > 0) {
-                    total += cost * entry.count();
-                }
-            }
-        }
-        this.totalCost = total;
-        if (saveButton != null) {
-            boolean over = total > maxPoints;
-            saveButton.active = !over;
-            saveButton.setMessage(Text.literal(over ? "Save (over budget)" : "Save"));
-        }
-    }
-
     private void save() {
         ClientPlayNetworking.send(new SummonerLoadoutSavePayload(
                 slots[0].entries(),
@@ -227,7 +204,6 @@ public final class SummonerLoadoutScreen extends Screen {
         for (int i = 0; i < slots.length; i++) {
             slots[i].applyEntries(initial.get(i));
         }
-        updateCost();
     }
 
     private List<EntityOption> buildOptions(Map<String, Integer> costMap) {
@@ -331,7 +307,6 @@ public final class SummonerLoadoutScreen extends Screen {
                 if (!row.visible()) {
                     row.show(); // Show the first hidden row
                     refreshVisibility();
-                    SummonerLoadoutScreen.this.updateCost();
                     return;
                 }
             }
@@ -340,7 +315,6 @@ public final class SummonerLoadoutScreen extends Screen {
         private void removeRow(Row row) {
             row.clear();
             refreshVisibility();
-            SummonerLoadoutScreen.this.updateCost();
         }
 
         private void refreshVisibility() {
@@ -357,7 +331,6 @@ public final class SummonerLoadoutScreen extends Screen {
                 addButton.active = visibleCount < MAX_ROWS;
                 addButton.visible = visibleCount < MAX_ROWS;
             }
-            SummonerLoadoutScreen.this.updateCost();
         }
 
         private void relayout() {
@@ -387,14 +360,11 @@ public final class SummonerLoadoutScreen extends Screen {
                         .initially(options.get(0))
                         .build(0, 0, mobWidth, 20, Text.literal("Mob"), (btn, value) -> {
                             refreshVisibility();
-                            SummonerLoadoutScreen.this.updateCost();
                         });
                 this.countButton = CyclingButtonWidget.<Integer>builder(i -> Text.literal("Count: " + i))
-                        .values(java.util.List.of(1, 2, 3, 4, 5, 6, 7, 8))
+                        .values(countOptions())
                         .initially(1)
-                            .build(0, 0, 70, 20, Text.literal("Count"), (btn, value) -> {
-                                SummonerLoadoutScreen.this.updateCost(); // Update cost on count change
-                            });
+                            .build(0, 0, 70, 20, Text.literal("Count"), (btn, value) -> {});
                 this.removeButton = ButtonWidget.builder(Text.literal("X"), btn -> removeAction.run()).dimensions(0, 0, 22, 20).build();
             }
 
@@ -449,6 +419,16 @@ public final class SummonerLoadoutScreen extends Screen {
                     return null;
                 }
                 return new SummonerLoadouts.Entry(opt.id, count);
+            }
+
+            private List<Integer> countOptions() {
+                int max = SummonerLoadoutScreen.this.maxPoints > 0 ? SummonerLoadoutScreen.this.maxPoints : 8;
+                int cap = Math.max(1, max);
+                List<Integer> values = new ArrayList<>(cap);
+                for (int i = 1; i <= cap; i++) {
+                    values.add(i);
+                }
+                return values;
             }
         }
     }

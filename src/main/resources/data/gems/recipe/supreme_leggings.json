@@ -2,18 +2,21 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "pattern": [
-    "BNB",
-    "NAN",
-    "BNB"
+    "SOS",
+    "NLN",
+    "SOS"
   ],
   "key": {
-    "B": {
-      "item": "minecraft:beacon"
+    "S": {
+      "item": "minecraft:sculk_sensor"
+    },
+    "O": {
+      "item": "minecraft:echo_shard"
     },
     "N": {
-      "item": "minecraft:netherite_block"
+      "item": "minecraft:netherite_ingot"
     },
-    "A": {
+    "L": {
       "item": "minecraft:netherite_leggings"
     }
   },

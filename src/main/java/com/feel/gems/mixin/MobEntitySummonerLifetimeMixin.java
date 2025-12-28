@@ -39,6 +39,7 @@ public abstract class MobEntitySummonerLifetimeMixin {
 
         long until = SummonerSummons.untilTick(self);
         if (until > 0 && GemsTime.now(world) >= until) {
+            SummonerSummons.applyCooldown(owner);
             self.discard();
         }
     }

@@ -15,7 +15,7 @@ import net.minecraft.util.Identifier;
 
 
 /**
- * S2C: opens the Summoner loadout editor with the current loadout and cost map.
+ * S2C: opens the Summoner loadout editor with the current loadout and summon point costs.
  */
 public record SummonerLoadoutScreenPayload(
         int maxPoints,

@@ -8,7 +8,7 @@
 - Gem purchase token: a consumable item that lets you pick any gem to add to your owned set and activate.
 - Level/energy upgrade items: craftable upgrade item -> increases gem energy; crafting hearts adds a heart (up to 20 total hearts max).
 - Hearts on death: on death drop one consumable heart item (nether star texture). Right-click to gain max health. Cannot drop below 5 max hearts; if at 5, no heart drops and cannot increase past 20 max total hearts (including the original 10 you spawn as).
-- Recipes unlock automatically on join.
+- All recipes unlock automatically on join; legendary discount recipes (`*_discount`) require the matching active gem (`legendary.recipeGemRequirements` uses recipe ids).
 - Players drop their heads on death.
 - Textures: shared gem base texture with palette swaps per gem; custom textures for upgrade items and heart drops.
 - Performance/architecture: composition-first modular system; keep per-tick load minimal; abilities and passives should register/unregister cleanly; add tests/benchmarks as we go.
@@ -18,13 +18,14 @@
   - Tracker Compass: right-click to pick a player (including offline); shows current/last-known coords, respawn coords, and points toward them.
   - Recall Relic: mark current coords; reuse to teleport back, consuming the mark; item persists; has cooldown; forceload while marked and released after teleport/no mark.
   - Hypno Staff: hold a beam on a mob for 3s to convert; works on all mobs except the universal mob blacklist (shared with Summoner/Astra); control is temporary and does not persist.
-  - Earthsplitter Pick: netherite-tier silk touch pick; sneak mines 3x3x3 (silk touch applies to the whole area); respects unbreakable/blacklisted blocks.
+  - Earthsplitter Pick: netherite-tier silk touch pick; right-click toggles 3x3x3 vs 9x3x1 tunnel; respects unbreakable/blacklisted blocks.
   - Supreme set: helmet (Night Vision + Water Breathing), chestplate (Strength I), leggings (Fire Resistance), boots (Speed I), full set (Resistance III); stronger effects override temporarily.
   - Blood Oath Blade: gains +1 Sharpness per unique player kill, capped at Sharpness X.
-  - Demolition Blade: right-click spawns 3 primed TNT 2 blocks along cursor direction; cooldown.
-  - Hunter's Sight Bow: aim assist toward last hit player within 50 blocks and line of sight.
+  - Demolition Blade: right-click to arm a demolition charge on a targeted block or entity; cooldown.
+  - Hunter's Sight Bow: aim assist toward last hit target (player or mob) within 50 blocks and line of sight.
   - Third-Strike Blade: every 3rd crit within a 5s chain window deals bonus damage.
   - Vampiric Edge: each crit heals 1 heart.
+  - Player head recipes: Blood Oath Blade + Tracker Compass require a player head that is not your own.
   - Universal mob blacklist (config): applies to Hypno Staff, Summoner summons, and Astra Soul Capture.
 
 ## Recipes
@@ -34,7 +35,8 @@
   - Use: opens a GUI to pick a new gem; consumes 1 Gem Trader and replaces only your active gem with the selected gem (which becomes active).
 - Gem Purchase Token (`gems:gem_purchase`): shaped `EBE / DND / EBE` where `N=netherite_block`, `B=beacon`, `D=diamond_block`, `E=end_crystal`.
   - Use: opens a GUI to pick any gem; consumes 1 token, adds the gem to your owned set, and sets it active.
-- Legendary items: recipes live in `data/gems/recipe/*.json` (intentionally expensive; adjust as needed).
+- Legendary items: recipes live in `data/gems/recipe/*.json` (expensive, but tuned down). Discount recipes are cheaper and gem-gated.
+- Legendary discount recipes are gated by `legendary.recipeGemRequirements` (recipe id -> gem id).
 
 ## Level unlock mapping (per gem)
 - Level 1: all passives.

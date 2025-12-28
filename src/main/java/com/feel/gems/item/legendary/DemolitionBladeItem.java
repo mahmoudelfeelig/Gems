@@ -3,7 +3,9 @@ package com.feel.gems.item.legendary;
 import com.feel.gems.GemsMod;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
+import com.feel.gems.power.util.Targeting;
 import java.util.List;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -16,6 +18,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -44,19 +48,29 @@ public final class DemolitionBladeItem extends SwordItem implements LegendaryIte
         if (player.getItemCooldownManager().isCoolingDown(this)) {
             return TypedActionResult.success(stack);
         }
-        int cooldown = GemsBalance.v().legendary().demolitionCooldownTicks();
+        int cooldown = Math.max(1, GemsBalance.v().legendary().demolitionCooldownTicks() / 2);
         if (cooldown > 0) {
             player.getItemCooldownManager().set(this, cooldown);
         }
-        Vec3d eye = player.getCameraPosVec(1.0F);
-        Vec3d dir = player.getRotationVec(1.0F).normalize();
-        Vec3d base = eye.add(dir.multiply(2.0D));
-        int fuse = GemsBalance.v().legendary().demolitionFuseTicks();
+        int range = GemsBalance.v().legendary().demolitionRangeBlocks();
+        LivingEntity target = Targeting.raycastLiving(player, range);
+        Vec3d spawnPos = null;
+        if (target != null) {
+            spawnPos = target.getPos().add(0.0D, 0.2D, 0.0D);
+        } else {
+            HitResult hit = player.raycast(range, 1.0F, false);
+            if (hit instanceof BlockHitResult blockHit) {
+                Vec3d pos = blockHit.getPos();
+                spawnPos = new Vec3d(pos.x, pos.y + 0.1D, pos.z);
+            }
+        }
+        if (spawnPos == null) {
+            player.sendMessage(Text.literal("No target for demolition charge."), true);
+            return TypedActionResult.success(stack);
+        }
+        int fuse = Math.max(1, GemsBalance.v().legendary().demolitionFuseTicks());
         for (int i = 0; i < 3; i++) {
-            double ox = (world.getRandom().nextDouble() - 0.5D) * 0.4D;
-            double oy = (world.getRandom().nextDouble() - 0.5D) * 0.2D;
-            double oz = (world.getRandom().nextDouble() - 0.5D) * 0.4D;
-            TntEntity tnt = new TntEntity(world, base.x + ox, base.y + oy, base.z + oz, player);
+            TntEntity tnt = new TntEntity(world, spawnPos.x, spawnPos.y, spawnPos.z, player);
             tnt.setFuse(fuse);
             world.spawnEntity(tnt);
         }

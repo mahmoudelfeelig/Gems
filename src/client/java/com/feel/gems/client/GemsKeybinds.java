@@ -24,6 +24,7 @@ public final class GemsKeybinds {
 
     private static boolean registered = false;
     private static KeyBinding MODIFIER;
+    private static KeyBinding[] CUSTOM_KEYS;
 
     private GemsKeybinds() {
     }
@@ -34,26 +35,42 @@ public final class GemsKeybinds {
         }
         registered = true;
 
+        GemsClientConfig cfg = GemsClientConfigManager.config();
         MODIFIER = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.gems.modifier",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_LEFT_ALT,
                 CATEGORY
         ));
+
+        if (cfg.controlMode == GemsClientConfig.ControlMode.CUSTOM) {
+            CUSTOM_KEYS = new KeyBinding[9];
+            for (int i = 0; i < CUSTOM_KEYS.length; i++) {
+                CUSTOM_KEYS[i] = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                        "key.gems.ability_" + (i + 1),
+                        InputUtil.Type.KEYSYM,
+                        GLFW.GLFW_KEY_UNKNOWN,
+                        CATEGORY
+                ));
+            }
+        }
     }
 
     public static boolean isModifierDown() {
-        return MODIFIER != null && MODIFIER.isPressed();
+        return useChordControls() && MODIFIER != null && MODIFIER.isPressed();
     }
 
     public static String modifierLabel() {
-        if (MODIFIER == null) {
+        if (!useChordControls() || MODIFIER == null) {
             return "";
         }
         return MODIFIER.getBoundKeyLocalizedText().getString();
     }
 
     public static String chordSlotLabel(int slotNumber) {
+        if (!useChordControls()) {
+            return customSlotLabel(slotNumber);
+        }
         String key = chordKeyLabel(slotNumber);
         if (key.isEmpty()) {
             return "";
@@ -63,6 +80,36 @@ public final class GemsKeybinds {
             return key;
         }
         return modifier + " + " + key;
+    }
+
+    public static void tick(MinecraftClient client) {
+        if (!useCustomControls() || CUSTOM_KEYS == null || client.currentScreen != null) {
+            return;
+        }
+        for (int i = 0; i < CUSTOM_KEYS.length; i++) {
+            while (CUSTOM_KEYS[i].wasPressed()) {
+                activateSlotChord(client, i + 1);
+            }
+        }
+    }
+
+    public static boolean useChordControls() {
+        return GemsClientConfigManager.config().controlMode == GemsClientConfig.ControlMode.CHORD;
+    }
+
+    private static boolean useCustomControls() {
+        return GemsClientConfigManager.config().controlMode == GemsClientConfig.ControlMode.CUSTOM;
+    }
+
+    private static String customSlotLabel(int slotNumber) {
+        if (CUSTOM_KEYS == null || slotNumber < 1 || slotNumber > CUSTOM_KEYS.length) {
+            return "";
+        }
+        KeyBinding key = CUSTOM_KEYS[slotNumber - 1];
+        if (key == null) {
+            return "";
+        }
+        return key.getBoundKeyLocalizedText().getString();
     }
 
     public static void activateSlotChord(MinecraftClient client, int slotNumber) {

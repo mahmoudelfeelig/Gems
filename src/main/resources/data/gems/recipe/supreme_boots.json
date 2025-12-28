@@ -2,18 +2,21 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "pattern": [
-    "BNB",
-    "NAN",
-    "BNB"
+    "FHF",
+    "NBN",
+    "FHF"
   ],
   "key": {
-    "B": {
-      "item": "minecraft:beacon"
+    "F": {
+      "item": "minecraft:phantom_membrane"
+    },
+    "H": {
+      "item": "minecraft:rabbit_foot"
     },
     "N": {
-      "item": "minecraft:netherite_block"
+      "item": "minecraft:netherite_ingot"
     },
-    "A": {
+    "B": {
       "item": "minecraft:netherite_boots"
     }
   },

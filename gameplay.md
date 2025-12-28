@@ -19,7 +19,7 @@
 - Energy upgrade items add a level (up to Legendary +5).
 - Gem Trader swaps only your active gem and consumes the item.
 - Gem Purchase Token adds any gem to your owned set, activates it, and consumes the token.
-- All recipes unlock automatically when you join the server.
+- All gems recipes unlock automatically on join. Legendary discount recipes (`*_discount`) are cheaper and only craftable while the matching gem is active (`legendary.recipeGemRequirements` uses recipe ids).
 - Players drop their heads on death.
 
 ## Legendary items
@@ -28,12 +28,12 @@
 - Crafting progress is shown to all players via a boss bar with coordinates; on completion the item drops at the crafting table.
 - Tracker Compass: right-click to pick a player (including offline); shows current/last-known coords, respawn coords, and points toward them.
 - Recall Relic: mark current coords; reuse to teleport back (consumes mark); item persists; has cooldown; forceload while marked and released after teleport/no mark.
-- Hypno Staff: hold a beam on a mob for 3s to convert; works on all mobs except the universal mob blacklist (shared with Summoner/Astra); control is temporary and does not persist.
-- Earthsplitter Pick: netherite-tier silk touch pick; sneak mines 3x3x3 (silk touch applies to the whole area); respects unbreakable/blacklisted blocks.
+- Hypno Staff: hold a beam on a mob for 3s to convert; works on all mobs except the universal mob blacklist (shared with Summoner/Astra); control is temporary and does not persist; hypnotized mobs follow the summon AI priority.
+- Earthsplitter Pick: netherite-tier silk touch pick; right-click toggles 3x3x3 vs 9x3x1 tunnel; respects unbreakable/blacklisted blocks.
 - Supreme set: helmet (Night Vision + Water Breathing), chestplate (Strength I), leggings (Fire Resistance), boots (Speed I), full set (Resistance III); stronger effects override temporarily.
 - Blood Oath Blade: gains +1 Sharpness per unique player kill, capped at Sharpness X.
-- Demolition Blade: right-click spawns 3 primed TNT 2 blocks along cursor direction; cooldown.
-- Hunter's Sight Bow: aim assist toward last hit player within 50 blocks and line of sight.
+- Demolition Blade: right-click to arm a demolition charge on a targeted block or entity; cooldown.
+- Hunter's Sight Bow: aim assist toward your last hit target (player or mob) within 50 blocks and line of sight.
 - Third-Strike Blade: every 3rd crit within a 5s chain window deals bonus damage.
 - Vampiric Edge: each crit heals 1 heart.
 - Universal mob blacklist (config): applies to Hypno Staff, Summoner summons, and Astra Soul Capture.
@@ -47,6 +47,7 @@
 ## Controls and HUD
 
 - Cast an ability: hold Gems Modifier (default Left Alt) + press a hotbar number (1-9).
+- Controls can be switched to fully custom keybinds via `config/gems/client.json` (`controlMode`: `CHORD` or `CUSTOM`).
 - Astra Soul Release: the slot after Astra's last ability.
 - Summoner loadout UI: Gems Modifier + the hotbar key after Recall (default Alt + 7).
 - HUD shows current gem, energy tier, cooldowns, and special states (like Flux charge or Astra soul).
@@ -67,7 +68,7 @@ Abilities:
 - Astral Camera: scout in Spectator, then return to your start.
 - Spook: disorient nearby enemies.
 - Tag: mark a target through walls briefly.
-- Soul Release: summon the captured mob as a soul summon (no loot/XP, hostile targets untrusted players), preserving its name/gear/attributes and restoring it to full health.
+- Soul Release: summon the captured mob as a soul summon (no loot/XP), preserving its name/gear/attributes and restoring it to full health; follows the summon AI priority.
 
 ### Fire Gem
 
@@ -88,10 +89,15 @@ Passives:
 - Charge Storage: consume valuables to charge up to 200%.
 - Ally Inversion: Flux Beam repairs trusted allies' armor instead of damaging them.
 - Overcharge Ramp: above 100% charge, ramps to 200% while dealing self-damage.
+- Flux Capacitor: at high charge, gain Absorption.
+- Flux Conductivity: taking damage converts some of it into charge.
+- Flux Insulation: at high charge, incoming damage is reduced.
 
 Abilities:
 - Flux Beam: long-range beam; damage and armor shred scale with charge.
 - Static Burst: AOE burst from recent damage taken.
+- Flux Surge: spend charge for a speed/resistance burst and a close-range shockwave.
+- Flux Discharge: dump charge into a damaging knockback shockwave.
 
 ### Life Gem
 
@@ -112,12 +118,14 @@ Passives:
 - Auto-enchant Power and Punch on bows.
 - Sculk silence.
 - Crop-trample immunity.
+- Windborne: while airborne, gain Slow Falling.
 
 Abilities:
 - Double Jump: midair jump reset.
 - Dash: fast dash that damages enemies you pass through.
 - Breezy Bash: uppercut; impact damage if they land soon.
 - Group Breezy Bash: knock away nearby untrusted players.
+- Gust: shockwave that launches and slows nearby enemies.
 
 ### Speed Gem
 
@@ -132,12 +140,14 @@ Abilities:
 - Terminal Velocity: short Speed/Haste burst.
 - Slipstream: wind lane that speeds allies and disrupts enemies.
 - Afterimage: brief invisibility + speed; breaks on hit.
+- Tempo Shift: speeds ally cooldowns and slows enemy cooldowns nearby.
 
 ### Strength Gem
 
 Passives:
 - Strength I.
 - Auto-enchant Sharpness III.
+- Adrenaline: gain brief Resistance when critically low.
 
 Abilities:
 - Nullify: remove active effects from enemies in a radius.
@@ -168,23 +178,33 @@ Passives:
 - Blood Price: on player kill, gain a short Strength/Resistance burst.
 
 Abilities:
-- Terror Trade: sacrifice yourself to attempt to kill a target (totems can save). Costs 2 max hearts and 2 permanent energy, limited to 3 uses per player.
+- Rig: trap a block; any use, break, step, or block update triggers an explosion (five primed TNT, fuse configurable).
+- Remote Charge: arm a block within 10s, then detonate from anywhere within 1 minute.
 - Panic Ring: spawn primed TNT around you.
+- Breach Charge: immediate blast at the targeted block or entity with wither-skull style VFX.
+- Terror Trade: sacrifice yourself to attempt to kill a target (totems can save). Costs 2 max hearts and 2 permanent energy, limited to 3 uses per player.
 
 ### Summoner Gem
 
 Passives:
 - Summoner's Bond: summons do not target you or trusted players.
-- Commander's Mark: sword hits mark a target; summons prioritize and gain temporary Strength.
+- Commander's Mark: hits mark a target; summons prioritize and gain temporary Strength.
 - Soulbound Minions: summons despawn on death or logout.
 - Familiar's Blessing: summons spawn with bonus health.
 
 Abilities:
-- Summon 1-5: spawn the configured loadouts using a point budget and active-summon cap. Summons drop no loot or XP.
+- Summon 1-5: spawn the configured loadouts while staying under the active summon point cap. Summons drop no loot or XP.
 - Recall: despawn all active summons.
+- Summon slots share a global cooldown.
 
 Summoner UI:
 - Open the loadout editor with Gems Modifier + the hotbar key after Recall (default Alt + 7).
+
+Summoned/controlled AI priority (Summoner, Astra Soul Release, Hypno Staff):
+- Summoner only: Commander's Mark target overrides all other priorities.
+- Otherwise: target the last entity you attacked (player or mob) within command range.
+- If none: target whoever last attacked you or is currently hostile toward you.
+- If none: follow you.
 
 ### Space Gem
 
@@ -209,10 +229,11 @@ Passives:
 Abilities:
 - Grave Steed: summon a saddled skeleton horse that decays over time.
 - Withering Strikes: melee hits apply Wither temporarily.
-- Death Oath: choose a target; take damage over time until you hit them (or it expires).
+- Death Oath: choose a target; you take damage over time but deal bonus damage to them.
+- Retribution: incoming damage reflects to the attacker while the effect lasts.
 - Scythe Sweep: wide melee cleave in front of you.
 - Blood Charge: sacrifice health to buff your next hit or ability.
-- Shade Clone: summon a decoy clone (no damage).
+- Shadow Clone: summon multiple invulnerable decoys that vanish after a short time.
 
 ### Pillager Gem
 
@@ -233,6 +254,7 @@ Passives:
 - Stillness Cloak: stand still to become invisible with no particles.
 - Silent Step: no sculk triggers.
 - False Signature: harder to track with mark/track abilities.
+- Backstab: attacking from behind deals bonus damage.
 - Quick Hands: minor Haste.
 
 Abilities:
@@ -241,6 +263,7 @@ Abilities:
 - Steal: after enough observation, steal an ability; the victim loses it until they swap gems.
 - Smoke Bomb: blind/slow nearby enemies and briefly cloak you.
 - Stolen Cast: cast a stolen ability; sneak to cycle.
+- Skinshift: steal a targeted player's appearance and chat name for a short time.
 
 ### Beacon Gem
 
@@ -250,20 +273,20 @@ Passives:
 - Rally: casting a beacon aura grants trusted allies brief Absorption.
 
 Abilities:
-- Moving auras: Speed, Haste, Resistance, Jump Boost, Strength, Regeneration.
+- Moving auras (toggle): Speed, Haste, Resistance, Jump Boost, Strength, Regeneration (only one active).
 - Aura pulses buff trusted allies and apply Slowness/Weakness to untrusted players in range.
 
 ### Air Gem
 
 Passives:
 - Windburst Mace (Breach IV, Wind Burst III, Mending, Unbreaking III, Fire Aspect II).
-- Aerial Guard: reduced fall damage and knockback while holding the mace.
-- Skyborn: brief slow falling after taking damage while airborne.
+- Aerial Guard: reduced damage and knockback while holding the mace.
+- Wind Shear: mace strikes add extra knockback and a short slow.
 
 Abilities:
 - Wind Jump: wind-charge style high jump.
 - Gale Slam: empower your next mace slam with a stronger wind burst.
-- Updraft Zone: lift allies and disrupt enemies in a pillar.
+- Crosswind: cutting gust forward that knocks back and slows enemies.
 - Air Dash: forward dash with brief i-frames.
 
 ## Assassin endgame

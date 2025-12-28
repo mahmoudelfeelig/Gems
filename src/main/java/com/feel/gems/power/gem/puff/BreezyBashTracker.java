@@ -2,10 +2,12 @@ package com.feel.gems.power.gem.puff;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.util.GemsTime;
+import com.feel.gems.power.gem.summoner.SummonerSummons;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -16,11 +18,11 @@ public final class BreezyBashTracker {
     private BreezyBashTracker() {
     }
 
-    public static void track(ServerPlayerEntity caster, ServerPlayerEntity target, int windowTicks) {
+    public static void track(ServerPlayerEntity caster, LivingEntity target, int windowTicks) {
         if (windowTicks <= 0) {
             return;
         }
-        long until = GemsTime.now(target) + windowTicks;
+        long until = GemsTime.now(caster) + windowTicks;
         ACTIVE.put(target.getUuid(), new Bash(caster.getUuid(), until, false));
     }
 
@@ -35,13 +37,13 @@ public final class BreezyBashTracker {
             UUID targetId = entry.getKey();
             Bash bash = entry.getValue();
 
-            ServerPlayerEntity target = server.getPlayerManager().getPlayer(targetId);
-            if (target == null) {
+            var targetEntity = SummonerSummons.findEntity(server, targetId);
+            if (!(targetEntity instanceof LivingEntity target) || !target.isAlive()) {
                 it.remove();
                 continue;
             }
 
-            long now = GemsTime.now(target);
+            long now = GemsTime.now(server);
             if (now > bash.until) {
                 it.remove();
                 continue;

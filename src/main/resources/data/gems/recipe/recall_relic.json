@@ -2,22 +2,22 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "ECE",
-    "NSN",
-    "ECE"
+    "CPC",
+    "RTR",
+    "CPC"
   ],
   "key": {
-    "E": {
-      "item": "minecraft:end_crystal"
-    },
     "C": {
       "item": "minecraft:chorus_fruit"
     },
-    "N": {
-      "item": "minecraft:netherite_ingot"
+    "P": {
+      "item": "minecraft:ender_pearl"
     },
-    "S": {
-      "item": "minecraft:nether_star"
+    "R": {
+      "item": "minecraft:crying_obsidian"
+    },
+    "T": {
+      "item": "minecraft:recovery_compass"
     }
   },
   "result": {

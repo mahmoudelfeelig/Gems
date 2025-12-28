@@ -2,6 +2,7 @@ package com.feel.gems.power.gem.spy;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
+import com.feel.gems.net.SpySkinshiftPayload;
 import com.feel.gems.power.gem.astra.SoulSummons;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityDisables;
@@ -13,8 +14,10 @@ import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -48,6 +51,9 @@ public final class SpyMimicSystem {
     private static final String KEY_STOLEN_SELECTED = "spyStolenSelected";
 
     private static final String KEY_MIMIC_UNTIL = "spyMimicUntil";
+    private static final String KEY_SKINSHIFT_UNTIL = "spySkinshiftUntil";
+    private static final String KEY_SKINSHIFT_TARGET = "spySkinshiftTarget";
+    private static final String KEY_SKINSHIFT_NAME = "spySkinshiftName";
 
     private static final String KEY_STILL_LAST_X = "spyStillX";
     private static final String KEY_STILL_LAST_Y = "spyStillY";
@@ -323,6 +329,7 @@ public final class SpyMimicSystem {
         nbt.remove(KEY_STOLEN);
         nbt.remove(KEY_STOLEN_SELECTED);
         clearMimicForm(player);
+        clearSkinshift(player);
         ACTIVE_SPIES.remove(player.getUuid());
     }
 
@@ -358,11 +365,27 @@ public final class SpyMimicSystem {
         player.sendMessage(Text.literal("Mimic Form: " + lastKilled), true);
     }
 
+    public static boolean startSkinshift(ServerPlayerEntity player, ServerPlayerEntity target, int durationTicks) {
+        if (target == null || target == player || durationTicks <= 0) {
+            return false;
+        }
+        NbtCompound nbt = persistent(player);
+        long now = GemsTime.now(player);
+        nbt.putLong(KEY_SKINSHIFT_UNTIL, now + durationTicks);
+        nbt.putUuid(KEY_SKINSHIFT_TARGET, target.getUuid());
+        nbt.putString(KEY_SKINSHIFT_NAME, target.getName().getString());
+        syncSkinshift(player, target.getUuid());
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_ILLUSIONER_PREPARE_MIRROR, 0.7F, 0.9F);
+        player.sendMessage(Text.literal("Skinshift: " + target.getName().getString()), true);
+        return true;
+    }
+
     public static void tickEverySecond(ServerPlayerEntity player) {
         trackActiveSpy(player);
         long now = GemsTime.now(player);
         tickStillnessCloak(player, now);
         tickMimicFormCleanup(player, now);
+        tickSkinshift(player, now);
     }
 
     private static void trackActiveSpy(ServerPlayerEntity player) {
@@ -469,6 +492,39 @@ public final class SpyMimicSystem {
         persistent(player).putLong(KEY_STILL_LAST_MOVED, now);
     }
 
+    private static void tickSkinshift(ServerPlayerEntity player, long now) {
+        NbtCompound nbt = persistent(player);
+        long until = nbt.getLong(KEY_SKINSHIFT_UNTIL);
+        if (until <= 0) {
+            return;
+        }
+        if (now >= until || GemPlayerState.getEnergy(player) <= 0 || GemPlayerState.getActiveGem(player) != GemId.SPY_MIMIC) {
+            clearSkinshift(player);
+        }
+    }
+
+    private static void clearSkinshift(ServerPlayerEntity player) {
+        NbtCompound nbt = persistent(player);
+        if (!nbt.contains(KEY_SKINSHIFT_TARGET, NbtElement.INT_ARRAY_TYPE)) {
+            nbt.remove(KEY_SKINSHIFT_UNTIL);
+            return;
+        }
+        nbt.remove(KEY_SKINSHIFT_UNTIL);
+        nbt.remove(KEY_SKINSHIFT_TARGET);
+        nbt.remove(KEY_SKINSHIFT_NAME);
+        syncSkinshift(player, null);
+    }
+
+    private static void syncSkinshift(ServerPlayerEntity player, UUID target) {
+        if (player.getServer() == null) {
+            return;
+        }
+        SpySkinshiftPayload payload = new SpySkinshiftPayload(player.getUuid(), Optional.ofNullable(target));
+        for (ServerPlayerEntity viewer : player.getServer().getPlayerManager().getPlayerList()) {
+            ServerPlayNetworking.send(viewer, payload);
+        }
+    }
+
     private static void clearMimicForm(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
         nbt.remove(KEY_MIMIC_UNTIL);
@@ -487,6 +543,67 @@ public final class SpyMimicSystem {
 
     public static boolean canAffect(ServerPlayerEntity caster, ServerPlayerEntity target) {
         return !GemTrust.isTrusted(caster, target);
+    }
+
+    public static void syncSkinshifts(ServerPlayerEntity viewer) {
+        if (viewer.getServer() == null) {
+            return;
+        }
+        long now = GemsTime.now(viewer);
+        for (ServerPlayerEntity player : viewer.getServer().getPlayerManager().getPlayerList()) {
+            NbtCompound nbt = persistent(player);
+            if (!nbt.contains(KEY_SKINSHIFT_TARGET, NbtElement.INT_ARRAY_TYPE)) {
+                continue;
+            }
+            long until = nbt.getLong(KEY_SKINSHIFT_UNTIL);
+            if (until <= now) {
+                continue;
+            }
+            UUID target = nbt.getUuid(KEY_SKINSHIFT_TARGET);
+            SpySkinshiftPayload payload = new SpySkinshiftPayload(player.getUuid(), Optional.of(target));
+            ServerPlayNetworking.send(viewer, payload);
+        }
+    }
+
+    public static void syncSkinshiftSelf(ServerPlayerEntity player) {
+        NbtCompound nbt = persistent(player);
+        if (!nbt.contains(KEY_SKINSHIFT_TARGET, NbtElement.INT_ARRAY_TYPE)) {
+            return;
+        }
+        long until = nbt.getLong(KEY_SKINSHIFT_UNTIL);
+        if (until <= GemsTime.now(player)) {
+            clearSkinshift(player);
+            return;
+        }
+        syncSkinshift(player, nbt.getUuid(KEY_SKINSHIFT_TARGET));
+    }
+
+    public static Text chatDisguiseName(ServerPlayerEntity player) {
+        NbtCompound nbt = persistent(player);
+        long until = nbt.getLong(KEY_SKINSHIFT_UNTIL);
+        if (until <= GemsTime.now(player)) {
+            return null;
+        }
+        if (nbt.contains(KEY_SKINSHIFT_NAME, NbtElement.STRING_TYPE)) {
+            return Text.literal(nbt.getString(KEY_SKINSHIFT_NAME));
+        }
+        if (!nbt.contains(KEY_SKINSHIFT_TARGET, NbtElement.INT_ARRAY_TYPE)) {
+            return null;
+        }
+        UUID target = nbt.getUuid(KEY_SKINSHIFT_TARGET);
+        var server = player.getServer();
+        if (server == null) {
+            return null;
+        }
+        ServerPlayerEntity online = server.getPlayerManager().getPlayer(target);
+        if (online != null) {
+            return online.getName();
+        }
+        var profile = server.getUserCache().getByUuid(target).orElse(null);
+        if (profile == null) {
+            return null;
+        }
+        return Text.literal(profile.getName());
     }
 
     private static NbtCompound persistent(ServerPlayerEntity player) {

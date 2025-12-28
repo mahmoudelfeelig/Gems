@@ -2,19 +2,19 @@
   "type": "minecraft:crafting_shaped",
   "category": "combat",
   "pattern": [
-    "TBT",
+    "TRT",
     "NSN",
-    "TBT"
+    "TRT"
   ],
   "key": {
     "T": {
       "item": "minecraft:tnt"
     },
-    "B": {
-      "item": "minecraft:netherite_block"
+    "R": {
+      "item": "minecraft:redstone_block"
     },
     "N": {
-      "item": "minecraft:nether_star"
+      "item": "minecraft:netherite_ingot"
     },
     "S": {
       "item": "minecraft:netherite_sword"

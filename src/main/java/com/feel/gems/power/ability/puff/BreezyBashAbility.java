@@ -56,9 +56,7 @@ public final class BreezyBashAbility implements GemAbility {
         target.velocityModified = true;
         target.damage(player.getDamageSources().playerAttack(player), GemsBalance.v().puff().breezyBashInitialDamage());
         AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.GUST, 16, 0.35D);
-        if (target instanceof ServerPlayerEntity otherPlayer) {
-            BreezyBashTracker.track(player, otherPlayer, GemsBalance.v().puff().breezyBashImpactWindowTicks());
-        }
+        BreezyBashTracker.track(player, target, GemsBalance.v().puff().breezyBashImpactWindowTicks());
 
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 1.0F, 1.0F);
         return true;

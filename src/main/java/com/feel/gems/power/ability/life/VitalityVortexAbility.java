@@ -7,6 +7,7 @@ import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.ParticleTypes;
@@ -18,6 +19,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 
 
@@ -64,9 +66,10 @@ public final class VitalityVortexAbility implements GemAbility {
         VortexMode mode = detectMode(world, player);
         int duration = GemsBalance.v().life().vitalityVortexDurationTicks();
         int radius = GemsBalance.v().life().vitalityVortexRadiusBlocks();
-
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.squaredDistanceTo(player) <= radius * (double) radius)) {
-            if (GemTrust.isTrusted(player, other)) {
+        Box box = new Box(player.getBlockPos()).expand(radius);
+        for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player)) {
+            boolean ally = other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer);
+            if (ally) {
                 applyAlly(mode, other, duration);
             } else {
                 applyEnemy(mode, other, duration);
@@ -90,72 +93,72 @@ public final class VitalityVortexAbility implements GemAbility {
         };
     }
 
-    private static void applyAlly(VortexMode mode, ServerPlayerEntity player, int duration) {
+    private static void applyAlly(VortexMode mode, LivingEntity target, int duration) {
         float heal = GemsBalance.v().life().vitalityVortexAllyHeal();
         switch (mode) {
             case AQUATIC -> {
-                player.heal(heal);
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 0, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.WATER_BREATHING, duration, 0, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.DOLPHINS_GRACE, duration, 0, true, false, false));
+                target.heal(heal);
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.WATER_BREATHING, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.DOLPHINS_GRACE, duration, 0, true, false, false));
             }
             case INFERNAL -> {
-                player.heal(heal);
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 0, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, duration, 0, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, duration, 0, true, false, false));
+                target.heal(heal);
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, duration, 0, true, false, false));
             }
             case SCULK -> {
-                player.heal(heal);
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 0, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, duration, 0, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, duration, 0, true, false, false));
+                target.heal(heal);
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, duration, 0, true, false, false));
             }
             case VERDANT -> {
-                player.heal(heal);
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 1, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, duration, 0, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, 40, 0, true, false, false));
+                target.heal(heal);
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 1, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, 40, 0, true, false, false));
             }
             case END -> {
-                player.heal(heal);
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 0, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, duration, 0, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, duration, 0, true, false, false));
+                target.heal(heal);
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, duration, 0, true, false, false));
             }
             default -> {
-                player.heal(heal);
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 1, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, duration, 0, true, false, false));
+                target.heal(heal);
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, 1, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, duration, 0, true, false, false));
             }
         }
     }
 
-    private static void applyEnemy(VortexMode mode, ServerPlayerEntity player, int duration) {
+    private static void applyEnemy(VortexMode mode, LivingEntity target, int duration) {
         switch (mode) {
             case AQUATIC -> {
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 1, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 1, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, duration, 0, true, false, false));
             }
             case INFERNAL -> {
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.WITHER, duration, 0, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.WITHER, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
             }
             case SCULK -> {
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, duration, 0, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, duration, 1, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, duration, 1, true, false, false));
             }
             case VERDANT -> {
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, duration, 1, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, duration, 1, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 0, true, false, false));
             }
             case END -> {
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 1, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 1, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
             }
             default -> {
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, duration, 0, true, false, false));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, duration, 0, true, false, false));
+                target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
             }
         }
     }

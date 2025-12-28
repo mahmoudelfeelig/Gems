@@ -2,16 +2,19 @@
   "type": "minecraft:crafting_shaped",
   "category": "combat",
   "pattern": [
-    "GNG",
+    "GFG",
     "NSN",
-    "GNG"
+    "GFG"
   ],
   "key": {
     "G": {
       "item": "minecraft:ghast_tear"
     },
+    "F": {
+      "item": "minecraft:fermented_spider_eye"
+    },
     "N": {
-      "item": "minecraft:nether_star"
+      "item": "minecraft:netherite_ingot"
     },
     "S": {
       "item": "minecraft:netherite_sword"

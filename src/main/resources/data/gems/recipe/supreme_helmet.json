@@ -2,18 +2,21 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "pattern": [
-    "BNB",
-    "NAN",
-    "BNB"
+    "AEA",
+    "PHP",
+    "AEA"
   ],
   "key": {
-    "B": {
-      "item": "minecraft:beacon"
-    },
-    "N": {
-      "item": "minecraft:netherite_block"
-    },
     "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "P": {
+      "item": "minecraft:prismarine_crystals"
+    },
+    "H": {
       "item": "minecraft:netherite_helmet"
     }
   },

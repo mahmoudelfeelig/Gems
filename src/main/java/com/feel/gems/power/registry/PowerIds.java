@@ -18,6 +18,9 @@ public final class PowerIds {
     public static final Identifier FLUX_CHARGE_STORAGE = id("flux_charge_storage");
     public static final Identifier FLUX_ALLY_INVERSION = id("flux_ally_inversion");
     public static final Identifier FLUX_OVERCHARGE_RAMP = id("flux_overcharge_ramp");
+    public static final Identifier FLUX_CAPACITOR = id("flux_capacitor");
+    public static final Identifier FLUX_CONDUCTIVITY = id("flux_conductivity");
+    public static final Identifier FLUX_INSULATION = id("flux_insulation");
 
     public static final Identifier AUTO_ENCHANT_UNBREAKING = id("auto_enchant_unbreaking");
     public static final Identifier DOUBLE_SATURATION = id("double_saturation");
@@ -27,6 +30,7 @@ public final class PowerIds {
     public static final Identifier AUTO_ENCHANT_PUNCH = id("auto_enchant_punch");
     public static final Identifier SCULK_SILENCE = id("sculk_silence");
     public static final Identifier CROP_TRAMPLE_IMMUNITY = id("crop_trample_immunity");
+    public static final Identifier PUFF_WINDBORNE = id("puff_windborne");
 
     public static final Identifier SPEED_I = id("speed_i");
     public static final Identifier SPEED_HASTE = id("speed_haste");
@@ -35,6 +39,7 @@ public final class PowerIds {
 
     public static final Identifier STRENGTH_I = id("strength_i");
     public static final Identifier AUTO_ENCHANT_SHARPNESS = id("auto_enchant_sharpness");
+    public static final Identifier STRENGTH_ADRENALINE = id("strength_adrenaline");
 
     public static final Identifier AUTO_ENCHANT_MENDING = id("auto_enchant_mending");
     public static final Identifier AUTO_ENCHANT_FORTUNE = id("auto_enchant_fortune");
@@ -76,6 +81,7 @@ public final class PowerIds {
     public static final Identifier SPY_SILENT_STEP = id("spy_silent_step");
     public static final Identifier SPY_FALSE_SIGNATURE = id("spy_false_signature");
     public static final Identifier SPY_QUICK_HANDS = id("spy_quick_hands");
+    public static final Identifier SPY_BACKSTEP = id("spy_backstep");
 
     // Beacon (new)
     public static final Identifier BEACON_CORE = id("beacon_core");
@@ -85,7 +91,7 @@ public final class PowerIds {
     // Air (new)
     public static final Identifier AIR_WINDBURST_MACE = id("air_windburst_mace");
     public static final Identifier AIR_AERIAL_GUARD = id("air_aerial_guard");
-    public static final Identifier AIR_SKYBORN = id("air_skyborn");
+    public static final Identifier AIR_WIND_SHEAR = id("air_wind_shear");
 
     // Abilities
     public static final Identifier SHADOW_ANCHOR = id("shadow_anchor");
@@ -103,6 +109,8 @@ public final class PowerIds {
 
     public static final Identifier FLUX_BEAM = id("flux_beam");
     public static final Identifier STATIC_BURST = id("static_burst");
+    public static final Identifier FLUX_SURGE = id("flux_surge");
+    public static final Identifier FLUX_DISCHARGE = id("flux_discharge");
 
     public static final Identifier VITALITY_VORTEX = id("vitality_vortex");
     public static final Identifier HEALTH_DRAIN = id("health_drain");
@@ -113,12 +121,14 @@ public final class PowerIds {
     public static final Identifier DASH = id("dash");
     public static final Identifier BREEZY_BASH = id("breezy_bash");
     public static final Identifier GROUP_BREEZY_BASH = id("group_breezy_bash");
+    public static final Identifier PUFF_GUST = id("puff_gust");
 
     public static final Identifier ARC_SHOT = id("arc_shot");
     public static final Identifier SPEED_STORM = id("speed_storm");
     public static final Identifier TERMINAL_VELOCITY = id("terminal_velocity");
     public static final Identifier SPEED_SLIPSTREAM = id("speed_slipstream");
     public static final Identifier SPEED_AFTERIMAGE = id("speed_afterimage");
+    public static final Identifier SPEED_TEMPO_SHIFT = id("speed_tempo_shift");
 
     public static final Identifier NULLIFY = id("nullify");
     public static final Identifier FRAILER = id("frailer");
@@ -134,6 +144,9 @@ public final class PowerIds {
     // Terror (new)
     public static final Identifier TERROR_TRADE = id("terror_trade");
     public static final Identifier TERROR_PANIC_RING = id("terror_panic_ring");
+    public static final Identifier TERROR_RIG = id("terror_rig");
+    public static final Identifier TERROR_BREACH_CHARGE = id("terror_breach_charge");
+    public static final Identifier TERROR_REMOTE_CHARGE = id("terror_remote_charge");
 
     // Summoner (new)
     public static final Identifier SUMMON_SLOT_1 = id("summon_slot_1");
@@ -153,9 +166,10 @@ public final class PowerIds {
     public static final Identifier REAPER_GRAVE_STEED = id("reaper_grave_steed");
     public static final Identifier REAPER_WITHERING_STRIKES = id("reaper_withering_strikes");
     public static final Identifier REAPER_DEATH_OATH = id("reaper_death_oath");
+    public static final Identifier REAPER_RETRIBUTION = id("reaper_retribution");
     public static final Identifier REAPER_SCYTHE_SWEEP = id("reaper_scythe_sweep");
     public static final Identifier REAPER_BLOOD_CHARGE = id("reaper_blood_charge");
-    public static final Identifier REAPER_SHADE_CLONE = id("reaper_shade_clone");
+    public static final Identifier REAPER_SHADOW_CLONE = id("reaper_shadow_clone");
 
     // Pillager (new)
     public static final Identifier PILLAGER_FANGS = id("pillager_fangs");
@@ -169,6 +183,7 @@ public final class PowerIds {
     public static final Identifier SPY_STEAL = id("spy_steal");
     public static final Identifier SPY_SMOKE_BOMB = id("spy_smoke_bomb");
     public static final Identifier SPY_STOLEN_CAST = id("spy_stolen_cast");
+    public static final Identifier SPY_SKINSHIFT = id("spy_skinshift");
 
     // Beacon (new)
     public static final Identifier BEACON_AURA_SPEED = id("beacon_aura_speed");
@@ -181,8 +196,8 @@ public final class PowerIds {
     // Air (new)
     public static final Identifier AIR_WIND_JUMP = id("air_wind_jump");
     public static final Identifier AIR_GALE_SLAM = id("air_gale_slam");
-    public static final Identifier AIR_UPDRAFT_ZONE = id("air_updraft_zone");
     public static final Identifier AIR_DASH = id("air_dash");
+    public static final Identifier AIR_CROSSWIND = id("air_crosswind");
 
     private PowerIds() {
     }

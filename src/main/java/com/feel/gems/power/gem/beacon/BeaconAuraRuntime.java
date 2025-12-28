@@ -21,7 +21,6 @@ import net.minecraft.util.math.Box;
 
 public final class BeaconAuraRuntime {
     private static final String KEY_AURA_TYPE = "beaconAuraType";
-    private static final String KEY_AURA_UNTIL = "beaconAuraUntil";
 
     public enum AuraType {
         SPEED(PowerIds.BEACON_AURA_SPEED, "Speed", StatusEffects.SPEED),
@@ -66,13 +65,26 @@ public final class BeaconAuraRuntime {
     private BeaconAuraRuntime() {
     }
 
-    public static void start(ServerPlayerEntity player, AuraType type, int durationTicks) {
-        if (durationTicks <= 0 || type == null) {
+    public static void setActive(ServerPlayerEntity player, AuraType type) {
+        AuraType prev = activeType(player);
+        if (type == null) {
+            if (prev != null) {
+                clearAuraEffects(player, prev);
+            }
+            clear(player);
             return;
+        }
+        if (prev != null && prev != type) {
+            clearAuraEffects(player, prev);
         }
         NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         nbt.putString(KEY_AURA_TYPE, type.id().toString());
-        nbt.putLong(KEY_AURA_UNTIL, GemsTime.now(player) + durationTicks);
+    }
+
+    public static AuraType activeType(ServerPlayerEntity player) {
+        NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        Identifier id = Identifier.tryParse(nbt.getString(KEY_AURA_TYPE));
+        return AuraType.fromId(id);
     }
 
     public static void tickEverySecond(ServerPlayerEntity player) {
@@ -82,19 +94,7 @@ public final class BeaconAuraRuntime {
             return;
         }
 
-        NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        if (!nbt.contains(KEY_AURA_UNTIL, NbtElement.LONG_TYPE)) {
-            return;
-        }
-        long until = nbt.getLong(KEY_AURA_UNTIL);
-        long now = GemsTime.now(player);
-        if (until <= 0 || now >= until) {
-            clear(player);
-            return;
-        }
-
-        Identifier id = Identifier.tryParse(nbt.getString(KEY_AURA_TYPE));
-        AuraType type = AuraType.fromId(id);
+        AuraType type = activeType(player);
         if (type == null) {
             clear(player);
             return;
@@ -109,8 +109,8 @@ public final class BeaconAuraRuntime {
 
         ServerWorld world = player.getServerWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
-        for (ServerPlayerEntity other : world.getPlayers(p -> p.getBoundingBox().intersects(box))) {
-            boolean trusted = GemTrust.isTrusted(player, other) || other == player;
+        for (net.minecraft.entity.LivingEntity other : world.getEntitiesByClass(net.minecraft.entity.LivingEntity.class, box, e -> e.isAlive())) {
+            boolean trusted = other instanceof ServerPlayerEntity otherPlayer && (GemTrust.isTrusted(player, otherPlayer) || otherPlayer == player);
             if (trusted) {
                 other.addStatusEffect(new StatusEffectInstance(type.effect(), refresh, amplifier, true, false, false));
             } else {
@@ -137,6 +137,17 @@ public final class BeaconAuraRuntime {
     private static void clear(ServerPlayerEntity player) {
         NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         nbt.remove(KEY_AURA_TYPE);
-        nbt.remove(KEY_AURA_UNTIL);
+    }
+
+    private static void clearAuraEffects(ServerPlayerEntity player, AuraType type) {
+        if (type == null) {
+            return;
+        }
+        int radius = GemsBalance.v().beacon().auraRadiusBlocks();
+        ServerWorld world = player.getServerWorld();
+        Box box = new Box(player.getBlockPos()).expand(radius);
+        for (net.minecraft.entity.LivingEntity other : world.getEntitiesByClass(net.minecraft.entity.LivingEntity.class, box, e -> e.isAlive())) {
+            other.removeStatusEffect(type.effect());
+        }
     }
 }

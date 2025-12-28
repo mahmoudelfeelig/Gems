@@ -2,6 +2,9 @@ package com.feel.gems.mixin;
 
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.GemPowers;
+import com.feel.gems.util.GemsTime;
+import com.feel.gems.state.GemsPersistentDataHolder;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,6 +22,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityEatFoodMixin {
+    private static final String KEY_ROT_EATER_UNTIL = "reaperRotEaterUntil";
+
     @Inject(method = "eatFood", at = @At("TAIL"))
     private void gems$reaperRotEater(World world, ItemStack stack, FoodComponent component, CallbackInfoReturnable<ItemStack> cir) {
         if (world.isClient) {
@@ -33,9 +38,17 @@ public abstract class PlayerEntityEatFoodMixin {
         }
 
         if (stack.isOf(Items.ROTTEN_FLESH)) {
+            markRotEater(player);
             player.removeStatusEffect(StatusEffects.HUNGER);
         } else if (stack.isOf(Items.SPIDER_EYE)) {
+            markRotEater(player);
             player.removeStatusEffect(StatusEffects.POISON);
         }
+    }
+
+    private static void markRotEater(ServerPlayerEntity player) {
+        long now = GemsTime.now(player);
+        NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        data.putLong(KEY_ROT_EATER_UNTIL, now + 40L);
     }
 }

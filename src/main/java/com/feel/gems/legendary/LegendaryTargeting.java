@@ -1,8 +1,13 @@
 package com.feel.gems.legendary;
 
 import com.feel.gems.util.GemsTime;
+import java.util.UUID;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 
 
 
@@ -14,13 +19,13 @@ public final class LegendaryTargeting {
     private LegendaryTargeting() {
     }
 
-    public static void recordHit(ServerPlayerEntity attacker, ServerPlayerEntity target) {
+    public static void recordHit(ServerPlayerEntity attacker, LivingEntity target) {
         NbtCompound data = ((com.feel.gems.state.GemsPersistentDataHolder) attacker).gems$getPersistentData();
         data.putUuid(KEY_LAST_TARGET, target.getUuid());
         data.putLong(KEY_LAST_TARGET_AT, GemsTime.now(attacker));
     }
 
-    public static ServerPlayerEntity findTarget(ServerPlayerEntity player, int rangeBlocks, int timeoutTicks) {
+    public static LivingEntity findTarget(ServerPlayerEntity player, int rangeBlocks, int timeoutTicks) {
         NbtCompound data = ((com.feel.gems.state.GemsPersistentDataHolder) player).gems$getPersistentData();
         if (!data.containsUuid(KEY_LAST_TARGET)) {
             return null;
@@ -30,9 +35,9 @@ public final class LegendaryTargeting {
         if (timeoutTicks > 0 && now - last > timeoutTicks) {
             return null;
         }
-        java.util.UUID uuid = data.getUuid(KEY_LAST_TARGET);
-        ServerPlayerEntity target = player.getServer() == null ? null : player.getServer().getPlayerManager().getPlayer(uuid);
-        if (target == null || target.getWorld() != player.getWorld()) {
+        UUID uuid = data.getUuid(KEY_LAST_TARGET);
+        LivingEntity target = player.getServer() == null ? null : findLiving(player.getServer(), uuid);
+        if (target == null || target.getWorld() != player.getWorld() || !target.isAlive()) {
             return null;
         }
         double max = rangeBlocks * (double) rangeBlocks;
@@ -43,5 +48,15 @@ public final class LegendaryTargeting {
             return null;
         }
         return target;
+    }
+
+    private static LivingEntity findLiving(MinecraftServer server, UUID uuid) {
+        for (ServerWorld world : server.getWorlds()) {
+            Entity entity = world.getEntity(uuid);
+            if (entity instanceof LivingEntity living) {
+                return living;
+            }
+        }
+        return null;
     }
 }

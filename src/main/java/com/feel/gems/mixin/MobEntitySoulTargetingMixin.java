@@ -3,6 +3,7 @@ package com.feel.gems.mixin;
 import com.feel.gems.legendary.HypnoControl;
 import com.feel.gems.power.gem.astra.SoulSummons;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
+import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.trust.GemTrust;
 import java.util.UUID;
 import net.minecraft.entity.LivingEntity;
@@ -28,9 +29,6 @@ public abstract class MobEntitySoulTargetingMixin {
         if (target == null) {
             return;
         }
-        if (!(target instanceof ServerPlayerEntity candidate)) {
-            return;
-        }
         boolean soul = SoulSummons.isSoul(self);
         boolean summon = SummonerSummons.isSummon(self);
         boolean hypno = HypnoControl.isHypno(self);
@@ -44,17 +42,39 @@ public abstract class MobEntitySoulTargetingMixin {
             self.setTarget(null);
             return;
         }
-        if (candidate.getUuid().equals(ownerUuid)) {
-            self.setTarget(null);
-            return;
-        }
-
         ServerPlayerEntity owner = world.getServer().getPlayerManager().getPlayer(ownerUuid);
         if (owner == null) {
             return;
         }
-        if (GemTrust.isTrusted(owner, candidate)) {
-            self.setTarget(null);
+        GemPlayerState.initIfNeeded(owner);
+        if (GemPlayerState.getEnergy(owner) <= 0) {
+            return;
+        }
+
+        if (target instanceof ServerPlayerEntity candidate) {
+            if (candidate.getUuid().equals(ownerUuid)) {
+                self.setTarget(null);
+                return;
+            }
+
+            if (GemTrust.isTrusted(owner, candidate)) {
+                self.setTarget(null);
+            }
+            return;
+        }
+
+        if (target instanceof MobEntity mobTarget) {
+            if (SoulSummons.isSoul(mobTarget) && ownerUuid.equals(SoulSummons.ownerUuid(mobTarget))) {
+                self.setTarget(null);
+                return;
+            }
+            if (SummonerSummons.isSummon(mobTarget) && ownerUuid.equals(SummonerSummons.ownerUuid(mobTarget))) {
+                self.setTarget(null);
+                return;
+            }
+            if (HypnoControl.isHypno(mobTarget) && ownerUuid.equals(HypnoControl.ownerUuid(mobTarget))) {
+                self.setTarget(null);
+            }
         }
     }
 }

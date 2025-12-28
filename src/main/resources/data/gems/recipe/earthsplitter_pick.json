@@ -2,16 +2,19 @@
   "type": "minecraft:crafting_shaped",
   "category": "tools",
   "pattern": [
-    "BNB",
+    "ADA",
     "NPN",
-    "BNB"
+    "ADA"
   ],
   "key": {
-    "B": {
-      "item": "minecraft:beacon"
+    "A": {
+      "item": "minecraft:ancient_debris"
+    },
+    "D": {
+      "item": "minecraft:diamond"
     },
     "N": {
-      "item": "minecraft:netherite_block"
+      "item": "minecraft:netherite_ingot"
     },
     "P": {
       "item": "minecraft:netherite_pickaxe"

@@ -11,7 +11,7 @@ import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.CooldownSnapshotPayload;
 import com.feel.gems.power.ability.air.AirDashAbility;
-import com.feel.gems.power.ability.air.AirUpdraftZoneAbility;
+import com.feel.gems.power.ability.air.AirCrosswindAbility;
 import com.feel.gems.power.ability.air.AirWindJumpAbility;
 import com.feel.gems.power.ability.beacon.BeaconAuraAbility;
 import com.feel.gems.power.ability.flux.FluxBeamAbility;
@@ -40,6 +40,7 @@ import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTime;
 import io.netty.buffer.Unpooled;
 import java.util.EnumSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.EntityType;
@@ -404,7 +405,7 @@ public final class GemsAbilityGameTests {
     }
 
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void airUpdraftLiftsTrustedAndDamagesEnemies(TestContext context) {
+    public void airCrosswindSlowsAndKnocksEnemies(TestContext context) {
         ServerWorld world = context.getWorld();
 
         ServerPlayerEntity caster = context.createMockCreativeServerPlayerInWorld();
@@ -417,42 +418,62 @@ public final class GemsAbilityGameTests {
         enemy.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        caster.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
-        ally.teleport(world, pos.x + 1.0D, pos.y, pos.z, 0.0F, 0.0F);
-        enemy.teleport(world, pos.x - 1.0D, pos.y, pos.z, 180.0F, 0.0F);
+        caster.teleport(world, pos.x, pos.y, pos.z, 90.0F, 0.0F);
+        ally.teleport(world, pos.x - 1.0D, pos.y, pos.z + 1.0D, 90.0F, 0.0F);
+        enemy.teleport(world, pos.x - 2.0D, pos.y, pos.z, 270.0F, 0.0F);
 
         GemTrust.trust(caster, ally.getUuid());
         final float enemyHealthBefore = enemy.getHealth();
+        final float allyHealthBefore = ally.getHealth();
+        AtomicBoolean knockbackSeen = new AtomicBoolean(false);
 
         context.runAtTick(2L, () -> {
-            boolean ok = new AirUpdraftZoneAbility().activate(caster);
+            boolean ok = new AirCrosswindAbility().activate(caster);
             if (!ok) {
-                context.throwGameTestException("Updraft Zone did not activate");
+                context.throwGameTestException("Crosswind did not activate");
+            }
+        });
+
+        context.runAtTick(4L, () -> {
+            if (enemy.getVelocity().lengthSquared() > 0.0D) {
+                knockbackSeen.set(true);
             }
         });
 
         context.runAtTick(10L, () -> {
-            if (!ally.hasStatusEffect(StatusEffects.SLOW_FALLING)) {
-                context.throwGameTestException("Trusted ally did not receive slow falling");
+            var cfg = GemsBalance.v().air();
+            if (ally.hasStatusEffect(StatusEffects.SLOWNESS)) {
+                context.throwGameTestException("Trusted ally should not receive slowness");
                 return;
             }
-            if (ally.getVelocity().y <= 0.0D) {
-                context.throwGameTestException("Trusted ally was not lifted by updraft");
+            if (ally.getHealth() < allyHealthBefore) {
+                context.throwGameTestException("Trusted ally should not take damage from crosswind");
                 return;
             }
-            if (enemy.hasStatusEffect(StatusEffects.SLOW_FALLING)) {
-                context.throwGameTestException("Enemy should not receive ally buff effects");
+            boolean damageActive = cfg.crosswindDamage() > 0.0F;
+            boolean slowActive = cfg.crosswindSlownessDurationTicks() > 0;
+            boolean knockbackActive = cfg.crosswindKnockback() > 0.0D;
+            boolean sawDamage = enemy.getHealth() < enemyHealthBefore;
+            boolean sawSlow = enemy.hasStatusEffect(StatusEffects.SLOWNESS);
+            boolean sawKnockback = knockbackSeen.get();
+
+            if (!damageActive && !slowActive && !knockbackActive) {
+                context.complete();
                 return;
             }
-            if (enemy.getHealth() >= enemyHealthBefore) {
-                context.throwGameTestException("Enemy did not take damage from updraft zone");
+            if ((damageActive && sawDamage) || (slowActive && sawSlow) || (knockbackActive && sawKnockback)) {
+                context.complete();
                 return;
             }
-            if (enemy.getVelocity().lengthSquared() <= 0.0D) {
-                context.throwGameTestException("Enemy did not receive knockback/launch");
-                return;
-            }
-            context.complete();
+
+            context.throwGameTestException(
+                "Crosswind did not affect enemy. "
+                    + "damage=" + sawDamage
+                    + " slow=" + sawSlow
+                    + " knockback=" + sawKnockback
+                    + " cfgDamage=" + cfg.crosswindDamage()
+                    + " cfgSlow=" + cfg.crosswindSlownessDurationTicks()
+                    + " cfgKnockback=" + cfg.crosswindKnockback());
         });
     }
 

@@ -4,6 +4,7 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.legendary.LegendaryTargeting;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Vec3d;
@@ -38,7 +39,7 @@ public abstract class PersistentProjectileEntityHunterAimMixin {
         }
         int range = GemsBalance.v().legendary().hunterAimRangeBlocks();
         int timeout = GemsBalance.v().legendary().hunterAimTimeoutTicks();
-        ServerPlayerEntity target = LegendaryTargeting.findTarget(player, range, timeout);
+        LivingEntity target = LegendaryTargeting.findTarget(player, range, timeout);
         if (target == null) {
             return;
         }

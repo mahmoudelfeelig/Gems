@@ -39,6 +39,7 @@ public final class SummonRecallAbility implements GemAbility {
             return false;
         }
         SummonerSummons.discardAll(player);
+        SummonerSummons.applyCooldown(player);
         AbilityFeedback.burst(player, net.minecraft.particle.ParticleTypes.POOF, 18, 0.35D);
         AbilityFeedback.sound(player, net.minecraft.sound.SoundEvents.ENTITY_ENDERMAN_TELEPORT, 0.7F, 1.2F);
         player.sendMessage(Text.literal("Recalled summons."), true);

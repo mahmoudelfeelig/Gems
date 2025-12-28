@@ -2,19 +2,19 @@
   "type": "minecraft:crafting_shaped",
   "category": "combat",
   "pattern": [
-    "NEN",
-    "HBH",
-    "NEN"
+    "PEP",
+    "SBS",
+    "PEP"
   ],
   "key": {
-    "N": {
-      "item": "minecraft:netherite_ingot"
+    "P": {
+      "item": "minecraft:phantom_membrane"
     },
     "E": {
       "item": "minecraft:ender_eye"
     },
-    "H": {
-      "item": "minecraft:phantom_membrane"
+    "S": {
+      "item": "minecraft:spyglass"
     },
     "B": {
       "item": "minecraft:bow"

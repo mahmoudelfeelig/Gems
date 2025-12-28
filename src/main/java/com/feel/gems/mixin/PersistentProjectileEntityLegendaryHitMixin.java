@@ -2,6 +2,7 @@ package com.feel.gems.mixin;
 
 import com.feel.gems.legendary.LegendaryTargeting;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.hit.EntityHitResult;
@@ -21,7 +22,7 @@ public abstract class PersistentProjectileEntityLegendaryHitMixin {
         if (!(owner instanceof ServerPlayerEntity attacker)) {
             return;
         }
-        if (!(hitResult.getEntity() instanceof ServerPlayerEntity target)) {
+        if (!(hitResult.getEntity() instanceof LivingEntity target)) {
             return;
         }
         LegendaryTargeting.recordHit(attacker, target);

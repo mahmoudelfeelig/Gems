@@ -1,0 +1,83 @@
+package com.feel.gems.power.ability.flux;
+
+import com.feel.gems.config.GemsBalance;
+import com.feel.gems.net.GemExtraStateSync;
+import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.flux.FluxCharge;
+import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.AbilityFeedback;
+import com.feel.gems.trust.GemTrust;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
+
+public final class FluxDischargeAbility implements GemAbility {
+    @Override
+    public Identifier id() {
+        return PowerIds.FLUX_DISCHARGE;
+    }
+
+    @Override
+    public String name() {
+        return "Flux Discharge";
+    }
+
+    @Override
+    public String description() {
+        return "Dump stored charge in a shockwave that damages and knocks back nearby enemies.";
+    }
+
+    @Override
+    public int cooldownTicks() {
+        return GemsBalance.v().flux().fluxDischargeCooldownTicks();
+    }
+
+    @Override
+    public boolean activate(ServerPlayerEntity player) {
+        var cfg = GemsBalance.v().flux();
+        int charge = FluxCharge.get(player);
+        int minCharge = cfg.fluxDischargeMinCharge();
+        if (charge < minCharge) {
+            player.sendMessage(Text.literal("Not enough Flux charge."), true);
+            return false;
+        }
+
+        float damage = Math.min(cfg.fluxDischargeMaxDamage(), cfg.fluxDischargeBaseDamage() + charge * cfg.fluxDischargeDamagePerCharge());
+        int radius = cfg.fluxDischargeRadiusBlocks();
+        double knockback = cfg.fluxDischargeKnockback();
+        ServerWorld world = player.getServerWorld();
+        int hits = 0;
+        Box box = new Box(player.getBlockPos()).expand(radius);
+        for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player)) {
+            if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
+                continue;
+            }
+            other.damage(player.getDamageSources().magic(), damage);
+            if (knockback > 0.0D) {
+                Vec3d delta = other.getPos().subtract(player.getPos());
+                if (delta.lengthSquared() > 1.0E-4D) {
+                    Vec3d norm = delta.normalize();
+                    other.addVelocity(norm.x * knockback, 0.25D, norm.z * knockback);
+                    other.velocityModified = true;
+                }
+            }
+            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ELECTRIC_SPARK, 10, 0.35D);
+            hits++;
+        }
+
+        FluxCharge.set(player, 0);
+        FluxCharge.clearIfBelow100(player);
+        GemExtraStateSync.send(player);
+
+        AbilityFeedback.burst(player, ParticleTypes.ELECTRIC_SPARK, 24, 0.5D);
+        AbilityFeedback.sound(player, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5F, 1.5F);
+        player.sendMessage(Text.literal("Flux Discharge hit " + hits + " targets."), true);
+        return true;
+    }
+}

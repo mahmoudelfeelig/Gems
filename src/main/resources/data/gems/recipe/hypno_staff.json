@@ -2,16 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
+    " A ",
     " T ",
-    " S ",
     " B "
   ],
   "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
     "T": {
       "item": "minecraft:totem_of_undying"
-    },
-    "S": {
-      "item": "minecraft:nether_star"
     },
     "B": {
       "item": "minecraft:blaze_rod"

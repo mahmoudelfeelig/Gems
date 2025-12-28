@@ -119,6 +119,7 @@ public final class SoulSystem {
             }
         }
         SoulSummons.mark(entity, player.getUuid());
+        SoulSummons.trackSpawn(player, entity);
         if (entity instanceof LivingEntity living) {
             living.disableExperienceDropping();
             living.setHealth(living.getMaxHealth());

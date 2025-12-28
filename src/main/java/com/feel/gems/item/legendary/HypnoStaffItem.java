@@ -60,8 +60,10 @@ public final class HypnoStaffItem extends Item implements LegendaryItem {
         if (!(user instanceof ServerPlayerEntity player)) {
             return;
         }
-        int range = GemsBalance.v().legendary().hypnoRangeBlocks();
-        LivingEntity target = Targeting.raycastLiving(player, range);
+        var cfg = GemsBalance.v().legendary();
+        int range = cfg.hypnoRangeBlocks();
+        double viewRange = Math.max(4.0D, cfg.hypnoViewRangeBlocks());
+        LivingEntity target = Targeting.raycastLiving(player, range, viewRange);
         if (!(target instanceof MobEntity mob) || !HypnoControl.isAllowed(mob)) {
             resetProgress(player);
             return;
@@ -78,14 +80,25 @@ public final class HypnoStaffItem extends Item implements LegendaryItem {
         int progress = data.getInt(KEY_PROGRESS) + 1;
         data.putInt(KEY_PROGRESS, progress);
 
-        int holdTicks = GemsBalance.v().legendary().hypnoHoldTicks();
+        int holdTicks = cfg.hypnoHoldTicks();
         sendProgress(player, progress, holdTicks);
         if (progress < holdTicks) {
             return;
         }
+        if (HypnoControl.isHypno(mob) && player.getUuid().equals(HypnoControl.ownerUuid(mob))) {
+            float heal = cfg.hypnoHealHearts() * 2.0F;
+            if (heal > 0.0F) {
+                mob.heal(heal);
+            }
+            player.sendMessage(Text.literal("Hypnosis refreshed."), true);
+            player.stopUsingItem();
+            resetProgress(player);
+            return;
+        }
         boolean controlled = HypnoControl.tryControl(player, mob);
         if (controlled) {
-            player.sendMessage(Text.literal("Hypnosis complete."), true);
+            player.sendMessage(Text.literal("Hypnosis successful."), true);
+            player.stopUsingItem();
         } else {
             player.sendMessage(Text.literal("Hypnosis failed."), true);
         }

@@ -3,17 +3,18 @@
 - Gems: see `gameplay.md` for abilities, passives, and gem lists.
 - Leveling: level 1 unlocks all passives. Levels 2-4 unlock abilities sequentially. Level 5 unlocks all remaining abilities (so if a gem has 5+ abilities, the extras all arrive at level 5; if it has fewer, you stop as soon as all are unlocked). Levels 6-10 are buffer levels with no new powers; max level 10.
 - Energy/life: start at 3 energy. Death (any cause) loses 1 energy. The tiers are Legendary 5 -> Mythical 4 -> Elite 3 -> Rare 2 -> Common 1 -> Broken 0; overflow uses Legendary +1...+5 (6-10). Ability availability scales with energy: at 0-1 energy you have no abilities; at 2-4 energy you keep the first (energy-1) abilities (e.g., energy 3 -> first two abilities stay active); at 5+ energy you have all abilities. Kills grant +1 energy up to Legendary +5 (10). Legendary +5 adds an enchant glint; if a Legendary +5 player kills a non-broken player, that victim also drops an upgrade item that anyone can consume to gain a level (not usable by a Legendary +5 player).
+- Passives can be toggled off client-side (`passivesEnabled` in `config/gems/client.json`).
 - Energy gain overflow: above Legendary uses +1...+5 suffix; death reduces suffix before lowering tiers.
 - Gem swapping: a Gem Trader item swaps only your active gem for another gem of your choice; other owned gems stay owned, and the selected gem becomes active.
 - Gem purchase token: a consumable item that lets you pick any gem to add to your owned set and activate.
 - Level/energy upgrade items: craftable upgrade item -> increases gem energy; crafting hearts adds a heart (up to 20 total hearts max).
-- Hearts on death: on death drop one consumable heart item (nether star texture). Right-click to gain max health. Cannot drop below 5 max hearts; if at 5, no heart drops and cannot increase past 20 max total hearts (including the original 10 you spawn as).
+- Hearts on death: on death drop one consumable heart item (nether star texture). Right-click to gain max health. Cannot drop below the configured minimum (default 5); if at the minimum, no heart drops and cannot increase past 20 max total hearts (including the original 10 you spawn as).
 - All recipes unlock automatically on join; legendary discount recipes (`*_discount`) require the matching active gem (`legendary.recipeGemRequirements` uses recipe ids).
 - Players drop their heads on death.
 - Textures: shared gem base texture with palette swaps per gem; custom textures for upgrade items and heart drops.
 - Performance/architecture: composition-first modular system; keep per-tick load minimal; abilities and passives should register/unregister cleanly; add tests/benchmarks as we go.
 - Gem definitions: data-driven via `data/gems/gem_definitions.json`.
-- Legendary items: one-of-a-kind craftables with 10-minute crafting and global location announcement.
+- Legendary items: crafts use `legendary.craftSeconds`, `legendary.craftMaxPerItem` (total per-item limit), and `legendary.craftMaxActivePerItem` (concurrent per-item limit).
   - Crafting progress is shown to all players via a boss bar (with coordinates), and the item drops at the crafting table when complete.
   - Tracker Compass: right-click to pick a player (including offline); shows current/last-known coords, respawn coords, and points toward them.
   - Recall Relic: mark current coords; reuse to teleport back, consuming the mark; item persists; has cooldown; forceload while marked and released after teleport/no mark.
@@ -50,18 +51,18 @@
 
 ## Server gameplay loop: Assassin endgame
 
-- If a player dies while already at **5 max hearts**, they become an **Assassin**.
+- If a player dies while already at the configured **assassin trigger hearts** (default 5), they become an **Assassin**.
 - Assassins are highlighted **red** in the player list/tab UI.
 - Assassins:
-  - Static **10 hearts** max.
+  - Static **max hearts** cap from `systems.assassinMaxHearts`.
   - Never drop heart items and cannot consume heart items.
-  - If killed by another Assassin: **-2 max hearts**.
+  - If killed by another Assassin: configurable heart loss/gain (`systems.assassinVsAssassinVictimHeartsLoss`, `systems.assassinVsAssassinKillerHeartsGain`).
   - Can only regain those lost hearts by **killing other Assassins**.
-  - If they reach **0 hearts**: eliminated permanently.
-  - Cannot exceed **10 hearts** even when killing another Assassin at 10 hearts.
+  - If they reach the elimination threshold (`systems.assassinEliminationHeartsThreshold`): eliminated permanently.
+  - Cannot exceed the configured max hearts cap.
 - Scoring (only after becoming an Assassin):
   - Normal kill: **+1 point**
   - Final kill: **+3 points**
-    - Final kill = killing a player who was at 5 hearts and thereby turning them into an Assassin.
+    - Final kill = killing a player who was at the assassin trigger hearts and thereby turning them into an Assassin.
 - Winner selection uses points (admin-run duel afterwards):
   - Highest-point Assassin vs last surviving non-Assassin.

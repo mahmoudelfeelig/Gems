@@ -56,7 +56,8 @@ public abstract class ServerPlayerEntityDeathMixin {
         GemPlayerState.addEnergy(victim, -1);
 
         int victimHeartsBefore = GemPlayerState.getMaxHearts(victim);
-        boolean victimAtFiveHearts = !victimWasAssassin && victimHeartsBefore <= GemPlayerState.MIN_MAX_HEARTS;
+        int assassinTriggerHearts = Math.max(GemPlayerState.minMaxHearts(), com.feel.gems.config.GemsBalance.v().systems().assassinTriggerHearts());
+        boolean victimAtAssassinTrigger = !victimWasAssassin && victimHeartsBefore <= assassinTriggerHearts;
 
         Entity attacker = source.getAttacker();
         if (attacker instanceof ServerPlayerEntity killer && killer != victim) {
@@ -69,7 +70,7 @@ public abstract class ServerPlayerEntityDeathMixin {
             GemItemGlint.sync(killer);
             GemStateSync.send(killer);
 
-            boolean finalKill = victimAtFiveHearts;
+            boolean finalKill = victimAtAssassinTrigger;
             AssassinState.recordKill(killer, finalKill, victimWasAssassin);
 
             if (GemPowers.isPassiveActive(killer, PowerIds.TERROR_BLOOD_PRICE)) {
@@ -77,9 +78,14 @@ public abstract class ServerPlayerEntityDeathMixin {
             }
 
             if (victimWasAssassin && killerWasAssassin) {
-                int after = AssassinState.addAssassinHearts(victim, -2);
-                AssassinState.addAssassinHearts(killer, 2);
-                if (after <= 0) {
+                var cfg = com.feel.gems.config.GemsBalance.v().systems();
+                int loss = cfg.assassinVsAssassinVictimHeartsLoss();
+                int gain = cfg.assassinVsAssassinKillerHeartsGain();
+                int after = AssassinState.addAssassinHearts(victim, -loss);
+                if (gain > 0) {
+                    AssassinState.addAssassinHearts(killer, gain);
+                }
+                if (AssassinState.isEliminatedByHearts(after)) {
                     AssassinState.setEliminated(victim, true);
                 }
             }
@@ -93,9 +99,9 @@ public abstract class ServerPlayerEntityDeathMixin {
 
         // Heart drop / conversion rules:
         if (!victimWasAssassin) {
-            if (victimAtFiveHearts) {
+            if (victimAtAssassinTrigger) {
                 AssassinState.becomeAssassin(victim);
-            } else if (!skipHeartDrop && victimHeartsBefore > GemPlayerState.MIN_MAX_HEARTS) {
+            } else if (!skipHeartDrop && victimHeartsBefore > GemPlayerState.minMaxHearts()) {
                 GemPlayerState.setMaxHearts(victim, victimHeartsBefore - 1);
                 ItemStack heart = new ItemStack(ModItems.HEART);
                 AbilityRuntime.setOwnerIfMissing(heart, victim.getUuid());

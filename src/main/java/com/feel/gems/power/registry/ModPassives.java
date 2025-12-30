@@ -289,6 +289,19 @@ public final class ModPassives {
                 "Illager Discipline",
                 "When you drop low, gain a brief burst of Resistance (cooldown)."
         ));
+        register(AutoEnchantPassive.quickCharge(
+                PowerIds.PILLAGER_CROSSBOW_MASTERY,
+                "Crossbow Mastery",
+                "Automatically applies Quick Charge to crossbows.",
+                2
+        ));
+        register(new StatusEffectPassive(
+                PowerIds.PILLAGER_RAIDER_STRIDE,
+                "Raider's Stride",
+                "Permanent minor Speed while the gem is active.",
+                StatusEffects.SPEED,
+                0
+        ));
 
         // Spy/Mimic
         register(new MarkerPassive(

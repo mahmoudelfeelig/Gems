@@ -1,7 +1,10 @@
 package com.feel.gems.client.modmenu;
 
+import com.feel.gems.client.GemsClientConfig;
+import com.feel.gems.client.GemsClientConfigManager;
 import com.feel.gems.config.GemsBalanceConfig;
 import com.feel.gems.config.GemsConfigManager;
+import com.feel.gems.net.ClientPassiveTogglePayload;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -13,6 +16,7 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.CyclingButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 
 
@@ -25,6 +29,8 @@ public final class GemsConfigScreen extends Screen {
     private GemsBalanceConfig cfg;
     private String loadError = null;
     private boolean canEdit = false;
+    private GemsClientConfig clientCfg;
+    private boolean clientDirty = false;
 
     private Section section = Section.VISUAL;
     private boolean dirty = false;
@@ -54,6 +60,8 @@ public final class GemsConfigScreen extends Screen {
         this.dirty = false;
         this.scrollPx = 0;
         this.canEdit = canEditConfig();
+        this.clientCfg = GemsClientConfigManager.loadOrCreate();
+        this.clientDirty = false;
         this.validation.reset();
     }
 
@@ -97,6 +105,12 @@ public final class GemsConfigScreen extends Screen {
         validation.reset();
 
         switch (section) {
+            case CLIENT -> {
+                y = addClientBoolRow("Enable gem passives", y, labelX, labelW, fieldX, fieldW, () -> clientCfg.passivesEnabled, v -> clientCfg.passivesEnabled = v);
+                logicalY += ROW_H;
+                y = addClientControlModeRow("Control mode", y, labelX, labelW, fieldX, fieldW, () -> clientCfg.controlMode, v -> clientCfg.controlMode = v);
+                logicalY += ROW_H;
+            }
             case VISUAL -> {
                 y = addBoolRow("Enable particles", y, labelX, labelW, fieldX, fieldW, () -> cfg.visual.enableParticles, v -> cfg.visual.enableParticles = v);
                 logicalY += ROW_H;
@@ -109,6 +123,26 @@ public final class GemsConfigScreen extends Screen {
                 y = addIntRow("Max beam steps", y, labelX, labelW, fieldX, fieldW, () -> cfg.visual.maxBeamSteps, v -> cfg.visual.maxBeamSteps = v, 0, 2048);
                 logicalY += ROW_H;
                 y = addIntRow("Max ring points", y, labelX, labelW, fieldX, fieldW, () -> cfg.visual.maxRingPoints, v -> cfg.visual.maxRingPoints = v, 0, 2048);
+                logicalY += ROW_H;
+            }
+            case SYSTEMS -> {
+                y = addIntRow("Min max hearts", y, labelX, labelW, fieldX, fieldW, () -> cfg.systems.minMaxHearts, v -> cfg.systems.minMaxHearts = v, 1, 20);
+                logicalY += ROW_H;
+                y = addIntRow("Assassin trigger hearts", y, labelX, labelW, fieldX, fieldW, () -> cfg.systems.assassinTriggerHearts, v -> cfg.systems.assassinTriggerHearts = v, 1, 20);
+                logicalY += ROW_H;
+                y = addIntRow("Assassin max hearts", y, labelX, labelW, fieldX, fieldW, () -> cfg.systems.assassinMaxHearts, v -> cfg.systems.assassinMaxHearts = v, 1, 20);
+                logicalY += ROW_H;
+                y = addIntRow("Assassin elimination hearts threshold", y, labelX, labelW, fieldX, fieldW, () -> cfg.systems.assassinEliminationHeartsThreshold, v -> cfg.systems.assassinEliminationHeartsThreshold = v, 0, 20);
+                logicalY += ROW_H;
+                y = addIntRow("Assassin vs assassin victim hearts loss", y, labelX, labelW, fieldX, fieldW, () -> cfg.systems.assassinVsAssassinVictimHeartsLoss, v -> cfg.systems.assassinVsAssassinVictimHeartsLoss = v, 0, 20);
+                logicalY += ROW_H;
+                y = addIntRow("Assassin vs assassin killer hearts gain", y, labelX, labelW, fieldX, fieldW, () -> cfg.systems.assassinVsAssassinKillerHeartsGain, v -> cfg.systems.assassinVsAssassinKillerHeartsGain = v, 0, 20);
+                logicalY += ROW_H;
+                y = addDoubleRow("Controlled follow start blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.systems.controlledFollowStartBlocks, v -> cfg.systems.controlledFollowStartBlocks = v, 0.0D, 128.0D);
+                logicalY += ROW_H;
+                y = addDoubleRow("Controlled follow stop blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.systems.controlledFollowStopBlocks, v -> cfg.systems.controlledFollowStopBlocks = v, 0.0D, 128.0D);
+                logicalY += ROW_H;
+                y = addDoubleRow("Controlled follow speed", y, labelX, labelW, fieldX, fieldW, () -> cfg.systems.controlledFollowSpeed, v -> cfg.systems.controlledFollowSpeed = v, 0.0D, 3.0D);
                 logicalY += ROW_H;
             }
             case ASTRA -> {
@@ -164,6 +198,14 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += ROW_H;
                 y = addIntRow("Tag duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.astra.tagDurationSeconds, v -> cfg.astra.tagDurationSeconds = v, 0, 120);
                 logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addFloatRow("Soul healing (hearts)", y, labelX, labelW, fieldX, fieldW, () -> cfg.astra.soulHealingHearts, v -> cfg.astra.soulHealingHearts = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addDoubleRow("Soul release forward blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.astra.soulReleaseForwardBlocks, v -> cfg.astra.soulReleaseForwardBlocks = v, 0.0D, 32.0D);
+                logicalY += ROW_H;
+                y = addDoubleRow("Soul release up blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.astra.soulReleaseUpBlocks, v -> cfg.astra.soulReleaseUpBlocks = v, 0.0D, 16.0D);
+                logicalY += ROW_H;
             }
             case FIRE -> {
                 y = addIntRow("Cosy Campfire cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.fire.cosyCampfireCooldownSeconds, v -> cfg.fire.cosyCampfireCooldownSeconds = v, 0, 3600);
@@ -200,9 +242,11 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += 8;
                 y = addIntRow("Meteor Shower cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.fire.meteorShowerCooldownSeconds, v -> cfg.fire.meteorShowerCooldownSeconds = v, 0, 3600);
                 logicalY += ROW_H;
+                y = addIntRow("Meteor Shower target range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.fire.meteorShowerTargetRangeBlocks, v -> cfg.fire.meteorShowerTargetRangeBlocks = v, 1, 128);
+                logicalY += ROW_H;
                 y = addIntRow("Meteor Shower count", y, labelX, labelW, fieldX, fieldW, () -> cfg.fire.meteorShowerCount, v -> cfg.fire.meteorShowerCount = v, 0, 50);
                 logicalY += ROW_H;
-                y = addIntRow("Meteor Shower spread blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.fire.meteorShowerSpreadBlocks, v -> cfg.fire.meteorShowerSpreadBlocks = v, 0, 48);
+                y = addIntRow("Meteor Shower line length blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.fire.meteorShowerSpreadBlocks, v -> cfg.fire.meteorShowerSpreadBlocks = v, 0, 48);
                 logicalY += ROW_H;
                 y = addIntRow("Meteor Shower height blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.fire.meteorShowerHeightBlocks, v -> cfg.fire.meteorShowerHeightBlocks = v, 1, 256);
                 logicalY += ROW_H;
@@ -281,6 +325,14 @@ public final class GemsConfigScreen extends Screen {
                 y = addIntRow("Health Drain range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.life.healthDrainRangeBlocks, v -> cfg.life.healthDrainRangeBlocks = v, 0, 128);
                 logicalY += ROW_H;
                 y = addFloatRow("Health Drain amount", y, labelX, labelW, fieldX, fieldW, () -> cfg.life.healthDrainAmount, v -> cfg.life.healthDrainAmount = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Life Swap cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.life.lifeSwapCooldownSeconds, v -> cfg.life.lifeSwapCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Life Swap range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.life.lifeSwapRangeBlocks, v -> cfg.life.lifeSwapRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = addFloatRow("Life Swap min hearts", y, labelX, labelW, fieldX, fieldW, () -> cfg.life.lifeSwapMinHearts, v -> cfg.life.lifeSwapMinHearts = v, 1.0F, 20.0F);
                 logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;
@@ -438,6 +490,614 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += ROW_H;
                 y = addIntRow("Rich Rush duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.wealth.richRushDurationSeconds, v -> cfg.wealth.richRushDurationSeconds = v, 0, 24 * 3600);
                 logicalY += ROW_H;
+                y = addIntRow("Pockets rows", y, labelX, labelW, fieldX, fieldW, () -> cfg.wealth.pocketsRows, v -> cfg.wealth.pocketsRows = v, 1, 6);
+                logicalY += ROW_H;
+            }
+            case TERROR -> {
+                y = addIntRow("Dread Aura radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.dreadAuraRadiusBlocks, v -> cfg.terror.dreadAuraRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addIntRow("Dread Aura amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.dreadAuraAmplifier, v -> cfg.terror.dreadAuraAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Blood Price duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.bloodPriceDurationSeconds, v -> cfg.terror.bloodPriceDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Blood Price strength amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.bloodPriceStrengthAmplifier, v -> cfg.terror.bloodPriceStrengthAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Blood Price resistance amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.bloodPriceResistanceAmplifier, v -> cfg.terror.bloodPriceResistanceAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Terror Trade cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.terrorTradeCooldownSeconds, v -> cfg.terror.terrorTradeCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Terror Trade range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.terrorTradeRangeBlocks, v -> cfg.terror.terrorTradeRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = addIntRow("Terror Trade max uses", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.terrorTradeMaxUses, v -> cfg.terror.terrorTradeMaxUses = v, 0, 20);
+                logicalY += ROW_H;
+                y = addIntRow("Terror Trade hearts cost", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.terrorTradeHeartsCost, v -> cfg.terror.terrorTradeHeartsCost = v, 0, 20);
+                logicalY += ROW_H;
+                y = addIntRow("Terror Trade permanent energy penalty", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.terrorTradePermanentEnergyPenalty, v -> cfg.terror.terrorTradePermanentEnergyPenalty = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Terror Trade normal target hearts penalty", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.terrorTradeNormalTargetHeartsPenalty, v -> cfg.terror.terrorTradeNormalTargetHeartsPenalty = v, 0, 20);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Panic Ring cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.panicRingCooldownSeconds, v -> cfg.terror.panicRingCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Panic Ring TNT count", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.panicRingTntCount, v -> cfg.terror.panicRingTntCount = v, 0, 50);
+                logicalY += ROW_H;
+                y = addIntRow("Panic Ring fuse ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.panicRingFuseTicks, v -> cfg.terror.panicRingFuseTicks = v, 0, 200);
+                logicalY += ROW_H;
+                y = addDoubleRow("Panic Ring radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.panicRingRadiusBlocks, v -> cfg.terror.panicRingRadiusBlocks = v, 0.0D, 8.0D);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Rig cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.rigCooldownSeconds, v -> cfg.terror.rigCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Rig range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.rigRangeBlocks, v -> cfg.terror.rigRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = addIntRow("Rig duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.rigDurationSeconds, v -> cfg.terror.rigDurationSeconds = v, 0, 600);
+                logicalY += ROW_H;
+                y = addIntRow("Rig fuse ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.rigFuseTicks, v -> cfg.terror.rigFuseTicks = v, 0, 200);
+                logicalY += ROW_H;
+                y = addIntRow("Rig TNT count", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.rigTntCount, v -> cfg.terror.rigTntCount = v, 0, 50);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Remote Charge arm window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.remoteChargeArmWindowSeconds, v -> cfg.terror.remoteChargeArmWindowSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Remote Charge detonate window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.remoteChargeDetonateWindowSeconds, v -> cfg.terror.remoteChargeDetonateWindowSeconds = v, 0, 600);
+                logicalY += ROW_H;
+                y = addIntRow("Remote Charge fuse ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.remoteChargeFuseTicks, v -> cfg.terror.remoteChargeFuseTicks = v, 0, 200);
+                logicalY += ROW_H;
+                y = addIntRow("Remote Charge cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.remoteChargeCooldownSeconds, v -> cfg.terror.remoteChargeCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Breach Charge cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.breachChargeCooldownSeconds, v -> cfg.terror.breachChargeCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Breach Charge range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.breachChargeRangeBlocks, v -> cfg.terror.breachChargeRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = addIntRow("Breach Charge fuse ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.breachChargeFuseTicks, v -> cfg.terror.breachChargeFuseTicks = v, 0, 200);
+                logicalY += ROW_H;
+                y = addFloatRow("Breach Charge explosion power", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.breachChargeExplosionPower, v -> cfg.terror.breachChargeExplosionPower = v, 0.1F, 10.0F);
+                logicalY += ROW_H;
+            }
+            case SUMMONER -> {
+                y = addIntRow("Summon point cap", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.maxPoints, v -> cfg.summoner.maxPoints = v, 0, 200);
+                logicalY += ROW_H;
+                y = addIntRow("Max active summons", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.maxActiveSummons, v -> cfg.summoner.maxActiveSummons = v, 0, 200);
+                logicalY += ROW_H;
+                y = addIntRow("Summon lifetime seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.summonLifetimeSeconds, v -> cfg.summoner.summonLifetimeSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Command range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.commandRangeBlocks, v -> cfg.summoner.commandRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = addIntRow("Summon cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.summonSlotCooldownSeconds, v -> cfg.summoner.summonSlotCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Recall cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.recallCooldownSeconds, v -> cfg.summoner.recallCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Commander's Mark duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.commandersMarkDurationSeconds, v -> cfg.summoner.commandersMarkDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Commander's Mark strength amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.commandersMarkStrengthAmplifier, v -> cfg.summoner.commandersMarkStrengthAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addFloatRow("Summon bonus health", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.summonBonusHealth, v -> cfg.summoner.summonBonusHealth = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addDoubleRow("Summon spawn forward blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.summonSpawnForwardBlocks, v -> cfg.summoner.summonSpawnForwardBlocks = v, 0.0D, 16.0D);
+                logicalY += ROW_H;
+                y = addDoubleRow("Summon spawn up blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.summonSpawnUpBlocks, v -> cfg.summoner.summonSpawnUpBlocks = v, 0.0D, 8.0D);
+                logicalY += ROW_H;
+                y = addDoubleRow("Summon spawn ring base blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.summonSpawnRingBaseBlocks, v -> cfg.summoner.summonSpawnRingBaseBlocks = v, 0.0D, 4.0D);
+                logicalY += ROW_H;
+                y = addDoubleRow("Summon spawn ring step blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.summonSpawnRingStepBlocks, v -> cfg.summoner.summonSpawnRingStepBlocks = v, 0.0D, 4.0D);
+                logicalY += ROW_H;
+                y = addIntRow("Summon spawn ring layers", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.summonSpawnRingLayers, v -> cfg.summoner.summonSpawnRingLayers = v, 1, 8);
+                logicalY += ROW_H;
+                y = addIntRow("Summon spawn ring segments", y, labelX, labelW, fieldX, fieldW, () -> cfg.summoner.summonSpawnRingSegments, v -> cfg.summoner.summonSpawnRingSegments = v, 1, 16);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addNoteRow("Edit summon costs/loadouts in balance.json", y, labelX, labelW);
+                logicalY += ROW_H;
+                y = addNoteRow("Edit mob blacklist in balance.json", y, labelX, labelW);
+                logicalY += ROW_H;
+            }
+            case SPACE -> {
+                y = addFloatRow("Lunar min multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.lunarMinMultiplier, v -> cfg.space.lunarMinMultiplier = v, 0.1F, 5.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Lunar max multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.lunarMaxMultiplier, v -> cfg.space.lunarMaxMultiplier = v, 0.1F, 5.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Starshield projectile damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.starshieldProjectileDamageMultiplier, v -> cfg.space.starshieldProjectileDamageMultiplier = v, 0.1F, 2.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Orbital Laser cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.orbitalLaserCooldownSeconds, v -> cfg.space.orbitalLaserCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Orbital Laser range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.orbitalLaserRangeBlocks, v -> cfg.space.orbitalLaserRangeBlocks = v, 0, 256);
+                logicalY += ROW_H;
+                y = addIntRow("Orbital Laser delay seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.orbitalLaserDelaySeconds, v -> cfg.space.orbitalLaserDelaySeconds = v, 0, 20);
+                logicalY += ROW_H;
+                y = addIntRow("Orbital Laser radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.orbitalLaserRadiusBlocks, v -> cfg.space.orbitalLaserRadiusBlocks = v, 0, 32);
+                logicalY += ROW_H;
+                y = addFloatRow("Orbital Laser damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.orbitalLaserDamage, v -> cfg.space.orbitalLaserDamage = v, 0.0F, 80.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Orbital Laser mining radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.orbitalLaserMiningRadiusBlocks, v -> cfg.space.orbitalLaserMiningRadiusBlocks = v, 0, 8);
+                logicalY += ROW_H;
+                y = addFloatRow("Orbital Laser mining hardness cap", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.orbitalLaserMiningHardnessCap, v -> cfg.space.orbitalLaserMiningHardnessCap = v, 0.0F, 300.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Orbital Laser mining max blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.orbitalLaserMiningMaxBlocks, v -> cfg.space.orbitalLaserMiningMaxBlocks = v, 0, 512);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Gravity Field cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.gravityFieldCooldownSeconds, v -> cfg.space.gravityFieldCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Gravity Field duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.gravityFieldDurationSeconds, v -> cfg.space.gravityFieldDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Gravity Field radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.gravityFieldRadiusBlocks, v -> cfg.space.gravityFieldRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addFloatRow("Gravity Field ally gravity multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.gravityFieldAllyGravityMultiplier, v -> cfg.space.gravityFieldAllyGravityMultiplier = v, 0.1F, 2.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Gravity Field enemy gravity multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.gravityFieldEnemyGravityMultiplier, v -> cfg.space.gravityFieldEnemyGravityMultiplier = v, 0.1F, 2.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Black Hole cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.blackHoleCooldownSeconds, v -> cfg.space.blackHoleCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Black Hole duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.blackHoleDurationSeconds, v -> cfg.space.blackHoleDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Black Hole radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.blackHoleRadiusBlocks, v -> cfg.space.blackHoleRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addFloatRow("Black Hole pull strength", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.blackHolePullStrength, v -> cfg.space.blackHolePullStrength = v, 0.0F, 2.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Black Hole damage per second", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.blackHoleDamagePerSecond, v -> cfg.space.blackHoleDamagePerSecond = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("White Hole cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.whiteHoleCooldownSeconds, v -> cfg.space.whiteHoleCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("White Hole duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.whiteHoleDurationSeconds, v -> cfg.space.whiteHoleDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("White Hole radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.whiteHoleRadiusBlocks, v -> cfg.space.whiteHoleRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addFloatRow("White Hole push strength", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.whiteHolePushStrength, v -> cfg.space.whiteHolePushStrength = v, 0.0F, 2.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("White Hole damage per second", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.whiteHoleDamagePerSecond, v -> cfg.space.whiteHoleDamagePerSecond = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+            }
+            case REAPER -> {
+                y = addFloatRow("Undead Ward damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.undeadWardDamageMultiplier, v -> cfg.reaper.undeadWardDamageMultiplier = v, 0.1F, 2.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Harvest regen duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.harvestRegenDurationSeconds, v -> cfg.reaper.harvestRegenDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Harvest regen amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.harvestRegenAmplifier, v -> cfg.reaper.harvestRegenAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Grave Steed cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.graveSteedCooldownSeconds, v -> cfg.reaper.graveSteedCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Grave Steed duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.graveSteedDurationSeconds, v -> cfg.reaper.graveSteedDurationSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addFloatRow("Grave Steed decay damage/sec", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.graveSteedDecayDamagePerSecond, v -> cfg.reaper.graveSteedDecayDamagePerSecond = v, 0.0F, 20.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Withering Strikes cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.witheringStrikesCooldownSeconds, v -> cfg.reaper.witheringStrikesCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Withering Strikes duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.witheringStrikesDurationSeconds, v -> cfg.reaper.witheringStrikesDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Wither duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.witheringStrikesWitherDurationSeconds, v -> cfg.reaper.witheringStrikesWitherDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Wither amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.witheringStrikesWitherAmplifier, v -> cfg.reaper.witheringStrikesWitherAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Death Oath cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.deathOathCooldownSeconds, v -> cfg.reaper.deathOathCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Death Oath duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.deathOathDurationSeconds, v -> cfg.reaper.deathOathDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Death Oath range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.deathOathRangeBlocks, v -> cfg.reaper.deathOathRangeBlocks = v, 0, 256);
+                logicalY += ROW_H;
+                y = addFloatRow("Death Oath self damage/sec", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.deathOathSelfDamagePerSecond, v -> cfg.reaper.deathOathSelfDamagePerSecond = v, 0.0F, 20.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Death Oath bonus damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.deathOathBonusDamage, v -> cfg.reaper.deathOathBonusDamage = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Retribution cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.retributionCooldownSeconds, v -> cfg.reaper.retributionCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Retribution duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.retributionDurationSeconds, v -> cfg.reaper.retributionDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addFloatRow("Retribution damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.retributionDamageMultiplier, v -> cfg.reaper.retributionDamageMultiplier = v, 0.0F, 5.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Scythe Sweep cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.scytheSweepCooldownSeconds, v -> cfg.reaper.scytheSweepCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Scythe Sweep range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.scytheSweepRangeBlocks, v -> cfg.reaper.scytheSweepRangeBlocks = v, 0, 16);
+                logicalY += ROW_H;
+                y = addIntRow("Scythe Sweep arc degrees", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.scytheSweepArcDegrees, v -> cfg.reaper.scytheSweepArcDegrees = v, 0, 180);
+                logicalY += ROW_H;
+                y = addFloatRow("Scythe Sweep damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.scytheSweepDamage, v -> cfg.reaper.scytheSweepDamage = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addDoubleRow("Scythe Sweep knockback", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.scytheSweepKnockback, v -> cfg.reaper.scytheSweepKnockback = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Blood Charge cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.bloodChargeCooldownSeconds, v -> cfg.reaper.bloodChargeCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Blood Charge max charge seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.bloodChargeMaxChargeSeconds, v -> cfg.reaper.bloodChargeMaxChargeSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addFloatRow("Blood Charge self damage/sec", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.bloodChargeSelfDamagePerSecond, v -> cfg.reaper.bloodChargeSelfDamagePerSecond = v, 0.0F, 20.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Blood Charge max multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.bloodChargeMaxMultiplier, v -> cfg.reaper.bloodChargeMaxMultiplier = v, 0.0F, 5.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Blood Charge buff duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.bloodChargeBuffDurationSeconds, v -> cfg.reaper.bloodChargeBuffDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Shadow Clone cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.shadowCloneCooldownSeconds, v -> cfg.reaper.shadowCloneCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Shadow Clone duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.shadowCloneDurationSeconds, v -> cfg.reaper.shadowCloneDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addFloatRow("Shadow Clone max health", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.shadowCloneMaxHealth, v -> cfg.reaper.shadowCloneMaxHealth = v, 0.0F, 200.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Shadow Clone count", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.shadowCloneCount, v -> cfg.reaper.shadowCloneCount = v, 0, 50);
+                logicalY += ROW_H;
+                y = addStringRow("Shadow Clone entity id", y, labelX, labelW, fieldX, fieldW, () -> cfg.reaper.shadowCloneEntityId, v -> cfg.reaper.shadowCloneEntityId = v);
+                logicalY += ROW_H;
+            }
+            case PILLAGER -> {
+                y = addFloatRow("Raiders Training velocity multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.raidersTrainingProjectileVelocityMultiplier, v -> cfg.pillager.raidersTrainingProjectileVelocityMultiplier = v, 0.1F, 3.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Shieldbreaker disable cooldown ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.shieldbreakerDisableCooldownTicks, v -> cfg.pillager.shieldbreakerDisableCooldownTicks = v, 0, 200);
+                logicalY += ROW_H;
+                y = addFloatRow("Illager Discipline threshold hearts", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.illagerDisciplineThresholdHearts, v -> cfg.pillager.illagerDisciplineThresholdHearts = v, 0.0F, 20.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Illager Discipline resistance duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.illagerDisciplineResistanceDurationSeconds, v -> cfg.pillager.illagerDisciplineResistanceDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Illager Discipline resistance amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.illagerDisciplineResistanceAmplifier, v -> cfg.pillager.illagerDisciplineResistanceAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Illager Discipline cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.illagerDisciplineCooldownSeconds, v -> cfg.pillager.illagerDisciplineCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Fangs cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.fangsCooldownSeconds, v -> cfg.pillager.fangsCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Fangs range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.fangsRangeBlocks, v -> cfg.pillager.fangsRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = addIntRow("Fangs count", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.fangsCount, v -> cfg.pillager.fangsCount = v, 0, 60);
+                logicalY += ROW_H;
+                y = addFloatRow("Fangs spacing blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.fangsSpacingBlocks, v -> cfg.pillager.fangsSpacingBlocks = v, 0.1F, 5.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Fangs warmup step ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.fangsWarmupStepTicks, v -> cfg.pillager.fangsWarmupStepTicks = v, 0, 20);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Ravage cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.ravageCooldownSeconds, v -> cfg.pillager.ravageCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Ravage range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.ravageRangeBlocks, v -> cfg.pillager.ravageRangeBlocks = v, 0, 32);
+                logicalY += ROW_H;
+                y = addFloatRow("Ravage damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.ravageDamage, v -> cfg.pillager.ravageDamage = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addDoubleRow("Ravage knockback", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.ravageKnockback, v -> cfg.pillager.ravageKnockback = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Vindicator Break cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.vindicatorBreakCooldownSeconds, v -> cfg.pillager.vindicatorBreakCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Vindicator Break duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.vindicatorBreakDurationSeconds, v -> cfg.pillager.vindicatorBreakDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Vindicator Break strength amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.vindicatorBreakStrengthAmplifier, v -> cfg.pillager.vindicatorBreakStrengthAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Vindicator Break shield disable ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.vindicatorBreakShieldDisableCooldownTicks, v -> cfg.pillager.vindicatorBreakShieldDisableCooldownTicks = v, 0, 200);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Volley cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.volleyCooldownSeconds, v -> cfg.pillager.volleyCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Volley duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.volleyDurationSeconds, v -> cfg.pillager.volleyDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Volley period ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.volleyPeriodTicks, v -> cfg.pillager.volleyPeriodTicks = v, 1, 40);
+                logicalY += ROW_H;
+                y = addIntRow("Volley arrows per shot", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.volleyArrowsPerShot, v -> cfg.pillager.volleyArrowsPerShot = v, 1, 10);
+                logicalY += ROW_H;
+                y = addFloatRow("Volley arrow damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.volleyArrowDamage, v -> cfg.pillager.volleyArrowDamage = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Volley arrow velocity", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.volleyArrowVelocity, v -> cfg.pillager.volleyArrowVelocity = v, 0.0F, 10.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Volley arrow inaccuracy", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.volleyArrowInaccuracy, v -> cfg.pillager.volleyArrowInaccuracy = v, 0.0F, 10.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Warhorn cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.warhornCooldownSeconds, v -> cfg.pillager.warhornCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Warhorn radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.warhornRadiusBlocks, v -> cfg.pillager.warhornRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addIntRow("Warhorn duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.warhornDurationSeconds, v -> cfg.pillager.warhornDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Warhorn ally speed amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.warhornAllySpeedAmplifier, v -> cfg.pillager.warhornAllySpeedAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Warhorn ally resistance amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.warhornAllyResistanceAmplifier, v -> cfg.pillager.warhornAllyResistanceAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Warhorn enemy slowness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.warhornEnemySlownessAmplifier, v -> cfg.pillager.warhornEnemySlownessAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Warhorn enemy weakness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.warhornEnemyWeaknessAmplifier, v -> cfg.pillager.warhornEnemyWeaknessAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Snare cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.snareCooldownSeconds, v -> cfg.pillager.snareCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Snare range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.snareRangeBlocks, v -> cfg.pillager.snareRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = addIntRow("Snare duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.snareDurationSeconds, v -> cfg.pillager.snareDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Snare slowness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.snareSlownessAmplifier, v -> cfg.pillager.snareSlownessAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+            }
+            case SPY_MIMIC -> {
+                y = addIntRow("Stillness seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.stillnessSeconds, v -> cfg.spyMimic.stillnessSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addFloatRow("Stillness move epsilon blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.stillnessMoveEpsilonBlocks, v -> cfg.spyMimic.stillnessMoveEpsilonBlocks = v, 0.0F, 1.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Stillness invis refresh seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.stillnessInvisRefreshSeconds, v -> cfg.spyMimic.stillnessInvisRefreshSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Backstep cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.backstepCooldownSeconds, v -> cfg.spyMimic.backstepCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addDoubleRow("Backstep velocity", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.backstepVelocity, v -> cfg.spyMimic.backstepVelocity = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
+                y = addDoubleRow("Backstep up velocity", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.backstepUpVelocity, v -> cfg.spyMimic.backstepUpVelocity = v, 0.0D, 2.0D);
+                logicalY += ROW_H;
+                y = addFloatRow("Backstab bonus damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.backstabBonusDamage, v -> cfg.spyMimic.backstabBonusDamage = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Backstab angle degrees", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.backstabAngleDegrees, v -> cfg.spyMimic.backstabAngleDegrees = v, 0, 180);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Observe range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.observeRangeBlocks, v -> cfg.spyMimic.observeRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = addIntRow("Observe window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.observeWindowSeconds, v -> cfg.spyMimic.observeWindowSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Steal required witness count", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.stealRequiredWitnessCount, v -> cfg.spyMimic.stealRequiredWitnessCount = v, 1, 20);
+                logicalY += ROW_H;
+                y = addIntRow("Max stolen abilities", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.maxStolenAbilities, v -> cfg.spyMimic.maxStolenAbilities = v, 1, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Mimic Form cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.mimicFormCooldownSeconds, v -> cfg.spyMimic.mimicFormCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Mimic Form duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.mimicFormDurationSeconds, v -> cfg.spyMimic.mimicFormDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addFloatRow("Mimic Form bonus max health", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.mimicFormBonusMaxHealth, v -> cfg.spyMimic.mimicFormBonusMaxHealth = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Mimic Form speed multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.mimicFormSpeedMultiplier, v -> cfg.spyMimic.mimicFormSpeedMultiplier = v, 0.1F, 3.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Echo cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.echoCooldownSeconds, v -> cfg.spyMimic.echoCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Echo window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.echoWindowSeconds, v -> cfg.spyMimic.echoWindowSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Steal cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.stealCooldownSeconds, v -> cfg.spyMimic.stealCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Smoke Bomb cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.smokeBombCooldownSeconds, v -> cfg.spyMimic.smokeBombCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Smoke Bomb radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.smokeBombRadiusBlocks, v -> cfg.spyMimic.smokeBombRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addIntRow("Smoke Bomb duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.smokeBombDurationSeconds, v -> cfg.spyMimic.smokeBombDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Smoke Bomb blindness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.smokeBombBlindnessAmplifier, v -> cfg.spyMimic.smokeBombBlindnessAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Smoke Bomb slowness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.smokeBombSlownessAmplifier, v -> cfg.spyMimic.smokeBombSlownessAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Stolen Cast cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.stolenCastCooldownSeconds, v -> cfg.spyMimic.stolenCastCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Skinshift cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.skinshiftCooldownSeconds, v -> cfg.spyMimic.skinshiftCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Skinshift duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.skinshiftDurationSeconds, v -> cfg.spyMimic.skinshiftDurationSeconds = v, 0, 600);
+                logicalY += ROW_H;
+                y = addIntRow("Skinshift range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.skinshiftRangeBlocks, v -> cfg.spyMimic.skinshiftRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+            }
+            case BEACON -> {
+                y = addIntRow("Core radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.coreRadiusBlocks, v -> cfg.beacon.coreRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addIntRow("Core pulse period seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.corePulsePeriodSeconds, v -> cfg.beacon.corePulsePeriodSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Core regen duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.coreRegenDurationSeconds, v -> cfg.beacon.coreRegenDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Core regen amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.coreRegenAmplifier, v -> cfg.beacon.coreRegenAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Stabilize radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.stabilizeRadiusBlocks, v -> cfg.beacon.stabilizeRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addIntRow("Stabilize reduce ticks/sec", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.stabilizeReduceTicksPerSecond, v -> cfg.beacon.stabilizeReduceTicksPerSecond = v, 0, 200);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Rally radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.rallyRadiusBlocks, v -> cfg.beacon.rallyRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addIntRow("Rally absorption hearts", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.rallyAbsorptionHearts, v -> cfg.beacon.rallyAbsorptionHearts = v, 0, 40);
+                logicalY += ROW_H;
+                y = addIntRow("Rally duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.rallyDurationSeconds, v -> cfg.beacon.rallyDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Aura cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.auraCooldownSeconds, v -> cfg.beacon.auraCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Aura duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.auraDurationSeconds, v -> cfg.beacon.auraDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Aura radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.auraRadiusBlocks, v -> cfg.beacon.auraRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addIntRow("Aura refresh seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.auraRefreshSeconds, v -> cfg.beacon.auraRefreshSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Aura speed amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.auraSpeedAmplifier, v -> cfg.beacon.auraSpeedAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Aura haste amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.auraHasteAmplifier, v -> cfg.beacon.auraHasteAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Aura resistance amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.auraResistanceAmplifier, v -> cfg.beacon.auraResistanceAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Aura jump amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.auraJumpAmplifier, v -> cfg.beacon.auraJumpAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Aura strength amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.auraStrengthAmplifier, v -> cfg.beacon.auraStrengthAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Aura regen amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.auraRegenAmplifier, v -> cfg.beacon.auraRegenAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+            }
+            case AIR -> {
+                y = addFloatRow("Aerial Guard fall damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.aerialGuardFallDamageMultiplier, v -> cfg.air.aerialGuardFallDamageMultiplier = v, 0.0F, 2.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Aerial Guard damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.aerialGuardDamageMultiplier, v -> cfg.air.aerialGuardDamageMultiplier = v, 0.0F, 2.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Aerial Guard knockback multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.aerialGuardKnockbackMultiplier, v -> cfg.air.aerialGuardKnockbackMultiplier = v, 0.0F, 2.0F);
+                logicalY += ROW_H;
+                y = addDoubleRow("Wind Shear knockback", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.windShearKnockback, v -> cfg.air.windShearKnockback = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
+                y = addIntRow("Wind Shear slowness duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.windShearSlownessDurationSeconds, v -> cfg.air.windShearSlownessDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Wind Shear slowness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.windShearSlownessAmplifier, v -> cfg.air.windShearSlownessAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Wind Jump cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.windJumpCooldownSeconds, v -> cfg.air.windJumpCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addDoubleRow("Wind Jump vertical velocity", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.windJumpVerticalVelocity, v -> cfg.air.windJumpVerticalVelocity = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
+                y = addDoubleRow("Wind Jump forward velocity", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.windJumpForwardVelocity, v -> cfg.air.windJumpForwardVelocity = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Gale Slam cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.galeSlamCooldownSeconds, v -> cfg.air.galeSlamCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Gale Slam window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.galeSlamWindowSeconds, v -> cfg.air.galeSlamWindowSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Gale Slam radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.galeSlamRadiusBlocks, v -> cfg.air.galeSlamRadiusBlocks = v, 0, 32);
+                logicalY += ROW_H;
+                y = addFloatRow("Gale Slam bonus damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.galeSlamBonusDamage, v -> cfg.air.galeSlamBonusDamage = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addDoubleRow("Gale Slam knockback", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.galeSlamKnockback, v -> cfg.air.galeSlamKnockback = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Crosswind cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.crosswindCooldownSeconds, v -> cfg.air.crosswindCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Crosswind range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.crosswindRangeBlocks, v -> cfg.air.crosswindRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = addIntRow("Crosswind radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.crosswindRadiusBlocks, v -> cfg.air.crosswindRadiusBlocks = v, 0, 32);
+                logicalY += ROW_H;
+                y = addFloatRow("Crosswind damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.crosswindDamage, v -> cfg.air.crosswindDamage = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addDoubleRow("Crosswind knockback", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.crosswindKnockback, v -> cfg.air.crosswindKnockback = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
+                y = addIntRow("Crosswind slowness duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.crosswindSlownessDurationSeconds, v -> cfg.air.crosswindSlownessDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Crosswind slowness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.crosswindSlownessAmplifier, v -> cfg.air.crosswindSlownessAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Dash cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.dashCooldownSeconds, v -> cfg.air.dashCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addDoubleRow("Dash velocity", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.dashVelocity, v -> cfg.air.dashVelocity = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
+                y = addDoubleRow("Dash up velocity", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.dashUpVelocity, v -> cfg.air.dashUpVelocity = v, 0.0D, 2.0D);
+                logicalY += ROW_H;
+                y = addIntRow("Dash I-frame duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.dashIFrameDurationSeconds, v -> cfg.air.dashIFrameDurationSeconds = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Dash I-frame resistance amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.dashIFrameResistanceAmplifier, v -> cfg.air.dashIFrameResistanceAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Air mace breach level", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.airMaceBreachLevel, v -> cfg.air.airMaceBreachLevel = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Air mace wind burst level", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.airMaceWindBurstLevel, v -> cfg.air.airMaceWindBurstLevel = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Air mace mending level", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.airMaceMendingLevel, v -> cfg.air.airMaceMendingLevel = v, 0, 1);
+                logicalY += ROW_H;
+                y = addIntRow("Air mace unbreaking level", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.airMaceUnbreakingLevel, v -> cfg.air.airMaceUnbreakingLevel = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Air mace fire aspect level", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.airMaceFireAspectLevel, v -> cfg.air.airMaceFireAspectLevel = v, 0, 10);
+                logicalY += ROW_H;
+            }
+            case LEGENDARY -> {
+                y = addIntRow("Legendary craft seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.craftSeconds, v -> cfg.legendary.craftSeconds = v, 0, 36000);
+                logicalY += ROW_H;
+                y = addIntRow("Legendary craft max per item (0 = unlimited)", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.craftMaxPerItem, v -> cfg.legendary.craftMaxPerItem = v, 0, 100);
+                logicalY += ROW_H;
+                y = addIntRow("Legendary craft max active per item (0 = unlimited)", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.craftMaxActivePerItem, v -> cfg.legendary.craftMaxActivePerItem = v, 0, 100);
+                logicalY += ROW_H;
+                y = addIntRow("Tracker refresh seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.trackerRefreshSeconds, v -> cfg.legendary.trackerRefreshSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Tracker max distance blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.trackerMaxDistanceBlocks, v -> cfg.legendary.trackerMaxDistanceBlocks = v, 0, 100000);
+                logicalY += ROW_H;
+                y = addIntRow("Recall cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.recallCooldownSeconds, v -> cfg.legendary.recallCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Hypno hold seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.hypnoHoldSeconds, v -> cfg.legendary.hypnoHoldSeconds = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Hypno range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.hypnoRangeBlocks, v -> cfg.legendary.hypnoRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = addIntRow("Hypno view range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.hypnoViewRangeBlocks, v -> cfg.legendary.hypnoViewRangeBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addFloatRow("Hypno heal hearts", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.hypnoHealHearts, v -> cfg.legendary.hypnoHealHearts = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Hypno max controlled", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.hypnoMaxControlled, v -> cfg.legendary.hypnoMaxControlled = v, 0, 50);
+                logicalY += ROW_H;
+                y = addIntRow("Hypno duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.hypnoDurationSeconds, v -> cfg.legendary.hypnoDurationSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Earthsplitter radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.earthsplitterRadiusBlocks, v -> cfg.legendary.earthsplitterRadiusBlocks = v, 0, 5);
+                logicalY += ROW_H;
+                y = addIntRow("Earthsplitter tunnel length blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.earthsplitterTunnelLengthBlocks, v -> cfg.legendary.earthsplitterTunnelLengthBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Blood Oath sharpness cap", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.bloodOathSharpnessCap, v -> cfg.legendary.bloodOathSharpnessCap = v, 0, 20);
+                logicalY += ROW_H;
+                y = addIntRow("Demolition cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.demolitionCooldownSeconds, v -> cfg.legendary.demolitionCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Demolition cooldown scale percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.demolitionCooldownScalePercent, v -> cfg.legendary.demolitionCooldownScalePercent = v, 0, 200);
+                logicalY += ROW_H;
+                y = addIntRow("Demolition fuse ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.demolitionFuseTicks, v -> cfg.legendary.demolitionFuseTicks = v, 0, 200);
+                logicalY += ROW_H;
+                y = addIntRow("Demolition range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.demolitionRangeBlocks, v -> cfg.legendary.demolitionRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = addFloatRow("Demolition explosion power", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.demolitionExplosionPower, v -> cfg.legendary.demolitionExplosionPower = v, 0.1F, 10.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Demolition TNT count", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.demolitionTntCount, v -> cfg.legendary.demolitionTntCount = v, 0, 50);
+                logicalY += ROW_H;
+                y = addIntRow("Hunter aim range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.hunterAimRangeBlocks, v -> cfg.legendary.hunterAimRangeBlocks = v, 0, 256);
+                logicalY += ROW_H;
+                y = addIntRow("Hunter aim timeout seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.hunterAimTimeoutSeconds, v -> cfg.legendary.hunterAimTimeoutSeconds = v, 0, 300);
+                logicalY += ROW_H;
+                y = addFloatRow("Hunter aim assist strength", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.hunterAimAssistStrength, v -> cfg.legendary.hunterAimAssistStrength = v, 0.0F, 3.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Third Strike window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.thirdStrikeWindowSeconds, v -> cfg.legendary.thirdStrikeWindowSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addFloatRow("Third Strike bonus damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.thirdStrikeBonusDamage, v -> cfg.legendary.thirdStrikeBonusDamage = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Vampiric heal amount", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.vampiricHealAmount, v -> cfg.legendary.vampiricHealAmount = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Supreme helmet night vision amp", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.supremeHelmetNightVisionAmplifier, v -> cfg.legendary.supremeHelmetNightVisionAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Supreme helmet water breathing amp", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.supremeHelmetWaterBreathingAmplifier, v -> cfg.legendary.supremeHelmetWaterBreathingAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Supreme chest strength amp", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.supremeChestStrengthAmplifier, v -> cfg.legendary.supremeChestStrengthAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Supreme leggings fire res amp", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.supremeLeggingsFireResAmplifier, v -> cfg.legendary.supremeLeggingsFireResAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Supreme boots speed amp", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.supremeBootsSpeedAmplifier, v -> cfg.legendary.supremeBootsSpeedAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Supreme set resistance amp", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.supremeSetResistanceAmplifier, v -> cfg.legendary.supremeSetResistanceAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addNoteRow("Edit recipe gem requirements in balance.json", y, labelX, labelW);
+                logicalY += ROW_H;
             }
         }
 
@@ -483,7 +1143,7 @@ public final class GemsConfigScreen extends Screen {
         ButtonWidget dumpButton = addDrawableChild(ButtonWidget.builder(Text.literal("Dump effective"), b -> ClientCommandSender.sendCommand("gems dumpBalance")).dimensions(footerX, footerY, 130, 20).build());
         ButtonWidget doneButton = addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> close()).dimensions(footerX + 136, footerY, 110, 20).build());
 
-        saveButton.active = canEdit && dirty && validation.isValid();
+        saveButton.active = (canEdit && dirty && validation.isValid()) || clientDirty;
         saveReloadButton.active = canEdit && dirty && validation.isValid();
         resetSectionButton.active = canEdit;
         resetAllButton.active = canEdit;
@@ -497,7 +1157,7 @@ public final class GemsConfigScreen extends Screen {
 
     private void updateButtonState() {
         if (saveButton != null) {
-            saveButton.active = canEdit && dirty && validation.isValid();
+            saveButton.active = (canEdit && dirty && validation.isValid()) || clientDirty;
         }
         if (saveReloadButton != null) {
             saveReloadButton.active = canEdit && dirty && validation.isValid();
@@ -505,23 +1165,41 @@ public final class GemsConfigScreen extends Screen {
     }
 
     private void save(boolean reload) {
-        if (!canEdit) {
+        boolean saveServer = dirty && canEdit && validation.isValid();
+        boolean saveClient = clientDirty;
+        if (!saveServer && !saveClient) {
             return;
         }
-        if (!validation.isValid()) {
-            return;
+        if (saveServer) {
+            GemsConfigManager.writeBalanceForUi(cfg);
+            dirty = false;
+            if (reload) {
+                ClientCommandSender.sendCommand("gems reloadBalance");
+            }
         }
-        GemsConfigManager.writeBalanceForUi(cfg);
-        dirty = false;
-        if (reload) {
-            ClientCommandSender.sendCommand("gems reloadBalance");
+        if (saveClient) {
+            GemsClientConfigManager.save(clientCfg);
+            sendPassiveToggle();
+            clientDirty = false;
         }
         rebuild();
     }
 
+    private void sendPassiveToggle() {
+        if (MinecraftClient.getInstance().getNetworkHandler() == null) {
+            return;
+        }
+        ClientPlayNetworking.send(new ClientPassiveTogglePayload(clientCfg.passivesEnabled));
+    }
+
     private void resetSection() {
         switch (section) {
+            case CLIENT -> {
+                clientCfg = new GemsClientConfig();
+                clientDirty = true;
+            }
             case VISUAL -> cfg.visual = new GemsBalanceConfig.Visual();
+            case SYSTEMS -> cfg.systems = new GemsBalanceConfig.Systems();
             case ASTRA -> cfg.astra = new GemsBalanceConfig.Astra();
             case FIRE -> cfg.fire = new GemsBalanceConfig.Fire();
             case FLUX -> cfg.flux = new GemsBalanceConfig.Flux();
@@ -530,8 +1208,19 @@ public final class GemsConfigScreen extends Screen {
             case SPEED -> cfg.speed = new GemsBalanceConfig.Speed();
             case STRENGTH -> cfg.strength = new GemsBalanceConfig.Strength();
             case WEALTH -> cfg.wealth = new GemsBalanceConfig.Wealth();
+            case TERROR -> cfg.terror = new GemsBalanceConfig.Terror();
+            case SUMMONER -> cfg.summoner = new GemsBalanceConfig.Summoner();
+            case SPACE -> cfg.space = new GemsBalanceConfig.Space();
+            case REAPER -> cfg.reaper = new GemsBalanceConfig.Reaper();
+            case PILLAGER -> cfg.pillager = new GemsBalanceConfig.Pillager();
+            case SPY_MIMIC -> cfg.spyMimic = new GemsBalanceConfig.SpyMimic();
+            case BEACON -> cfg.beacon = new GemsBalanceConfig.Beacon();
+            case AIR -> cfg.air = new GemsBalanceConfig.Air();
+            case LEGENDARY -> cfg.legendary = new GemsBalanceConfig.Legendary();
         }
-        dirty = true;
+        if (section != Section.CLIENT) {
+            dirty = true;
+        }
     }
 
     private static int spacer(int y) {
@@ -549,6 +1238,38 @@ public final class GemsConfigScreen extends Screen {
                     updateButtonState();
                 });
         btn.active = canEdit;
+        addDrawableChild(btn);
+        return y + ROW_H;
+    }
+
+    private int addClientBoolRow(String label, int y, int labelX, int labelW, int fieldX, int fieldW, Supplier<Boolean> getter, Consumer<Boolean> setter) {
+        addDrawableChild(ButtonWidget.builder(Text.literal(label), b -> {
+        }).dimensions(labelX, y, labelW, 20).build()).active = false;
+
+        CyclingButtonWidget<Boolean> btn = CyclingButtonWidget.onOffBuilder(getter.get())
+                .build(fieldX, y, fieldW, 20, Text.empty(), (b, v) -> {
+                    setter.accept(v);
+                    clientDirty = true;
+                    updateButtonState();
+                });
+        btn.active = true;
+        addDrawableChild(btn);
+        return y + ROW_H;
+    }
+
+	    private int addClientControlModeRow(String label, int y, int labelX, int labelW, int fieldX, int fieldW, Supplier<GemsClientConfig.ControlMode> getter, Consumer<GemsClientConfig.ControlMode> setter) {
+	        addDrawableChild(ButtonWidget.builder(Text.literal(label), b -> {
+	        }).dimensions(labelX, y, labelW, 20).build()).active = false;
+	
+	        CyclingButtonWidget<GemsClientConfig.ControlMode> btn = CyclingButtonWidget.<GemsClientConfig.ControlMode>builder(mode -> Text.literal(mode.name()))
+	                .values(java.util.Arrays.asList(GemsClientConfig.ControlMode.values()))
+	                .initially(getter.get())
+	                .build(fieldX, y, fieldW, 20, Text.empty(), (b, v) -> {
+	                    setter.accept(v);
+	                    clientDirty = true;
+	                    updateButtonState();
+                });
+        btn.active = true;
         addDrawableChild(btn);
         return y + ROW_H;
     }
@@ -571,6 +1292,27 @@ public final class GemsConfigScreen extends Screen {
             updateButtonState();
         });
         addDrawableChild(field);
+        return y + ROW_H;
+    }
+
+    private int addStringRow(String label, int y, int labelX, int labelW, int fieldX, int fieldW, Supplier<String> getter, Consumer<String> setter) {
+        addDrawableChild(ButtonWidget.builder(Text.literal(label), b -> {
+        }).dimensions(labelX, y, labelW, 20).build()).active = false;
+        TextFieldWidget field = new TextFieldWidget(this.textRenderer, fieldX, y, fieldW, 20, Text.empty());
+        field.setText(getter.get());
+        field.setEditable(canEdit);
+        field.setChangedListener(s -> {
+            setter.accept(s);
+            dirty = true;
+            updateButtonState();
+        });
+        addDrawableChild(field);
+        return y + ROW_H;
+    }
+
+    private int addNoteRow(String label, int y, int labelX, int labelW) {
+        addDrawableChild(ButtonWidget.builder(Text.literal(label), b -> {
+        }).dimensions(labelX, y, labelW, 20).build()).active = false;
         return y + ROW_H;
     }
 
@@ -715,7 +1457,9 @@ public final class GemsConfigScreen extends Screen {
     }
 
     private enum Section {
+        CLIENT("Client"),
         VISUAL("Visual"),
+        SYSTEMS("Systems"),
         ASTRA("Astra"),
         FIRE("Fire"),
         FLUX("Flux"),
@@ -723,7 +1467,16 @@ public final class GemsConfigScreen extends Screen {
         PUFF("Puff"),
         SPEED("Speed"),
         STRENGTH("Strength"),
-        WEALTH("Wealth");
+        WEALTH("Wealth"),
+        TERROR("Terror"),
+        SUMMONER("Summoner"),
+        SPACE("Space"),
+        REAPER("Reaper"),
+        PILLAGER("Pillager"),
+        SPY_MIMIC("Spy/Mimic"),
+        BEACON("Beacon"),
+        AIR("Air"),
+        LEGENDARY("Legendary");
 
         private final String label;
 
@@ -735,6 +1488,9 @@ public final class GemsConfigScreen extends Screen {
     private static GemsBalanceConfig normalize(GemsBalanceConfig cfg) {
         if (cfg.visual == null) {
             cfg.visual = new GemsBalanceConfig.Visual();
+        }
+        if (cfg.systems == null) {
+            cfg.systems = new GemsBalanceConfig.Systems();
         }
         if (cfg.fire == null) {
             cfg.fire = new GemsBalanceConfig.Fire();
@@ -759,6 +1515,30 @@ public final class GemsConfigScreen extends Screen {
         }
         if (cfg.wealth == null) {
             cfg.wealth = new GemsBalanceConfig.Wealth();
+        }
+        if (cfg.terror == null) {
+            cfg.terror = new GemsBalanceConfig.Terror();
+        }
+        if (cfg.summoner == null) {
+            cfg.summoner = new GemsBalanceConfig.Summoner();
+        }
+        if (cfg.space == null) {
+            cfg.space = new GemsBalanceConfig.Space();
+        }
+        if (cfg.reaper == null) {
+            cfg.reaper = new GemsBalanceConfig.Reaper();
+        }
+        if (cfg.pillager == null) {
+            cfg.pillager = new GemsBalanceConfig.Pillager();
+        }
+        if (cfg.spyMimic == null) {
+            cfg.spyMimic = new GemsBalanceConfig.SpyMimic();
+        }
+        if (cfg.beacon == null) {
+            cfg.beacon = new GemsBalanceConfig.Beacon();
+        }
+        if (cfg.air == null) {
+            cfg.air = new GemsBalanceConfig.Air();
         }
         if (cfg.legendary == null) {
             cfg.legendary = new GemsBalanceConfig.Legendary();

@@ -14,6 +14,7 @@ import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -26,6 +27,7 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.Registries;
@@ -49,6 +51,7 @@ public final class SpyMimicSystem {
 
     private static final String KEY_STOLEN = "spyStolen";
     private static final String KEY_STOLEN_SELECTED = "spyStolenSelected";
+    private static final String KEY_STOLEN_BY = "spyStolenBy";
 
     private static final String KEY_MIMIC_UNTIL = "spyMimicUntil";
     private static final String KEY_SKINSHIFT_UNTIL = "spySkinshiftUntil";
@@ -283,7 +286,8 @@ public final class SpyMimicSystem {
             ServerPlayerEntity victim = spy.getServer().getPlayerManager().getPlayer(casterUuid);
             if (victim != null && victim != spy) {
                 AbilityDisables.disable(victim, abilityId);
-                victim.sendMessage(Text.literal("One of your abilities was stolen! Switch gems to recover it."), false);
+                recordStolenFrom(victim, spy.getUuid(), abilityId);
+                victim.sendMessage(Text.literal("One of your abilities was stolen! Kill the thief or wait for them to switch gems to recover it."), false);
             }
         }
 
@@ -333,6 +337,23 @@ public final class SpyMimicSystem {
         ACTIVE_SPIES.remove(player.getUuid());
     }
 
+    public static void restoreStolenFromThief(ServerPlayerEntity thief) {
+        if (thief.getServer() == null) {
+            return;
+        }
+        UUID thiefId = thief.getUuid();
+        for (ServerPlayerEntity player : thief.getServer().getPlayerManager().getPlayerList()) {
+            restoreStolenBy(player, thiefId);
+        }
+    }
+
+    public static void restoreStolenOnKill(ServerPlayerEntity killer, ServerPlayerEntity victim) {
+        if (killer == null || victim == null) {
+            return;
+        }
+        restoreStolenBy(killer, victim.getUuid());
+    }
+
     public static void startMimicForm(ServerPlayerEntity player, int durationTicks) {
         Identifier lastKilled = lastKilledType(player);
         if (lastKilled == null) {
@@ -373,7 +394,7 @@ public final class SpyMimicSystem {
         long now = GemsTime.now(player);
         nbt.putLong(KEY_SKINSHIFT_UNTIL, now + durationTicks);
         nbt.putUuid(KEY_SKINSHIFT_TARGET, target.getUuid());
-        nbt.putString(KEY_SKINSHIFT_NAME, target.getName().getString());
+        nbt.putString(KEY_SKINSHIFT_NAME, target.getGameProfile().getName());
         syncSkinshift(player, target.getUuid());
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ILLUSIONER_PREPARE_MIRROR, 0.7F, 0.9F);
         player.sendMessage(Text.literal("Skinshift: " + target.getName().getString()), true);
@@ -597,13 +618,81 @@ public final class SpyMimicSystem {
         }
         ServerPlayerEntity online = server.getPlayerManager().getPlayer(target);
         if (online != null) {
-            return online.getName();
+            return Text.literal(online.getGameProfile().getName());
         }
         var profile = server.getUserCache().getByUuid(target).orElse(null);
         if (profile == null) {
             return null;
         }
         return Text.literal(profile.getName());
+    }
+
+    public static boolean isSkinshiftTarget(ServerPlayerEntity target) {
+        if (target == null || target.getServer() == null) {
+            return false;
+        }
+        UUID targetId = target.getUuid();
+        long now = GemsTime.now(target);
+        for (ServerPlayerEntity player : target.getServer().getPlayerManager().getPlayerList()) {
+            NbtCompound nbt = persistent(player);
+            if (!nbt.contains(KEY_SKINSHIFT_TARGET, NbtElement.INT_ARRAY_TYPE)) {
+                continue;
+            }
+            long until = nbt.getLong(KEY_SKINSHIFT_UNTIL);
+            if (until <= now) {
+                continue;
+            }
+            UUID candidate = nbt.getUuid(KEY_SKINSHIFT_TARGET);
+            if (targetId.equals(candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void recordStolenFrom(ServerPlayerEntity victim, UUID thief, Identifier abilityId) {
+        if (thief == null || abilityId == null) {
+            return;
+        }
+        NbtCompound root = persistent(victim);
+        NbtCompound stolenBy = root.getCompound(KEY_STOLEN_BY);
+        stolenBy.put(abilityId.toString(), NbtHelper.fromUuid(thief));
+        root.put(KEY_STOLEN_BY, stolenBy);
+    }
+
+    private static void restoreStolenBy(ServerPlayerEntity victim, UUID thief) {
+        if (thief == null) {
+            return;
+        }
+        NbtCompound root = persistent(victim);
+        if (!root.contains(KEY_STOLEN_BY, NbtElement.COMPOUND_TYPE)) {
+            return;
+        }
+        NbtCompound stolenBy = root.getCompound(KEY_STOLEN_BY);
+        boolean changed = false;
+        for (String key : java.util.List.copyOf(stolenBy.getKeys())) {
+            if (!stolenBy.contains(key, NbtElement.INT_ARRAY_TYPE)) {
+                continue;
+            }
+            UUID recorded = NbtHelper.toUuid(stolenBy.get(key));
+            if (!thief.equals(recorded)) {
+                continue;
+            }
+            Identifier abilityId = Identifier.tryParse(key);
+            if (abilityId != null) {
+                AbilityDisables.enable(victim, abilityId);
+            }
+            stolenBy.remove(key);
+            changed = true;
+        }
+        if (stolenBy.isEmpty()) {
+            root.remove(KEY_STOLEN_BY);
+        } else {
+            root.put(KEY_STOLEN_BY, stolenBy);
+        }
+        if (changed) {
+            victim.sendMessage(Text.literal("Recovered stolen abilities."), true);
+        }
     }
 
     private static NbtCompound persistent(ServerPlayerEntity player) {

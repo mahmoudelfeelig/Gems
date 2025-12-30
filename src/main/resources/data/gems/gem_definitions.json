@@ -56,6 +56,7 @@
       "abilities": [
         "gems:vitality_vortex",
         "gems:health_drain",
+        "gems:life_swap",
         "gems:life_circle",
         "gems:heart_lock"
       ]
@@ -197,13 +198,17 @@
       "passives": [
         "gems:pillager_raiders_training",
         "gems:pillager_shieldbreaker",
-        "gems:pillager_illager_discipline"
+        "gems:pillager_illager_discipline",
+        "gems:pillager_crossbow_mastery",
+        "gems:pillager_raider_stride"
       ],
       "abilities": [
         "gems:pillager_fangs",
         "gems:pillager_ravage",
         "gems:pillager_vindicator_break",
-        "gems:pillager_volley"
+        "gems:pillager_volley",
+        "gems:pillager_warhorn",
+        "gems:pillager_snare"
       ]
     },
     {

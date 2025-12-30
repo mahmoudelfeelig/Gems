@@ -5,7 +5,6 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.util.GemsTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -123,10 +122,10 @@ public final class LegendaryCrafting {
             return;
         }
         for (ActiveCraft craft : finished) {
-            state.active.remove(craft.id);
-            state.crafted.add(craft.id);
+            state.active.remove(craft.key);
+            state.addCrafted(craft.id);
             dropAtLocation(server, craft);
-            removeBossBar(craft.id);
+            removeBossBar(craft.key);
         }
         state.markDirty();
     }
@@ -264,7 +263,7 @@ public final class LegendaryCrafting {
             return;
         }
         data.putLong(KEY_BLOCKED_NOTIFY, now + 40);
-        player.sendMessage(Text.literal("That legendary item has already been crafted."), true);
+        player.sendMessage(Text.literal("That legendary item has reached its crafting limit."), true);
     }
 
     private static int seconds(int ticks) {
@@ -276,11 +275,11 @@ public final class LegendaryCrafting {
         return mgr.getOrCreate(STATE_TYPE, STATE_KEY);
     }
 
-    private record ActiveCraft(String id, UUID owner, long startTick, long finishTick, Identifier dimension, BlockPos pos) {
+    private record ActiveCraft(String key, String id, UUID owner, long startTick, long finishTick, Identifier dimension, BlockPos pos) {
     }
 
     private static final class State extends PersistentState {
-        private final Set<String> crafted = new HashSet<>();
+        private final Map<String, Integer> crafted = new HashMap<>();
         private final Map<String, ActiveCraft> active = new HashMap<>();
         private final Map<UUID, List<String>> pending = new HashMap<>();
 
@@ -289,7 +288,10 @@ public final class LegendaryCrafting {
             if (nbt.contains(KEY_CRAFTED, NbtElement.LIST_TYPE)) {
                 NbtList list = nbt.getList(KEY_CRAFTED, NbtElement.STRING_TYPE);
                 for (int i = 0; i < list.size(); i++) {
-                    state.crafted.add(list.getString(i));
+                    String id = list.getString(i);
+                    if (!id.isEmpty()) {
+                        state.crafted.put(id, state.crafted.getOrDefault(id, 0) + 1);
+                    }
                 }
             }
             if (nbt.contains(KEY_ACTIVE, NbtElement.LIST_TYPE)) {
@@ -309,7 +311,8 @@ public final class LegendaryCrafting {
                         continue;
                     }
                     if (!id.isEmpty()) {
-                        state.active.put(id, new ActiveCraft(id, owner, start, finish, dim, pos));
+                        String key = craftKey(id, owner, start);
+                        state.active.put(key, new ActiveCraft(key, id, owner, start, finish, dim, pos));
                     }
                 }
             }
@@ -337,8 +340,12 @@ public final class LegendaryCrafting {
         @Override
         public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
             NbtList craftedList = new NbtList();
-            for (String id : crafted) {
-                craftedList.add(NbtString.of(id));
+            for (Map.Entry<String, Integer> entry : crafted.entrySet()) {
+                String id = entry.getKey();
+                int count = entry.getValue() != null ? entry.getValue() : 0;
+                for (int i = 0; i < count; i++) {
+                    craftedList.add(NbtString.of(id));
+                }
             }
             nbt.put(KEY_CRAFTED, craftedList);
 
@@ -372,11 +379,47 @@ public final class LegendaryCrafting {
         }
 
         boolean isAvailable(String id) {
-            return !crafted.contains(id) && !active.containsKey(id);
+            int maxActive = GemsBalance.v().legendary().craftMaxActivePerItem();
+            if (maxActive > 0 && activeCount(id) >= maxActive) {
+                return false;
+            }
+            int maxPerItem = GemsBalance.v().legendary().craftMaxPerItem();
+            if (maxPerItem <= 0) {
+                return true;
+            }
+            return craftedCount(id) < maxPerItem;
         }
 
         void start(String id, UUID owner, long startTick, long finishTick, CraftLocation location) {
-            active.put(id, new ActiveCraft(id, owner, startTick, finishTick, location.dimension, location.pos));
+            String key = craftKey(id, owner, startTick);
+            active.put(key, new ActiveCraft(key, id, owner, startTick, finishTick, location.dimension, location.pos));
+        }
+
+        void addCrafted(String id) {
+            if (id == null || id.isEmpty()) {
+                return;
+            }
+            crafted.put(id, crafted.getOrDefault(id, 0) + 1);
+        }
+
+        int craftedCount(String id) {
+            if (id == null || id.isEmpty()) {
+                return 0;
+            }
+            return crafted.getOrDefault(id, 0);
+        }
+
+        int activeCount(String id) {
+            if (id == null || id.isEmpty()) {
+                return 0;
+            }
+            int count = 0;
+            for (ActiveCraft craft : active.values()) {
+                if (id.equals(craft.id)) {
+                    count++;
+                }
+            }
+            return count;
         }
 
         void addPending(UUID owner, String id) {
@@ -426,7 +469,7 @@ public final class LegendaryCrafting {
             return;
         }
         for (ActiveCraft craft : state.active.values()) {
-            net.minecraft.entity.boss.ServerBossBar bar = ACTIVE_BARS.computeIfAbsent(craft.id, key -> new net.minecraft.entity.boss.ServerBossBar(
+            net.minecraft.entity.boss.ServerBossBar bar = ACTIVE_BARS.computeIfAbsent(craft.key, key -> new net.minecraft.entity.boss.ServerBossBar(
                     Text.literal("Legendary Craft"),
                     net.minecraft.entity.boss.BossBar.Color.PURPLE,
                     net.minecraft.entity.boss.BossBar.Style.PROGRESS
@@ -447,27 +490,31 @@ public final class LegendaryCrafting {
             }
         }
         List<String> remove = new ArrayList<>();
-        for (String id : ACTIVE_BARS.keySet()) {
-            if (!state.active.containsKey(id)) {
-                remove.add(id);
+        for (String key : ACTIVE_BARS.keySet()) {
+            if (!state.active.containsKey(key)) {
+                remove.add(key);
             }
         }
-        for (String id : remove) {
-            removeBossBar(id);
+        for (String key : remove) {
+            removeBossBar(key);
         }
     }
 
     private static void clearBossBars() {
-        for (String id : new ArrayList<>(ACTIVE_BARS.keySet())) {
-            removeBossBar(id);
+        for (String key : new ArrayList<>(ACTIVE_BARS.keySet())) {
+            removeBossBar(key);
         }
     }
 
-    private static void removeBossBar(String id) {
-        net.minecraft.entity.boss.ServerBossBar bar = ACTIVE_BARS.remove(id);
+    private static void removeBossBar(String key) {
+        net.minecraft.entity.boss.ServerBossBar bar = ACTIVE_BARS.remove(key);
         if (bar == null) {
             return;
         }
         bar.clearPlayers();
+    }
+
+    private static String craftKey(String id, UUID owner, long startTick) {
+        return id + ":" + owner + ":" + startTick;
     }
 }

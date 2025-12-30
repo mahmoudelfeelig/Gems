@@ -46,6 +46,7 @@
     "MobEntitySoulTargetingMixin",
     "MobEntityHeartLockMixin",
     "MobEntitySummonerLifetimeMixin",
+    "SlimeEntitySummonNoSplitMixin",
     "WorldRiggedBlockUpdateMixin",
     "WitherEntitySoulTargetingMixin",
     "ServerPlayNetworkHandlerHotbarLockMixin",

@@ -633,7 +633,7 @@ public final class AbilityRuntime {
         player.removeStatusEffect(StatusEffects.INVISIBILITY);
         int amp = GemsBalance.v().speed().afterimageSpeedAmplifier();
         StatusEffectInstance speed = player.getStatusEffect(StatusEffects.SPEED);
-        if (speed != null && speed.getAmplifier() == amp) {
+        if (speed != null && speed.getAmplifier() == amp && !speed.isInfinite()) {
             player.removeStatusEffect(StatusEffects.SPEED);
         }
     }
@@ -762,8 +762,26 @@ public final class AbilityRuntime {
             }
 
             if (GemTrust.isTrusted(caster, other)) {
+                EntityAttributeInstance maxHealth = other.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+                double prevBonus = 0.0D;
+                if (maxHealth != null) {
+                    EntityAttributeModifier existing = maxHealth.getModifier(bonusId);
+                    if (existing != null) {
+                        prevBonus = existing.value();
+                    }
+                }
                 applyMaxHealthModifier(other, bonusId, deltaHealth);
                 removeMaxHealthModifier(other, penaltyId);
+                if (maxHealth != null) {
+                    double delta = deltaHealth - prevBonus;
+                    if (delta > 0.0D) {
+                        float newMax = (float) maxHealth.getValue();
+                        float newHealth = Math.min(newMax, other.getHealth() + (float) delta);
+                        if (newHealth > other.getHealth()) {
+                            other.setHealth(newHealth);
+                        }
+                    }
+                }
             } else {
                 applyMaxHealthModifier(other, penaltyId, -deltaHealth);
                 removeMaxHealthModifier(other, bonusId);

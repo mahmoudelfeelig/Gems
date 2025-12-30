@@ -105,7 +105,7 @@ public final class GemsGameTestUtil {
         var data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         data.putBoolean("assassinIsAssassin", false);
         data.putBoolean("assassinEliminated", false);
-        data.putInt("assassinHearts", AssassinState.ASSASSIN_MAX_HEARTS);
+        data.putInt("assassinHearts", AssassinState.maxHearts());
     }
 
     private static boolean isAirMace(ItemStack stack) {

@@ -46,6 +46,11 @@ public final class TerrorRemoteChargeAbility implements GemAbility {
             return false;
         }
 
+        if (TerrorRemoteChargeRuntime.isOnCooldown(player)) {
+            player.sendMessage(Text.literal("Remote charge is on cooldown."), true);
+            return false;
+        }
+
         if (!TerrorRemoteChargeRuntime.startArming(player)) {
             player.sendMessage(Text.literal("Remote charge is unavailable."), true);
             return false;

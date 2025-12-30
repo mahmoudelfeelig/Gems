@@ -54,6 +54,7 @@ public final class ModAbilities {
         // Life
         register(new VitalityVortexAbility());
         register(new HealthDrainAbility());
+        register(new LifeSwapAbility());
         register(new LifeCircleAbility());
         register(new HeartLockAbility());
 
@@ -120,6 +121,8 @@ public final class ModAbilities {
         register(new PillagerRavageAbility());
         register(new PillagerVindicatorBreakAbility());
         register(new PillagerVolleyAbility());
+        register(new PillagerWarhornAbility());
+        register(new PillagerSnareAbility());
 
         // Spy/Mimic
         register(new SpyMimicFormAbility());

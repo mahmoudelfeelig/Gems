@@ -29,9 +29,6 @@ public final class HypnoControl {
     private static final String TAG_OWNER_PREFIX = "gems_hypno_owner:";
     private static final String TAG_UNTIL_PREFIX = "gems_hypno_until:";
     private static final String KEY_HYPNO_MOBS = "legendaryHypnoMobs";
-    private static final double FOLLOW_START_SQ = 36.0D;
-    private static final double FOLLOW_STOP_SQ = 9.0D;
-    private static final double FOLLOW_SPEED = 1.1D;
 
     private HypnoControl() {
     }
@@ -52,6 +49,7 @@ public final class HypnoControl {
         int duration = GemsBalance.v().legendary().hypnoDurationTicks();
         mark(mob, owner.getUuid(), duration > 0 ? now + duration : 0L);
         track(owner, mob);
+        SummonerSummons.tuneControlledMob(mob);
         mob.setTarget(null);
         return true;
     }
@@ -143,6 +141,11 @@ public final class HypnoControl {
         if (server == null) {
             return;
         }
+        double followStart = GemsBalance.v().systems().controlledFollowStartBlocks();
+        double followStop = GemsBalance.v().systems().controlledFollowStopBlocks();
+        double followSpeed = GemsBalance.v().systems().controlledFollowSpeed();
+        double followStartSq = followStart * followStart;
+        double followStopSq = followStop * followStop;
         int rangeBlocks = GemsBalance.v().legendary().hypnoRangeBlocks();
         LivingEntity fallbackTarget = normalizeTarget(owner, LegendaryTargeting.findTarget(owner, rangeBlocks, 0), rangeBlocks);
         if (fallbackTarget == null) {
@@ -153,27 +156,37 @@ public final class HypnoControl {
             if (!(e instanceof MobEntity mob) || !mob.isAlive() || !isHypno(mob)) {
                 continue;
             }
+            SummonerSummons.refreshNetherMob(mob);
             if (mob.getWorld() != owner.getWorld()) {
                 continue;
             }
+            LivingEntity desiredTarget = fallbackTarget;
             LivingEntity currentTarget = mob.getTarget();
-            if (currentTarget != null && currentTarget.isAlive()) {
-                continue;
-            }
-            if (currentTarget != null && !currentTarget.isAlive()) {
+            LivingEntity normalizedTarget = normalizeTarget(owner, currentTarget, rangeBlocks);
+            if (currentTarget != null && (normalizedTarget == null || !currentTarget.isAlive())) {
                 mob.setTarget(null);
+                currentTarget = null;
+                normalizedTarget = null;
             }
-            if (mob.getAttacker() != null) {
-                continue;
+            if (normalizedTarget != null) {
+                if (desiredTarget != null && normalizedTarget.getUuid().equals(desiredTarget.getUuid())) {
+                    continue;
+                }
+                if (desiredTarget == null) {
+                    mob.setTarget(null);
+                } else {
+                    mob.setTarget(desiredTarget);
+                    continue;
+                }
             }
-            if (fallbackTarget != null && fallbackTarget.getWorld() == mob.getWorld()) {
-                mob.setTarget(fallbackTarget);
+            if (desiredTarget != null && desiredTarget.getWorld() == mob.getWorld()) {
+                mob.setTarget(desiredTarget);
                 continue;
             }
             double distSq = mob.squaredDistanceTo(owner);
-            if (distSq > FOLLOW_START_SQ) {
-                mob.getNavigation().startMovingTo(owner, FOLLOW_SPEED);
-            } else if (distSq < FOLLOW_STOP_SQ) {
+            if (distSq > followStartSq) {
+                mob.getNavigation().startMovingTo(owner, followSpeed);
+            } else if (distSq < followStopSq) {
                 mob.getNavigation().stop();
             }
         }

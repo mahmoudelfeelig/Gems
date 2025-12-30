@@ -26,7 +26,7 @@ public final class PocketsAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Opens a 9-slot extra inventory.";
+        return "Opens an extra inventory.";
     }
 
     @Override

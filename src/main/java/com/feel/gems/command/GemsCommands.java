@@ -133,7 +133,7 @@ public final class GemsCommands {
                                                         )))))
                                 .then(CommandManager.literal("setHearts")
                                         .then(CommandManager.argument("player", EntityArgumentType.player())
-                                                .then(CommandManager.argument("hearts", IntegerArgumentType.integer(GemPlayerState.MIN_MAX_HEARTS, GemPlayerState.MAX_MAX_HEARTS))
+                                                .then(CommandManager.argument("hearts", IntegerArgumentType.integer(GemPlayerState.minMaxHearts(), GemPlayerState.MAX_MAX_HEARTS))
                                                         .executes(ctx -> setHearts(
                                                                 ctx.getSource(),
                                                                 EntityArgumentType.getPlayer(ctx, "player"),
@@ -201,7 +201,8 @@ public final class GemsCommands {
         source.sendFeedback(() -> Text.literal("Gem: " + active.name()), false);
         source.sendFeedback(() -> Text.literal("Energy: " + energyState.tier().name() + " (" + energy + "/10)"), false);
         if (assassin) {
-            source.sendFeedback(() -> Text.literal("Assassin: YES (hearts=" + AssassinState.getAssassinHearts(player) + "/10, eliminated=" + AssassinState.isEliminated(player) + ")"), false);
+            int maxAssassinHearts = AssassinState.maxHearts();
+            source.sendFeedback(() -> Text.literal("Assassin: YES (hearts=" + AssassinState.getAssassinHearts(player) + "/" + maxAssassinHearts + ", eliminated=" + AssassinState.isEliminated(player) + ")"), false);
         } else {
             source.sendFeedback(() -> Text.literal("Assassin: no"), false);
         }

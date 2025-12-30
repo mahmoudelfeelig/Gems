@@ -48,7 +48,11 @@ public final class DemolitionBladeItem extends SwordItem implements LegendaryIte
         if (player.getItemCooldownManager().isCoolingDown(this)) {
             return TypedActionResult.success(stack);
         }
-        int cooldown = Math.max(1, GemsBalance.v().legendary().demolitionCooldownTicks() / 2);
+        int cooldown = GemsBalance.v().legendary().demolitionCooldownTicks();
+        int cooldownScale = GemsBalance.v().legendary().demolitionCooldownScalePercent();
+        if (cooldown > 0 && cooldownScale != 100) {
+            cooldown = Math.max(0, Math.round(cooldown * (cooldownScale / 100.0F)));
+        }
         if (cooldown > 0) {
             player.getItemCooldownManager().set(this, cooldown);
         }
@@ -69,7 +73,8 @@ public final class DemolitionBladeItem extends SwordItem implements LegendaryIte
             return TypedActionResult.success(stack);
         }
         int fuse = Math.max(1, GemsBalance.v().legendary().demolitionFuseTicks());
-        for (int i = 0; i < 3; i++) {
+        int tntCount = GemsBalance.v().legendary().demolitionTntCount();
+        for (int i = 0; i < tntCount; i++) {
             TntEntity tnt = new TntEntity(world, spawnPos.x, spawnPos.y, spawnPos.z, player);
             tnt.setFuse(fuse);
             world.spawnEntity(tnt);

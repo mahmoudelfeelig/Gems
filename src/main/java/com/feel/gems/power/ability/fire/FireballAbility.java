@@ -102,21 +102,35 @@ public final class FireballAbility implements GemAbility {
     }
 
     private static Text chargeBarText(int chargePercent) {
-        int filled = chargeBucket(chargePercent);
-        int empty = CHARGE_BAR_SEGMENTS - filled;
+        int clamped = Math.max(0, Math.min(100, chargePercent));
+        int filled = chargeBucket(clamped);
 
-        StringBuilder bar = new StringBuilder(CHARGE_BAR_SEGMENTS + 2);
-        bar.append('[');
-        for (int i = 0; i < filled; i++) {
-            bar.append('|');
+        Formatting fillColor;
+        if (clamped >= 100) {
+            fillColor = Formatting.GOLD;
+        } else if (clamped >= 67) {
+            fillColor = Formatting.GREEN;
+        } else if (clamped >= 34) {
+            fillColor = Formatting.YELLOW;
+        } else {
+            fillColor = Formatting.RED;
         }
-        for (int i = 0; i < empty; i++) {
-            bar.append('.');
-        }
-        bar.append(']');
 
-        return Text.literal("Fireball charge ").formatted(Formatting.GOLD)
-                .append(Text.literal(bar.toString()).formatted(Formatting.RED));
+        var bar = Text.literal("[");
+        for (int i = 0; i < CHARGE_BAR_SEGMENTS; i++) {
+            boolean on = i < filled;
+            bar.append(Text.literal(on ? "|" : ".").formatted(on ? fillColor : Formatting.DARK_GRAY));
+        }
+        bar.append(Text.literal("]"));
+
+        var percent = Text.literal(" " + clamped + "%").formatted(Formatting.GRAY);
+        var message = Text.literal("Fireball charge ").formatted(Formatting.GOLD)
+                .append(bar)
+                .append(percent);
+        if (clamped >= 100) {
+            message.append(Text.literal(" READY").formatted(Formatting.GOLD));
+        }
+        return message;
     }
 
     private static int computeCharge(ServerWorld world, ServerPlayerEntity player, long start, long now) {

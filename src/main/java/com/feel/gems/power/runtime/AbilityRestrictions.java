@@ -2,6 +2,7 @@ package com.feel.gems.power.runtime;
 
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.GemsTime;
+import com.feel.gems.power.runtime.GemPowers;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -31,6 +32,7 @@ public final class AbilityRestrictions {
             return;
         }
         persistent(player).putLong(KEY_SUPPRESSED_UNTIL, GemsTime.now(player) + durationTicks);
+        GemPowers.sync(player);
     }
 
     public static void stun(ServerPlayerEntity player, int durationTicks) {

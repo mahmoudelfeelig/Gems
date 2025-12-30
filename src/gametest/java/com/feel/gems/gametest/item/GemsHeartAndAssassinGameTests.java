@@ -117,7 +117,8 @@ public final class GemsHeartAndAssassinGameTests {
         GemPlayerState.setActiveGem(killer, GemId.FIRE);
         GemPlayerState.setActiveGem(victim, GemId.LIFE);
         GemsGameTestUtil.resetAssassinState(victim);
-        GemPlayerState.setMaxHearts(victim, GemPlayerState.MIN_MAX_HEARTS + 1);
+        int minHearts = GemPlayerState.minMaxHearts();
+        GemPlayerState.setMaxHearts(victim, minHearts + 1);
         GemPlayerState.applyMaxHearts(victim);
 
         context.runAtTick(2L, () -> {
@@ -142,7 +143,7 @@ public final class GemsHeartAndAssassinGameTests {
                 return;
             }
             int storedHearts = victimDataAfter.getInt("maxHearts");
-            if (storedHearts != GemPlayerState.MIN_MAX_HEARTS) {
+            if (storedHearts != GemPlayerState.minMaxHearts()) {
                 context.throwGameTestException("Victim hearts should clamp to floor after drop: " + storedHearts);
                 return;
             }
@@ -172,7 +173,8 @@ public final class GemsHeartAndAssassinGameTests {
         GemPlayerState.setActiveGem(killer, GemId.FIRE);
         GemPlayerState.setActiveGem(victim, GemId.LIFE);
         GemsGameTestUtil.resetAssassinState(victim);
-        GemPlayerState.setMaxHearts(victim, GemPlayerState.MIN_MAX_HEARTS);
+        int minHearts = GemPlayerState.minMaxHearts();
+        GemPlayerState.setMaxHearts(victim, minHearts);
         GemPlayerState.applyMaxHearts(victim);
 
         context.runAtTick(2L, () -> {
@@ -191,7 +193,7 @@ public final class GemsHeartAndAssassinGameTests {
             int heartsDropped = world.getEntitiesByClass(ItemEntity.class, new Box(pos, pos.add(1.0D, 1.0D, 1.0D)).expand(3.0D), e -> e.getStack().isOf(ModItems.HEART)).size();
             var victimDataAfter = ((com.feel.gems.state.GemsPersistentDataHolder) victim).gems$getPersistentData();
             if (heartsDropped != 0) {
-                context.throwGameTestException("No hearts should drop at the floor (5 hearts)");
+                context.throwGameTestException("No hearts should drop at the floor (" + GemPlayerState.minMaxHearts() + " hearts)");
                 return;
             }
             int invHearts = GemsGameTestUtil.countItem(killer, ModItems.HEART);
@@ -200,8 +202,9 @@ public final class GemsHeartAndAssassinGameTests {
                 return;
             }
             boolean becameAssassin = victimDataAfter.getBoolean("assassinIsAssassin");
+            int triggerHearts = Math.max(GemPlayerState.minMaxHearts(), GemsBalance.v().systems().assassinTriggerHearts());
             if (!becameAssassin) {
-                context.throwGameTestException("Victim at floor should be converted to assassin on death (storedMax=" + victimDataAfter.getInt("maxHearts") + " assassinHearts=" + victimDataAfter.getInt("assassinHearts") + ")");
+                context.throwGameTestException("Victim at " + triggerHearts + " hearts should be converted to assassin on death (storedMax=" + victimDataAfter.getInt("maxHearts") + " assassinHearts=" + victimDataAfter.getInt("assassinHearts") + ")");
                 return;
             }
             context.complete();

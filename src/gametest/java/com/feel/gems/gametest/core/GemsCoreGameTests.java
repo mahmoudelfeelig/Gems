@@ -145,8 +145,15 @@ public final class GemsCoreGameTests {
         AbilityDisables.disable(player, PowerIds.AIR_DASH);
         GemPlayerState.setActiveGem(player, GemId.FIRE);
         GemPlayerState.setActiveGem(player, GemId.AIR);
+        if (!AbilityDisables.isDisabled(player, PowerIds.AIR_DASH)) {
+            context.throwGameTestException("Ability disables should persist on gem switch (stolen abilities stay disabled until recovered)");
+            return;
+        }
+
+        // Simulate the victim recovering the stolen ability (e.g. thief switches gems / victim kills thief).
+        AbilityDisables.enable(player, PowerIds.AIR_DASH);
         if (AbilityDisables.isDisabled(player, PowerIds.AIR_DASH)) {
-            context.throwGameTestException("Ability disables should clear on gem switch");
+            context.throwGameTestException("Ability should be re-enabled after recovery");
             return;
         }
 

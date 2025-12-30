@@ -57,5 +57,27 @@ public final class AbilityDisables {
     public static void clear(ServerPlayerEntity player) {
         ((GemsPersistentDataHolder) player).gems$getPersistentData().remove(KEY_DISABLED);
     }
+
+    public static boolean enable(ServerPlayerEntity player, Identifier abilityId) {
+        NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        if (!root.contains(KEY_DISABLED, NbtElement.LIST_TYPE)) {
+            return false;
+        }
+        NbtList list = root.getList(KEY_DISABLED, NbtElement.STRING_TYPE);
+        String needle = abilityId.toString();
+        boolean removed = false;
+        for (int i = list.size() - 1; i >= 0; i--) {
+            if (needle.equals(list.getString(i))) {
+                list.remove(i);
+                removed = true;
+            }
+        }
+        if (list.isEmpty()) {
+            root.remove(KEY_DISABLED);
+        } else {
+            root.put(KEY_DISABLED, list);
+        }
+        return removed;
+    }
 }
 

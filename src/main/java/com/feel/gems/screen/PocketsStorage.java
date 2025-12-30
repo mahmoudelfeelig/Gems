@@ -1,5 +1,6 @@
 package com.feel.gems.screen;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.nbt.NbtCompound;
@@ -17,7 +18,8 @@ public final class PocketsStorage {
     }
 
     public static SimpleInventory load(ServerPlayerEntity player) {
-        SimpleInventory inv = new SimpleInventory(9);
+        int rows = Math.max(1, GemsBalance.v().wealth().pocketsRows());
+        SimpleInventory inv = new SimpleInventory(rows * 9);
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         if (root.contains(KEY_POCKETS, NbtElement.LIST_TYPE)) {
             NbtList list = root.getList(KEY_POCKETS, NbtElement.COMPOUND_TYPE);

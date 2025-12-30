@@ -1,5 +1,6 @@
 package com.feel.gems.power.gem.air;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemMaintainedPassive;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.component.DataComponentTypes;
@@ -113,6 +114,7 @@ public final class AirMacePassive implements GemMaintainedPassive {
         ItemStack mace = new ItemStack(Items.MACE);
         NbtComponent.set(DataComponentTypes.CUSTOM_DATA, mace, nbt -> nbt.putBoolean(TAG_AIR_MACE, true));
 
+        var cfg = GemsBalance.v().air();
         RegistryEntry<Enchantment> breach = resolve(player, Enchantments.BREACH);
         RegistryEntry<Enchantment> windBurst = resolve(player, Enchantments.WIND_BURST);
         RegistryEntry<Enchantment> mending = resolve(player, Enchantments.MENDING);
@@ -120,20 +122,20 @@ public final class AirMacePassive implements GemMaintainedPassive {
         RegistryEntry<Enchantment> fireAspect = resolve(player, Enchantments.FIRE_ASPECT);
 
         EnchantmentHelper.apply(mace, builder -> {
-            if (breach != null) {
-                builder.set(breach, 4);
+            if (breach != null && cfg.airMaceBreachLevel() > 0) {
+                builder.set(breach, cfg.airMaceBreachLevel());
             }
-            if (windBurst != null) {
-                builder.set(windBurst, 3);
+            if (windBurst != null && cfg.airMaceWindBurstLevel() > 0) {
+                builder.set(windBurst, cfg.airMaceWindBurstLevel());
             }
-            if (mending != null) {
-                builder.set(mending, 1);
+            if (mending != null && cfg.airMaceMendingLevel() > 0) {
+                builder.set(mending, cfg.airMaceMendingLevel());
             }
-            if (unbreaking != null) {
-                builder.set(unbreaking, 3);
+            if (unbreaking != null && cfg.airMaceUnbreakingLevel() > 0) {
+                builder.set(unbreaking, cfg.airMaceUnbreakingLevel());
             }
-            if (fireAspect != null) {
-                builder.set(fireAspect, 2);
+            if (fireAspect != null && cfg.airMaceFireAspectLevel() > 0) {
+                builder.set(fireAspect, cfg.airMaceFireAspectLevel());
             }
         });
         return mace;

@@ -75,6 +75,8 @@ public final class PowerIds {
     public static final Identifier PILLAGER_RAIDERS_TRAINING = id("pillager_raiders_training");
     public static final Identifier PILLAGER_SHIELDBREAKER = id("pillager_shieldbreaker");
     public static final Identifier PILLAGER_ILLAGER_DISCIPLINE = id("pillager_illager_discipline");
+    public static final Identifier PILLAGER_CROSSBOW_MASTERY = id("pillager_crossbow_mastery");
+    public static final Identifier PILLAGER_RAIDER_STRIDE = id("pillager_raider_stride");
 
     // Spy/Mimic (new)
     public static final Identifier SPY_STILLNESS_CLOAK = id("spy_stillness_cloak");
@@ -114,6 +116,7 @@ public final class PowerIds {
 
     public static final Identifier VITALITY_VORTEX = id("vitality_vortex");
     public static final Identifier HEALTH_DRAIN = id("health_drain");
+    public static final Identifier LIFE_SWAP = id("life_swap");
     public static final Identifier LIFE_CIRCLE = id("life_circle");
     public static final Identifier HEART_LOCK = id("heart_lock");
 
@@ -176,6 +179,8 @@ public final class PowerIds {
     public static final Identifier PILLAGER_RAVAGE = id("pillager_ravage");
     public static final Identifier PILLAGER_VINDICATOR_BREAK = id("pillager_vindicator_break");
     public static final Identifier PILLAGER_VOLLEY = id("pillager_volley");
+    public static final Identifier PILLAGER_WARHORN = id("pillager_warhorn");
+    public static final Identifier PILLAGER_SNARE = id("pillager_snare");
 
     // Spy/Mimic (new)
     public static final Identifier SPY_MIMIC_FORM = id("spy_mimic_form");

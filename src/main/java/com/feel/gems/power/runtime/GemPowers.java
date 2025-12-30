@@ -33,8 +33,10 @@ public final class GemPowers {
 
         GemId activeGem = GemPlayerState.getActiveGem(player);
         int energy = GemPlayerState.getEnergy(player);
+        boolean passivesEnabled = GemPlayerState.arePassivesEnabled(player);
+        boolean suppressed = AbilityRestrictions.isSuppressed(player);
 
-        List<Identifier> targetPassives = (energy > 0)
+        List<Identifier> targetPassives = (energy > 0 && passivesEnabled && !suppressed)
                 ? GemRegistry.definition(activeGem).passives()
                 : List.of();
 
@@ -68,9 +70,20 @@ public final class GemPowers {
         if (GemPlayerState.getEnergy(player) <= 0) {
             return;
         }
+        if (!GemPlayerState.arePassivesEnabled(player)) {
+            return;
+        }
+        if (AbilityRestrictions.isSuppressed(player)) {
+            return;
+        }
 
         GemId activeGem = GemPlayerState.getActiveGem(player);
         GemDefinition def = GemRegistry.definition(activeGem);
+        NbtCompound data = persistentRoot(player);
+        if (!data.contains(KEY_APPLIED_PASSIVES, NbtElement.LIST_TYPE)
+                || data.getList(KEY_APPLIED_PASSIVES, NbtElement.STRING_TYPE).isEmpty() && !def.passives().isEmpty()) {
+            sync(player);
+        }
         for (Identifier passiveId : def.passives()) {
             GemPassive passive = ModPassives.get(passiveId);
             if (passive instanceof StatusEffectPassive) {
@@ -85,6 +98,12 @@ public final class GemPowers {
     public static boolean isPassiveActive(ServerPlayerEntity player, Identifier passiveId) {
         GemPlayerState.initIfNeeded(player);
         if (GemPlayerState.getEnergy(player) <= 0) {
+            return false;
+        }
+        if (!GemPlayerState.arePassivesEnabled(player)) {
+            return false;
+        }
+        if (AbilityRestrictions.isSuppressed(player)) {
             return false;
         }
         GemId activeGem = GemPlayerState.getActiveGem(player);

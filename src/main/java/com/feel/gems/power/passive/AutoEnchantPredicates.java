@@ -4,6 +4,7 @@ import net.minecraft.item.AxeItem;
 import net.minecraft.item.BowItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.CrossbowItem;
 import net.minecraft.item.SwordItem;
 import net.minecraft.item.ToolItem;
 
@@ -29,5 +30,9 @@ public final class AutoEnchantPredicates {
 
     public static boolean isBow(ItemStack stack) {
         return stack.getItem() instanceof BowItem;
+    }
+
+    public static boolean isCrossbow(ItemStack stack) {
+        return stack.getItem() instanceof CrossbowItem;
     }
 }

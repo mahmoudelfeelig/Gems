@@ -1,7 +1,10 @@
 package com.feel.gems.client;
 
 import com.feel.gems.item.ModItems;
+import com.feel.gems.net.ClientPassiveTogglePayload;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.item.CompassAnglePredicateProvider;
@@ -57,5 +60,10 @@ public final class GemsClientMod implements ClientModInitializer {
                 (stack, world, entity, seed) ->
                         entity instanceof LivingEntity living && living.isUsingItem() && living.getActiveItem() == stack ? 1.0F : 0.0F
         );
+
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            GemsClientConfig cfg = GemsClientConfigManager.config();
+            ClientPlayNetworking.send(new ClientPassiveTogglePayload(cfg.passivesEnabled));
+        });
     }
 }

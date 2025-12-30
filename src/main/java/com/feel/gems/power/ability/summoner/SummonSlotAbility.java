@@ -3,6 +3,7 @@ package com.feel.gems.power.ability.summoner;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemPowers;
@@ -121,6 +122,7 @@ public final class SummonSlotAbility implements GemAbility {
                 Vec3d spawnPos = spawnPos(player, spawned);
                 mob.refreshPositionAndAngles(spawnPos.x, spawnPos.y, spawnPos.z, player.getYaw(), player.getPitch());
                 mob.initialize(player.getServerWorld(), player.getServerWorld().getLocalDifficulty(BlockPos.ofFloored(spawnPos)), SpawnReason.MOB_SUMMONED, null);
+                SummonerSummons.tuneControlledMob(mob);
                 SummonerSummons.mark(mob, player.getUuid(), until);
                 mob.disableExperienceDropping();
                 if (bonusHealth) {
@@ -154,10 +156,15 @@ public final class SummonSlotAbility implements GemAbility {
     }
 
     private static Vec3d spawnPos(ServerPlayerEntity player, int index) {
+        var cfg = GemsBalance.v().summoner();
+        int ringLayers = Math.max(1, cfg.summonSpawnRingLayers());
+        int ringSegments = Math.max(1, cfg.summonSpawnRingSegments());
         Vec3d forward = player.getRotationVec(1.0F).normalize();
-        Vec3d base = player.getPos().add(forward.multiply(2.0D));
-        double radius = 0.4D + (index % 3) * 0.25D;
-        double angle = (Math.PI * 2.0D) * ((index % 8) / 8.0D);
-        return base.add(Math.cos(angle) * radius, 0.1D, Math.sin(angle) * radius);
+        Vec3d base = player.getPos()
+                .add(forward.multiply(cfg.summonSpawnForwardBlocks()))
+                .add(0.0D, cfg.summonSpawnUpBlocks(), 0.0D);
+        double radius = cfg.summonSpawnRingBaseBlocks() + (index % ringLayers) * cfg.summonSpawnRingStepBlocks();
+        double angle = (Math.PI * 2.0D) * ((index % ringSegments) / (double) ringSegments);
+        return base.add(Math.cos(angle) * radius, 0.0D, Math.sin(angle) * radius);
     }
 }

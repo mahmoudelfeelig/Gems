@@ -5,6 +5,7 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.GemsPayloads;
 import com.feel.gems.net.ServerAbilityNetworking;
+import com.feel.gems.net.ServerClientConfigNetworking;
 import com.feel.gems.net.ServerLegendaryNetworking;
 import com.feel.gems.net.ServerSummonerNetworking;
 import com.feel.gems.screen.ModScreenHandlers;
@@ -27,6 +28,7 @@ public final class GemsMod implements ModInitializer {
         ModScreenHandlers.init();
         ModItems.init();
         ServerAbilityNetworking.register();
+        ServerClientConfigNetworking.register();
         ServerLegendaryNetworking.register();
         ServerSummonerNetworking.register();
         GemsModEvents.register();

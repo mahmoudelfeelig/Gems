@@ -10,11 +10,13 @@ import java.util.List;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.registry.Registries;
 
@@ -79,9 +81,11 @@ public final class ReaperShadowCloneAbility implements GemAbility {
             Vec3d pos = new Vec3d(player.getX() + dx, player.getY(), player.getZ() + dz);
 
             mob.refreshPositionAndAngles(pos.x, pos.y, pos.z, yaw, 0.0F);
+            mob.initialize(world, world.getLocalDifficulty(BlockPos.ofFloored(pos)), SpawnReason.MOB_SUMMONED, null);
             mob.setAiDisabled(true);
             mob.setSilent(true);
             mob.setInvulnerable(true);
+            mob.setPersistent();
             mob.setCustomName(player.getDisplayName());
             mob.setCustomNameVisible(false);
 

@@ -11,6 +11,7 @@ package com.feel.gems.config;
  */
 public final class GemsBalanceConfig {
     public Visual visual = new Visual();
+    public Systems systems = new Systems();
 
     public Astra astra = new Astra();
     public Fire fire = new Fire();
@@ -64,6 +65,18 @@ public final class GemsBalanceConfig {
         public int maxRingPoints = 128;
     }
 
+    public static final class Systems {
+        public int minMaxHearts = 5;
+        public int assassinTriggerHearts = 5;
+        public int assassinMaxHearts = 10;
+        public int assassinEliminationHeartsThreshold = 0;
+        public int assassinVsAssassinVictimHeartsLoss = 2;
+        public int assassinVsAssassinKillerHeartsGain = 2;
+        public double controlledFollowStartBlocks = 6.0D;
+        public double controlledFollowStopBlocks = 3.0D;
+        public double controlledFollowSpeed = 1.1D;
+    }
+
     public static final class Astra {
         public int shadowAnchorWindowSeconds = 10;
         public int shadowAnchorPostCooldownSeconds = 10;
@@ -91,6 +104,10 @@ public final class GemsBalanceConfig {
         public int tagCooldownSeconds = 20;
         public int tagRangeBlocks = 30;
         public int tagDurationSeconds = 12;
+
+        public float soulHealingHearts = 2.0F;
+        public double soulReleaseForwardBlocks = 2.0D;
+        public double soulReleaseUpBlocks = 1.0D;
     }
 
     public static final class Fire {
@@ -111,6 +128,7 @@ public final class GemsBalanceConfig {
         public int fireballMaxDistanceBlocks = 60;
 
         public int meteorShowerCooldownSeconds = 120;
+        public int meteorShowerTargetRangeBlocks = 60;
         public int meteorShowerCount = 10;
         public int meteorShowerSpreadBlocks = 10;
         public int meteorShowerHeightBlocks = 25;
@@ -179,6 +197,10 @@ public final class GemsBalanceConfig {
         public int healthDrainCooldownSeconds = 12;
         public int healthDrainRangeBlocks = 20;
         public float healthDrainAmount = 6.0F;
+
+        public int lifeSwapCooldownSeconds = 45;
+        public int lifeSwapRangeBlocks = 24;
+        public float lifeSwapMinHearts = 3.0F;
 
         public int lifeCircleCooldownSeconds = 60;
         public int lifeCircleDurationSeconds = 12;
@@ -304,6 +326,8 @@ public final class GemsBalanceConfig {
 
         public int richRushCooldownSeconds = 9 * 60;
         public int richRushDurationSeconds = 3 * 60;
+
+        public int pocketsRows = 1;
     }
 
     public static final class Terror {
@@ -320,6 +344,7 @@ public final class GemsBalanceConfig {
         public int terrorTradeMaxUses = 3;
         public int terrorTradeHeartsCost = 2;
         public int terrorTradePermanentEnergyPenalty = 2;
+        public int terrorTradeNormalTargetHeartsPenalty = 2;
 
         public int panicRingCooldownSeconds = 60;
         public int panicRingTntCount = 5;
@@ -330,10 +355,12 @@ public final class GemsBalanceConfig {
         public int rigRangeBlocks = 12;
         public int rigDurationSeconds = 90;
         public int rigFuseTicks = 20;
+        public int rigTntCount = 5;
 
         public int remoteChargeArmWindowSeconds = 10;
         public int remoteChargeDetonateWindowSeconds = 60;
         public int remoteChargeFuseTicks = 20;
+        public int remoteChargeCooldownSeconds = 45;
 
         public int breachChargeCooldownSeconds = 75;
         public int breachChargeRangeBlocks = 18;
@@ -354,6 +381,12 @@ public final class GemsBalanceConfig {
         public int commandersMarkStrengthAmplifier = 0;
 
         public float summonBonusHealth = 4.0F;
+        public double summonSpawnForwardBlocks = 2.0D;
+        public double summonSpawnUpBlocks = 0.1D;
+        public double summonSpawnRingBaseBlocks = 0.4D;
+        public double summonSpawnRingStepBlocks = 0.25D;
+        public int summonSpawnRingLayers = 3;
+        public int summonSpawnRingSegments = 8;
 
         /**
          * Entity cost map, keyed by entity id string (e.g. "minecraft:zombie").
@@ -438,15 +471,15 @@ public final class GemsBalanceConfig {
 
         public int blackHoleCooldownSeconds = 60;
         public int blackHoleDurationSeconds = 6;
-        public int blackHoleRadiusBlocks = 8;
-        public float blackHolePullStrength = 0.10F;
-        public float blackHoleDamagePerSecond = 2.0F;
+        public int blackHoleRadiusBlocks = 10;
+        public float blackHolePullStrength = 0.25F;
+        public float blackHoleDamagePerSecond = 4.0F;
 
         public int whiteHoleCooldownSeconds = 60;
         public int whiteHoleDurationSeconds = 6;
-        public int whiteHoleRadiusBlocks = 8;
-        public float whiteHolePushStrength = 0.12F;
-        public float whiteHoleDamagePerSecond = 1.0F;
+        public int whiteHoleRadiusBlocks = 10;
+        public float whiteHolePushStrength = 0.30F;
+        public float whiteHoleDamagePerSecond = 3.0F;
     }
 
     public static final class Reaper {
@@ -527,6 +560,19 @@ public final class GemsBalanceConfig {
         public float volleyArrowDamage = 4.0F;
         public float volleyArrowVelocity = 3.0F;
         public float volleyArrowInaccuracy = 1.0F;
+
+        public int warhornCooldownSeconds = 60;
+        public int warhornDurationSeconds = 8;
+        public int warhornRadiusBlocks = 10;
+        public int warhornAllySpeedAmplifier = 1;
+        public int warhornAllyResistanceAmplifier = 0;
+        public int warhornEnemySlownessAmplifier = 1;
+        public int warhornEnemyWeaknessAmplifier = 0;
+
+        public int snareCooldownSeconds = 30;
+        public int snareDurationSeconds = 6;
+        public int snareRangeBlocks = 24;
+        public int snareSlownessAmplifier = 2;
     }
 
     public static final class SpyMimic {
@@ -630,10 +676,18 @@ public final class GemsBalanceConfig {
         public double dashUpVelocity = 0.1D;
         public int dashIFrameDurationSeconds = 1;
         public int dashIFrameResistanceAmplifier = 4;
+
+        public int airMaceBreachLevel = 4;
+        public int airMaceWindBurstLevel = 3;
+        public int airMaceMendingLevel = 1;
+        public int airMaceUnbreakingLevel = 3;
+        public int airMaceFireAspectLevel = 2;
     }
 
     public static final class Legendary {
         public int craftSeconds = 600;
+        public int craftMaxPerItem = 1;
+        public int craftMaxActivePerItem = 1;
         public int trackerRefreshSeconds = 2;
         public int trackerMaxDistanceBlocks = 0; // 0 = unlimited
 
@@ -651,9 +705,11 @@ public final class GemsBalanceConfig {
 
         public int bloodOathSharpnessCap = 10;
         public int demolitionCooldownSeconds = 5;
+        public int demolitionCooldownScalePercent = 50;
         public int demolitionFuseTicks = 80;
         public int demolitionRangeBlocks = 12;
         public float demolitionExplosionPower = 3.0F;
+        public int demolitionTntCount = 3;
         public int hunterAimRangeBlocks = 50;
         public int hunterAimTimeoutSeconds = 15;
         public float hunterAimAssistStrength = 1.0F;

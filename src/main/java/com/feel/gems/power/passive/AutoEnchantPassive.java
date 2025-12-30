@@ -145,6 +145,10 @@ public final class AutoEnchantPassive implements GemMaintainedPassive {
         return new AutoEnchantPassive(id, name, description, Enchantments.PUNCH, level, AutoEnchantPredicates::isBow);
     }
 
+    public static AutoEnchantPassive quickCharge(Identifier id, String name, String description, int level) {
+        return new AutoEnchantPassive(id, name, description, Enchantments.QUICK_CHARGE, level, AutoEnchantPredicates::isCrossbow);
+    }
+
     public static AutoEnchantPassive mending(Identifier id, String name, String description) {
         return new AutoEnchantPassive(id, name, description, Enchantments.MENDING, 1, AutoEnchantPredicates::isGearOrTool);
     }

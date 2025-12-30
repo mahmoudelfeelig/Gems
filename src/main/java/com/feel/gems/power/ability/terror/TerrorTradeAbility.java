@@ -20,7 +20,6 @@ import net.minecraft.util.Identifier;
 
 public final class TerrorTradeAbility implements GemAbility {
     private static final String KEY_USES = "terrorTradeUses";
-    private static final int NORMAL_TARGET_HEART_PENALTY = 2;
 
     @Override
     public Identifier id() {
@@ -106,9 +105,10 @@ public final class TerrorTradeAbility implements GemAbility {
         GemPlayerState.initIfNeeded(victim);
         AssassinState.initIfNeeded(victim);
 
+        int penalty = GemsBalance.v().terror().terrorTradeNormalTargetHeartsPenalty();
         if (AssassinState.isAssassin(victim)) {
-            int after = AssassinState.addAssassinHearts(victim, -NORMAL_TARGET_HEART_PENALTY);
-            if (after <= 0) {
+            int after = AssassinState.addAssassinHearts(victim, -penalty);
+            if (AssassinState.isEliminatedByHearts(after)) {
                 AssassinState.setEliminated(victim, true);
             }
             GemPlayerState.applyMaxHearts(victim);
@@ -116,7 +116,7 @@ public final class TerrorTradeAbility implements GemAbility {
         }
 
         int before = GemPlayerState.getMaxHearts(victim);
-        GemPlayerState.setMaxHearts(victim, Math.max(GemPlayerState.MIN_MAX_HEARTS, before - NORMAL_TARGET_HEART_PENALTY));
+        GemPlayerState.setMaxHearts(victim, Math.max(GemPlayerState.minMaxHearts(), before - penalty));
         GemPlayerState.applyMaxHearts(victim);
 
         // Replace the usual death heart drop (1 heart) with our 2-heart penalty.
@@ -158,12 +158,12 @@ public final class TerrorTradeAbility implements GemAbility {
 
         if (AssassinState.isAssassin(player)) {
             int after = AssassinState.addAssassinHearts(player, -heartsCost);
-            if (after <= 0) {
+            if (AssassinState.isEliminatedByHearts(after)) {
                 AssassinState.setEliminated(player, true);
             }
         } else {
             int before = GemPlayerState.getMaxHearts(player);
-            GemPlayerState.setMaxHearts(player, Math.max(GemPlayerState.MIN_MAX_HEARTS, before - heartsCost));
+            GemPlayerState.setMaxHearts(player, Math.max(GemPlayerState.minMaxHearts(), before - heartsCost));
         }
         GemPlayerState.applyMaxHearts(player);
 

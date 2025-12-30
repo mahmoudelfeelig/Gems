@@ -109,7 +109,8 @@ public final class TerrorRigRuntime {
     private static void trigger(ServerWorld world, BlockPos pos, RiggedTrap trap) {
         ACTIVE.remove(new TrapKey(world.getRegistryKey().getValue(), pos.toImmutable()));
         int fuse = GemsBalance.v().terror().rigFuseTicks();
-        for (int i = 0; i < 5; i++) {
+        int tntCount = GemsBalance.v().terror().rigTntCount();
+        for (int i = 0; i < tntCount; i++) {
             TntEntity tnt = new TntEntity(world, pos.getX() + 0.5D, pos.getY() + 0.1D, pos.getZ() + 0.5D, null);
             tnt.setFuse(fuse);
             world.spawnEntity(tnt);

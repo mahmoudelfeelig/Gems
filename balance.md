@@ -12,6 +12,7 @@ Balancing is controlled by `config/gems/balance.json` (generated on first run).
 - `*RadiusBlocks`, `*RangeBlocks`, `*SpreadBlocks`, `*HeightBlocks`: blocks
 - `*Damage`, `*Heal`: Minecraft health points (2.0 = 1 heart)
 - `*Amplifier`: potion amplifier (0 = level I, 1 = level II, etc)
+- `*ScalePercent`: percentage scaling (100 = no change)
 
 ## Sanity clamps
 
@@ -39,6 +40,14 @@ These are global caps/switches for particles/sounds emitted by abilities (useful
 
 These are the default values generated in `config/gems/balance.json`.
 
+### Systems
+- Min max hearts: `systems.minMaxHearts=5`
+- Assassin trigger hearts: `systems.assassinTriggerHearts=5`
+- Assassin max hearts: `systems.assassinMaxHearts=10`
+- Assassin elimination threshold: `systems.assassinEliminationHeartsThreshold=0` (eliminate when hearts <= threshold)
+- Assassin vs assassin penalties: `systems.assassinVsAssassinVictimHeartsLoss=2`, `systems.assassinVsAssassinKillerHeartsGain=2`
+- Controlled mob follow: `controlledFollowStartBlocks=6.0`, `controlledFollowStopBlocks=3.0`, `controlledFollowSpeed=1.1`
+
 ### Astra Gem
 - Shadow Anchor: `shadowAnchorWindowSeconds=10`
 - Dimensional Void: `dimensionalVoidCooldownSeconds=60`, `dimensionalVoidDurationSeconds=8`, `dimensionalVoidRadiusBlocks=10`
@@ -47,12 +56,13 @@ These are the default values generated in `config/gems/balance.json`.
 - Astral Camera: `astralCameraCooldownSeconds=60`, `astralCameraDurationSeconds=8`
 - Spook: `spookCooldownSeconds=30`, `spookRadiusBlocks=10`, `spookDurationSeconds=6`
 - Tag: `tagCooldownSeconds=20`, `tagRangeBlocks=30`, `tagDurationSeconds=12`
+- Soul Capture: `soulHealingHearts=2.0`, `soulReleaseForwardBlocks=2.0`, `soulReleaseUpBlocks=1.0`
 
 ### Fire Gem
 - Cosy Campfire: `cosyCampfireCooldownSeconds=45`, `cosyCampfireDurationSeconds=10`, `cosyCampfireRadiusBlocks=8`, `cosyCampfireRegenAmplifier=3`
 - Heat Haze Zone: `heatHazeCooldownSeconds=90`, `heatHazeDurationSeconds=10`, `heatHazeRadiusBlocks=10`, `heatHazeEnemyMiningFatigueAmplifier=0`, `heatHazeEnemyWeaknessAmplifier=0`
 - Fireball: `fireballChargeUpSeconds=3`, `fireballChargeDownSeconds=3`, `fireballInternalCooldownSeconds=4`, `fireballMaxDistanceBlocks=60`
-- Meteor Shower: `meteorShowerCooldownSeconds=120`, `meteorShowerCount=10`, `meteorShowerSpreadBlocks=10`, `meteorShowerHeightBlocks=25`, `meteorShowerVelocity=1.5`, `meteorShowerExplosionPower=2`
+- Meteor Shower: `meteorShowerCooldownSeconds=120`, `meteorShowerTargetRangeBlocks=60`, `meteorShowerCount=10`, `meteorShowerSpreadBlocks=10` (line length), `meteorShowerHeightBlocks=25`, `meteorShowerVelocity=1.5`, `meteorShowerExplosionPower=2`
 
 ### Flux Gem
 - Flux Beam: `fluxBeamCooldownSeconds=4`, `fluxBeamRangeBlocks=60`, `fluxBeamMinDamage=6.0`, `fluxBeamMaxDamageAt100=12.0`, `fluxBeamMaxDamageAt200=24.0`, `fluxBeamArmorDamageAt100=200`, `fluxBeamArmorDamagePerPercent=2`
@@ -68,6 +78,7 @@ These are the default values generated in `config/gems/balance.json`.
 ### Life Gem
 - Vitality Vortex: `vitalityVortexCooldownSeconds=30`, `vitalityVortexRadiusBlocks=8`, `vitalityVortexDurationSeconds=8`, `vitalityVortexScanRadiusBlocks=3`, `vitalityVortexVerdantThreshold=10`, `vitalityVortexAllyHeal=2.0`
 - Health Drain: `healthDrainCooldownSeconds=12`, `healthDrainRangeBlocks=20`, `healthDrainAmount=6.0`
+- Life Swap: `lifeSwapCooldownSeconds=45`, `lifeSwapRangeBlocks=24`, `lifeSwapMinHearts=3.0`
 - Life Circle: `lifeCircleCooldownSeconds=60`, `lifeCircleDurationSeconds=12`, `lifeCircleRadiusBlocks=8`, `lifeCircleMaxHealthDelta=8.0`
 - Heart Lock: `heartLockCooldownSeconds=45`, `heartLockDurationSeconds=6`, `heartLockRangeBlocks=20`
 
@@ -101,20 +112,22 @@ These are the default values generated in `config/gems/balance.json`.
 - Hotbar Lock: `hotbarLockCooldownSeconds=30`, `hotbarLockDurationSeconds=6`, `hotbarLockRangeBlocks=20`
 - Amplification: `amplificationCooldownSeconds=180`, `amplificationDurationSeconds=45`
 - Rich Rush: `richRushCooldownSeconds=540`, `richRushDurationSeconds=180`
+- Pockets: `pocketsRows=1` (rows of 9 slots)
 
 ### Terror Gem
 - Dread Aura: `dreadAuraRadiusBlocks=10`, `dreadAuraAmplifier=0`
 - Blood Price: `bloodPriceDurationSeconds=6`, `bloodPriceStrengthAmplifier=1`, `bloodPriceResistanceAmplifier=0`
-- Terror Trade: `terrorTradeCooldownSeconds=180`, `terrorTradeRangeBlocks=30`
+- Terror Trade: `terrorTradeCooldownSeconds=180`, `terrorTradeRangeBlocks=30`, `terrorTradeNormalTargetHeartsPenalty=2`
 - Panic Ring: `panicRingCooldownSeconds=60`, `panicRingTntCount=5`, `panicRingFuseTicks=50`, `panicRingRadiusBlocks=1.6`
-- Rig: `rigCooldownSeconds=45`, `rigRangeBlocks=12`, `rigDurationSeconds=90`, `rigFuseTicks=20`
-- Remote Charge: `remoteChargeArmWindowSeconds=10`, `remoteChargeDetonateWindowSeconds=60`, `remoteChargeFuseTicks=20`
+- Rig: `rigCooldownSeconds=45`, `rigRangeBlocks=12`, `rigDurationSeconds=90`, `rigFuseTicks=20`, `rigTntCount=5`
+- Remote Charge: `remoteChargeArmWindowSeconds=10`, `remoteChargeDetonateWindowSeconds=60`, `remoteChargeFuseTicks=20`, `remoteChargeCooldownSeconds=45`
 - Breach Charge: `breachChargeCooldownSeconds=75`, `breachChargeRangeBlocks=18`, `breachChargeFuseTicks=40`
 
 ### Summoner Gem
 - Commander's Mark: `commandersMarkDurationSeconds=3`, `commandersMarkStrengthAmplifier=0`, `commandRangeBlocks=32`
 - Familiar's Blessing: `summonBonusHealth=4.0`
 - Summon slots: `maxPoints=50` (active summon points cap), `summonLifetimeSeconds=120`, `summonSlotCooldownSeconds=30`
+- Summon spawn: `summonSpawnForwardBlocks=2.0`, `summonSpawnUpBlocks=0.1`, `summonSpawnRingBaseBlocks=0.4`, `summonSpawnRingStepBlocks=0.25`, `summonSpawnRingLayers=3`, `summonSpawnRingSegments=8`
 - Recall: `recallCooldownSeconds=20`
 
 ### Space Gem
@@ -122,8 +135,8 @@ These are the default values generated in `config/gems/balance.json`.
 - Starshield: `starshieldProjectileDamageMultiplier=0.80`
 - Orbital Laser: `orbitalLaserCooldownSeconds=60`, `orbitalLaserRangeBlocks=64`, `orbitalLaserDelaySeconds=1`, `orbitalLaserRadiusBlocks=4`, `orbitalLaserDamage=10.0`
 - Gravity Field: `gravityFieldCooldownSeconds=45`, `gravityFieldDurationSeconds=10`, `gravityFieldRadiusBlocks=10`, `gravityFieldAllyGravityMultiplier=0.75`, `gravityFieldEnemyGravityMultiplier=1.25`
-- Black Hole: `blackHoleCooldownSeconds=60`, `blackHoleDurationSeconds=6`, `blackHoleRadiusBlocks=8`, `blackHolePullStrength=0.10`, `blackHoleDamagePerSecond=2.0`
-- White Hole: `whiteHoleCooldownSeconds=60`, `whiteHoleDurationSeconds=6`, `whiteHoleRadiusBlocks=8`, `whiteHolePushStrength=0.12`, `whiteHoleDamagePerSecond=1.0`
+- Black Hole: `blackHoleCooldownSeconds=60`, `blackHoleDurationSeconds=6`, `blackHoleRadiusBlocks=10`, `blackHolePullStrength=0.25`, `blackHoleDamagePerSecond=4.0`
+- White Hole: `whiteHoleCooldownSeconds=60`, `whiteHoleDurationSeconds=6`, `whiteHoleRadiusBlocks=10`, `whiteHolePushStrength=0.30`, `whiteHoleDamagePerSecond=3.0`
 - Orbital Laser (mining): `orbitalLaserMiningRadiusBlocks=2`, `orbitalLaserMiningHardnessCap=60.0`, `orbitalLaserMiningMaxBlocks=64`
 
 ### Reaper Gem
@@ -146,6 +159,8 @@ These are the default values generated in `config/gems/balance.json`.
 - Ravage: `ravageCooldownSeconds=20`, `ravageRangeBlocks=6`, `ravageDamage=6.0`, `ravageKnockback=1.25`
 - Vindicator Break: `vindicatorBreakCooldownSeconds=35`, `vindicatorBreakDurationSeconds=8`, `vindicatorBreakStrengthAmplifier=0`, `vindicatorBreakShieldDisableCooldownTicks=100`
 - Volley: `volleyCooldownSeconds=45`, `volleyDurationSeconds=3`, `volleyPeriodTicks=10`, `volleyArrowsPerShot=1`, `volleyArrowDamage=4.0`, `volleyArrowVelocity=3.0`, `volleyArrowInaccuracy=1.0`
+- Warhorn: `warhornCooldownSeconds=60`, `warhornRadiusBlocks=10`, `warhornDurationSeconds=8`, `warhornAllySpeedAmplifier=1`, `warhornAllyResistanceAmplifier=0`, `warhornEnemySlownessAmplifier=1`, `warhornEnemyWeaknessAmplifier=0`
+- Snare: `snareCooldownSeconds=30`, `snareRangeBlocks=24`, `snareDurationSeconds=6`, `snareSlownessAmplifier=2`
 
 ### Spy / Mimic Gem
 - Stillness Cloak: `stillnessSeconds=5`, `stillnessMoveEpsilonBlocks=0.05`, `stillnessInvisRefreshSeconds=2`
@@ -172,16 +187,17 @@ These are the default values generated in `config/gems/balance.json`.
 - Gale Slam: `galeSlamCooldownSeconds=30`, `galeSlamWindowSeconds=8`, `galeSlamRadiusBlocks=4`, `galeSlamBonusDamage=6.0`, `galeSlamKnockback=1.0`
 - Crosswind: `crosswindCooldownSeconds=30`, `crosswindRangeBlocks=18`, `crosswindRadiusBlocks=3`, `crosswindDamage=4.0`, `crosswindKnockback=0.8`, `crosswindSlownessDurationSeconds=4`, `crosswindSlownessAmplifier=1`
 - Air Dash: `dashCooldownSeconds=6`, `dashVelocity=1.6`, `dashUpVelocity=0.1`, `dashIFrameDurationSeconds=1`, `dashIFrameResistanceAmplifier=4`
+- Air Mace enchants: `airMaceBreachLevel=4`, `airMaceWindBurstLevel=3`, `airMaceMendingLevel=1`, `airMaceUnbreakingLevel=3`, `airMaceFireAspectLevel=2`
 
 ### Legendary Items
-- Legendary crafting: `craftSeconds=600`
+- Legendary crafting: `craftSeconds=600`, `craftMaxPerItem=1` (0 = unlimited), `craftMaxActivePerItem=1` (0 = unlimited)
 - Tracker Compass: `trackerRefreshSeconds=2`, `trackerMaxDistanceBlocks=0`
 - Recall Relic: `recallCooldownSeconds=60`
-- Hypno Staff: `hypnoHoldSeconds=3`, `hypnoRangeBlocks=24`, `hypnoMaxControlled=10`, `hypnoDurationSeconds=0`
+- Hypno Staff: `hypnoHoldSeconds=3`, `hypnoRangeBlocks=24`, `hypnoViewRangeBlocks=10`, `hypnoHealHearts=10.0`, `hypnoMaxControlled=10`, `hypnoDurationSeconds=0`
 - Universal mob blacklist (Hypno/Summoner/Astra): `mobBlacklist=[minecraft:ender_dragon,minecraft:wither]`
 - Earthsplitter Pick: `earthsplitterRadiusBlocks=1`, `earthsplitterTunnelLengthBlocks=9`
 - Blood Oath Blade: `bloodOathSharpnessCap=10`
-- Demolition Blade: `demolitionCooldownSeconds=5`, `demolitionFuseTicks=80`, `demolitionRangeBlocks=12` (TNT power is vanilla).
+- Demolition Blade: `demolitionCooldownSeconds=5`, `demolitionCooldownScalePercent=50`, `demolitionFuseTicks=80`, `demolitionRangeBlocks=12`, `demolitionTntCount=3` (TNT power is vanilla).
 - Hunter's Sight Bow: `hunterAimRangeBlocks=50`, `hunterAimTimeoutSeconds=15`, `hunterAimAssistStrength=1.0`
 - Third-Strike Blade: `thirdStrikeWindowSeconds=5`, `thirdStrikeBonusDamage=4.0`
 - Vampiric Edge: `vampiricHealAmount=2.0`

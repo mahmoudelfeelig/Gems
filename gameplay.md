@@ -4,7 +4,7 @@
 
 - You spawn with a random gem at 3 energy.
 - Energy tiers: Broken (0), Common (1), Rare (2), Elite (3), Mythical (4), Legendary (5), Legendary +1..+5 (6-10).
-- Passives are active at energy 1+. At energy 0, passives and abilities are disabled.
+- Passives are active at energy 1+ (unless you toggle them off in client config). At energy 0, passives and abilities are disabled.
 - Abilities unlock by energy: 2-4 unlock in order, 5+ unlock all remaining abilities.
 - Energy levels 6-10 are buffer only (no new powers).
 - Player-vs-player kills grant +1 energy. Death (any cause) loses 1 energy.
@@ -14,7 +14,7 @@
 ## Hearts, items, and swapping
 
 - Heart items drop on death and increase max hearts when consumed.
-- Minimum max hearts is 5; maximum total hearts is 20.
+- Minimum max hearts is configurable (default 5); maximum total hearts is 20.
 - Heart items cannot be consumed by trusted players (prevents team boosting).
 - Energy upgrade items add a level (up to Legendary +5).
 - Gem Trader swaps only your active gem and consumes the item.
@@ -24,7 +24,7 @@
 
 ## Legendary items
 
-- All legendary items are one-of-a-kind crafts, take 10 minutes to craft, and announce the crafter's location to all online players when crafting starts.
+- Legendary crafts use `legendary.craftSeconds` for the timer, `legendary.craftMaxPerItem` for the total per-item limit, and `legendary.craftMaxActivePerItem` for concurrent crafts (default 1).
 - Crafting progress is shown to all players via a boss bar with coordinates; on completion the item drops at the crafting table.
 - Tracker Compass: right-click to pick a player (including offline); shows current/last-known coords, respawn coords, and points toward them.
 - Recall Relic: mark current coords; reuse to teleport back (consumes mark); item persists; has cooldown; forceload while marked and released after teleport/no mark.
@@ -48,6 +48,7 @@
 
 - Cast an ability: hold Gems Modifier (default Left Alt) + press a hotbar number (1-9).
 - Controls can be switched to fully custom keybinds via `config/gems/client.json` (`controlMode`: `CHORD` or `CUSTOM`).
+- Client config can disable your own gem passives (`passivesEnabled`).
 - Astra Soul Release: the slot after Astra's last ability.
 - Summoner loadout UI: Gems Modifier + the hotbar key after Recall (default Alt + 7).
 - HUD shows current gem, energy tier, cooldowns, and special states (like Flux charge or Astra soul).
@@ -62,7 +63,7 @@ Passives:
 
 Abilities:
 - Shadow Anchor: set an anchor and return to it within a short window.
-- Dimensional Void: suppress enemy gem abilities in a radius.
+- Dimensional Void: suppress enemy gem abilities and passives in a radius (players only).
 - Astral Daggers: fire a ranged dagger volley.
 - Unbounded: brief Spectator mode, then return to Survival.
 - Astral Camera: scout in Spectator, then return to your start.
@@ -81,7 +82,7 @@ Abilities:
 - Cosy Campfire: regen aura for allies.
 - Heat Haze Zone: allies gain Fire Resistance; enemies get Mining Fatigue + Weakness.
 - Fireball: charge and launch an explosive fireball (charge decays unless on obsidian).
-- Meteor Shower: multiple meteors strike a target zone.
+- Meteor Shower: multiple meteors strike along a line in front of you.
 
 ### Flux Gem
 
@@ -108,7 +109,8 @@ Passives:
 Abilities:
 - Vitality Vortex: adaptive pulse based on surroundings (Aquatic, Infernal, Sculk, Verdant, End, Default).
 - Health Drain: siphon health from a target to heal yourself.
-- Life Circle: boost allies while reducing enemy max health.
+- Life Swap: swap health with a target; requires at least 3 hearts to cast (configurable).
+- Life Circle: boost allies while reducing enemy max health (heals to the new max).
 - Heart Lock: lock an enemy's max health to their current health briefly.
 
 ### Puff Gem
@@ -164,7 +166,7 @@ Passives:
 - Double Debris from furnaces.
 
 Abilities:
-- Pockets: extra 9-slot inventory.
+- Pockets: extra inventory (rows configurable in balance).
 - Fumble: disable offhand use and eating for enemies.
 - Hotbar Lock: lock an enemy to their current hotbar slot.
 - Amplification: temporarily boosts enchant effectiveness.
@@ -179,7 +181,7 @@ Passives:
 
 Abilities:
 - Rig: trap a block; any use, break, step, or block update triggers an explosion (five primed TNT, fuse configurable).
-- Remote Charge: arm a block within 10s, then detonate from anywhere within 1 minute.
+- Remote Charge: arm a block within 10s, then detonate from anywhere within 1 minute (has a cooldown).
 - Panic Ring: spawn primed TNT around you.
 - Breach Charge: immediate blast at the targeted block or entity with wither-skull style VFX.
 - Terror Trade: sacrifice yourself to attempt to kill a target (totems can save). Costs 2 max hearts and 2 permanent energy, limited to 3 uses per player.
@@ -205,6 +207,7 @@ Summoned/controlled AI priority (Summoner, Astra Soul Release, Hypno Staff):
 - Otherwise: target the last entity you attacked (player or mob) within command range.
 - If none: target whoever last attacked you or is currently hostile toward you.
 - If none: follow you.
+- Trust-based targeting protection only applies while passives are active (energy > 0 and not suppressed).
 
 ### Space Gem
 
@@ -241,12 +244,16 @@ Passives:
 - Raider's Training: faster projectiles.
 - Shieldbreaker: melee hits can disable shields without an axe (untrusted players).
 - Illager Discipline: resistance burst at low health (cooldown).
+- Crossbow Mastery: auto-applies Quick Charge II to crossbows.
+- Raider's Stride: minor Speed while active.
 
 Abilities:
 - Fangs: evoker-fangs line at a target zone.
 - Ravage: heavy knockback hit.
 - Vindicator Break: melee buff that also disables shields.
 - Volley: short arrow burst without ammo.
+- Warhorn: buff nearby allies and slow nearby enemies.
+- Snare Shot: mark a target with glowing and slowness.
 
 ### Spy / Mimic Gem
 
@@ -260,10 +267,10 @@ Passives:
 Abilities:
 - Mimic Form: after a recent mob kill, gain invisibility + bonus health + speed.
 - Echo: replay the last observed ability in front of you.
-- Steal: after enough observation, steal an ability; the victim loses it until they swap gems.
+- Steal: after enough observation, steal an ability; the victim only recovers it if you swap gems or they kill you.
 - Smoke Bomb: blind/slow nearby enemies and briefly cloak you.
 - Stolen Cast: cast a stolen ability; sneak to cycle.
-- Skinshift: steal a targeted player's appearance and chat name for a short time.
+- Skinshift: steal a targeted player's appearance and name (including chat display) for a short time; the target cannot chat while the effect is active.
 
 ### Beacon Gem
 
@@ -291,10 +298,10 @@ Abilities:
 
 ## Assassin endgame
 
-- If you die while already at 5 max hearts, you become an Assassin.
+- If you die while already at the configured assassin trigger hearts (default 5), you become an Assassin.
 - Assassins are highlighted red in the player list.
-- Assassins have a fixed max of 10 hearts, cannot consume heart items, and never drop heart items.
-- If killed by another Assassin: -2 max hearts. They can only regain hearts by killing other Assassins.
-- Reaching 0 max hearts permanently eliminates the Assassin.
+- Assassins have a configurable max hearts cap (`systems.assassinMaxHearts`), cannot consume heart items, and never drop heart items.
+- If killed by another Assassin: configurable heart loss/gain (`systems.assassinVsAssassinVictimHeartsLoss`/`systems.assassinVsAssassinKillerHeartsGain`).
+- Reaching the elimination threshold (`systems.assassinEliminationHeartsThreshold`) permanently eliminates the Assassin.
 - Scoring (after becoming an Assassin): normal kill = +1, final kill = +3.
 - The highest-score Assassin is matched against the last non-Assassin survivor (admin-run duel).

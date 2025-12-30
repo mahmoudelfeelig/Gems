@@ -65,6 +65,15 @@ public final class GemsBalance {
         cfg.visual.maxParticlesPerCall = v.visual().maxParticlesPerCall();
         cfg.visual.maxBeamSteps = v.visual().maxBeamSteps();
         cfg.visual.maxRingPoints = v.visual().maxRingPoints();
+        cfg.systems.minMaxHearts = v.systems().minMaxHearts();
+        cfg.systems.assassinTriggerHearts = v.systems().assassinTriggerHearts();
+        cfg.systems.assassinMaxHearts = v.systems().assassinMaxHearts();
+        cfg.systems.assassinEliminationHeartsThreshold = v.systems().assassinEliminationHeartsThreshold();
+        cfg.systems.assassinVsAssassinVictimHeartsLoss = v.systems().assassinVsAssassinVictimHeartsLoss();
+        cfg.systems.assassinVsAssassinKillerHeartsGain = v.systems().assassinVsAssassinKillerHeartsGain();
+        cfg.systems.controlledFollowStartBlocks = v.systems().controlledFollowStartBlocks();
+        cfg.systems.controlledFollowStopBlocks = v.systems().controlledFollowStopBlocks();
+        cfg.systems.controlledFollowSpeed = v.systems().controlledFollowSpeed();
 
         cfg.astra.shadowAnchorWindowSeconds = ticksToSeconds(v.astra().shadowAnchorWindowTicks());
         cfg.astra.shadowAnchorPostCooldownSeconds = ticksToSeconds(v.astra().shadowAnchorPostCooldownTicks());
@@ -86,6 +95,9 @@ public final class GemsBalance {
         cfg.astra.tagCooldownSeconds = ticksToSeconds(v.astra().tagCooldownTicks());
         cfg.astra.tagRangeBlocks = v.astra().tagRangeBlocks();
         cfg.astra.tagDurationSeconds = ticksToSeconds(v.astra().tagDurationTicks());
+        cfg.astra.soulHealingHearts = v.astra().soulHealingHearts();
+        cfg.astra.soulReleaseForwardBlocks = v.astra().soulReleaseForwardBlocks();
+        cfg.astra.soulReleaseUpBlocks = v.astra().soulReleaseUpBlocks();
 
         cfg.fire.cosyCampfireCooldownSeconds = ticksToSeconds(v.fire().cosyCampfireCooldownTicks());
         cfg.fire.cosyCampfireDurationSeconds = ticksToSeconds(v.fire().cosyCampfireDurationTicks());
@@ -101,6 +113,7 @@ public final class GemsBalance {
         cfg.fire.fireballInternalCooldownSeconds = ticksToSeconds(v.fire().fireballInternalCooldownTicks());
         cfg.fire.fireballMaxDistanceBlocks = v.fire().fireballMaxDistanceBlocks();
         cfg.fire.meteorShowerCooldownSeconds = ticksToSeconds(v.fire().meteorShowerCooldownTicks());
+        cfg.fire.meteorShowerTargetRangeBlocks = v.fire().meteorShowerTargetRangeBlocks();
         cfg.fire.meteorShowerCount = v.fire().meteorShowerCount();
         cfg.fire.meteorShowerSpreadBlocks = v.fire().meteorShowerSpreadBlocks();
         cfg.fire.meteorShowerHeightBlocks = v.fire().meteorShowerHeightBlocks();
@@ -158,6 +171,9 @@ public final class GemsBalance {
         cfg.life.healthDrainCooldownSeconds = ticksToSeconds(v.life().healthDrainCooldownTicks());
         cfg.life.healthDrainRangeBlocks = v.life().healthDrainRangeBlocks();
         cfg.life.healthDrainAmount = v.life().healthDrainAmount();
+        cfg.life.lifeSwapCooldownSeconds = ticksToSeconds(v.life().lifeSwapCooldownTicks());
+        cfg.life.lifeSwapRangeBlocks = v.life().lifeSwapRangeBlocks();
+        cfg.life.lifeSwapMinHearts = v.life().lifeSwapMinHearts();
         cfg.life.lifeCircleCooldownSeconds = ticksToSeconds(v.life().lifeCircleCooldownTicks());
         cfg.life.lifeCircleDurationSeconds = ticksToSeconds(v.life().lifeCircleDurationTicks());
         cfg.life.lifeCircleRadiusBlocks = v.life().lifeCircleRadiusBlocks();
@@ -258,6 +274,7 @@ public final class GemsBalance {
         cfg.wealth.amplificationDurationSeconds = ticksToSeconds(v.wealth().amplificationDurationTicks());
         cfg.wealth.richRushCooldownSeconds = ticksToSeconds(v.wealth().richRushCooldownTicks());
         cfg.wealth.richRushDurationSeconds = ticksToSeconds(v.wealth().richRushDurationTicks());
+        cfg.wealth.pocketsRows = v.wealth().pocketsRows();
 
         cfg.terror.dreadAuraRadiusBlocks = v.terror().dreadAuraRadiusBlocks();
         cfg.terror.dreadAuraAmplifier = v.terror().dreadAuraAmplifier();
@@ -269,6 +286,7 @@ public final class GemsBalance {
         cfg.terror.terrorTradeMaxUses = v.terror().terrorTradeMaxUses();
         cfg.terror.terrorTradeHeartsCost = v.terror().terrorTradeHeartsCost();
         cfg.terror.terrorTradePermanentEnergyPenalty = v.terror().terrorTradePermanentEnergyPenalty();
+        cfg.terror.terrorTradeNormalTargetHeartsPenalty = v.terror().terrorTradeNormalTargetHeartsPenalty();
         cfg.terror.panicRingCooldownSeconds = ticksToSeconds(v.terror().panicRingCooldownTicks());
         cfg.terror.panicRingTntCount = v.terror().panicRingTntCount();
         cfg.terror.panicRingFuseTicks = v.terror().panicRingFuseTicks();
@@ -277,9 +295,11 @@ public final class GemsBalance {
         cfg.terror.rigRangeBlocks = v.terror().rigRangeBlocks();
         cfg.terror.rigDurationSeconds = ticksToSeconds(v.terror().rigDurationTicks());
         cfg.terror.rigFuseTicks = v.terror().rigFuseTicks();
+        cfg.terror.rigTntCount = v.terror().rigTntCount();
         cfg.terror.remoteChargeArmWindowSeconds = ticksToSeconds(v.terror().remoteChargeArmWindowTicks());
         cfg.terror.remoteChargeDetonateWindowSeconds = ticksToSeconds(v.terror().remoteChargeDetonateWindowTicks());
         cfg.terror.remoteChargeFuseTicks = v.terror().remoteChargeFuseTicks();
+        cfg.terror.remoteChargeCooldownSeconds = ticksToSeconds(v.terror().remoteChargeCooldownTicks());
         cfg.terror.breachChargeCooldownSeconds = ticksToSeconds(v.terror().breachChargeCooldownTicks());
         cfg.terror.breachChargeRangeBlocks = v.terror().breachChargeRangeBlocks();
         cfg.terror.breachChargeFuseTicks = v.terror().breachChargeFuseTicks();
@@ -294,6 +314,12 @@ public final class GemsBalance {
         cfg.summoner.commandersMarkDurationSeconds = ticksToSeconds(v.summoner().commandersMarkDurationTicks());
         cfg.summoner.commandersMarkStrengthAmplifier = v.summoner().commandersMarkStrengthAmplifier();
         cfg.summoner.summonBonusHealth = v.summoner().summonBonusHealth();
+        cfg.summoner.summonSpawnForwardBlocks = v.summoner().summonSpawnForwardBlocks();
+        cfg.summoner.summonSpawnUpBlocks = v.summoner().summonSpawnUpBlocks();
+        cfg.summoner.summonSpawnRingBaseBlocks = v.summoner().summonSpawnRingBaseBlocks();
+        cfg.summoner.summonSpawnRingStepBlocks = v.summoner().summonSpawnRingStepBlocks();
+        cfg.summoner.summonSpawnRingLayers = v.summoner().summonSpawnRingLayers();
+        cfg.summoner.summonSpawnRingSegments = v.summoner().summonSpawnRingSegments();
         cfg.summoner.costs = v.summoner().costs();
         cfg.summoner.slot1 = v.summoner().slot1();
         cfg.summoner.slot2 = v.summoner().slot2();
@@ -388,6 +414,17 @@ public final class GemsBalance {
         cfg.pillager.volleyArrowDamage = v.pillager().volleyArrowDamage();
         cfg.pillager.volleyArrowVelocity = v.pillager().volleyArrowVelocity();
         cfg.pillager.volleyArrowInaccuracy = v.pillager().volleyArrowInaccuracy();
+        cfg.pillager.warhornCooldownSeconds = ticksToSeconds(v.pillager().warhornCooldownTicks());
+        cfg.pillager.warhornRadiusBlocks = v.pillager().warhornRadiusBlocks();
+        cfg.pillager.warhornDurationSeconds = ticksToSeconds(v.pillager().warhornDurationTicks());
+        cfg.pillager.warhornAllySpeedAmplifier = v.pillager().warhornAllySpeedAmplifier();
+        cfg.pillager.warhornAllyResistanceAmplifier = v.pillager().warhornAllyResistanceAmplifier();
+        cfg.pillager.warhornEnemySlownessAmplifier = v.pillager().warhornEnemySlownessAmplifier();
+        cfg.pillager.warhornEnemyWeaknessAmplifier = v.pillager().warhornEnemyWeaknessAmplifier();
+        cfg.pillager.snareCooldownSeconds = ticksToSeconds(v.pillager().snareCooldownTicks());
+        cfg.pillager.snareRangeBlocks = v.pillager().snareRangeBlocks();
+        cfg.pillager.snareDurationSeconds = ticksToSeconds(v.pillager().snareDurationTicks());
+        cfg.pillager.snareSlownessAmplifier = v.pillager().snareSlownessAmplifier();
 
         cfg.spyMimic.stillnessSeconds = ticksToSeconds(v.spyMimic().stillnessTicks());
         cfg.spyMimic.stillnessMoveEpsilonBlocks = v.spyMimic().stillnessMoveEpsilonBlocks();
@@ -464,8 +501,15 @@ public final class GemsBalance {
         cfg.air.dashUpVelocity = v.air().dashUpVelocity();
         cfg.air.dashIFrameDurationSeconds = ticksToSeconds(v.air().dashIFrameDurationTicks());
         cfg.air.dashIFrameResistanceAmplifier = v.air().dashIFrameResistanceAmplifier();
+        cfg.air.airMaceBreachLevel = v.air().airMaceBreachLevel();
+        cfg.air.airMaceWindBurstLevel = v.air().airMaceWindBurstLevel();
+        cfg.air.airMaceMendingLevel = v.air().airMaceMendingLevel();
+        cfg.air.airMaceUnbreakingLevel = v.air().airMaceUnbreakingLevel();
+        cfg.air.airMaceFireAspectLevel = v.air().airMaceFireAspectLevel();
 
         cfg.legendary.craftSeconds = ticksToSeconds(v.legendary().craftTicks());
+        cfg.legendary.craftMaxPerItem = v.legendary().craftMaxPerItem();
+        cfg.legendary.craftMaxActivePerItem = v.legendary().craftMaxActivePerItem();
         cfg.legendary.trackerRefreshSeconds = ticksToSeconds(v.legendary().trackerRefreshTicks());
         cfg.legendary.trackerMaxDistanceBlocks = v.legendary().trackerMaxDistanceBlocks();
         cfg.legendary.recallCooldownSeconds = ticksToSeconds(v.legendary().recallCooldownTicks());
@@ -479,9 +523,11 @@ public final class GemsBalance {
         cfg.legendary.earthsplitterTunnelLengthBlocks = v.legendary().earthsplitterTunnelLengthBlocks();
         cfg.legendary.bloodOathSharpnessCap = v.legendary().bloodOathSharpnessCap();
         cfg.legendary.demolitionCooldownSeconds = ticksToSeconds(v.legendary().demolitionCooldownTicks());
+        cfg.legendary.demolitionCooldownScalePercent = v.legendary().demolitionCooldownScalePercent();
         cfg.legendary.demolitionFuseTicks = v.legendary().demolitionFuseTicks();
         cfg.legendary.demolitionRangeBlocks = v.legendary().demolitionRangeBlocks();
         cfg.legendary.demolitionExplosionPower = v.legendary().demolitionExplosionPower();
+        cfg.legendary.demolitionTntCount = v.legendary().demolitionTntCount();
         cfg.legendary.hunterAimRangeBlocks = v.legendary().hunterAimRangeBlocks();
         cfg.legendary.hunterAimTimeoutSeconds = ticksToSeconds(v.legendary().hunterAimTimeoutTicks());
         cfg.legendary.hunterAimAssistStrength = v.legendary().hunterAimAssistStrength();
@@ -512,6 +558,7 @@ public final class GemsBalance {
 
     public record Values(
             Visual visual,
+            Systems systems,
             Astra astra,
             Fire fire,
             Flux flux,
@@ -538,6 +585,7 @@ public final class GemsBalance {
         public static Values from(GemsBalanceConfig cfg) {
             return new Values(
                     Visual.from(cfg.visual != null ? cfg.visual : new GemsBalanceConfig.Visual()),
+                    Systems.from(cfg.systems != null ? cfg.systems : new GemsBalanceConfig.Systems()),
                     Astra.from(cfg.astra != null ? cfg.astra : new GemsBalanceConfig.Astra()),
                     Fire.from(cfg.fire != null ? cfg.fire : new GemsBalanceConfig.Fire()),
                     Flux.from(cfg.flux != null ? cfg.flux : new GemsBalanceConfig.Flux()),
@@ -580,6 +628,40 @@ public final class GemsBalance {
         }
     }
 
+    public record Systems(
+            int minMaxHearts,
+            int assassinTriggerHearts,
+            int assassinMaxHearts,
+            int assassinEliminationHeartsThreshold,
+            int assassinVsAssassinVictimHeartsLoss,
+            int assassinVsAssassinKillerHeartsGain,
+            double controlledFollowStartBlocks,
+            double controlledFollowStopBlocks,
+            double controlledFollowSpeed
+    ) {
+        static Systems from(GemsBalanceConfig.Systems cfg) {
+            double followStart = clampDouble(cfg.controlledFollowStartBlocks, 0.0D, 128.0D);
+            double followStop = clampDouble(cfg.controlledFollowStopBlocks, 0.0D, 128.0D);
+            if (followStop > followStart) {
+                followStop = followStart;
+            }
+            double followSpeed = clampDouble(cfg.controlledFollowSpeed, 0.0D, 3.0D);
+            int maxHearts = clampInt(cfg.assassinMaxHearts, 1, com.feel.gems.state.GemPlayerState.MAX_MAX_HEARTS);
+            int eliminationThreshold = clampInt(cfg.assassinEliminationHeartsThreshold, 0, maxHearts);
+            return new Systems(
+                    clampInt(cfg.minMaxHearts, 1, com.feel.gems.state.GemPlayerState.MAX_MAX_HEARTS),
+                    clampInt(cfg.assassinTriggerHearts, 1, com.feel.gems.state.GemPlayerState.MAX_MAX_HEARTS),
+                    maxHearts,
+                    eliminationThreshold,
+                    clampInt(cfg.assassinVsAssassinVictimHeartsLoss, 0, maxHearts),
+                    clampInt(cfg.assassinVsAssassinKillerHeartsGain, 0, maxHearts),
+                    followStart,
+                    followStop,
+                    followSpeed
+            );
+        }
+    }
+
     public record Astra(
             int shadowAnchorWindowTicks,
             int shadowAnchorPostCooldownTicks,
@@ -600,7 +682,10 @@ public final class GemsBalance {
             int spookDurationTicks,
             int tagCooldownTicks,
             int tagRangeBlocks,
-            int tagDurationTicks
+            int tagDurationTicks,
+            float soulHealingHearts,
+            double soulReleaseForwardBlocks,
+            double soulReleaseUpBlocks
     ) {
         static Astra from(GemsBalanceConfig.Astra cfg) {
             return new Astra(
@@ -623,7 +708,10 @@ public final class GemsBalance {
                     secClamped(cfg.spookDurationSeconds, 0, 60),
                     secClamped(cfg.tagCooldownSeconds, 0, 3600),
                     clampInt(cfg.tagRangeBlocks, 0, 128),
-                    secClamped(cfg.tagDurationSeconds, 0, 120)
+                    secClamped(cfg.tagDurationSeconds, 0, 120),
+                    clampFloat(cfg.soulHealingHearts, 0.0F, 40.0F),
+                    clampDouble(cfg.soulReleaseForwardBlocks, 0.0D, 32.0D),
+                    clampDouble(cfg.soulReleaseUpBlocks, 0.0D, 16.0D)
             );
         }
     }
@@ -643,6 +731,7 @@ public final class GemsBalance {
             int fireballInternalCooldownTicks,
             int fireballMaxDistanceBlocks,
             int meteorShowerCooldownTicks,
+            int meteorShowerTargetRangeBlocks,
             int meteorShowerCount,
             int meteorShowerSpreadBlocks,
             int meteorShowerHeightBlocks,
@@ -665,6 +754,7 @@ public final class GemsBalance {
                     secClamped(cfg.fireballInternalCooldownSeconds, 0, 3600),
                     clampInt(cfg.fireballMaxDistanceBlocks, 10, 256),
                     secClamped(cfg.meteorShowerCooldownSeconds, 0, 3600),
+                    clampInt(cfg.meteorShowerTargetRangeBlocks, 1, 128),
                     clampInt(cfg.meteorShowerCount, 0, 50),
                     clampInt(cfg.meteorShowerSpreadBlocks, 0, 48),
                     clampInt(cfg.meteorShowerHeightBlocks, 1, 256),
@@ -774,6 +864,9 @@ public final class GemsBalance {
             int healthDrainCooldownTicks,
             int healthDrainRangeBlocks,
             float healthDrainAmount,
+            int lifeSwapCooldownTicks,
+            int lifeSwapRangeBlocks,
+            float lifeSwapMinHearts,
             int lifeCircleCooldownTicks,
             int lifeCircleDurationTicks,
             int lifeCircleRadiusBlocks,
@@ -793,6 +886,9 @@ public final class GemsBalance {
                     secClamped(cfg.healthDrainCooldownSeconds, 0, 3600),
                     clampInt(cfg.healthDrainRangeBlocks, 0, 128),
                     clampFloat(cfg.healthDrainAmount, 0.0F, 40.0F),
+                    secClamped(cfg.lifeSwapCooldownSeconds, 0, 3600),
+                    clampInt(cfg.lifeSwapRangeBlocks, 0, 128),
+                    clampFloat(cfg.lifeSwapMinHearts, 1.0F, 20.0F),
                     secClamped(cfg.lifeCircleCooldownSeconds, 0, 3600),
                     secClamped(cfg.lifeCircleDurationSeconds, 0, 120),
                     clampInt(cfg.lifeCircleRadiusBlocks, 0, 32),
@@ -990,7 +1086,8 @@ public final class GemsBalance {
             int amplificationCooldownTicks,
             int amplificationDurationTicks,
             int richRushCooldownTicks,
-            int richRushDurationTicks
+            int richRushDurationTicks,
+            int pocketsRows
     ) {
         static Wealth from(GemsBalanceConfig.Wealth cfg) {
             return new Wealth(
@@ -1003,7 +1100,8 @@ public final class GemsBalance {
                     secClamped(cfg.amplificationCooldownSeconds, 0, 3600),
                     secClamped(cfg.amplificationDurationSeconds, 0, 600),
                     secClamped(cfg.richRushCooldownSeconds, 0, 24 * 3600),
-                    secClamped(cfg.richRushDurationSeconds, 0, 24 * 3600)
+                    secClamped(cfg.richRushDurationSeconds, 0, 24 * 3600),
+                    clampInt(cfg.pocketsRows, 1, 6)
             );
         }
     }
@@ -1019,6 +1117,7 @@ public final class GemsBalance {
             int terrorTradeMaxUses,
             int terrorTradeHeartsCost,
             int terrorTradePermanentEnergyPenalty,
+            int terrorTradeNormalTargetHeartsPenalty,
             int panicRingCooldownTicks,
             int panicRingTntCount,
             int panicRingFuseTicks,
@@ -1027,9 +1126,11 @@ public final class GemsBalance {
             int rigRangeBlocks,
             int rigDurationTicks,
             int rigFuseTicks,
+            int rigTntCount,
             int remoteChargeArmWindowTicks,
             int remoteChargeDetonateWindowTicks,
             int remoteChargeFuseTicks,
+            int remoteChargeCooldownTicks,
             int breachChargeCooldownTicks,
             int breachChargeRangeBlocks,
             int breachChargeFuseTicks,
@@ -1047,6 +1148,7 @@ public final class GemsBalance {
                     clampInt(cfg.terrorTradeMaxUses, 0, 10),
                     clampInt(cfg.terrorTradeHeartsCost, 0, 10),
                     clampInt(cfg.terrorTradePermanentEnergyPenalty, 0, 10),
+                    clampInt(cfg.terrorTradeNormalTargetHeartsPenalty, 0, 20),
                     secClamped(cfg.panicRingCooldownSeconds, 0, 24 * 3600),
                     clampInt(cfg.panicRingTntCount, 0, 40),
                     clampInt(cfg.panicRingFuseTicks, 1, 200),
@@ -1055,9 +1157,11 @@ public final class GemsBalance {
                     clampInt(cfg.rigRangeBlocks, 0, 128),
                     secClamped(cfg.rigDurationSeconds, 0, 24 * 3600),
                     clampInt(cfg.rigFuseTicks, 1, 200),
+                    clampInt(cfg.rigTntCount, 0, 50),
                     secClamped(cfg.remoteChargeArmWindowSeconds, 0, 60),
                     secClamped(cfg.remoteChargeDetonateWindowSeconds, 0, 3600),
                     clampInt(cfg.remoteChargeFuseTicks, 1, 200),
+                    secClamped(cfg.remoteChargeCooldownSeconds, 0, 24 * 3600),
                     secClamped(cfg.breachChargeCooldownSeconds, 0, 24 * 3600),
                     clampInt(cfg.breachChargeRangeBlocks, 0, 128),
                     clampInt(cfg.breachChargeFuseTicks, 1, 200),
@@ -1076,6 +1180,12 @@ public final class GemsBalance {
             int commandersMarkDurationTicks,
             int commandersMarkStrengthAmplifier,
             float summonBonusHealth,
+            double summonSpawnForwardBlocks,
+            double summonSpawnUpBlocks,
+            double summonSpawnRingBaseBlocks,
+            double summonSpawnRingStepBlocks,
+            int summonSpawnRingLayers,
+            int summonSpawnRingSegments,
             java.util.Map<String, Integer> costs,
             java.util.List<GemsBalanceConfig.Summoner.SummonSpec> slot1,
             java.util.List<GemsBalanceConfig.Summoner.SummonSpec> slot2,
@@ -1094,6 +1204,12 @@ public final class GemsBalance {
                     secClamped(cfg.commandersMarkDurationSeconds, 0, 60),
                     clampInt(cfg.commandersMarkStrengthAmplifier, 0, 10),
                     clampFloat(cfg.summonBonusHealth, 0.0F, 40.0F),
+                    clampDouble(cfg.summonSpawnForwardBlocks, 0.0D, 16.0D),
+                    clampDouble(cfg.summonSpawnUpBlocks, 0.0D, 8.0D),
+                    clampDouble(cfg.summonSpawnRingBaseBlocks, 0.0D, 4.0D),
+                    clampDouble(cfg.summonSpawnRingStepBlocks, 0.0D, 4.0D),
+                    clampInt(cfg.summonSpawnRingLayers, 1, 8),
+                    clampInt(cfg.summonSpawnRingSegments, 1, 16),
                     sanitizeCosts(cfg.costs),
                     sanitizeSpecs(cfg.slot1),
                     sanitizeSpecs(cfg.slot2),
@@ -1299,7 +1415,18 @@ public final class GemsBalance {
             int volleyArrowsPerShot,
             float volleyArrowDamage,
             float volleyArrowVelocity,
-            float volleyArrowInaccuracy
+            float volleyArrowInaccuracy,
+            int warhornCooldownTicks,
+            int warhornRadiusBlocks,
+            int warhornDurationTicks,
+            int warhornAllySpeedAmplifier,
+            int warhornAllyResistanceAmplifier,
+            int warhornEnemySlownessAmplifier,
+            int warhornEnemyWeaknessAmplifier,
+            int snareCooldownTicks,
+            int snareRangeBlocks,
+            int snareDurationTicks,
+            int snareSlownessAmplifier
     ) {
         static Pillager from(GemsBalanceConfig.Pillager cfg) {
             return new Pillager(
@@ -1328,7 +1455,18 @@ public final class GemsBalance {
                     clampInt(cfg.volleyArrowsPerShot, 0, 8),
                     clampFloat(cfg.volleyArrowDamage, 0.0F, 200.0F),
                     clampFloat(cfg.volleyArrowVelocity, 0.1F, 10.0F),
-                    clampFloat(cfg.volleyArrowInaccuracy, 0.0F, 10.0F)
+                    clampFloat(cfg.volleyArrowInaccuracy, 0.0F, 10.0F),
+                    secClamped(cfg.warhornCooldownSeconds, 0, 24 * 3600),
+                    clampInt(cfg.warhornRadiusBlocks, 0, 64),
+                    secClamped(cfg.warhornDurationSeconds, 0, 60),
+                    clampInt(cfg.warhornAllySpeedAmplifier, 0, 10),
+                    clampInt(cfg.warhornAllyResistanceAmplifier, 0, 10),
+                    clampInt(cfg.warhornEnemySlownessAmplifier, 0, 10),
+                    clampInt(cfg.warhornEnemyWeaknessAmplifier, 0, 10),
+                    secClamped(cfg.snareCooldownSeconds, 0, 24 * 3600),
+                    clampInt(cfg.snareRangeBlocks, 0, 128),
+                    secClamped(cfg.snareDurationSeconds, 0, 60),
+                    clampInt(cfg.snareSlownessAmplifier, 0, 10)
             );
         }
     }
@@ -1469,7 +1607,12 @@ public final class GemsBalance {
             double dashVelocity,
             double dashUpVelocity,
             int dashIFrameDurationTicks,
-            int dashIFrameResistanceAmplifier
+            int dashIFrameResistanceAmplifier,
+            int airMaceBreachLevel,
+            int airMaceWindBurstLevel,
+            int airMaceMendingLevel,
+            int airMaceUnbreakingLevel,
+            int airMaceFireAspectLevel
     ) {
         static Air from(GemsBalanceConfig.Air cfg) {
             return new Air(
@@ -1498,13 +1641,20 @@ public final class GemsBalance {
                     clampDouble(cfg.dashVelocity, 0.0D, 5.0D),
                     clampDouble(cfg.dashUpVelocity, -1.0D, 5.0D),
                     secClamped(cfg.dashIFrameDurationSeconds, 0, 10),
-                    clampInt(cfg.dashIFrameResistanceAmplifier, 0, 10)
+                    clampInt(cfg.dashIFrameResistanceAmplifier, 0, 10),
+                    clampInt(cfg.airMaceBreachLevel, 0, 10),
+                    clampInt(cfg.airMaceWindBurstLevel, 0, 10),
+                    clampInt(cfg.airMaceMendingLevel, 0, 1),
+                    clampInt(cfg.airMaceUnbreakingLevel, 0, 10),
+                    clampInt(cfg.airMaceFireAspectLevel, 0, 10)
             );
         }
     }
 
     public record Legendary(
             int craftTicks,
+            int craftMaxPerItem,
+            int craftMaxActivePerItem,
             int trackerRefreshTicks,
             int trackerMaxDistanceBlocks,
             int recallCooldownTicks,
@@ -1518,9 +1668,11 @@ public final class GemsBalance {
             int earthsplitterTunnelLengthBlocks,
             int bloodOathSharpnessCap,
             int demolitionCooldownTicks,
+            int demolitionCooldownScalePercent,
             int demolitionFuseTicks,
             int demolitionRangeBlocks,
             float demolitionExplosionPower,
+            int demolitionTntCount,
             int hunterAimRangeBlocks,
             int hunterAimTimeoutTicks,
             float hunterAimAssistStrength,
@@ -1538,6 +1690,8 @@ public final class GemsBalance {
         static Legendary from(GemsBalanceConfig.Legendary cfg) {
             return new Legendary(
                     secClamped(cfg.craftSeconds, 1, 24 * 3600),
+                    clampInt(cfg.craftMaxPerItem, 0, 100),
+                    clampInt(cfg.craftMaxActivePerItem, 0, 100),
                     secClamped(cfg.trackerRefreshSeconds, 1, 60),
                     clampInt(cfg.trackerMaxDistanceBlocks, 0, 200000),
                     secClamped(cfg.recallCooldownSeconds, 0, 3600),
@@ -1551,9 +1705,11 @@ public final class GemsBalance {
                     clampInt(cfg.earthsplitterTunnelLengthBlocks, 1, 32),
                     clampInt(cfg.bloodOathSharpnessCap, 1, 10),
                     secClamped(cfg.demolitionCooldownSeconds, 0, 3600),
+                    clampInt(cfg.demolitionCooldownScalePercent, 0, 200),
                     clampInt(cfg.demolitionFuseTicks, 1, 200),
                     clampInt(cfg.demolitionRangeBlocks, 1, 128),
                     clampFloat(cfg.demolitionExplosionPower, 0.0F, 12.0F),
+                    clampInt(cfg.demolitionTntCount, 0, 50),
                     clampInt(cfg.hunterAimRangeBlocks, 1, 256),
                     secClamped(cfg.hunterAimTimeoutSeconds, 0, 3600),
                     clampFloat(cfg.hunterAimAssistStrength, 0.0F, 1.0F),

@@ -2,10 +2,10 @@ package com.feel.gems.state;
 
 import com.feel.gems.GemsMod;
 import com.feel.gems.GemsModEvents;
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.core.GemId;
 import com.feel.gems.power.gem.spy.SpyMimicSystem;
-import com.feel.gems.power.runtime.AbilityDisables;
 import java.util.EnumSet;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -28,6 +28,7 @@ public final class GemPlayerState {
     private static final String KEY_MAX_HEARTS = "maxHearts";
     private static final String KEY_OWNED_GEMS = "ownedGems";
     private static final String KEY_GEM_EPOCH = "gemEpoch";
+    private static final String KEY_PASSIVES_ENABLED = "passivesEnabled";
 
     public static final int DEFAULT_ENERGY = 3;
     public static final int MIN_ENERGY = 0;
@@ -40,6 +41,10 @@ public final class GemPlayerState {
     private static final Identifier HEARTS_MODIFIER_ID = Identifier.of(GemsMod.MOD_ID, "max_hearts");
 
     private GemPlayerState() {
+    }
+
+    public static int minMaxHearts() {
+        return clamp(GemsBalance.v().systems().minMaxHearts(), 1, MAX_MAX_HEARTS);
     }
 
     public static void copy(ServerPlayerEntity from, ServerPlayerEntity to) {
@@ -57,10 +62,13 @@ public final class GemPlayerState {
             data.putInt(KEY_ENERGY_CAP_PENALTY, 0);
         }
         if (!data.contains(KEY_MAX_HEARTS, NbtElement.INT_TYPE)) {
-            data.putInt(KEY_MAX_HEARTS, DEFAULT_MAX_HEARTS);
+            data.putInt(KEY_MAX_HEARTS, Math.max(DEFAULT_MAX_HEARTS, minMaxHearts()));
         }
         if (!data.contains(KEY_GEM_EPOCH, NbtElement.INT_TYPE)) {
             data.putInt(KEY_GEM_EPOCH, 0);
+        }
+        if (!data.contains(KEY_PASSIVES_ENABLED, NbtElement.BYTE_TYPE)) {
+            data.putBoolean(KEY_PASSIVES_ENABLED, true);
         }
         if (!data.contains(KEY_ACTIVE_GEM, NbtElement.STRING_TYPE)) {
             GemId assigned = randomGem(player);
@@ -90,8 +98,8 @@ public final class GemPlayerState {
         NbtCompound data = root(player);
         GemId prev = getActiveGem(player);
         if (prev != gem && player instanceof ServerPlayerEntity sp) {
-            com.feel.gems.power.runtime.AbilityDisables.clear(sp);
             if (prev == GemId.SPY_MIMIC && gem != GemId.SPY_MIMIC) {
+                com.feel.gems.power.gem.spy.SpyMimicSystem.restoreStolenFromThief(sp);
                 com.feel.gems.power.gem.spy.SpyMimicSystem.clearOnGemSwitchAway(sp);
             }
         }
@@ -105,7 +113,7 @@ public final class GemPlayerState {
     public static void resetToNew(ServerPlayerEntity player, GemId gem) {
         NbtCompound data = root(player);
         data.putInt(KEY_ENERGY, DEFAULT_ENERGY);
-        data.putInt(KEY_MAX_HEARTS, DEFAULT_MAX_HEARTS);
+        data.putInt(KEY_MAX_HEARTS, Math.max(DEFAULT_MAX_HEARTS, minMaxHearts()));
         data.putString(KEY_ACTIVE_GEM, gem.name());
         setOwnedGems(player, EnumSet.of(gem));
     }
@@ -167,11 +175,28 @@ public final class GemPlayerState {
     public static int setEnergy(PlayerEntity player, int energy) {
         int clamped = clamp(energy, MIN_ENERGY, getMaxEnergy(player));
         root(player).putInt(KEY_ENERGY, clamped);
+        if (player instanceof ServerPlayerEntity sp) {
+            com.feel.gems.power.runtime.GemPowers.sync(sp);
+        }
         return clamped;
     }
 
     public static int addEnergy(PlayerEntity player, int delta) {
         return setEnergy(player, getEnergy(player) + delta);
+    }
+
+    public static boolean arePassivesEnabled(PlayerEntity player) {
+        NbtCompound data = root(player);
+        if (!data.contains(KEY_PASSIVES_ENABLED, NbtElement.BYTE_TYPE)) {
+            data.putBoolean(KEY_PASSIVES_ENABLED, true);
+            return true;
+        }
+        return data.getBoolean(KEY_PASSIVES_ENABLED);
+    }
+
+    public static void setPassivesEnabled(ServerPlayerEntity player, boolean enabled) {
+        root(player).putBoolean(KEY_PASSIVES_ENABLED, enabled);
+        com.feel.gems.power.runtime.GemPowers.sync(player);
     }
 
     public static int getEnergyCapPenalty(PlayerEntity player) {
@@ -203,13 +228,13 @@ public final class GemPlayerState {
     public static int getMaxHearts(PlayerEntity player) {
         NbtCompound data = root(player);
         if (!data.contains(KEY_MAX_HEARTS, NbtElement.INT_TYPE)) {
-            return DEFAULT_MAX_HEARTS;
+            return Math.max(DEFAULT_MAX_HEARTS, minMaxHearts());
         }
-        return clamp(data.getInt(KEY_MAX_HEARTS), MIN_MAX_HEARTS, MAX_MAX_HEARTS);
+        return clamp(data.getInt(KEY_MAX_HEARTS), minMaxHearts(), MAX_MAX_HEARTS);
     }
 
     public static int setMaxHearts(PlayerEntity player, int hearts) {
-        int clamped = clamp(hearts, MIN_MAX_HEARTS, MAX_MAX_HEARTS);
+        int clamped = clamp(hearts, minMaxHearts(), MAX_MAX_HEARTS);
         root(player).putInt(KEY_MAX_HEARTS, clamped);
         return clamped;
     }

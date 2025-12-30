@@ -1,5 +1,6 @@
 package com.feel.gems.power.gem.astra;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemPowers;
@@ -58,7 +59,7 @@ public final class SoulSystem {
         AbilityFeedback.burst(player, ParticleTypes.SCULK_SOUL, 8, 0.25D);
 
         if (GemPowers.isPassiveActive(player, PowerIds.SOUL_HEALING)) {
-            player.heal(2.0F);
+            player.heal(GemsBalance.v().astra().soulHealingHearts());
         }
     }
 
@@ -98,9 +99,11 @@ public final class SoulSystem {
 
         // Spawn clearly above the ground so summons don't clip into the floor (common with foot-position spawning).
         // (Players reported this feeling "too low" at smaller offsets.)
+        double forward = GemsBalance.v().astra().soulReleaseForwardBlocks();
+        double up = GemsBalance.v().astra().soulReleaseUpBlocks();
         Vec3d pos = player.getPos()
-                .add(player.getRotationVec(1.0F).multiply(2.0D))
-                .add(0.0D, 1.0D, 0.0D);
+                .add(player.getRotationVec(1.0F).multiply(forward))
+                .add(0.0D, up, 0.0D);
         Entity entity = type.create(world);
         if (entity == null) {
             nbt.remove(KEY_SOUL_TYPE);
@@ -117,6 +120,9 @@ public final class SoulSystem {
             if (!soulNbt.isEmpty()) {
                 applySoulNbt(entity, soulNbt);
             }
+        }
+        if (entity instanceof net.minecraft.entity.mob.MobEntity mob) {
+            com.feel.gems.power.gem.summoner.SummonerSummons.tuneControlledMob(mob);
         }
         SoulSummons.mark(entity, player.getUuid());
         SoulSummons.trackSpawn(player, entity);
@@ -135,7 +141,7 @@ public final class SoulSystem {
         nbt.remove(KEY_SOUL_NBT);
         com.feel.gems.net.GemExtraStateSync.send(player);
         if (GemPowers.isPassiveActive(player, PowerIds.SOUL_HEALING)) {
-            player.heal(2.0F);
+            player.heal(GemsBalance.v().astra().soulHealingHearts());
         }
         AbilityFeedback.sound(player, SoundEvents.ITEM_TOTEM_USE, 0.8F, 1.4F);
         AbilityFeedback.burstAt(world, pos.add(0.0D, 1.0D, 0.0D), ParticleTypes.SCULK_SOUL, 18, 0.35D);
@@ -178,6 +184,9 @@ public final class SoulSystem {
         nbt.remove("HurtTime");
         nbt.remove("DeathTime");
         nbt.remove("HurtByTimestamp");
+        nbt.remove("AngerTime");
+        nbt.remove("AngryAt");
+        nbt.remove("Angry");
         nbt.putFloat("Health", entity.getMaxHealth());
     }
 

@@ -5,7 +5,9 @@
   "refmap": "client-gems-refmap.json",
   "client": [
     "KeyboardHotbarAbilityMixin",
-    "AbstractClientPlayerEntitySkinMixin"
+    "AbstractClientPlayerEntitySkinMixin",
+    "AbstractClientPlayerEntityNameMixin",
+    "PlayerListEntrySkinshiftNameMixin"
   ],
   "injectors": {
     "defaultRequire": 1

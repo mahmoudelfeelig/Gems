@@ -57,7 +57,6 @@ import net.minecraft.item.Items;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.network.message.MessageType;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 
@@ -86,20 +85,23 @@ public final class GemsModEvents {
             }
             if (entity instanceof ServerPlayerEntity killer && killedEntity instanceof ServerPlayerEntity victim) {
                 com.feel.gems.legendary.LegendaryWeapons.onPlayerKill(killer, victim);
+                SpyMimicSystem.restoreStolenOnKill(killer, victim);
             }
         });
 
         ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, sender, params) -> {
-            if (!(sender instanceof ServerPlayerEntity player)) {
-                return true;
+            if (sender instanceof ServerPlayerEntity player) {
+                if (SpyMimicSystem.isSkinshiftTarget(player)) {
+                    player.sendMessage(Text.literal("You cannot chat while being skinshifted."), true);
+                    return false;
+                }
+                Text disguise = SpyMimicSystem.chatDisguiseName(player);
+                if (disguise != null) {
+                    broadcastDisguisedChat(player, disguise, message.getContent());
+                    return false;
+                }
             }
-            Text disguiseName = SpyMimicSystem.chatDisguiseName(player);
-            if (disguiseName == null || player.getServer() == null) {
-                return true;
-            }
-            MessageType.Parameters fakeParams = new MessageType.Parameters(params.type(), disguiseName, params.targetName());
-            player.getServer().getPlayerManager().broadcast(message, player, fakeParams);
-            return false;
+            return true;
         });
 
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
@@ -324,6 +326,16 @@ public final class GemsModEvents {
             }
         }
         return false;
+    }
+
+    private static void broadcastDisguisedChat(ServerPlayerEntity sender, Text disguise, Text content) {
+        if (sender == null || sender.getServer() == null) {
+            return;
+        }
+        Text message = Text.literal("<").append(disguise).append("> ").append(content);
+        for (ServerPlayerEntity player : sender.getServer().getPlayerManager().getPlayerList()) {
+            player.sendMessage(message, false);
+        }
     }
 
     private static void purgeOwnedGems(ServerPlayerEntity player) {

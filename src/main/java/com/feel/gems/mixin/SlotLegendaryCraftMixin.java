@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class SlotLegendaryCraftMixin {
     @Inject(method = "canTakeItems", at = @At("HEAD"), cancellable = true)
     private void gems$blockLegendary(PlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
-        if (player.getWorld().isClient) {
+        if (player.getEntityWorld().isClient()) {
             return;
         }
         if (!((Object) this instanceof CraftingResultSlot slot)) {

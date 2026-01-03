@@ -12,15 +12,15 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 
 
 
 public final class GemsKeybinds {
-    private static final String CATEGORY = "category.gems";
+    private static final KeyBinding.Category CATEGORY = KeyBinding.Category.create(Identifier.of("gems", "controls"));
 
     private static boolean registered = false;
     private static KeyBinding MODIFIER;
@@ -35,24 +35,13 @@ public final class GemsKeybinds {
         }
         registered = true;
 
-        GemsClientConfig cfg = GemsClientConfigManager.config();
-        MODIFIER = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.gems.modifier",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_LEFT_ALT,
-                CATEGORY
-        ));
+        MODIFIER = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.modifier", GLFW.GLFW_KEY_LEFT_ALT, CATEGORY));
 
-        if (cfg.controlMode == GemsClientConfig.ControlMode.CUSTOM) {
-            CUSTOM_KEYS = new KeyBinding[9];
-            for (int i = 0; i < CUSTOM_KEYS.length; i++) {
-                CUSTOM_KEYS[i] = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                        "key.gems.ability_" + (i + 1),
-                        InputUtil.Type.KEYSYM,
-                        GLFW.GLFW_KEY_UNKNOWN,
-                        CATEGORY
-                ));
-            }
+        // Always register the custom keybinds so they appear in the Controls menu even if the user
+        // starts in chord mode and switches later via config.
+        CUSTOM_KEYS = new KeyBinding[9];
+        for (int i = 0; i < CUSTOM_KEYS.length; i++) {
+            CUSTOM_KEYS[i] = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.ability_" + (i + 1), GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
         }
     }
 

@@ -2,9 +2,7 @@ package com.feel.gems.power.runtime;
 
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.GemsTime;
-import com.feel.gems.power.runtime.GemPowers;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 
@@ -44,18 +42,24 @@ public final class AbilityRestrictions {
 
     public static long suppressedUntil(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
-        if (!nbt.contains(KEY_SUPPRESSED_UNTIL, NbtElement.LONG_TYPE)) {
+        long until = nbt.getLong(KEY_SUPPRESSED_UNTIL, 0L);
+        long now = GemsTime.now(player);
+        if (until > 0 && until <= now) {
+            nbt.remove(KEY_SUPPRESSED_UNTIL);
             return 0L;
         }
-        return nbt.getLong(KEY_SUPPRESSED_UNTIL);
+        return until;
     }
 
     public static long stunnedUntil(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
-        if (!nbt.contains(KEY_STUNNED_UNTIL, NbtElement.LONG_TYPE)) {
+        long until = nbt.getLong(KEY_STUNNED_UNTIL, 0L);
+        long now = GemsTime.now(player);
+        if (until > 0 && until <= now) {
+            nbt.remove(KEY_STUNNED_UNTIL);
             return 0L;
         }
-        return nbt.getLong(KEY_STUNNED_UNTIL);
+        return until;
     }
 
     private static NbtCompound persistent(ServerPlayerEntity player) {

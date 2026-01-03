@@ -345,6 +345,7 @@ public final class GemsBalanceConfig {
         public int terrorTradeHeartsCost = 2;
         public int terrorTradePermanentEnergyPenalty = 2;
         public int terrorTradeNormalTargetHeartsPenalty = 2;
+        public int terrorTradeNormalTargetEnergyPenalty = 1;
 
         public int panicRingCooldownSeconds = 60;
         public int panicRingTntCount = 5;

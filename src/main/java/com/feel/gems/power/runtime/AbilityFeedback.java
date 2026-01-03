@@ -22,7 +22,7 @@ public final class AbilityFeedback {
         if (!GemsBalance.v().visual().enableSounds()) {
             return;
         }
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         world.playSound(null, player.getX(), player.getY(), player.getZ(), sound, SoundCategory.PLAYERS, volume, pitch);
     }
 
@@ -50,7 +50,7 @@ public final class AbilityFeedback {
     }
 
     public static void burst(ServerPlayerEntity player, ParticleEffect particle, int count, double spread) {
-        burstAt(player.getServerWorld(), player.getPos().add(0.0D, 1.0D, 0.0D), particle, count, spread);
+        burstAt(player.getEntityWorld(), player.getEntityPos().add(0.0D, 1.0D, 0.0D), particle, count, spread);
     }
 
     public static void burstAt(ServerWorld world, Vec3d pos, ParticleEffect particle, int count, double spread) {

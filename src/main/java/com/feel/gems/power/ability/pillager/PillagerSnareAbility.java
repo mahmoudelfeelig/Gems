@@ -63,7 +63,7 @@ public final class PillagerSnareAbility implements GemAbility {
         }
 
         AbilityFeedback.burst(player, ParticleTypes.CRIT, 8, 0.25D);
-        AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, target.getHeight() * 0.6D, 0.0D), ParticleTypes.CRIT, 10, 0.25D);
+        AbilityFeedback.burstAt(player.getEntityWorld(), target.getEntityPos().add(0.0D, target.getHeight() * 0.6D, 0.0D), ParticleTypes.CRIT, 10, 0.25D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ARROW_SHOOT, 0.9F, 1.2F);
         player.sendMessage(Text.literal("Snare Shot landed."), true);
         return true;

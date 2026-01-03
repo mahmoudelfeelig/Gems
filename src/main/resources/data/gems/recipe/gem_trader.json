@@ -7,15 +7,9 @@
     "DBD"
   ],
   "key": {
-    "D": {
-      "item": "minecraft:diamond_block"
-    },
-    "B": {
-      "item": "minecraft:dragon_breath"
-    },
-    "S": {
-      "item": "minecraft:wither_skeleton_skull"
-    }
+    "D": "minecraft:diamond_block",
+    "B": "minecraft:dragon_breath",
+    "S": "minecraft:wither_skeleton_skull"
   },
   "result": {
     "count": 1,

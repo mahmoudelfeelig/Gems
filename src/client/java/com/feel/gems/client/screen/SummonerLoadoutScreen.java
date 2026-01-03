@@ -8,7 +8,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -214,7 +213,7 @@ public final class SummonerLoadoutScreen extends Screen {
             if (id == null) {
                 continue;
             }
-            EntityType<?> type = Registries.ENTITY_TYPE.getOrEmpty(id).orElse(null);
+            EntityType<?> type = Registries.ENTITY_TYPE.getOptionalValue(id).orElse(null);
             if (type == null) {
                 continue;
             }
@@ -355,15 +354,13 @@ public final class SummonerLoadoutScreen extends Screen {
 
             Row(List<EntityOption> options, int columnWidth) {
                 mobWidth = Math.max(60, columnWidth - 108);
-                this.mobButton = CyclingButtonWidget.builder(EntityOption::label)
+                this.mobButton = CyclingButtonWidget.builder(EntityOption::label, options.get(0))
                         .values(options)
-                        .initially(options.get(0))
                         .build(0, 0, mobWidth, 20, Text.literal("Mob"), (btn, value) -> {
                             refreshVisibility();
                         });
-                this.countButton = CyclingButtonWidget.<Integer>builder(i -> Text.literal("Count: " + i))
+                this.countButton = CyclingButtonWidget.builder(i -> Text.literal("Count: " + i), 1)
                         .values(countOptions())
-                        .initially(1)
                             .build(0, 0, 70, 20, Text.literal("Count"), (btn, value) -> {});
                 this.removeButton = ButtonWidget.builder(Text.literal("X"), btn -> removeAction.run()).dimensions(0, 0, 22, 20).build();
             }

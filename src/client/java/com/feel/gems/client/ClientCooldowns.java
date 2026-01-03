@@ -1,12 +1,15 @@
 package com.feel.gems.client;
 
-import com.feel.gems.core.GemDefinition;
-import com.feel.gems.core.GemId;
-import com.feel.gems.core.GemRegistry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.feel.gems.core.GemDefinition;
+import com.feel.gems.core.GemId;
+import com.feel.gems.core.GemRegistry;
+
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.Identifier;
 
 
@@ -37,10 +40,11 @@ public final class ClientCooldowns {
         END_TICKS.clear();
 
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null) {
+        ClientWorld world = client.world;
+        if (world == null) {
             return;
         }
-        long now = client.world.getTime();
+        long now = world.getTime();
 
         GemDefinition def = GemRegistry.definition(gem);
         List<Identifier> abilities = def.abilities();
@@ -61,10 +65,11 @@ public final class ClientCooldowns {
         }
 
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null) {
+        ClientWorld world = client.world;
+        if (world == null) {
             return;
         }
-        long now = client.world.getTime();
+        long now = world.getTime();
 
         GemDefinition def = GemRegistry.definition(gem);
         List<Identifier> abilities = def.abilities();
@@ -79,14 +84,15 @@ public final class ClientCooldowns {
             return 0;
         }
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null) {
+        ClientWorld world = client.world;
+        if (world == null) {
             return 0;
         }
         Long end = END_TICKS.get(abilityId);
         if (end == null) {
             return 0;
         }
-        long remaining = end - client.world.getTime();
+        long remaining = end - world.getTime();
         if (remaining <= 0) {
             return 0;
         }

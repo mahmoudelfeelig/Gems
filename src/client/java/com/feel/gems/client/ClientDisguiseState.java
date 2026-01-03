@@ -7,7 +7,7 @@ import java.util.UUID;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.client.util.SkinTextures;
+import net.minecraft.entity.player.SkinTextures;
 import net.minecraft.text.Text;
 
 
@@ -29,7 +29,17 @@ public final class ClientDisguiseState {
     }
 
     public static SkinTextures overrideSkin(AbstractClientPlayerEntity player) {
-        UUID target = DISGUISES.get(player.getUuid());
+        if (player == null) {
+            return null;
+        }
+        return overrideSkin(player.getUuid());
+    }
+
+    public static SkinTextures overrideSkin(UUID playerId) {
+        if (playerId == null) {
+            return null;
+        }
+        UUID target = DISGUISES.get(playerId);
         if (target == null) {
             return null;
         }
@@ -67,7 +77,7 @@ public final class ClientDisguiseState {
         if (entry == null || entry.getProfile() == null) {
             return null;
         }
-        return Text.literal(entry.getProfile().getName());
+        return Text.literal(entry.getProfile().name());
     }
 
     public static void reset() {

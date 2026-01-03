@@ -1,66 +1,30 @@
 package com.feel.gems.gametest.core;
 
-import com.feel.gems.assassin.AssassinState;
-import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.gametest.util.GemsGameTestUtil;
-import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.CooldownSnapshotPayload;
-import com.feel.gems.power.ability.air.AirDashAbility;
-import com.feel.gems.power.ability.air.AirWindJumpAbility;
-import com.feel.gems.power.ability.beacon.BeaconAuraAbility;
-import com.feel.gems.power.ability.flux.FluxBeamAbility;
-import com.feel.gems.power.ability.pillager.PillagerFangsAbility;
-import com.feel.gems.power.ability.pillager.PillagerVolleyAbility;
-import com.feel.gems.power.ability.spy.SpyMimicFormAbility;
-import com.feel.gems.power.ability.spy.SpyStealAbility;
-import com.feel.gems.power.ability.summoner.SummonRecallAbility;
-import com.feel.gems.power.ability.summoner.SummonSlotAbility;
-import com.feel.gems.power.ability.terror.PanicRingAbility;
-import com.feel.gems.power.gem.beacon.BeaconAuraRuntime;
-import com.feel.gems.power.gem.flux.FluxCharge;
-import com.feel.gems.power.gem.pillager.PillagerDiscipline;
-import com.feel.gems.power.gem.pillager.PillagerVolleyRuntime;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
-import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityDisables;
-import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.runtime.GemAbilities;
 import com.feel.gems.power.runtime.GemAbilityCooldowns;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
-import com.feel.gems.trade.GemTrading;
-import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTime;
 import io.netty.buffer.Unpooled;
 import java.util.EnumSet;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ExperienceOrbEntity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.TntEntity;
-import net.minecraft.entity.attribute.EntityAttributes;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.mob.EvokerFangsEntity;
-import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 
@@ -68,14 +32,18 @@ import net.minecraft.world.GameMode;
 
 
 public final class GemsCoreGameTests {
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    private static void teleport(ServerPlayerEntity player, ServerWorld world, double x, double y, double z, float yaw, float pitch) {
+        player.teleport(world, x, y, z, EnumSet.noneOf(PositionFlag.class), yaw, pitch, false);
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void deathKeepsActiveGemOnly(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d startPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        player.teleport(world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
+        teleport(player, world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
 
         // GameTest creates "embedded" players and runs normal join callbacks; to avoid racey interactions with
         // JOIN/COPY_FROM logic (e.g. ensureActiveGemItem), perform test setup after the player is fully connected.
@@ -125,10 +93,10 @@ public final class GemsCoreGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void abilityDisablesClearAndCooldownSnapshotPersists(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         GemPlayerState.initIfNeeded(player);
@@ -186,7 +154,7 @@ public final class GemsCoreGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 120)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
     public void unlockOrderFollowsSpec(TestContext context) {
         // Use Fire as a representative 4-ability gem and also validate all gems respect the energy spec.
         GemDefinition fire = GemRegistry.definition(GemId.FIRE);
@@ -227,9 +195,9 @@ public final class GemsCoreGameTests {
         context.complete();
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 120)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
     public void energyLadderGatesAbilitiesAndLosesOnDeath(TestContext context) {
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         GemPlayerState.initIfNeeded(player);
@@ -268,9 +236,9 @@ public final class GemsCoreGameTests {
         context.complete();
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 160)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 160)
     public void passivesApplyAndStopWhenDisabled(TestContext context) {
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         GemPlayerState.initIfNeeded(player);

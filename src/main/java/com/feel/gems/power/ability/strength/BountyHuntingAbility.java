@@ -51,7 +51,7 @@ public final class BountyHuntingAbility implements GemAbility {
             player.sendMessage(Text.literal("That's your own item."), true);
             return false;
         }
-        var target = player.getServer().getPlayerManager().getPlayer(owner);
+        var target = player.getEntityWorld().getServer().getPlayerManager().getPlayer(owner);
         if (target == null) {
             player.sendMessage(Text.literal("Owner is offline."), true);
             return false;

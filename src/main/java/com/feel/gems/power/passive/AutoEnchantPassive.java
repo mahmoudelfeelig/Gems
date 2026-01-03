@@ -5,6 +5,7 @@ import java.util.function.Predicate;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -69,9 +70,11 @@ public final class AutoEnchantPassive implements GemMaintainedPassive {
         }
         ensureEnchanted(player.getMainHandStack(), enchantment);
         ensureEnchanted(player.getOffHandStack(), enchantment);
-        for (ItemStack armor : player.getInventory().armor) {
-            ensureEnchanted(armor, enchantment);
-        }
+        ensureEnchanted(player.getEquippedStack(EquipmentSlot.HEAD), enchantment);
+        ensureEnchanted(player.getEquippedStack(EquipmentSlot.CHEST), enchantment);
+        ensureEnchanted(player.getEquippedStack(EquipmentSlot.LEGS), enchantment);
+        ensureEnchanted(player.getEquippedStack(EquipmentSlot.FEET), enchantment);
+        ensureEnchanted(player.getEquippedStack(EquipmentSlot.BODY), enchantment);
     }
 
     @Override
@@ -116,8 +119,11 @@ public final class AutoEnchantPassive implements GemMaintainedPassive {
         if (cachedEnchantment != null) {
             return cachedEnchantment;
         }
-        var registry = player.getServerWorld().getRegistryManager().get(RegistryKeys.ENCHANTMENT);
-        var entry = registry.getEntry(enchantmentKey);
+        if (!(player.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld world)) {
+            return null;
+        }
+        var registry = world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
+        var entry = registry.getEntry(enchantmentKey.getValue());
         if (entry.isEmpty()) {
             return null;
         }

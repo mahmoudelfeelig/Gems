@@ -287,6 +287,7 @@ public final class GemsBalance {
         cfg.terror.terrorTradeHeartsCost = v.terror().terrorTradeHeartsCost();
         cfg.terror.terrorTradePermanentEnergyPenalty = v.terror().terrorTradePermanentEnergyPenalty();
         cfg.terror.terrorTradeNormalTargetHeartsPenalty = v.terror().terrorTradeNormalTargetHeartsPenalty();
+        cfg.terror.terrorTradeNormalTargetEnergyPenalty = v.terror().terrorTradeNormalTargetEnergyPenalty();
         cfg.terror.panicRingCooldownSeconds = ticksToSeconds(v.terror().panicRingCooldownTicks());
         cfg.terror.panicRingTntCount = v.terror().panicRingTntCount();
         cfg.terror.panicRingFuseTicks = v.terror().panicRingFuseTicks();
@@ -1118,6 +1119,7 @@ public final class GemsBalance {
             int terrorTradeHeartsCost,
             int terrorTradePermanentEnergyPenalty,
             int terrorTradeNormalTargetHeartsPenalty,
+            int terrorTradeNormalTargetEnergyPenalty,
             int panicRingCooldownTicks,
             int panicRingTntCount,
             int panicRingFuseTicks,
@@ -1149,6 +1151,7 @@ public final class GemsBalance {
                     clampInt(cfg.terrorTradeHeartsCost, 0, 10),
                     clampInt(cfg.terrorTradePermanentEnergyPenalty, 0, 10),
                     clampInt(cfg.terrorTradeNormalTargetHeartsPenalty, 0, 20),
+                    clampInt(cfg.terrorTradeNormalTargetEnergyPenalty, 0, 10),
                     secClamped(cfg.panicRingCooldownSeconds, 0, 24 * 3600),
                     clampInt(cfg.panicRingTntCount, 0, 40),
                     clampInt(cfg.panicRingFuseTicks, 1, 200),

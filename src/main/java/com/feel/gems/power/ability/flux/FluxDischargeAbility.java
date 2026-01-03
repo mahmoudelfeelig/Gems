@@ -51,23 +51,23 @@ public final class FluxDischargeAbility implements GemAbility {
         float damage = Math.min(cfg.fluxDischargeMaxDamage(), cfg.fluxDischargeBaseDamage() + charge * cfg.fluxDischargeDamagePerCharge());
         int radius = cfg.fluxDischargeRadiusBlocks();
         double knockback = cfg.fluxDischargeKnockback();
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         int hits = 0;
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player)) {
             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
                 continue;
             }
-            other.damage(player.getDamageSources().magic(), damage);
+            other.damage(world, player.getDamageSources().magic(), damage);
             if (knockback > 0.0D) {
-                Vec3d delta = other.getPos().subtract(player.getPos());
+                Vec3d delta = other.getEntityPos().subtract(player.getEntityPos());
                 if (delta.lengthSquared() > 1.0E-4D) {
                     Vec3d norm = delta.normalize();
                     other.addVelocity(norm.x * knockback, 0.25D, norm.z * knockback);
-                    other.velocityModified = true;
+                    other.velocityDirty = true;
                 }
             }
-            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ELECTRIC_SPARK, 10, 0.35D);
+            AbilityFeedback.burstAt(world, other.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ELECTRIC_SPARK, 10, 0.35D);
             hits++;
         }
 

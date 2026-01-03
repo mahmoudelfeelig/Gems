@@ -37,6 +37,7 @@ import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.trust.GemTrust;
+import com.feel.gems.util.GemsTickScheduler;
 import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
@@ -56,7 +57,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 
@@ -64,14 +64,13 @@ import net.minecraft.util.ActionResult;
 
 
 public final class GemsModEvents {
-    private static int tickCounter = 0;
-
     private GemsModEvents() {
     }
 
     public static void register() {
-        ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register((world, entity, killedEntity) -> {
-            if (entity instanceof ServerPlayerEntity player && killedEntity instanceof net.minecraft.entity.LivingEntity living) {
+        ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register((world, entity, killedEntity, damageSource) -> {
+            if (entity instanceof ServerPlayerEntity player) {
+                LivingEntity living = killedEntity;
                 SoulSystem.onKilledMob(player, living);
                 SpyMimicSystem.recordLastKilledMob(player, living);
 
@@ -105,7 +104,7 @@ public final class GemsModEvents {
         });
 
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (world.isClient) {
+            if (world.isClient()) {
                 return ActionResult.PASS;
             }
             if (!(player instanceof ServerPlayerEntity sp)) {
@@ -137,12 +136,12 @@ public final class GemsModEvents {
                 boolean breakBuff = PillagerVindicatorBreakAbility.isActive(sp, now);
                 boolean shieldbreaker = GemPowers.isPassiveActive(sp, PowerIds.PILLAGER_SHIELDBREAKER);
                 if (breakBuff || shieldbreaker) {
-                    victim.disableShield();
+                    victim.stopUsingItem();
                     int cooldown = breakBuff
                             ? GemsBalance.v().pillager().vindicatorBreakShieldDisableCooldownTicks()
                             : GemsBalance.v().pillager().shieldbreakerDisableCooldownTicks();
                     if (cooldown > 0) {
-                        victim.getItemCooldownManager().set(Items.SHIELD, cooldown);
+                        victim.getItemCooldownManager().set(Items.SHIELD.getDefaultStack(), cooldown);
                     }
                 }
             }
@@ -150,7 +149,7 @@ public final class GemsModEvents {
         });
 
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (world.isClient) {
+            if (world.isClient()) {
                 return ActionResult.PASS;
             }
             if (!(player instanceof ServerPlayerEntity sp)) {
@@ -168,7 +167,7 @@ public final class GemsModEvents {
         });
 
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
-            if (world.isClient) {
+            if (world.isClient()) {
                 return true;
             }
             if (player instanceof ServerPlayerEntity sp) {
@@ -228,8 +227,8 @@ public final class GemsModEvents {
             GemStateSync.send(newPlayer);
             SpyMimicSystem.syncSkinshifts(newPlayer);
             SpyMimicSystem.syncSkinshiftSelf(newPlayer);
-            unlockStartingRecipes(newPlayer.getServer(), newPlayer);
-            AssassinTeams.sync(newPlayer.getServer(), newPlayer);
+            unlockStartingRecipes(newPlayer.getEntityWorld().getServer(), newPlayer);
+            AssassinTeams.sync(newPlayer.getEntityWorld().getServer(), newPlayer);
             LegendaryCrafting.deliverPending(newPlayer);
             RecallRelicItem.ensureForceload(newPlayer);
             HypnoControl.releaseAll(newPlayer);
@@ -244,26 +243,30 @@ public final class GemsModEvents {
 
         ServerTickEvents.START_SERVER_TICK.register(server -> GemsPerfMonitor.onTickStart());
 
-        ServerTickEvents.END_SERVER_TICK.register(server -> {
-            tickCounter++;
-            boolean doMaintain = tickCounter % 40 == 0;
-            boolean doFluxOvercharge = tickCounter % 20 == 0;
-            if (!doMaintain && !doFluxOvercharge) {
-                return;
-            }
+        GemsTickScheduler.register();
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            GemsTickScheduler.clearAll();
 
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                if (doMaintain) {
-                    GemPowers.maintain(player);
-                    SupremeSetRuntime.tick(player);
-                    HypnoControl.pruneAndCount(player);
-                    com.feel.gems.power.gem.astra.SoulSummons.pruneAndCount(player);
-                    HypnoControl.followOwner(player);
-                    com.feel.gems.power.gem.astra.SoulSummons.followOwner(player);
-                    SummonerSummons.followOwner(player);
-                    RecallRelicItem.clearIfMissingItem(player);
+            // Every tick: lightweight runtimes + maintenance queues.
+            GemsTickScheduler.scheduleRepeating(server, 0, 1, s -> {
+                BreezyBashTracker.tick(s);
+                SpaceAnomalies.tick(s);
+                PillagerVolleyRuntime.tick(s);
+                SpeedFrictionlessSteps.tick(s);
+                GemsStressTest.tick(s);
+                GemOwnership.tickPurgeQueue(s);
+                for (ServerPlayerEntity player : s.getPlayerManager().getPlayerList()) {
+                    TerrorRigRuntime.checkStep(player);
                 }
-                if (doFluxOvercharge) {
+            });
+
+            // Every second: per-player runtimes and periodic server systems.
+            GemsTickScheduler.scheduleRepeating(server, 20, 20, s -> {
+                LegendaryCrafting.tick(s);
+                LegendaryPlayerTracker.tick(s);
+                TerrorRigRuntime.tick(s);
+
+                for (ServerPlayerEntity player : s.getPlayerManager().getPlayerList()) {
                     GemPlayerState.initIfNeeded(player);
                     if (GemPlayerState.getActiveGem(player) == GemId.FLUX && GemPlayerState.getEnergy(player) > 0) {
                         FluxCharge.tickOvercharge(player);
@@ -274,29 +277,25 @@ public final class GemsModEvents {
                     BeaconSupportRuntime.tickEverySecond(player);
                     BeaconAuraRuntime.tickEverySecond(player);
                 }
-            }
-        });
+            });
 
-        ServerTickEvents.END_SERVER_TICK.register(server -> {
-            if (tickCounter % 20 == 0) {
-                LegendaryCrafting.tick(server);
-                LegendaryPlayerTracker.tick(server);
-                TerrorRigRuntime.tick(server);
-            }
-        });
+            // Every two seconds: heavier follow/cleanup work.
+            GemsTickScheduler.scheduleRepeating(server, 40, 40, s -> {
+                for (ServerPlayerEntity player : s.getPlayerManager().getPlayerList()) {
+                    GemPowers.maintain(player);
+                    SupremeSetRuntime.tick(player);
+                    HypnoControl.pruneAndCount(player);
+                    com.feel.gems.power.gem.astra.SoulSummons.pruneAndCount(player);
+                    HypnoControl.followOwner(player);
+                    com.feel.gems.power.gem.astra.SoulSummons.followOwner(player);
+                    SummonerSummons.followOwner(player);
+                    RecallRelicItem.clearIfMissingItem(player);
+                }
+            });
 
-        ServerTickEvents.END_SERVER_TICK.register(BreezyBashTracker::tick);
-        ServerTickEvents.END_SERVER_TICK.register(SpaceAnomalies::tick);
-        ServerTickEvents.END_SERVER_TICK.register(PillagerVolleyRuntime::tick);
-        ServerTickEvents.END_SERVER_TICK.register(SpeedFrictionlessSteps::tick);
-        ServerTickEvents.END_SERVER_TICK.register(GemsStressTest::tick);
-        ServerTickEvents.END_SERVER_TICK.register(server -> com.feel.gems.item.GemOwnership.tickPurgeQueue(server));
-        ServerTickEvents.END_SERVER_TICK.register(server -> {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                TerrorRigRuntime.checkStep(player);
-            }
+            // Tail hook: perf monitor should run after all scheduled work for the tick.
+            GemsTickScheduler.scheduleRepeating(server, 0, 1, Integer.MAX_VALUE, s -> GemsPerfMonitor.onTickEnd());
         });
-        ServerTickEvents.END_SERVER_TICK.register(server -> GemsPerfMonitor.onTickEnd());
     }
 
     private static void ensureActiveGemItem(ServerPlayerEntity player) {
@@ -310,39 +309,34 @@ public final class GemsModEvents {
     }
 
     private static boolean hasItem(ServerPlayerEntity player, Item item) {
-        for (ItemStack stack : player.getInventory().main) {
+        for (ItemStack stack : player.getInventory().getMainStacks()) {
             if (stack.isOf(item)) {
                 return true;
             }
         }
-        for (ItemStack stack : player.getInventory().offHand) {
-            if (stack.isOf(item)) {
-                return true;
-            }
-        }
-        for (ItemStack stack : player.getInventory().armor) {
-            if (stack.isOf(item)) {
-                return true;
-            }
-        }
+        if (player.getOffHandStack().isOf(item)) return true;
+        if (player.getEquippedStack(net.minecraft.entity.EquipmentSlot.HEAD).isOf(item)) return true;
+        if (player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST).isOf(item)) return true;
+        if (player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS).isOf(item)) return true;
+        if (player.getEquippedStack(net.minecraft.entity.EquipmentSlot.FEET).isOf(item)) return true;
         return false;
     }
 
     private static void broadcastDisguisedChat(ServerPlayerEntity sender, Text disguise, Text content) {
-        if (sender == null || sender.getServer() == null) {
+        if (sender == null || sender.getEntityWorld().getServer() == null) {
             return;
         }
         Text message = Text.literal("<").append(disguise).append("> ").append(content);
-        for (ServerPlayerEntity player : sender.getServer().getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : sender.getEntityWorld().getServer().getPlayerManager().getPlayerList()) {
             player.sendMessage(message, false);
         }
     }
 
     private static void purgeOwnedGems(ServerPlayerEntity player) {
-        if (player.getServer() == null) {
+        if (player.getEntityWorld().getServer() == null) {
             return;
         }
-        com.feel.gems.item.GemOwnership.requestDeferredPurge(player.getServer(), player.getUuid());
+        com.feel.gems.item.GemOwnership.requestDeferredPurge(player.getEntityWorld().getServer(), player.getUuid());
     }
 
     public static void unlockStartingRecipes(net.minecraft.server.MinecraftServer server, ServerPlayerEntity player) {
@@ -352,7 +346,7 @@ public final class GemsModEvents {
         var manager = server.getRecipeManager();
         List<RecipeEntry<?>> entries = new ArrayList<>();
         for (RecipeEntry<?> entry : manager.values()) {
-            if (GemsMod.MOD_ID.equals(entry.id().getNamespace())) {
+            if (GemsMod.MOD_ID.equals(entry.id().getValue().getNamespace())) {
                 entries.add(entry);
             }
         }

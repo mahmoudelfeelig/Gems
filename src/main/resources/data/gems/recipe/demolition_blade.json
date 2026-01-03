@@ -7,18 +7,10 @@
     "TRT"
   ],
   "key": {
-    "T": {
-      "item": "minecraft:tnt"
-    },
-    "R": {
-      "item": "minecraft:redstone_block"
-    },
-    "N": {
-      "item": "minecraft:netherite_ingot"
-    },
-    "S": {
-      "item": "minecraft:netherite_sword"
-    }
+    "T": "minecraft:tnt",
+    "R": "minecraft:redstone_block",
+    "N": "minecraft:netherite_ingot",
+    "S": "minecraft:netherite_sword"
   },
   "result": {
     "count": 1,

@@ -5,20 +5,19 @@ import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.GemsTime;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.RepairableComponent;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ArmorMaterials;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.ToolItem;
-import net.minecraft.item.ToolMaterials;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 
 public final class FluxCharge {
+    private static ItemStack diamondRepairItem;
+
     private static final String KEY_CHARGE = "fluxCharge";
     private static final String KEY_AT_100 = "fluxChargeAt100";
     private static final String KEY_LAST_OVERCHARGE_TICK = "fluxLastOverchargeTick";
@@ -28,10 +27,7 @@ public final class FluxCharge {
 
     public static int get(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
-        if (!nbt.contains(KEY_CHARGE, NbtElement.INT_TYPE)) {
-            return 0;
-        }
-        return clamp(nbt.getInt(KEY_CHARGE), 0, 200);
+        return clamp(nbt.getInt(KEY_CHARGE, 0), 0, 200);
     }
 
     public static void set(ServerPlayerEntity player, int charge) {
@@ -88,13 +84,14 @@ public final class FluxCharge {
 
         // Only scan the main inventory; charging is an explicit action and this runs only on use().
         // Prefer hotbar slots 0..8.
-        for (int slot = 0; slot < Math.min(9, player.getInventory().main.size()); slot++) {
-            if (chargeValue(player.getInventory().main.get(slot)) > 0) {
+        var mainStacks = player.getInventory().getMainStacks();
+        for (int slot = 0; slot < Math.min(9, mainStacks.size()); slot++) {
+            if (chargeValue(mainStacks.get(slot)) > 0) {
                 return new int[]{1, slot};
             }
         }
-        for (int slot = 9; slot < player.getInventory().main.size(); slot++) {
-            if (chargeValue(player.getInventory().main.get(slot)) > 0) {
+        for (int slot = 9; slot < mainStacks.size(); slot++) {
+            if (chargeValue(mainStacks.get(slot)) > 0) {
                 return new int[]{1, slot};
             }
         }
@@ -105,7 +102,7 @@ public final class FluxCharge {
         if (fuel[0] == 0) {
             return player.getOffHandStack();
         }
-        return player.getInventory().main.get(fuel[1]);
+        return player.getInventory().getMainStacks().get(fuel[1]);
     }
 
     public static void tickOvercharge(ServerPlayerEntity player) {
@@ -119,7 +116,7 @@ public final class FluxCharge {
 
         NbtCompound nbt = persistent(player);
         long now = GemsTime.now(player);
-        long at100 = nbt.getLong(KEY_AT_100);
+        long at100 = nbt.getLong(KEY_AT_100, 0L);
         if (at100 <= 0) {
             nbt.putLong(KEY_AT_100, now);
             return;
@@ -128,7 +125,7 @@ public final class FluxCharge {
             return;
         }
 
-        long last = nbt.getLong(KEY_LAST_OVERCHARGE_TICK);
+        long last = nbt.getLong(KEY_LAST_OVERCHARGE_TICK, 0L);
         if (now - last < 20L) {
             return;
         }
@@ -136,7 +133,9 @@ public final class FluxCharge {
 
         int next = Math.min(200, charge + GemsBalance.v().flux().overchargePerSecond());
         set(player, next);
-        player.damage(player.getDamageSources().magic(), GemsBalance.v().flux().overchargeSelfDamagePerSecond());
+        if (player.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld world) {
+            player.damage(world, player.getDamageSources().magic(), GemsBalance.v().flux().overchargeSelfDamagePerSecond());
+        }
         com.feel.gems.net.GemExtraStateSync.send(player);
     }
 
@@ -179,13 +178,18 @@ public final class FluxCharge {
         if (!EnchantmentHelper.hasEnchantments(stack)) {
             return 0;
         }
-        if (stack.getItem() instanceof ToolItem tool && tool.getMaterial() == ToolMaterials.DIAMOND) {
-            return GemsBalance.v().flux().chargeEnchantedDiamondItem();
-        }
-        if (stack.getItem() instanceof ArmorItem armor && armor.getMaterial() == ArmorMaterials.DIAMOND) {
+        RepairableComponent repairable = stack.get(DataComponentTypes.REPAIRABLE);
+        if (repairable != null && repairable.matches(diamondRepairItem())) {
             return GemsBalance.v().flux().chargeEnchantedDiamondItem();
         }
         return 0;
+    }
+
+    private static ItemStack diamondRepairItem() {
+        if (diamondRepairItem == null) {
+            diamondRepairItem = new ItemStack(Items.DIAMOND);
+        }
+        return diamondRepairItem;
     }
 
     private static NbtCompound persistent(ServerPlayerEntity player) {

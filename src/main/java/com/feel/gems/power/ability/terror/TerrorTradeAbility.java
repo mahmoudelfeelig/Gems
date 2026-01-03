@@ -2,7 +2,6 @@ package com.feel.gems.power.ability.terror;
 
 import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.config.GemsBalance;
-import com.feel.gems.item.GemOwnership;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
@@ -12,7 +11,9 @@ import com.feel.gems.power.util.Targeting;
 import com.feel.gems.state.GemPlayerState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.particle.TintedParticleEffect;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -65,63 +66,65 @@ public final class TerrorTradeAbility implements GemAbility {
     }
 
     private static boolean activateMobTrade(ServerPlayerEntity player, LivingEntity target) {
-        var world = player.getServerWorld();
-        AbilityFeedback.beam(world, player.getEyePos(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SOUL_FIRE_FLAME, 24);
-        AbilityFeedback.burstAt(world, target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.FLASH, 1, 0.0D);
+        ServerWorld world = player.getEntityWorld();
+        AbilityFeedback.beam(world, player.getEyePos(), target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SOUL_FIRE_FLAME, 24);
+        AbilityFeedback.burstAt(world, target.getEntityPos().add(0.0D, 1.0D, 0.0D), TintedParticleEffect.create(ParticleTypes.FLASH, 0xFFFFFF), 1, 0.0D);
         AbilityFeedback.sound(player, SoundEvents.ITEM_TOTEM_USE, 0.7F, 0.9F);
 
-        target.damage(target.getDamageSources().playerAttack(player), 10_000.0F);
-        player.damage(player.getDamageSources().outOfWorld(), 10_000.0F);
+        target.damage(world, target.getDamageSources().playerAttack(player), 10_000.0F);
+        player.kill(world);
         return true;
     }
 
     private static boolean activateNormalTrade(ServerPlayerEntity player, ServerPlayerEntity victim) {
-        // Normal players: no uses/costs/energy penalties; target totems still save them.
-        // The target pays the "heart cost" by losing 2 max-hearts (instead of the normal 1-heart drop on death).
-        boolean skipDropApplied = applyTargetPenaltyForNormalTrade(victim);
-        GemPowers.sync(victim);
-        GemStateSync.send(victim);
-
-        var world = player.getServerWorld();
-        AbilityFeedback.beam(world, player.getEyePos(), victim.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SOUL_FIRE_FLAME, 24);
-        AbilityFeedback.burstAt(world, victim.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.FLASH, 1, 0.0D);
+        ServerWorld world = player.getEntityWorld();
+        AbilityFeedback.beam(world, player.getEyePos(), victim.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SOUL_FIRE_FLAME, 24);
+        AbilityFeedback.burstAt(world, victim.getEntityPos().add(0.0D, 1.0D, 0.0D), TintedParticleEffect.create(ParticleTypes.FLASH, 0xFFFFFF), 1, 0.0D);
         AbilityFeedback.sound(player, SoundEvents.ITEM_TOTEM_USE, 0.7F, 0.9F);
 
         // Attempt to kill the target (totems may save them).
         // Use a source attributed to the caster so kills count normally (energy, scoring, etc.);
         // Totems can still save the target.
-        victim.damage(victim.getDamageSources().playerAttack(player), 10_000.0F);
-        if (victim.isAlive() && skipDropApplied) {
-            // The target survived (most likely via totem); don't suppress their next heart drop.
-            GemOwnership.consumeSkipHeartDrop(victim);
+        victim.damage(world, victim.getDamageSources().playerAttack(player), 10_000.0F);
+        if (victim.isAlive()) {
+            // Totems can save players; when that happens, apply a configurable penalty (defaults mimic normal death).
+            applyTargetPenaltyForNormalTrade(victim);
         }
 
         // Kill the caster even if they have a totem.
-        player.damage(player.getDamageSources().outOfWorld(), 10_000.0F);
+        player.kill(world);
         return true;
     }
 
-    private static boolean applyTargetPenaltyForNormalTrade(ServerPlayerEntity victim) {
+    private static void applyTargetPenaltyForNormalTrade(ServerPlayerEntity victim) {
         GemPlayerState.initIfNeeded(victim);
         AssassinState.initIfNeeded(victim);
 
-        int penalty = GemsBalance.v().terror().terrorTradeNormalTargetHeartsPenalty();
+        int heartsPenalty = GemsBalance.v().terror().terrorTradeNormalTargetHeartsPenalty();
+        int energyPenalty = GemsBalance.v().terror().terrorTradeNormalTargetEnergyPenalty();
+
+        if (energyPenalty > 0) {
+            GemPlayerState.addEnergy(victim, -energyPenalty);
+        }
+
         if (AssassinState.isAssassin(victim)) {
-            int after = AssassinState.addAssassinHearts(victim, -penalty);
+            int after = heartsPenalty > 0 ? AssassinState.addAssassinHearts(victim, -heartsPenalty) : AssassinState.getAssassinHearts(victim);
             if (AssassinState.isEliminatedByHearts(after)) {
                 AssassinState.setEliminated(victim, true);
             }
             GemPlayerState.applyMaxHearts(victim);
-            return false;
+            GemPowers.sync(victim);
+            GemStateSync.send(victim);
+            return;
         }
 
-        int before = GemPlayerState.getMaxHearts(victim);
-        GemPlayerState.setMaxHearts(victim, Math.max(GemPlayerState.minMaxHearts(), before - penalty));
+        if (heartsPenalty > 0) {
+            int before = GemPlayerState.getMaxHearts(victim);
+            GemPlayerState.setMaxHearts(victim, Math.max(GemPlayerState.minMaxHearts(), before - heartsPenalty));
+        }
         GemPlayerState.applyMaxHearts(victim);
-
-        // Replace the usual death heart drop (1 heart) with our 2-heart penalty.
-        GemOwnership.markSkipHeartDropOnce(victim);
-        return true;
+        GemPowers.sync(victim);
+        GemStateSync.send(victim);
     }
 
     private static boolean activateAssassinTrade(ServerPlayerEntity player, ServerPlayerEntity victim) {
@@ -139,13 +142,14 @@ public final class TerrorTradeAbility implements GemAbility {
         // Attempt to kill the target (totems may save them).
         // Use a source attributed to the caster so kills count normally (energy, scoring, etc.);
         // Totems can still save the target.
-        victim.damage(victim.getDamageSources().playerAttack(player), 10_000.0F);
-        AbilityFeedback.beam(player.getServerWorld(), player.getEyePos(), victim.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SOUL_FIRE_FLAME, 24);
-        AbilityFeedback.burstAt(player.getServerWorld(), victim.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.FLASH, 1, 0.0D);
+        ServerWorld world = player.getEntityWorld();
+        victim.damage(world, victim.getDamageSources().playerAttack(player), 10_000.0F);
+        AbilityFeedback.beam(world, player.getEyePos(), victim.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SOUL_FIRE_FLAME, 24);
+        AbilityFeedback.burstAt(world, victim.getEntityPos().add(0.0D, 1.0D, 0.0D), TintedParticleEffect.create(ParticleTypes.FLASH, 0xFFFFFF), 1, 0.0D);
         AbilityFeedback.sound(player, SoundEvents.ITEM_TOTEM_USE, 0.7F, 0.9F);
 
         // Kill the caster even if they have a totem.
-        player.damage(player.getDamageSources().outOfWorld(), 10_000.0F);
+        player.kill(world);
         return true;
     }
 

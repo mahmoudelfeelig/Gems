@@ -24,7 +24,7 @@ public abstract class MobEntitySoulTargetingMixin {
     @Inject(method = "setTarget", at = @At("TAIL"))
     private void gems$preventTargetingTrusted(LivingEntity target, CallbackInfo ci) {
         MobEntity self = (MobEntity) (Object) this;
-        if (!(self.getWorld() instanceof ServerWorld world)) {
+        if (!(self.getEntityWorld() instanceof ServerWorld world)) {
             return;
         }
         if (target == null) {

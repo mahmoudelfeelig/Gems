@@ -18,19 +18,29 @@ public final class GemItemGlint {
         GemId activeGem = GemPlayerState.getActiveGem(player);
         boolean shouldGlint = GemPlayerState.getEnergy(player) >= GemPlayerState.MAX_ENERGY;
 
-        syncInventorySection(player.getInventory().main, activeGem, shouldGlint);
-        syncInventorySection(player.getInventory().offHand, activeGem, shouldGlint);
-        syncInventorySection(player.getInventory().armor, activeGem, shouldGlint);
+        syncInventorySection(player.getInventory().getMainStacks(), activeGem, shouldGlint);
+        syncInventoryStack(player.getOffHandStack(), activeGem, shouldGlint);
+        syncInventoryStack(player.getEquippedStack(net.minecraft.entity.EquipmentSlot.HEAD), activeGem, shouldGlint);
+        syncInventoryStack(player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST), activeGem, shouldGlint);
+        syncInventoryStack(player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS), activeGem, shouldGlint);
+        syncInventoryStack(player.getEquippedStack(net.minecraft.entity.EquipmentSlot.FEET), activeGem, shouldGlint);
     }
 
     private static void syncInventorySection(Iterable<ItemStack> stacks, GemId activeGem, boolean shouldGlint) {
         for (ItemStack stack : stacks) {
-            if (!(stack.getItem() instanceof GemItem gemItem)) {
-                continue;
-            }
-            boolean isActiveGemItem = gemItem.gemId() == activeGem;
-            setGlintFlag(stack, isActiveGemItem && shouldGlint);
+            syncInventoryStack(stack, activeGem, shouldGlint);
         }
+    }
+
+    private static void syncInventoryStack(ItemStack stack, GemId activeGem, boolean shouldGlint) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+        if (!(stack.getItem() instanceof GemItem gemItem)) {
+            return;
+        }
+        boolean isActiveGemItem = gemItem.gemId() == activeGem;
+        setGlintFlag(stack, isActiveGemItem && shouldGlint);
     }
 
     private static void setGlintFlag(ItemStack stack, boolean value) {

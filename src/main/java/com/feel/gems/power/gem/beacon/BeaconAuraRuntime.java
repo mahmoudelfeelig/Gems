@@ -6,12 +6,10 @@ import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
-import com.feel.gems.util.GemsTime;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -83,7 +81,7 @@ public final class BeaconAuraRuntime {
 
     public static AuraType activeType(ServerPlayerEntity player) {
         NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        Identifier id = Identifier.tryParse(nbt.getString(KEY_AURA_TYPE));
+        Identifier id = Identifier.tryParse(nbt.getString(KEY_AURA_TYPE, ""));
         return AuraType.fromId(id);
     }
 
@@ -107,7 +105,7 @@ public final class BeaconAuraRuntime {
         }
         int amplifier = amplifierFor(type);
 
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (net.minecraft.entity.LivingEntity other : world.getEntitiesByClass(net.minecraft.entity.LivingEntity.class, box, e -> e.isAlive())) {
             boolean trusted = other instanceof ServerPlayerEntity otherPlayer && (GemTrust.isTrusted(player, otherPlayer) || otherPlayer == player);
@@ -144,7 +142,7 @@ public final class BeaconAuraRuntime {
             return;
         }
         int radius = GemsBalance.v().beacon().auraRadiusBlocks();
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (net.minecraft.entity.LivingEntity other : world.getEntitiesByClass(net.minecraft.entity.LivingEntity.class, box, e -> e.isAlive())) {
             other.removeStatusEffect(type.effect());

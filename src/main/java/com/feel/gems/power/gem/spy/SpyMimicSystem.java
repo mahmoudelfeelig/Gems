@@ -12,9 +12,9 @@ import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
+import com.feel.gems.util.GemsNbt;
 import com.feel.gems.util.GemsTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -26,13 +26,12 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -47,6 +46,7 @@ public final class SpyMimicSystem {
     private static final String KEY_LAST_SEEN_ABILITY = "spyLastSeenAbility";
     private static final String KEY_LAST_SEEN_AT = "spyLastSeenAt";
     private static final String KEY_LAST_SEEN_CASTER = "spyLastSeenCaster";
+    private static final String KEY_LAST_SEEN_CASTER_ENTITY_ID = "spyLastSeenCasterEntityId";
     private static final String KEY_OBSERVED = "spyObserved";
 
     private static final String KEY_STOLEN = "spyStolen";
@@ -74,18 +74,19 @@ public final class SpyMimicSystem {
 
     public static void incrementDeaths(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
-        int deaths = nbt.getInt(KEY_DEATHS);
+        int deaths = nbt.getInt(KEY_DEATHS, 0);
         nbt.putInt(KEY_DEATHS, deaths + 1);
 
         // Dying clears observation progress windows.
         nbt.remove(KEY_LAST_SEEN_ABILITY);
         nbt.remove(KEY_LAST_SEEN_AT);
         nbt.remove(KEY_LAST_SEEN_CASTER);
+        nbt.remove(KEY_LAST_SEEN_CASTER_ENTITY_ID);
         nbt.remove(KEY_OBSERVED);
     }
 
     public static int deaths(ServerPlayerEntity player) {
-        return persistent(player).getInt(KEY_DEATHS);
+        return persistent(player).getInt(KEY_DEATHS, 0);
     }
 
     public static void recordLastKilledMob(ServerPlayerEntity killer, LivingEntity killed) {
@@ -103,7 +104,7 @@ public final class SpyMimicSystem {
     }
 
     public static Identifier lastKilledType(ServerPlayerEntity player) {
-        String raw = persistent(player).getString(KEY_LAST_KILLED_TYPE);
+        String raw = persistent(player).getString(KEY_LAST_KILLED_TYPE, "");
         return Identifier.tryParse(raw);
     }
 
@@ -170,17 +171,18 @@ public final class SpyMimicSystem {
         NbtCompound nbt = persistent(spy);
         nbt.putString(KEY_LAST_SEEN_ABILITY, abilityId.toString());
         nbt.putLong(KEY_LAST_SEEN_AT, now);
-        nbt.putUuid(KEY_LAST_SEEN_CASTER, caster.getUuid());
+        GemsNbt.putUuid(nbt, KEY_LAST_SEEN_CASTER, caster.getUuid());
+        nbt.putInt(KEY_LAST_SEEN_CASTER_ENTITY_ID, caster.getId());
 
         int epoch = deaths(spy);
-        NbtCompound observed = nbt.contains(KEY_OBSERVED, NbtElement.COMPOUND_TYPE) ? nbt.getCompound(KEY_OBSERVED) : new NbtCompound();
+        NbtCompound observed = nbt.getCompound(KEY_OBSERVED).orElse(new NbtCompound());
         String key = abilityId.toString();
-        NbtCompound rec = observed.contains(key, NbtElement.COMPOUND_TYPE) ? observed.getCompound(key) : new NbtCompound();
+        NbtCompound rec = observed.getCompound(key).orElse(new NbtCompound());
 
-        int recEpoch = rec.getInt("epoch");
-        long first = rec.getLong("first");
-        long last = rec.getLong("last");
-        int count = rec.getInt("count");
+        int recEpoch = rec.getInt("epoch", 0);
+        long first = rec.getLong("first", 0L);
+        long last = rec.getLong("last", 0L);
+        int count = rec.getInt("count", 0);
         if (recEpoch != epoch || first <= 0 || now - first > windowTicks || now - last > windowTicks) {
             count = 0;
             first = now;
@@ -190,38 +192,35 @@ public final class SpyMimicSystem {
         rec.putLong("first", first);
         rec.putLong("last", now);
         rec.putInt("count", count);
-        rec.putUuid("caster", caster.getUuid());
+        GemsNbt.putUuid(rec, "caster", caster.getUuid());
         observed.put(key, rec);
         nbt.put(KEY_OBSERVED, observed);
     }
 
     public static Identifier lastSeenAbility(ServerPlayerEntity player) {
-        return Identifier.tryParse(persistent(player).getString(KEY_LAST_SEEN_ABILITY));
+        return Identifier.tryParse(persistent(player).getString(KEY_LAST_SEEN_ABILITY, ""));
     }
 
     public static long lastSeenAt(ServerPlayerEntity player) {
-        return persistent(player).getLong(KEY_LAST_SEEN_AT);
+        return persistent(player).getLong(KEY_LAST_SEEN_AT, 0L);
     }
 
     public static UUID lastSeenCaster(ServerPlayerEntity player) {
-        NbtCompound nbt = persistent(player);
-        if (!nbt.containsUuid(KEY_LAST_SEEN_CASTER)) {
-            return null;
-        }
-        return nbt.getUuid(KEY_LAST_SEEN_CASTER);
+        return GemsNbt.getUuid(persistent(player), KEY_LAST_SEEN_CASTER);
+    }
+
+    public static int lastSeenCasterEntityId(ServerPlayerEntity player) {
+        return persistent(player).getInt(KEY_LAST_SEEN_CASTER_ENTITY_ID, -1);
     }
 
     public static int witnessedCount(ServerPlayerEntity player, Identifier abilityId) {
         NbtCompound nbt = persistent(player);
-        if (!nbt.contains(KEY_OBSERVED, NbtElement.COMPOUND_TYPE)) {
+        NbtCompound observed = nbt.getCompound(KEY_OBSERVED).orElse(null);
+        if (observed == null) {
             return 0;
         }
-        NbtCompound observed = nbt.getCompound(KEY_OBSERVED);
         String key = abilityId.toString();
-        if (!observed.contains(key, NbtElement.COMPOUND_TYPE)) {
-            return 0;
-        }
-        return observed.getCompound(key).getInt("count");
+        return observed.getCompound(key).map(rec -> rec.getInt("count", 0)).orElse(0);
     }
 
     public static boolean canSteal(ServerPlayerEntity player, Identifier abilityId, long now) {
@@ -232,19 +231,19 @@ public final class SpyMimicSystem {
             return false;
         }
         NbtCompound nbt = persistent(player);
-        if (!nbt.contains(KEY_OBSERVED, NbtElement.COMPOUND_TYPE)) {
+        NbtCompound observed = nbt.getCompound(KEY_OBSERVED).orElse(null);
+        if (observed == null) {
             return false;
         }
-        NbtCompound observed = nbt.getCompound(KEY_OBSERVED);
         String key = abilityId.toString();
-        if (!observed.contains(key, NbtElement.COMPOUND_TYPE)) {
+        NbtCompound rec = observed.getCompound(key).orElse(null);
+        if (rec == null) {
             return false;
         }
-        NbtCompound rec = observed.getCompound(key);
-        if (rec.getInt("epoch") != deaths(player)) {
+        if (rec.getInt("epoch", 0) != deaths(player)) {
             return false;
         }
-        long last = rec.getLong("last");
+        long last = rec.getLong("last", 0L);
         return last > 0 && now - last <= window;
     }
 
@@ -262,7 +261,7 @@ public final class SpyMimicSystem {
 
         NbtCompound nbt = persistent(spy);
         int max = GemsBalance.v().spyMimic().maxStolenAbilities();
-        NbtList list = nbt.contains(KEY_STOLEN, NbtElement.LIST_TYPE) ? nbt.getList(KEY_STOLEN, NbtElement.STRING_TYPE) : new NbtList();
+        NbtList list = nbt.getList(KEY_STOLEN).orElse(new NbtList());
         if (list.size() >= max) {
             spy.sendMessage(Text.literal("Stolen ability slots are full."), true);
             return false;
@@ -277,18 +276,33 @@ public final class SpyMimicSystem {
         }
         list.add(NbtString.of(raw));
         nbt.put(KEY_STOLEN, list);
-        if (nbt.getInt(KEY_STOLEN_SELECTED) < 0) {
+        if (nbt.getInt(KEY_STOLEN_SELECTED, -1) < 0) {
             nbt.putInt(KEY_STOLEN_SELECTED, 0);
         }
 
-        UUID casterUuid = lastSeenCaster(spy);
-        if (casterUuid != null && spy.getServer() != null) {
-            ServerPlayerEntity victim = spy.getServer().getPlayerManager().getPlayer(casterUuid);
-            if (victim != null && victim != spy) {
-                AbilityDisables.disable(victim, abilityId);
-                recordStolenFrom(victim, spy.getUuid(), abilityId);
-                victim.sendMessage(Text.literal("One of your abilities was stolen! Kill the thief or wait for them to switch gems to recover it."), false);
+        ServerPlayerEntity victim = null;
+        int casterEntityId = lastSeenCasterEntityId(spy);
+        ServerWorld world = spy.getEntityWorld();
+        if (casterEntityId >= 0) {
+            var entity = world.getEntityById(casterEntityId);
+            if (entity instanceof ServerPlayerEntity candidate && candidate != spy) {
+                victim = candidate;
             }
+        }
+        if (victim == null) {
+            UUID casterUuid = lastSeenCaster(spy);
+            var server = world.getServer();
+            if (casterUuid != null && server != null) {
+                ServerPlayerEntity candidate = server.getPlayerManager().getPlayer(casterUuid);
+                if (candidate != null && candidate != spy) {
+                    victim = candidate;
+                }
+            }
+        }
+        if (victim != null) {
+            AbilityDisables.disable(victim, abilityId);
+            recordStolenFrom(victim, spy.getUuid(), abilityId);
+            victim.sendMessage(Text.literal("One of your abilities was stolen! Kill the thief or wait for them to switch gems to recover it."), false);
         }
 
         AbilityFeedback.sound(spy, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 0.8F, 1.3F);
@@ -298,30 +312,30 @@ public final class SpyMimicSystem {
 
     public static Identifier selectedStolenAbility(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
-        if (!nbt.contains(KEY_STOLEN, NbtElement.LIST_TYPE)) {
+        NbtList list = nbt.getList(KEY_STOLEN).orElse(null);
+        if (list == null) {
             return null;
         }
-        NbtList list = nbt.getList(KEY_STOLEN, NbtElement.STRING_TYPE);
         if (list.isEmpty()) {
             return null;
         }
-        int idx = nbt.getInt(KEY_STOLEN_SELECTED);
+        int idx = nbt.getInt(KEY_STOLEN_SELECTED, 0);
         idx = Math.floorMod(idx, list.size());
-        return Identifier.tryParse(list.getString(idx));
+        return Identifier.tryParse(list.getString(idx, ""));
     }
 
     public static boolean cycleStolen(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
-        if (!nbt.contains(KEY_STOLEN, NbtElement.LIST_TYPE)) {
+        NbtList list = nbt.getList(KEY_STOLEN).orElse(null);
+        if (list == null) {
             return false;
         }
-        NbtList list = nbt.getList(KEY_STOLEN, NbtElement.STRING_TYPE);
         if (list.isEmpty()) {
             return false;
         }
-        int next = Math.floorMod(nbt.getInt(KEY_STOLEN_SELECTED) + 1, list.size());
+        int next = Math.floorMod(nbt.getInt(KEY_STOLEN_SELECTED, 0) + 1, list.size());
         nbt.putInt(KEY_STOLEN_SELECTED, next);
-        Identifier selected = Identifier.tryParse(list.getString(next));
+        Identifier selected = Identifier.tryParse(list.getString(next, ""));
         if (selected != null) {
             player.sendMessage(Text.literal("Selected stolen ability: " + selected), true);
         }
@@ -338,11 +352,12 @@ public final class SpyMimicSystem {
     }
 
     public static void restoreStolenFromThief(ServerPlayerEntity thief) {
-        if (thief.getServer() == null) {
+        var server = thief.getEntityWorld().getServer();
+        if (server == null) {
             return;
         }
         UUID thiefId = thief.getUuid();
-        for (ServerPlayerEntity player : thief.getServer().getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             restoreStolenBy(player, thiefId);
         }
     }
@@ -366,14 +381,14 @@ public final class SpyMimicSystem {
         float bonusHp = GemsBalance.v().spyMimic().mimicFormBonusMaxHealth();
         float speedMult = GemsBalance.v().spyMimic().mimicFormSpeedMultiplier();
 
-        EntityAttributeInstance maxHp = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+        EntityAttributeInstance maxHp = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
         if (maxHp != null) {
             maxHp.removeModifier(MOD_MIMIC_MAX_HEALTH);
             if (bonusHp > 0) {
                 maxHp.addPersistentModifier(new EntityAttributeModifier(MOD_MIMIC_MAX_HEALTH, bonusHp, EntityAttributeModifier.Operation.ADD_VALUE));
             }
         }
-        EntityAttributeInstance speed = player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+        EntityAttributeInstance speed = player.getAttributeInstance(EntityAttributes.MOVEMENT_SPEED);
         if (speed != null) {
             speed.removeModifier(MOD_MIMIC_SPEED);
             if (speedMult != 1.0F) {
@@ -393,8 +408,8 @@ public final class SpyMimicSystem {
         NbtCompound nbt = persistent(player);
         long now = GemsTime.now(player);
         nbt.putLong(KEY_SKINSHIFT_UNTIL, now + durationTicks);
-        nbt.putUuid(KEY_SKINSHIFT_TARGET, target.getUuid());
-        nbt.putString(KEY_SKINSHIFT_NAME, target.getGameProfile().getName());
+        GemsNbt.putUuid(nbt, KEY_SKINSHIFT_TARGET, target.getUuid());
+        nbt.putString(KEY_SKINSHIFT_NAME, target.getGameProfile().name());
         syncSkinshift(player, target.getUuid());
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ILLUSIONER_PREPARE_MIRROR, 0.7F, 0.9F);
         player.sendMessage(Text.literal("Skinshift: " + target.getName().getString()), true);
@@ -432,7 +447,7 @@ public final class SpyMimicSystem {
         if (GemPlayerState.getEnergy(spy) <= 0 || GemPlayerState.getActiveGem(spy) != GemId.SPY_MIMIC) {
             return false;
         }
-        if (spy.getWorld() != caster.getWorld()) {
+        if (spy.getEntityWorld() != caster.getEntityWorld()) {
             return false;
         }
         if (spy.squaredDistanceTo(caster) > rangeSq) {
@@ -440,7 +455,7 @@ public final class SpyMimicSystem {
         }
 
         // "In front of you": require the caster to be in the forward half-space.
-        Vec3d toCaster = caster.getPos().subtract(spy.getPos());
+        Vec3d toCaster = caster.getEntityPos().subtract(spy.getEntityPos());
         Vec3d look = spy.getRotationVec(1.0F);
         if (toCaster.dotProduct(look) <= 0.0D) {
             return false;
@@ -459,9 +474,9 @@ public final class SpyMimicSystem {
         double x = player.getX();
         double y = player.getY();
         double z = player.getZ();
-        double lx = nbt.getDouble(KEY_STILL_LAST_X);
-        double ly = nbt.getDouble(KEY_STILL_LAST_Y);
-        double lz = nbt.getDouble(KEY_STILL_LAST_Z);
+        double lx = nbt.getDouble(KEY_STILL_LAST_X, x);
+        double ly = nbt.getDouble(KEY_STILL_LAST_Y, y);
+        double lz = nbt.getDouble(KEY_STILL_LAST_Z, z);
 
         float eps = GemsBalance.v().spyMimic().stillnessMoveEpsilonBlocks();
         double epsSq = eps * (double) eps;
@@ -470,7 +485,7 @@ public final class SpyMimicSystem {
         double dz = z - lz;
         boolean moved = (dx * dx + dy * dy + dz * dz) > epsSq;
 
-        if (!nbt.contains(KEY_STILL_LAST_MOVED, NbtElement.LONG_TYPE)) {
+        if (!nbt.contains(KEY_STILL_LAST_MOVED)) {
             nbt.putLong(KEY_STILL_LAST_MOVED, now);
         }
         if (moved) {
@@ -481,7 +496,7 @@ public final class SpyMimicSystem {
         nbt.putDouble(KEY_STILL_LAST_Y, y);
         nbt.putDouble(KEY_STILL_LAST_Z, z);
 
-        long lastMoved = nbt.getLong(KEY_STILL_LAST_MOVED);
+        long lastMoved = nbt.getLong(KEY_STILL_LAST_MOVED, now);
         int stillness = GemsBalance.v().spyMimic().stillnessTicks();
         if (stillness <= 0) {
             return;
@@ -500,7 +515,7 @@ public final class SpyMimicSystem {
 
     private static void tickMimicFormCleanup(ServerPlayerEntity player, long now) {
         NbtCompound nbt = persistent(player);
-        long until = nbt.getLong(KEY_MIMIC_UNTIL);
+        long until = nbt.getLong(KEY_MIMIC_UNTIL, 0L);
         if (until <= 0) {
             return;
         }
@@ -515,7 +530,7 @@ public final class SpyMimicSystem {
 
     private static void tickSkinshift(ServerPlayerEntity player, long now) {
         NbtCompound nbt = persistent(player);
-        long until = nbt.getLong(KEY_SKINSHIFT_UNTIL);
+        long until = nbt.getLong(KEY_SKINSHIFT_UNTIL, 0L);
         if (until <= 0) {
             return;
         }
@@ -526,7 +541,7 @@ public final class SpyMimicSystem {
 
     private static void clearSkinshift(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
-        if (!nbt.contains(KEY_SKINSHIFT_TARGET, NbtElement.INT_ARRAY_TYPE)) {
+        if (GemsNbt.getUuid(nbt, KEY_SKINSHIFT_TARGET) == null) {
             nbt.remove(KEY_SKINSHIFT_UNTIL);
             return;
         }
@@ -537,11 +552,11 @@ public final class SpyMimicSystem {
     }
 
     private static void syncSkinshift(ServerPlayerEntity player, UUID target) {
-        if (player.getServer() == null) {
+        if (player.getEntityWorld().getServer() == null) {
             return;
         }
         SpySkinshiftPayload payload = new SpySkinshiftPayload(player.getUuid(), Optional.ofNullable(target));
-        for (ServerPlayerEntity viewer : player.getServer().getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity viewer : player.getEntityWorld().getServer().getPlayerManager().getPlayerList()) {
             ServerPlayNetworking.send(viewer, payload);
         }
     }
@@ -549,11 +564,11 @@ public final class SpyMimicSystem {
     private static void clearMimicForm(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
         nbt.remove(KEY_MIMIC_UNTIL);
-        EntityAttributeInstance maxHp = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+        EntityAttributeInstance maxHp = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
         if (maxHp != null) {
             maxHp.removeModifier(MOD_MIMIC_MAX_HEALTH);
         }
-        EntityAttributeInstance speed = player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+        EntityAttributeInstance speed = player.getAttributeInstance(EntityAttributes.MOVEMENT_SPEED);
         if (speed != null) {
             speed.removeModifier(MOD_MIMIC_SPEED);
         }
@@ -567,20 +582,20 @@ public final class SpyMimicSystem {
     }
 
     public static void syncSkinshifts(ServerPlayerEntity viewer) {
-        if (viewer.getServer() == null) {
+        if (viewer.getEntityWorld().getServer() == null) {
             return;
         }
         long now = GemsTime.now(viewer);
-        for (ServerPlayerEntity player : viewer.getServer().getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : viewer.getEntityWorld().getServer().getPlayerManager().getPlayerList()) {
             NbtCompound nbt = persistent(player);
-            if (!nbt.contains(KEY_SKINSHIFT_TARGET, NbtElement.INT_ARRAY_TYPE)) {
+            UUID target = GemsNbt.getUuid(nbt, KEY_SKINSHIFT_TARGET);
+            if (target == null) {
                 continue;
             }
-            long until = nbt.getLong(KEY_SKINSHIFT_UNTIL);
+            long until = nbt.getLong(KEY_SKINSHIFT_UNTIL, 0L);
             if (until <= now) {
                 continue;
             }
-            UUID target = nbt.getUuid(KEY_SKINSHIFT_TARGET);
             SpySkinshiftPayload payload = new SpySkinshiftPayload(player.getUuid(), Optional.of(target));
             ServerPlayNetworking.send(viewer, payload);
         }
@@ -588,61 +603,63 @@ public final class SpyMimicSystem {
 
     public static void syncSkinshiftSelf(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
-        if (!nbt.contains(KEY_SKINSHIFT_TARGET, NbtElement.INT_ARRAY_TYPE)) {
+        UUID target = GemsNbt.getUuid(nbt, KEY_SKINSHIFT_TARGET);
+        if (target == null) {
             return;
         }
-        long until = nbt.getLong(KEY_SKINSHIFT_UNTIL);
+        long until = nbt.getLong(KEY_SKINSHIFT_UNTIL, 0L);
         if (until <= GemsTime.now(player)) {
             clearSkinshift(player);
             return;
         }
-        syncSkinshift(player, nbt.getUuid(KEY_SKINSHIFT_TARGET));
+        syncSkinshift(player, target);
     }
 
     public static Text chatDisguiseName(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
-        long until = nbt.getLong(KEY_SKINSHIFT_UNTIL);
+        long until = nbt.getLong(KEY_SKINSHIFT_UNTIL, 0L);
         if (until <= GemsTime.now(player)) {
             return null;
         }
-        if (nbt.contains(KEY_SKINSHIFT_NAME, NbtElement.STRING_TYPE)) {
-            return Text.literal(nbt.getString(KEY_SKINSHIFT_NAME));
+        String name = nbt.getString(KEY_SKINSHIFT_NAME, "");
+        if (!name.isBlank()) {
+            return Text.literal(name);
         }
-        if (!nbt.contains(KEY_SKINSHIFT_TARGET, NbtElement.INT_ARRAY_TYPE)) {
+        UUID target = GemsNbt.getUuid(nbt, KEY_SKINSHIFT_TARGET);
+        if (target == null) {
             return null;
         }
-        UUID target = nbt.getUuid(KEY_SKINSHIFT_TARGET);
-        var server = player.getServer();
+        var server = player.getEntityWorld().getServer();
         if (server == null) {
             return null;
         }
         ServerPlayerEntity online = server.getPlayerManager().getPlayer(target);
         if (online != null) {
-            return Text.literal(online.getGameProfile().getName());
+            return Text.literal(online.getGameProfile().name());
         }
-        var profile = server.getUserCache().getByUuid(target).orElse(null);
-        if (profile == null) {
-            return null;
-        }
-        return Text.literal(profile.getName());
+        return null;
     }
 
     public static boolean isSkinshiftTarget(ServerPlayerEntity target) {
-        if (target == null || target.getServer() == null) {
+        if (target == null) {
+            return false;
+        }
+        var server = target.getEntityWorld().getServer();
+        if (server == null) {
             return false;
         }
         UUID targetId = target.getUuid();
         long now = GemsTime.now(target);
-        for (ServerPlayerEntity player : target.getServer().getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             NbtCompound nbt = persistent(player);
-            if (!nbt.contains(KEY_SKINSHIFT_TARGET, NbtElement.INT_ARRAY_TYPE)) {
+            UUID candidate = GemsNbt.getUuid(nbt, KEY_SKINSHIFT_TARGET);
+            if (candidate == null) {
                 continue;
             }
-            long until = nbt.getLong(KEY_SKINSHIFT_UNTIL);
+            long until = nbt.getLong(KEY_SKINSHIFT_UNTIL, 0L);
             if (until <= now) {
                 continue;
             }
-            UUID candidate = nbt.getUuid(KEY_SKINSHIFT_TARGET);
             if (targetId.equals(candidate)) {
                 return true;
             }
@@ -655,8 +672,8 @@ public final class SpyMimicSystem {
             return;
         }
         NbtCompound root = persistent(victim);
-        NbtCompound stolenBy = root.getCompound(KEY_STOLEN_BY);
-        stolenBy.put(abilityId.toString(), NbtHelper.fromUuid(thief));
+        NbtCompound stolenBy = root.getCompound(KEY_STOLEN_BY).orElse(new NbtCompound());
+        stolenBy.put(abilityId.toString(), GemsNbt.fromUuid(thief));
         root.put(KEY_STOLEN_BY, stolenBy);
     }
 
@@ -665,16 +682,16 @@ public final class SpyMimicSystem {
             return;
         }
         NbtCompound root = persistent(victim);
-        if (!root.contains(KEY_STOLEN_BY, NbtElement.COMPOUND_TYPE)) {
+        NbtCompound stolenBy = root.getCompound(KEY_STOLEN_BY).orElse(null);
+        if (stolenBy == null) {
             return;
         }
-        NbtCompound stolenBy = root.getCompound(KEY_STOLEN_BY);
         boolean changed = false;
         for (String key : java.util.List.copyOf(stolenBy.getKeys())) {
-            if (!stolenBy.contains(key, NbtElement.INT_ARRAY_TYPE)) {
+            UUID recorded = GemsNbt.toUuid(stolenBy.get(key));
+            if (recorded == null) {
                 continue;
             }
-            UUID recorded = NbtHelper.toUuid(stolenBy.get(key));
             if (!thief.equals(recorded)) {
                 continue;
             }
@@ -699,4 +716,3 @@ public final class SpyMimicSystem {
         return ((GemsPersistentDataHolder) player).gems$getPersistentData();
     }
 }
-

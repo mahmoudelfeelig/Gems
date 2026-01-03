@@ -8,6 +8,7 @@ import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.gem.speed.SpeedMomentum;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -43,10 +44,14 @@ public final class SpeedSlipstreamAbility implements GemAbility {
 
         AbilityRuntime.startSpeedSlipstream(player, dir, duration, momentum);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 0.8F, 1.3F);
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            player.sendMessage(Text.literal("Slipstream active."), true);
+            return true;
+        }
         AbilityFeedback.beam(
-                player.getServerWorld(),
-                player.getPos().add(0.0D, 0.8D, 0.0D),
-                player.getPos().add(dir.x * 6.0D, 0.8D, dir.z * 6.0D),
+                world,
+                player.getEntityPos().add(0.0D, 0.8D, 0.0D),
+                player.getEntityPos().add(dir.x * 6.0D, 0.8D, dir.z * 6.0D),
                 ParticleTypes.CLOUD,
                 12
         );

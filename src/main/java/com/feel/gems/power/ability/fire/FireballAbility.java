@@ -10,7 +10,6 @@ import com.feel.gems.util.GemsTime;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.projectile.FireballEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -53,13 +52,13 @@ public final class FireballAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
         long now = GemsTime.now(player);
-        long lastFire = nbt.getLong(KEY_LAST_FIRE);
+        long lastFire = nbt.getLong(KEY_LAST_FIRE, 0L);
         if (now - lastFire < GemsBalance.v().fire().fireballInternalCooldownTicks()) {
             player.sendMessage(Text.literal("Fireball is on cooldown."), true);
             return true;
         }
 
-        long start = nbt.getLong(KEY_CHARGE_START);
+        long start = nbt.getLong(KEY_CHARGE_START, 0L);
         if (start <= 0) {
             nbt.putLong(KEY_CHARGE_START, now);
             nbt.putInt(KEY_LAST_SHOWN_CHARGE, -1);
@@ -69,7 +68,7 @@ public final class FireballAbility implements GemAbility {
             return true;
         }
 
-        int charge = computeCharge(player.getServerWorld(), player, start, now);
+        int charge = computeCharge(player.getEntityWorld(), player, start, now);
         nbt.remove(KEY_CHARGE_START);
         nbt.remove(KEY_LAST_SHOWN_CHARGE);
         nbt.putLong(KEY_LAST_FIRE, now);
@@ -82,13 +81,13 @@ public final class FireballAbility implements GemAbility {
 
     public static void tickCharging(ServerPlayerEntity player, long now) {
         NbtCompound nbt = persistent(player);
-        long start = nbt.getLong(KEY_CHARGE_START);
+        long start = nbt.getLong(KEY_CHARGE_START, 0L);
         if (start <= 0) {
             return;
         }
-        int charge = computeCharge(player.getServerWorld(), player, start, now);
+        int charge = computeCharge(player.getEntityWorld(), player, start, now);
         int bucket = chargeBucket(charge);
-        int last = nbt.contains(KEY_LAST_SHOWN_CHARGE, NbtElement.INT_TYPE) ? nbt.getInt(KEY_LAST_SHOWN_CHARGE) : -1;
+        int last = nbt.getInt(KEY_LAST_SHOWN_CHARGE, -1);
         if (bucket == last) {
             return;
         }
@@ -157,16 +156,17 @@ public final class FireballAbility implements GemAbility {
     }
 
     private static void launch(ServerPlayerEntity player, int chargePercent) {
+        ServerWorld world = player.getEntityWorld();
         Vec3d direction = player.getRotationVec(1.0F);
         Vec3d spawnPos = player.getEyePos().add(direction.multiply(1.5D));
 
         int power = 1 + (chargePercent / 50);
-        FireballEntity fireball = new FireballEntity(player.getWorld(), player, direction, power);
+        FireballEntity fireball = new FireballEntity(world, player, direction, power);
         fireball.refreshPositionAndAngles(spawnPos.x, spawnPos.y, spawnPos.z, player.getYaw(), player.getPitch());
         if (fireball instanceof RangeLimitedProjectile limited) {
             limited.gems$setRangeLimit(spawnPos, GemsBalance.v().fire().fireballMaxDistanceBlocks());
         }
-        player.getWorld().spawnEntity(fireball);
+        world.spawnEntity(fireball);
 
         AbilityFeedback.sound(player, SoundEvents.ENTITY_GHAST_SHOOT, 1.0F, 1.0F);
     }

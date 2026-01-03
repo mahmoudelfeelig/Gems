@@ -42,7 +42,7 @@ public final class DimensionalVoidAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         int duration = GemsBalance.v().astra().dimensionalVoidDurationTicks();
         int radius = GemsBalance.v().astra().dimensionalVoidRadiusBlocks();
         int affected = 0;
@@ -57,7 +57,7 @@ public final class DimensionalVoidAbility implements GemAbility {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 1, true, false, false));
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
             }
-            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.REVERSE_PORTAL, 10, 0.25D);
+            AbilityFeedback.burstAt(world, other.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.REVERSE_PORTAL, 10, 0.25D);
             affected++;
         }
         AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_DEACTIVATE, 0.8F, 0.8F);

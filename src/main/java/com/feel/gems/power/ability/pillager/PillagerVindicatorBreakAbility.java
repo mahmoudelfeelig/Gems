@@ -55,7 +55,7 @@ public final class PillagerVindicatorBreakAbility implements GemAbility {
 
     public static boolean isActive(ServerPlayerEntity player, long now) {
         NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        long until = nbt.getLong(KEY_UNTIL);
+        long until = nbt.getLong(KEY_UNTIL, 0L);
         return until > 0 && now < until;
     }
 

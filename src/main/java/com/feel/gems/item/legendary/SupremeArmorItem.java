@@ -4,28 +4,26 @@ import com.feel.gems.GemsMod;
 import com.feel.gems.legendary.LegendaryItem;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.Entity;
-import java.util.List;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ArmorMaterial;
+import net.minecraft.entity.EquipmentSlot;
+import java.util.function.Consumer;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Item.TooltipContext;
-import net.minecraft.item.trim.ArmorTrim;
-import net.minecraft.item.trim.ArmorTrimMaterials;
-import net.minecraft.item.trim.ArmorTrimPatterns;
 import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.registry.RegistryEntryLookup;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.item.equipment.ArmorMaterial;
+import net.minecraft.item.equipment.EquipmentType;
+import net.minecraft.item.equipment.trim.ArmorTrim;
+import net.minecraft.item.equipment.trim.ArmorTrimMaterials;
+import net.minecraft.item.equipment.trim.ArmorTrimPatterns;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
+import net.minecraft.server.world.ServerWorld;
 
 
 
 
-public final class SupremeArmorItem extends ArmorItem implements LegendaryItem {
+public final class SupremeArmorItem extends Item implements LegendaryItem {
     public enum Piece {
         HELMET("supreme_helmet"),
         CHESTPLATE("supreme_chestplate"),
@@ -41,8 +39,8 @@ public final class SupremeArmorItem extends ArmorItem implements LegendaryItem {
 
     private final Piece piece;
 
-    public SupremeArmorItem(RegistryEntry<ArmorMaterial> material, Type type, Piece piece, Item.Settings settings) {
-        super(material, type, settings);
+    public SupremeArmorItem(ArmorMaterial material, EquipmentType type, Piece piece, Item.Settings settings) {
+        super(settings.armor(material, type).enchantable(15));
         this.piece = piece;
     }
 
@@ -52,21 +50,13 @@ public final class SupremeArmorItem extends ArmorItem implements LegendaryItem {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        tooltip.add(Text.translatable("item.gems." + piece.id + ".desc"));
-        tooltip.add(Text.translatable("item.gems.supreme_set_bonus"));
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        tooltip.accept(Text.translatable("item.gems." + piece.id + ".desc"));
+        tooltip.accept(Text.translatable("item.gems.supreme_set_bonus"));
     }
 
     @Override
-    public boolean isEnchantable(ItemStack stack) {
-        return true;
-    }
-
-    @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        if (world.isClient) {
-            return;
-        }
+    public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, EquipmentSlot slot) {
         applyTrimIfMissing(stack, world.getRegistryManager());
     }
 
@@ -77,31 +67,17 @@ public final class SupremeArmorItem extends ArmorItem implements LegendaryItem {
         if (lookup == null) {
             return;
         }
-        RegistryEntryLookup.RegistryLookup registryLookup = lookup.createRegistryLookup();
-        RegistryKey<net.minecraft.item.trim.ArmorTrimMaterial> materialKey = ArmorTrimMaterials.NETHERITE;
-        RegistryKey<net.minecraft.item.trim.ArmorTrimPattern> patternKey = ArmorTrimPatterns.SILENCE;
-        var material = registryLookup.getOptionalEntry(RegistryKeys.TRIM_MATERIAL, materialKey).orElse(null);
-        var pattern = registryLookup.getOptionalEntry(RegistryKeys.TRIM_PATTERN, patternKey).orElse(null);
+        RegistryKey<net.minecraft.item.equipment.trim.ArmorTrimMaterial> materialKey = ArmorTrimMaterials.NETHERITE;
+        RegistryKey<net.minecraft.item.equipment.trim.ArmorTrimPattern> patternKey = ArmorTrimPatterns.SILENCE;
+        var material = lookup.getOptionalEntry(materialKey).orElse(null);
+        var pattern = lookup.getOptionalEntry(patternKey).orElse(null);
         if (material == null || pattern == null) {
             return;
         }
-        stack.set(DataComponentTypes.TRIM, new ArmorTrim(material, pattern, true));
+        stack.set(DataComponentTypes.TRIM, new ArmorTrim(material, pattern));
     }
-
+	
     private static void applyTrimIfMissing(ItemStack stack, net.minecraft.registry.DynamicRegistryManager registries) {
-        if (stack.contains(DataComponentTypes.TRIM)) {
-            return;
-        }
-        if (registries == null) {
-            return;
-        }
-        var materials = registries.get(RegistryKeys.TRIM_MATERIAL);
-        var patterns = registries.get(RegistryKeys.TRIM_PATTERN);
-        var material = materials.getEntry(ArmorTrimMaterials.NETHERITE).orElse(null);
-        var pattern = patterns.getEntry(ArmorTrimPatterns.SILENCE).orElse(null);
-        if (material == null || pattern == null) {
-            return;
-        }
-        stack.set(DataComponentTypes.TRIM, new ArmorTrim(material, pattern, true));
+        applySupremeTrim(stack, registries);
     }
 }

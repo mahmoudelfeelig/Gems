@@ -25,7 +25,7 @@ public abstract class EntitySummonDiscardMixin {
         if (!SummonerSummons.isSummon(mob)) {
             return;
         }
-        if (!(mob.getWorld() instanceof ServerWorld world)) {
+        if (!(mob.getEntityWorld() instanceof ServerWorld world)) {
             return;
         }
         UUID ownerUuid = SummonerSummons.ownerUuid(mob);

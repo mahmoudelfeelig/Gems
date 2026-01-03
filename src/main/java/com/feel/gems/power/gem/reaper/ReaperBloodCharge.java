@@ -21,12 +21,12 @@ public final class ReaperBloodCharge {
 
     public static boolean isCharging(ServerPlayerEntity player) {
         NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        return nbt.getLong(KEY_CHARGING_UNTIL) > 0;
+        return nbt.getLong(KEY_CHARGING_UNTIL, 0L) > 0L;
     }
 
     public static float consumeMultiplierIfActive(ServerPlayerEntity player) {
         NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        long until = nbt.getLong(KEY_BUFF_UNTIL);
+        long until = nbt.getLong(KEY_BUFF_UNTIL, 0L);
         if (until <= 0) {
             return 1.0F;
         }
@@ -35,7 +35,7 @@ public final class ReaperBloodCharge {
             clearBuff(nbt);
             return 1.0F;
         }
-        float mult = nbt.getFloat(KEY_BUFF_MULT);
+        float mult = nbt.getFloat(KEY_BUFF_MULT, 1.0F);
         clearBuff(nbt);
         return mult <= 0.0F ? 1.0F : mult;
     }

@@ -7,18 +7,10 @@
     "RCR"
   ],
   "key": {
-    "R": {
-      "item": "minecraft:redstone_block"
-    },
-    "C": {
-      "item": "minecraft:clock"
-    },
-    "N": {
-      "item": "minecraft:netherite_ingot"
-    },
-    "S": {
-      "item": "minecraft:netherite_sword"
-    }
+    "R": "minecraft:redstone_block",
+    "C": "minecraft:clock",
+    "N": "minecraft:netherite_ingot",
+    "S": "minecraft:netherite_sword"
   },
   "result": {
     "count": 1,

@@ -10,6 +10,7 @@ import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -50,12 +51,13 @@ public final class BreezyBashAbility implements GemAbility {
             return false;
         }
 
-        Vec3d away = target.getPos().subtract(player.getPos()).normalize();
+        Vec3d away = target.getEntityPos().subtract(player.getEntityPos()).normalize();
         double knockback = GemsBalance.v().puff().breezyBashKnockback();
         target.addVelocity(away.x * knockback, GemsBalance.v().puff().breezyBashUpVelocityY(), away.z * knockback);
-        target.velocityModified = true;
-        target.damage(player.getDamageSources().playerAttack(player), GemsBalance.v().puff().breezyBashInitialDamage());
-        AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.GUST, 16, 0.35D);
+        target.velocityDirty = true;
+        ServerWorld world = player.getEntityWorld();
+        target.damage(world, player.getDamageSources().playerAttack(player), GemsBalance.v().puff().breezyBashInitialDamage());
+        AbilityFeedback.burstAt(world, target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.GUST, 16, 0.35D);
         BreezyBashTracker.track(player, target, GemsBalance.v().puff().breezyBashImpactWindowTicks());
 
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 1.0F, 1.0F);

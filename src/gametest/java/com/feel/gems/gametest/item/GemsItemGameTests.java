@@ -1,74 +1,28 @@
 package com.feel.gems.gametest.item;
 
-import com.feel.gems.assassin.AssassinState;
-import com.feel.gems.config.GemsBalance;
-import com.feel.gems.core.GemDefinition;
-import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemId;
-import com.feel.gems.core.GemRegistry;
 import com.feel.gems.gametest.util.GemsGameTestUtil;
 import com.feel.gems.item.GemItemGlint;
-import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.ModItems;
-import com.feel.gems.net.CooldownSnapshotPayload;
-import com.feel.gems.power.ability.air.AirDashAbility;
-import com.feel.gems.power.ability.air.AirWindJumpAbility;
-import com.feel.gems.power.ability.beacon.BeaconAuraAbility;
-import com.feel.gems.power.ability.flux.FluxBeamAbility;
-import com.feel.gems.power.ability.pillager.PillagerFangsAbility;
-import com.feel.gems.power.ability.pillager.PillagerVolleyAbility;
-import com.feel.gems.power.ability.spy.SpyMimicFormAbility;
-import com.feel.gems.power.ability.spy.SpyStealAbility;
-import com.feel.gems.power.ability.summoner.SummonRecallAbility;
-import com.feel.gems.power.ability.summoner.SummonSlotAbility;
-import com.feel.gems.power.ability.terror.PanicRingAbility;
-import com.feel.gems.power.gem.beacon.BeaconAuraRuntime;
-import com.feel.gems.power.gem.flux.FluxCharge;
-import com.feel.gems.power.gem.pillager.PillagerDiscipline;
-import com.feel.gems.power.gem.pillager.PillagerVolleyRuntime;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
-import com.feel.gems.power.gem.summoner.SummonerSummons;
-import com.feel.gems.power.registry.PowerIds;
-import com.feel.gems.power.runtime.AbilityDisables;
-import com.feel.gems.power.runtime.AbilityRuntime;
-import com.feel.gems.power.runtime.GemAbilities;
-import com.feel.gems.power.runtime.GemAbilityCooldowns;
-import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
-import com.feel.gems.trade.GemTrading;
-import com.feel.gems.trust.GemTrust;
-import com.feel.gems.util.GemsTime;
-import io.netty.buffer.Unpooled;
-import java.util.EnumSet;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ExperienceOrbEntity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.TntEntity;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.mob.EvokerFangsEntity;
-import net.minecraft.entity.projectile.ArrowEntity;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.recipe.Recipe;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 
 
 
 
 public final class GemsItemGameTests {
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void recipesAreRegistered(TestContext context) {
         ServerWorld world = context.getWorld();
         var server = world.getServer();
@@ -79,7 +33,8 @@ public final class GemsItemGameTests {
         var manager = server.getRecipeManager();
         for (String path : new String[]{"heart", "energy_upgrade", "gem_trader", "gem_purchase"}) {
             Identifier id = Identifier.of("gems", path);
-            if (manager.get(id).isEmpty()) {
+            RegistryKey<Recipe<?>> key = RegistryKey.of(RegistryKeys.RECIPE, id);
+            if (manager.get(key).isEmpty()) {
                 context.throwGameTestException("Missing recipe: " + id);
                 return;
             }
@@ -87,9 +42,9 @@ public final class GemsItemGameTests {
         context.complete();
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 120)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
     public void glintAppliesOnlyToActiveGemAtCap(TestContext context) {
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         GemPlayerState.initIfNeeded(player);
@@ -133,10 +88,10 @@ public final class GemsItemGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 120)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
     public void energyUpgradeIncreasesEnergyUntilCap(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         GemPlayerState.initIfNeeded(player);
@@ -169,10 +124,10 @@ public final class GemsItemGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 120)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
     public void heartItemRespectsMaxCap(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         GemPlayerState.initIfNeeded(player);
@@ -206,9 +161,9 @@ public final class GemsItemGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 120)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
     public void pocketsInventoryPersistsAcrossSaves(TestContext context) {
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         context.runAtTick(2L, () -> {

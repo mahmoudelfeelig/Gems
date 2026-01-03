@@ -33,7 +33,7 @@ public abstract class ServerPlayNetworkHandlerHotbarLockMixin {
             return;
         }
 
-        player.getInventory().selectedSlot = locked;
+        player.getInventory().setSelectedSlot(locked);
         player.networkHandler.sendPacket(new UpdateSelectedSlotS2CPacket(locked));
         ci.cancel();
     }

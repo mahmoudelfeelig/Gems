@@ -2,9 +2,7 @@ package com.feel.gems.power.runtime;
 
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
@@ -24,13 +22,17 @@ public final class AbilityDisables {
 
     public static boolean isDisabled(ServerPlayerEntity player, Identifier abilityId) {
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        if (!root.contains(KEY_DISABLED, NbtElement.LIST_TYPE)) {
+        String needle = abilityId.toString();
+        NbtCompound set = root.getCompound(KEY_DISABLED).orElse(null);
+        if (set != null) {
+            return set.contains(needle);
+        }
+        NbtList legacy = root.getList(KEY_DISABLED).orElse(null);
+        if (legacy == null || legacy.isEmpty()) {
             return false;
         }
-        NbtList list = root.getList(KEY_DISABLED, NbtElement.STRING_TYPE);
-        String needle = abilityId.toString();
-        for (int i = 0; i < list.size(); i++) {
-            if (needle.equals(list.getString(i))) {
+        for (int i = 0; i < legacy.size(); i++) {
+            if (needle.equals(legacy.getString(i, ""))) {
                 return true;
             }
         }
@@ -39,18 +41,13 @@ public final class AbilityDisables {
 
     public static boolean disable(ServerPlayerEntity player, Identifier abilityId) {
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        NbtList list = root.contains(KEY_DISABLED, NbtElement.LIST_TYPE)
-                ? root.getList(KEY_DISABLED, NbtElement.STRING_TYPE)
-                : new NbtList();
         String raw = abilityId.toString();
-        for (int i = 0; i < list.size(); i++) {
-            if (raw.equals(list.getString(i))) {
-                root.put(KEY_DISABLED, list);
-                return false;
-            }
+        NbtCompound set = getOrCreateSet(root);
+        if (set.contains(raw)) {
+            return false;
         }
-        list.add(NbtString.of(raw));
-        root.put(KEY_DISABLED, list);
+        set.putBoolean(raw, true);
+        root.put(KEY_DISABLED, set);
         return true;
     }
 
@@ -60,24 +57,54 @@ public final class AbilityDisables {
 
     public static boolean enable(ServerPlayerEntity player, Identifier abilityId) {
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        if (!root.contains(KEY_DISABLED, NbtElement.LIST_TYPE)) {
-            return false;
-        }
-        NbtList list = root.getList(KEY_DISABLED, NbtElement.STRING_TYPE);
         String needle = abilityId.toString();
         boolean removed = false;
-        for (int i = list.size() - 1; i >= 0; i--) {
-            if (needle.equals(list.getString(i))) {
-                list.remove(i);
+
+        NbtCompound set = root.getCompound(KEY_DISABLED).orElse(null);
+        if (set != null) {
+            removed = set.remove(needle) != null;
+            if (set.isEmpty()) {
+                root.remove(KEY_DISABLED);
+            } else {
+                root.put(KEY_DISABLED, set);
+            }
+            return removed;
+        }
+
+        NbtList legacy = root.getList(KEY_DISABLED).orElse(null);
+        if (legacy == null || legacy.isEmpty()) {
+            return false;
+        }
+        for (int i = legacy.size() - 1; i >= 0; i--) {
+            if (needle.equals(legacy.getString(i, ""))) {
+                legacy.remove(i);
                 removed = true;
             }
         }
-        if (list.isEmpty()) {
+        if (legacy.isEmpty()) {
             root.remove(KEY_DISABLED);
         } else {
-            root.put(KEY_DISABLED, list);
+            root.put(KEY_DISABLED, legacy);
         }
         return removed;
+    }
+
+    private static NbtCompound getOrCreateSet(NbtCompound root) {
+        NbtCompound existing = root.getCompound(KEY_DISABLED).orElse(null);
+        if (existing != null) {
+            return existing;
+        }
+        NbtCompound migrated = new NbtCompound();
+        NbtList legacy = root.getList(KEY_DISABLED).orElse(null);
+        if (legacy != null && !legacy.isEmpty()) {
+            for (int i = 0; i < legacy.size(); i++) {
+                String id = legacy.getString(i, "");
+                if (!id.isBlank()) {
+                    migrated.putBoolean(id, true);
+                }
+            }
+        }
+        return migrated;
     }
 }
 

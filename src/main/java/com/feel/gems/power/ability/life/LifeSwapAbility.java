@@ -61,9 +61,7 @@ public final class LifeSwapAbility implements GemAbility {
 
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ILLUSIONER_PREPARE_BLINDNESS, 0.7F, 1.4F);
         AbilityFeedback.burst(player, ParticleTypes.HEART, 10, 0.25D);
-        if (player.getServerWorld() != null) {
-            AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, target.getHeight() * 0.6D, 0.0D), ParticleTypes.HEART, 10, 0.25D);
-        }
+        AbilityFeedback.burstAt(player.getEntityWorld(), target.getEntityPos().add(0.0D, target.getHeight() * 0.6D, 0.0D), ParticleTypes.HEART, 10, 0.25D);
         player.sendMessage(Text.literal("Life Swap activated."), true);
         return true;
     }

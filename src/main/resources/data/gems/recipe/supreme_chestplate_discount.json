@@ -7,18 +7,10 @@
     "GFG"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:gunpowder"
-    },
-    "F": {
-      "item": "minecraft:magma_cream"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "C": {
-      "item": "minecraft:netherite_chestplate"
-    }
+    "G": "minecraft:gunpowder",
+    "F": "minecraft:magma_cream",
+    "D": "minecraft:diamond",
+    "C": "minecraft:netherite_chestplate"
   },
   "result": {
     "count": 1,

@@ -7,18 +7,10 @@
     "EHE"
   ],
   "key": {
-    "E": {
-      "item": "minecraft:ender_eye"
-    },
-    "H": {
-      "item": "minecraft:player_head"
-    },
-    "L": {
-      "item": "minecraft:lodestone"
-    },
-    "C": {
-      "item": "minecraft:compass"
-    }
+    "E": "minecraft:ender_eye",
+    "H": "minecraft:player_head",
+    "L": "minecraft:lodestone",
+    "C": "minecraft:compass"
   },
   "result": {
     "count": 1,

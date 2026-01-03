@@ -12,46 +12,50 @@ import com.feel.gems.item.legendary.SupremeArmorItem;
 import com.feel.gems.item.legendary.ThirdStrikeBladeItem;
 import com.feel.gems.item.legendary.TrackerCompassItem;
 import com.feel.gems.item.legendary.VampiricEdgeItem;
-import net.minecraft.item.ArmorMaterials;
+import java.util.function.Function;
 import net.minecraft.item.Item;
-import net.minecraft.item.ToolMaterials;
+import net.minecraft.item.ToolMaterial;
+import net.minecraft.item.equipment.ArmorMaterials;
+import net.minecraft.item.equipment.EquipmentType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 
 
 
 
 public final class ModItems {
-    public static final Item CREATIVE_TAB_ICON = register("creative_tab_icon", new Item(new Item.Settings().maxCount(1)));
-    public static final Item HEART = register("heart", new HeartItem(new Item.Settings().maxCount(16)));
-    public static final Item ENERGY_UPGRADE = register("energy_upgrade", new EnergyUpgradeItem(new Item.Settings().maxCount(16)));
-    public static final Item GEM_TRADER = register("gem_trader", new TraderItem(new Item.Settings().maxCount(1)));
-    public static final Item GEM_PURCHASE = register("gem_purchase", new GemPurchaseItem(new Item.Settings().maxCount(1)));
+    public static final Item CREATIVE_TAB_ICON = register("creative_tab_icon", settings -> new Item(settings.maxCount(1)));
+    public static final Item HEART = register("heart", settings -> new HeartItem(settings.maxCount(16)));
+    public static final Item ENERGY_UPGRADE = register("energy_upgrade", settings -> new EnergyUpgradeItem(settings.maxCount(16)));
+    public static final Item GEM_TRADER = register("gem_trader", settings -> new TraderItem(settings.maxCount(1)));
+    public static final Item GEM_PURCHASE = register("gem_purchase", settings -> new GemPurchaseItem(settings.maxCount(1)));
 
-    public static final Item TRACKER_COMPASS = register("tracker_compass", new TrackerCompassItem(new Item.Settings().maxCount(1)));
-    public static final Item RECALL_RELIC = register("recall_relic", new RecallRelicItem(new Item.Settings().maxCount(1)));
-    public static final Item HYPNO_STAFF = register("hypno_staff", new HypnoStaffItem(new Item.Settings().maxCount(1)));
+    public static final Item TRACKER_COMPASS = register("tracker_compass", settings -> new TrackerCompassItem(settings.maxCount(1)));
+    public static final Item RECALL_RELIC = register("recall_relic", settings -> new RecallRelicItem(settings.maxCount(1)));
+    public static final Item HYPNO_STAFF = register("hypno_staff", settings -> new HypnoStaffItem(settings.maxCount(1)));
     public static final Item EARTHSPLITTER_PICK = register("earthsplitter_pick",
-            new EarthsplitterPickItem(ToolMaterials.NETHERITE, new Item.Settings().maxCount(1)));
+            settings -> new EarthsplitterPickItem(ToolMaterial.NETHERITE, settings.maxCount(1)));
     public static final Item SUPREME_HELMET = register("supreme_helmet",
-            new SupremeArmorItem(ArmorMaterials.NETHERITE, net.minecraft.item.ArmorItem.Type.HELMET, SupremeArmorItem.Piece.HELMET, new Item.Settings().maxCount(1)));
+            settings -> new SupremeArmorItem(ArmorMaterials.NETHERITE, EquipmentType.HELMET, SupremeArmorItem.Piece.HELMET, settings.maxCount(1)));
     public static final Item SUPREME_CHESTPLATE = register("supreme_chestplate",
-            new SupremeArmorItem(ArmorMaterials.NETHERITE, net.minecraft.item.ArmorItem.Type.CHESTPLATE, SupremeArmorItem.Piece.CHESTPLATE, new Item.Settings().maxCount(1)));
+            settings -> new SupremeArmorItem(ArmorMaterials.NETHERITE, EquipmentType.CHESTPLATE, SupremeArmorItem.Piece.CHESTPLATE, settings.maxCount(1)));
     public static final Item SUPREME_LEGGINGS = register("supreme_leggings",
-            new SupremeArmorItem(ArmorMaterials.NETHERITE, net.minecraft.item.ArmorItem.Type.LEGGINGS, SupremeArmorItem.Piece.LEGGINGS, new Item.Settings().maxCount(1)));
+            settings -> new SupremeArmorItem(ArmorMaterials.NETHERITE, EquipmentType.LEGGINGS, SupremeArmorItem.Piece.LEGGINGS, settings.maxCount(1)));
     public static final Item SUPREME_BOOTS = register("supreme_boots",
-            new SupremeArmorItem(ArmorMaterials.NETHERITE, net.minecraft.item.ArmorItem.Type.BOOTS, SupremeArmorItem.Piece.BOOTS, new Item.Settings().maxCount(1)));
+            settings -> new SupremeArmorItem(ArmorMaterials.NETHERITE, EquipmentType.BOOTS, SupremeArmorItem.Piece.BOOTS, settings.maxCount(1)));
     public static final Item BLOOD_OATH_BLADE = register("blood_oath_blade",
-            new BloodOathBladeItem(ToolMaterials.NETHERITE, new Item.Settings().maxCount(1)));
+            settings -> new BloodOathBladeItem(ToolMaterial.NETHERITE, settings.maxCount(1)));
     public static final Item DEMOLITION_BLADE = register("demolition_blade",
-            new DemolitionBladeItem(ToolMaterials.NETHERITE, new Item.Settings().maxCount(1)));
+            settings -> new DemolitionBladeItem(ToolMaterial.NETHERITE, settings.maxCount(1)));
     public static final Item HUNTERS_SIGHT_BOW = register("hunters_sight_bow",
-            new HunterSightBowItem(new Item.Settings().maxCount(1).maxDamage(600)));
+            settings -> new HunterSightBowItem(settings.maxCount(1).maxDamage(600)));
     public static final Item THIRD_STRIKE_BLADE = register("third_strike_blade",
-            new ThirdStrikeBladeItem(ToolMaterials.NETHERITE, new Item.Settings().maxCount(1)));
+            settings -> new ThirdStrikeBladeItem(ToolMaterial.NETHERITE, settings.maxCount(1)));
     public static final Item VAMPIRIC_EDGE = register("vampiric_edge",
-            new VampiricEdgeItem(ToolMaterials.NETHERITE, new Item.Settings().maxCount(1)));
+            settings -> new VampiricEdgeItem(ToolMaterial.NETHERITE, settings.maxCount(1)));
 
     public static final Item ASTRA_GEM = registerGem(GemId.ASTRA);
     public static final Item FIRE_GEM = registerGem(GemId.FIRE);
@@ -100,10 +104,13 @@ public final class ModItems {
     }
 
     private static Item registerGem(GemId gemId) {
-        return register(gemId.name().toLowerCase() + "_gem", new GemItem(gemId, new Item.Settings().maxCount(1)));
+        return register(gemId.name().toLowerCase() + "_gem", settings -> new GemItem(gemId, settings.maxCount(1)));
     }
 
-    private static Item register(String path, Item item) {
-        return Registry.register(Registries.ITEM, Identifier.of(GemsMod.MOD_ID, path), item);
+    private static Item register(String path, Function<Item.Settings, Item> factory) {
+        Identifier id = Identifier.of(GemsMod.MOD_ID, path);
+        Item.Settings settings = new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, id));
+        Item item = factory.apply(settings);
+        return Registry.register(Registries.ITEM, id, item);
     }
 }

@@ -9,6 +9,7 @@ import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.GemAbilityCooldowns;
 import com.feel.gems.legendary.HypnoControl;
 import com.feel.gems.legendary.LegendaryTargeting;
+import com.feel.gems.util.GemsNbt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -25,8 +26,6 @@ import net.minecraft.entity.mob.PiglinBruteEntity;
 import net.minecraft.entity.mob.PiglinEntity;
 import net.minecraft.entity.mob.HoglinEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -94,20 +93,23 @@ public final class SummonerSummons {
             return;
         }
         NbtCompound root = ((GemsPersistentDataHolder) owner).gems$getPersistentData();
-        NbtList list = root.getList(KEY_SUMMONS, NbtElement.INT_ARRAY_TYPE);
-        list.add(NbtHelper.fromUuid(entity.getUuid()));
+        NbtList list = root.getListOrEmpty(KEY_SUMMONS);
+        list.add(GemsNbt.fromUuid(entity.getUuid()));
         root.put(KEY_SUMMONS, list);
     }
 
     public static List<UUID> ownedSummonUuids(ServerPlayerEntity owner) {
         NbtCompound root = ((GemsPersistentDataHolder) owner).gems$getPersistentData();
-        if (!root.contains(KEY_SUMMONS, NbtElement.LIST_TYPE)) {
+        NbtList list = root.getList(KEY_SUMMONS).orElse(null);
+        if (list == null) {
             return List.of();
         }
-        NbtList list = root.getList(KEY_SUMMONS, NbtElement.INT_ARRAY_TYPE);
         List<UUID> out = new ArrayList<>(list.size());
         for (int i = 0; i < list.size(); i++) {
-            out.add(NbtHelper.toUuid(list.get(i)));
+            UUID uuid = GemsNbt.toUuid(list.get(i));
+            if (uuid != null) {
+                out.add(uuid);
+            }
         }
         return out;
     }
@@ -116,22 +118,25 @@ public final class SummonerSummons {
     }
 
     public static int pruneAndCount(ServerPlayerEntity owner) {
-        MinecraftServer server = owner.getServer();
+        MinecraftServer server = owner.getEntityWorld().getServer();
         if (server == null) {
             return 0;
         }
         NbtCompound root = ((GemsPersistentDataHolder) owner).gems$getPersistentData();
-        NbtList list = root.getList(KEY_SUMMONS, NbtElement.INT_ARRAY_TYPE);
+        NbtList list = root.getListOrEmpty(KEY_SUMMONS);
         if (list.isEmpty()) {
             return 0;
         }
         NbtList next = new NbtList();
         int alive = 0;
         for (int i = 0; i < list.size(); i++) {
-            UUID uuid = NbtHelper.toUuid(list.get(i));
+            UUID uuid = GemsNbt.toUuid(list.get(i));
+            if (uuid == null) {
+                continue;
+            }
             Entity e = findEntity(server, uuid);
             if (e != null && e.isAlive() && isSummon(e) && owner.getUuid().equals(ownerUuid(e))) {
-                next.add(NbtHelper.fromUuid(uuid));
+                next.add(GemsNbt.fromUuid(uuid));
                 alive++;
             }
         }
@@ -140,12 +145,12 @@ public final class SummonerSummons {
     }
 
     public static SummonStats pruneAndPoints(ServerPlayerEntity owner, GemsBalance.Summoner cfg) {
-        MinecraftServer server = owner.getServer();
+        MinecraftServer server = owner.getEntityWorld().getServer();
         if (server == null) {
             return new SummonStats(0, 0);
         }
         NbtCompound root = ((GemsPersistentDataHolder) owner).gems$getPersistentData();
-        NbtList list = root.getList(KEY_SUMMONS, NbtElement.INT_ARRAY_TYPE);
+        NbtList list = root.getListOrEmpty(KEY_SUMMONS);
         if (list.isEmpty()) {
             return new SummonStats(0, 0);
         }
@@ -153,7 +158,10 @@ public final class SummonerSummons {
         int alive = 0;
         int points = 0;
         for (int i = 0; i < list.size(); i++) {
-            UUID uuid = NbtHelper.toUuid(list.get(i));
+            UUID uuid = GemsNbt.toUuid(list.get(i));
+            if (uuid == null) {
+                continue;
+            }
             Entity e = findEntity(server, uuid);
             if (!(e instanceof MobEntity mob) || !mob.isAlive() || !isSummon(mob)) {
                 continue;
@@ -161,7 +169,7 @@ public final class SummonerSummons {
             if (!owner.getUuid().equals(ownerUuid(mob))) {
                 continue;
             }
-            next.add(NbtHelper.fromUuid(uuid));
+            next.add(GemsNbt.fromUuid(uuid));
             alive++;
             points += costForEntity(cfg.costs(), mob.getType());
         }
@@ -170,7 +178,7 @@ public final class SummonerSummons {
     }
 
     public static void discardAll(ServerPlayerEntity owner) {
-        MinecraftServer server = owner.getServer();
+        MinecraftServer server = owner.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
@@ -184,7 +192,7 @@ public final class SummonerSummons {
     }
 
     public static void commandSummons(ServerPlayerEntity owner, LivingEntity target, int rangeBlocks, int strengthAmplifier, int durationTicks) {
-        MinecraftServer server = owner.getServer();
+        MinecraftServer server = owner.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
@@ -204,7 +212,7 @@ public final class SummonerSummons {
             if (!(e instanceof MobEntity mob) || !mob.isAlive() || !isSummon(mob)) {
                 continue;
             }
-            if (mob.getWorld() != target.getWorld()) {
+            if (mob.getEntityWorld() != target.getEntityWorld()) {
                 continue;
             }
             if (mob.squaredDistanceTo(owner) > rangeSq) {
@@ -218,7 +226,7 @@ public final class SummonerSummons {
     }
 
     public static void followOwner(ServerPlayerEntity owner) {
-        MinecraftServer server = owner.getServer();
+        MinecraftServer server = owner.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
@@ -241,7 +249,7 @@ public final class SummonerSummons {
                 continue;
             }
             refreshNetherMob(mob);
-            if (mob.getWorld() != owner.getWorld()) {
+            if (mob.getEntityWorld() != owner.getEntityWorld()) {
                 continue;
             }
             LivingEntity desiredTarget = markLiving != null ? markLiving : fallbackTarget;
@@ -263,7 +271,7 @@ public final class SummonerSummons {
                     continue;
                 }
             }
-            if (desiredTarget != null && desiredTarget.getWorld() == mob.getWorld()) {
+            if (desiredTarget != null && desiredTarget.getEntityWorld() == mob.getEntityWorld()) {
                 double rangeSq = rangeBlocks * (double) rangeBlocks;
                 if (mob.squaredDistanceTo(owner) <= rangeSq) {
                     if (desiredTarget instanceof MobEntity mobTarget) {
@@ -300,7 +308,7 @@ public final class SummonerSummons {
         }
         double maxSq = rangeBlocks * (double) rangeBlocks;
         var box = owner.getBoundingBox().expand(rangeBlocks);
-        List<MobEntity> mobs = owner.getWorld().getEntitiesByClass(MobEntity.class, box, mob -> mob.getTarget() == owner);
+        List<MobEntity> mobs = owner.getEntityWorld().getEntitiesByClass(MobEntity.class, box, mob -> mob.getTarget() == owner);
         LivingEntity nearest = null;
         double nearestSq = Double.MAX_VALUE;
         for (MobEntity mob : mobs) {
@@ -319,7 +327,7 @@ public final class SummonerSummons {
     }
 
     private static LivingEntity normalizeTarget(ServerPlayerEntity owner, LivingEntity target, int rangeBlocks) {
-        if (target == null || !target.isAlive() || target.getWorld() != owner.getWorld()) {
+        if (target == null || !target.isAlive() || target.getEntityWorld() != owner.getEntityWorld()) {
             return null;
         }
         if (rangeBlocks > 0) {
@@ -345,7 +353,7 @@ public final class SummonerSummons {
         if (bonusHealth <= 0.0F) {
             return;
         }
-        var inst = mob.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+        var inst = mob.getAttributeInstance(EntityAttributes.MAX_HEALTH);
         if (inst == null) {
             return;
         }
@@ -384,8 +392,7 @@ public final class SummonerSummons {
 
     public static void clearAnger(MobEntity mob) {
         if (mob instanceof Angerable angerable) {
-            angerable.setAngryAt(null);
-            angerable.setAngerTime(0);
+            angerable.stopAnger();
         }
     }
 

@@ -10,6 +10,23 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class HeartRecipeTest {
 
+    private static String ingredientId(JsonObject key, String symbol) {
+        var element = key.get(symbol);
+        assertNotNull(element, "Missing recipe key entry for '" + symbol + "'");
+        if (element.isJsonPrimitive()) {
+            return element.getAsString();
+        }
+        JsonObject obj = element.getAsJsonObject();
+        if (obj.has("item")) {
+            return obj.get("item").getAsString();
+        }
+        if (obj.has("tag")) {
+            return "#" + obj.get("tag").getAsString();
+        }
+        fail("Unsupported ingredient format for '" + symbol + "': " + obj);
+        return null;
+    }
+
     @Test
     void heartRecipeUsesExpensiveComponents() throws Exception {
         Path recipePath = Path.of("src", "main", "resources", "data", "gems", "recipe", "heart.json");
@@ -19,9 +36,9 @@ public class HeartRecipeTest {
         assertEquals("minecraft:crafting_shaped", root.get("type").getAsString());
 
         JsonObject key = root.getAsJsonObject("key");
-        assertEquals("minecraft:netherite_scrap", key.getAsJsonObject("N").get("item").getAsString());
-        assertEquals("minecraft:iron_block", key.getAsJsonObject("I").get("item").getAsString());
-        assertEquals("minecraft:gold_block", key.getAsJsonObject("G").get("item").getAsString());
+        assertEquals("minecraft:netherite_scrap", ingredientId(key, "N"));
+        assertEquals("minecraft:iron_block", ingredientId(key, "I"));
+        assertEquals("minecraft:gold_block", ingredientId(key, "G"));
 
         var pattern = root.getAsJsonArray("pattern");
         assertEquals(3, pattern.size());

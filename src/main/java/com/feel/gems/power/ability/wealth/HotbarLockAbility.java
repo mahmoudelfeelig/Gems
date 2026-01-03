@@ -12,6 +12,7 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -51,13 +52,15 @@ public final class HotbarLockAbility implements GemAbility {
                 player.sendMessage(Text.literal("Target is trusted."), true);
                 return false;
             }
-            HotbarLock.lock(other, other.getInventory().selectedSlot, duration);
+            HotbarLock.lock(other, other.getInventory().getSelectedSlot(), duration);
         } else {
             target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 0, true, false, false));
             target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
         }
         AbilityFeedback.sound(player, SoundEvents.BLOCK_CHAIN_PLACE, 0.8F, 1.1F);
-        AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.CRIT, 12, 0.2D);
+        if (player.getEntityWorld() instanceof ServerWorld world) {
+            AbilityFeedback.burstAt(world, target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.CRIT, 12, 0.2D);
+        }
         player.sendMessage(Text.literal("Hotbar locked."), true);
         return true;
     }

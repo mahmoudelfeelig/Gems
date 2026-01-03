@@ -13,6 +13,7 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -65,12 +66,14 @@ public final class ReaperShadowCloneAbility implements GemAbility {
             return false;
         }
 
-        var world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         List<java.util.UUID> spawned = new ArrayList<>();
         float yaw = player.getYaw();
         double baseRadius = 1.2D;
         for (int i = 0; i < count; i++) {
-            Entity entity = type.create(world);
+            Entity entity = type.create(world, SpawnReason.MOB_SUMMONED);
             if (!(entity instanceof MobEntity mob)) {
                 continue;
             }

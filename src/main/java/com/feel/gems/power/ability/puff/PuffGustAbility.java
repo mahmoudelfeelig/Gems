@@ -47,7 +47,9 @@ public final class PuffGustAbility implements GemAbility {
             return false;
         }
 
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         double knockback = cfg.gustKnockback();
         double up = cfg.gustUpVelocityY();
         int slownessDuration = cfg.gustSlownessDurationTicks();
@@ -59,11 +61,11 @@ public final class PuffGustAbility implements GemAbility {
             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
                 continue;
             }
-            Vec3d delta = other.getPos().subtract(player.getPos());
+            Vec3d delta = other.getEntityPos().subtract(player.getEntityPos());
             if (delta.lengthSquared() > 1.0E-4D) {
                 Vec3d norm = delta.normalize();
                 other.addVelocity(norm.x * knockback, up, norm.z * knockback);
-                other.velocityModified = true;
+                other.velocityDirty = true;
             }
             if (slownessDuration > 0) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, slownessDuration, slownessAmplifier, true, false, false));

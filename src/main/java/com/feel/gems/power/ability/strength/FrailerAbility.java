@@ -10,6 +10,7 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -50,8 +51,8 @@ public final class FrailerAbility implements GemAbility {
 
         target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, GemsBalance.v().strength().frailerDurationTicks(), 0));
         AbilityFeedback.sound(player, SoundEvents.ENTITY_WITHER_SHOOT, 0.7F, 1.3F);
-        if (player.getServerWorld() != null) {
-            AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ASH, 14, 0.25D);
+        if (player.getEntityWorld() instanceof ServerWorld world) {
+            AbilityFeedback.burstAt(world, target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ASH, 14, 0.25D);
         }
         player.sendMessage(Text.literal("Frailer: weakened " + target.getName().getString()), true);
         return true;

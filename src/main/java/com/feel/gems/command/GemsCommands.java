@@ -1,6 +1,8 @@
 package com.feel.gems.command;
 
+import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.assassin.AssassinState;
+import com.feel.gems.assassin.AssassinTeams;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemEnergyState;
@@ -29,10 +31,13 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.command.permission.Permission;
+import net.minecraft.command.permission.PermissionLevel;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -41,6 +46,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.GameMode;
 
 
 
@@ -59,98 +65,148 @@ public final class GemsCommands {
                         .then(CommandManager.literal("status")
                                 .executes(ctx -> status(ctx.getSource(), ctx.getSource().getPlayerOrThrow())))
                         .then(CommandManager.literal("reloadBalance")
-                                .requires(src -> src.hasPermissionLevel(2))
+                                .requires(src -> src.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(2))))
                                 .executes(ctx -> reloadBalance(ctx.getSource())))
                         .then(CommandManager.literal("dumpBalance")
-                                .requires(src -> src.hasPermissionLevel(2))
+                                .requires(src -> src.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(2))))
                                 .executes(ctx -> dumpBalance(ctx.getSource())))
                         .then(CommandManager.literal("trust")
-                                .then(CommandManager.argument("player", EntityArgumentType.player())
-                                        .executes(ctx -> trust(ctx.getSource().getPlayerOrThrow(), EntityArgumentType.getPlayer(ctx, "player")))))
+                                .then(CommandManager.argument("players", EntityArgumentType.players())
+                                        .executes(ctx -> {
+                                            ServerPlayerEntity owner = ctx.getSource().getPlayerOrThrow();
+                                            for (ServerPlayerEntity other : EntityArgumentType.getPlayers(ctx, "players")) {
+                                                trust(owner, other);
+                                            }
+                                            return 1;
+                                        })))
                         .then(CommandManager.literal("untrust")
-                                .then(CommandManager.argument("player", EntityArgumentType.player())
-                                        .executes(ctx -> untrust(ctx.getSource().getPlayerOrThrow(), EntityArgumentType.getPlayer(ctx, "player")))))
+                                .then(CommandManager.argument("players", EntityArgumentType.players())
+                                        .executes(ctx -> {
+                                            ServerPlayerEntity owner = ctx.getSource().getPlayerOrThrow();
+                                            for (ServerPlayerEntity other : EntityArgumentType.getPlayers(ctx, "players")) {
+                                                untrust(owner, other);
+                                            }
+                                            return 1;
+                                        })))
                         .then(CommandManager.literal("trustlist")
                                 .executes(ctx -> trustList(ctx.getSource().getPlayerOrThrow())))
                         .then(CommandManager.literal("track")
                                 .then(CommandManager.argument("player", StringArgumentType.word())
                                         .suggests((ctx, builder) -> suggestOnlinePlayers(ctx.getSource(), builder))
                                         .executes(ctx -> track(ctx.getSource().getPlayerOrThrow(), StringArgumentType.getString(ctx, "player")))))
-                        .then(CommandManager.literal("summoner")
-                            .then(CommandManager.literal("loadout")
-                                .executes(ctx -> openSummonerLoadout(ctx.getSource().getPlayerOrThrow()))))
                         .then(CommandManager.literal("trade")
                                 .then(CommandManager.argument("gem", StringArgumentType.word())
                                         .suggests((ctx, builder) -> suggestGems(builder))
                                         .executes(ctx -> trade(ctx.getSource().getPlayerOrThrow(), StringArgumentType.getString(ctx, "gem")))))
                         .then(CommandManager.literal("admin")
-                                .requires(src -> src.hasPermissionLevel(2))
+                                .requires(src -> src.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(2))))
                                 .then(CommandManager.literal("status")
-                                        .then(CommandManager.argument("player", EntityArgumentType.player())
-                                                .executes(ctx -> status(ctx.getSource(), EntityArgumentType.getPlayer(ctx, "player")))))
-                                .then(CommandManager.literal("cast")
-                                        .then(CommandManager.argument("player", EntityArgumentType.player())
-                                                .then(CommandManager.argument("slot", IntegerArgumentType.integer(1, 10))
-                                                        .executes(ctx -> castSlot(
-                                                                ctx.getSource(),
-                                                                EntityArgumentType.getPlayer(ctx, "player"),
-                                                                IntegerArgumentType.getInteger(ctx, "slot")
-                                                        )))))
-                                .then(CommandManager.literal("resync")
-                                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
                                                 .executes(ctx -> {
-                                                    ServerPlayerEntity player = EntityArgumentType.getPlayer(ctx, "player");
-                                                    GemPlayerState.initIfNeeded(player);
-                                                    resync(player);
-                                                    ctx.getSource().sendFeedback(() -> Text.literal("Resynced " + player.getName().getString()), true);
+                                                    for (ServerPlayerEntity player : EntityArgumentType.getPlayers(ctx, "players")) {
+                                                        status(ctx.getSource(), player);
+                                                    }
+                                                    return 1;
+                                                })))
+                                .then(CommandManager.literal("cast")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .then(CommandManager.argument("slot", IntegerArgumentType.integer(1, 10))
+                                                        .executes(ctx -> {
+                                                            int slot = IntegerArgumentType.getInteger(ctx, "slot");
+                                                            for (ServerPlayerEntity player : EntityArgumentType.getPlayers(ctx, "players")) {
+                                                                castSlot(ctx.getSource(), player, slot);
+                                                            }
+                                                            return 1;
+                                                        }))))
+                                .then(CommandManager.literal("resync")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .executes(ctx -> {
+                                                    for (ServerPlayerEntity player : EntityArgumentType.getPlayers(ctx, "players")) {
+                                                        GemPlayerState.initIfNeeded(player);
+                                                        resync(player);
+                                                        ctx.getSource().sendFeedback(() -> Text.literal("Resynced " + player.getName().getString()), true);
+                                                    }
                                                     return 1;
                                                 })))
                                 .then(CommandManager.literal("giveItem")
-                                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
                                                 .then(CommandManager.argument("item", StringArgumentType.word())
                                                         .suggests((ctx, builder) -> suggestAdminItems(builder))
-                                                        .executes(ctx -> giveItem(
-                                                                ctx.getSource(),
-                                                                EntityArgumentType.getPlayer(ctx, "player"),
-                                                                StringArgumentType.getString(ctx, "item")
-                                                        )))))
+                                                        .executes(ctx -> {
+                                                            String item = StringArgumentType.getString(ctx, "item");
+                                                            for (ServerPlayerEntity player : EntityArgumentType.getPlayers(ctx, "players")) {
+                                                                giveItem(ctx.getSource(), player, item);
+                                                            }
+                                                            return 1;
+                                                        }))))
                                 .then(CommandManager.literal("giveGem")
-                                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
                                                 .then(CommandManager.argument("gem", StringArgumentType.word())
                                                         .suggests((ctx, builder) -> suggestGems(builder))
-                                                        .executes(ctx -> giveGem(
-                                                                ctx.getSource(),
-                                                                EntityArgumentType.getPlayer(ctx, "player"),
-                                                                StringArgumentType.getString(ctx, "gem")
-                                                        )))))
+                                                        .executes(ctx -> {
+                                                            String gem = StringArgumentType.getString(ctx, "gem");
+                                                            for (ServerPlayerEntity player : EntityArgumentType.getPlayers(ctx, "players")) {
+                                                                giveGem(ctx.getSource(), player, gem);
+                                                            }
+                                                            return 1;
+                                                        }))))
+                                .then(CommandManager.literal("giveAllGems")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .executes(ctx -> giveAllGems(ctx.getSource(), EntityArgumentType.getPlayers(ctx, "players")))))
+                                .then(CommandManager.literal("clearGems")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .executes(ctx -> clearGems(ctx.getSource(), EntityArgumentType.getPlayers(ctx, "players")))))
                                 .then(CommandManager.literal("setEnergy")
-                                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
                                                 .then(CommandManager.argument("energy", IntegerArgumentType.integer(GemPlayerState.MIN_ENERGY, GemPlayerState.MAX_ENERGY))
-                                                        .executes(ctx -> setEnergy(
-                                                                ctx.getSource(),
-                                                                EntityArgumentType.getPlayer(ctx, "player"),
-                                                                IntegerArgumentType.getInteger(ctx, "energy")
-                                                        )))))
+                                                        .executes(ctx -> {
+                                                            int energy = IntegerArgumentType.getInteger(ctx, "energy");
+                                                            for (ServerPlayerEntity player : EntityArgumentType.getPlayers(ctx, "players")) {
+                                                                setEnergy(ctx.getSource(), player, energy);
+                                                            }
+                                                            return 1;
+                                                        }))))
                                 .then(CommandManager.literal("setHearts")
-                                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
                                                 .then(CommandManager.argument("hearts", IntegerArgumentType.integer(GemPlayerState.minMaxHearts(), GemPlayerState.MAX_MAX_HEARTS))
-                                                        .executes(ctx -> setHearts(
-                                                                ctx.getSource(),
-                                                                EntityArgumentType.getPlayer(ctx, "player"),
-                                                                IntegerArgumentType.getInteger(ctx, "hearts")
-                                                        )))))
+                                                        .executes(ctx -> {
+                                                            int hearts = IntegerArgumentType.getInteger(ctx, "hearts");
+                                                            for (ServerPlayerEntity player : EntityArgumentType.getPlayers(ctx, "players")) {
+                                                                setHearts(ctx.getSource(), player, hearts);
+                                                            }
+                                                            return 1;
+                                                        }))))
                                 .then(CommandManager.literal("setGem")
-                                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
                                                 .then(CommandManager.argument("gem", StringArgumentType.word())
                                                         .suggests((ctx, builder) -> suggestGems(builder))
-                                                        .executes(ctx -> setGem(
-                                                                ctx.getSource(),
-                                                                EntityArgumentType.getPlayer(ctx, "player"),
-                                                                StringArgumentType.getString(ctx, "gem")
-                                                        )))))
+                                                        .executes(ctx -> {
+                                                            String gem = StringArgumentType.getString(ctx, "gem");
+                                                            for (ServerPlayerEntity player : EntityArgumentType.getPlayers(ctx, "players")) {
+                                                                setGem(ctx.getSource(), player, gem);
+                                                            }
+                                                            return 1;
+                                                        }))))
                                 .then(CommandManager.literal("reset")
-                                        .then(CommandManager.argument("player", EntityArgumentType.player())
-                                                .executes(ctx -> reset(ctx.getSource(), EntityArgumentType.getPlayer(ctx, "player")))))
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .executes(ctx -> {
+                                                    for (ServerPlayerEntity player : EntityArgumentType.getPlayers(ctx, "players")) {
+                                                        reset(ctx.getSource(), player);
+                                                    }
+                                                    return 1;
+                                                })))
+                                .then(CommandManager.literal("cooldowns")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .then(CommandManager.argument("disabled", BoolArgumentType.bool())
+                                                        .executes(ctx -> setCooldownsDisabled(
+                                                                ctx.getSource(),
+                                                                EntityArgumentType.getPlayers(ctx, "players"),
+                                                                BoolArgumentType.getBool(ctx, "disabled")
+                                                        )))))
+                                .then(CommandManager.literal("assassin")
+                                        .then(CommandManager.literal("reset")
+                                                .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                        .executes(ctx -> resetAssassin(ctx.getSource(), EntityArgumentType.getPlayers(ctx, "players"))))))
                                 .then(CommandManager.literal("perf")
                                         .then(CommandManager.literal("reset")
                                                 .executes(ctx -> perfReset(ctx.getSource())))
@@ -249,11 +305,6 @@ public final class GemsCommands {
         return 1;
     }
 
-    private static int openSummonerLoadout(ServerPlayerEntity player) {
-        com.feel.gems.net.ServerSummonerNetworking.openEditor(player);
-        return 1;
-    }
-
     private static int perfSnapshot(ServerCommandSource source, int windowTicks) {
         GemsPerfMonitor.Snapshot snap = GemsPerfMonitor.snapshot(windowTicks);
         source.sendFeedback(() -> Text.literal(String.format(
@@ -283,6 +334,54 @@ public final class GemsCommands {
     private static int dumpBalance(ServerCommandSource source) {
         var out = GemsBalance.dumpEffectiveBalance();
         source.sendFeedback(() -> Text.literal("Wrote effective balance to: " + out), true);
+        return 1;
+    }
+
+    private static int setCooldownsDisabled(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players, boolean disabled) {
+        for (ServerPlayerEntity player : players) {
+            GemsAdmin.setNoCooldowns(player, disabled);
+        }
+        source.sendFeedback(() -> Text.literal((disabled ? "Disabled" : "Enabled") + " ability cooldowns for " + players.size() + " player(s)."), true);
+        return 1;
+    }
+
+    private static int resetAssassin(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players) {
+        for (ServerPlayerEntity player : players) {
+            boolean wasEliminated = AssassinState.isEliminated(player);
+            AssassinState.reset(player);
+            if (wasEliminated && player.isSpectator()) {
+                player.changeGameMode(GameMode.SURVIVAL);
+            }
+            GemPlayerState.initIfNeeded(player);
+            resync(player);
+            AssassinTeams.sync(source.getServer(), player);
+            source.sendFeedback(() -> Text.literal("Reset assassin state for " + player.getName().getString()), true);
+        }
+        return 1;
+    }
+
+    private static int giveAllGems(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players) {
+        EnumSet<GemId> all = EnumSet.allOf(GemId.class);
+        for (ServerPlayerEntity player : players) {
+            GemPlayerState.initIfNeeded(player);
+            GemPlayerState.setOwnedGemsExact(player, all);
+            for (GemId gemId : GemId.values()) {
+                ensurePlayerHasItem(player, ModItems.gemItem(gemId));
+            }
+            resync(player);
+            source.sendFeedback(() -> Text.literal("Gave all gems to " + player.getName().getString()), true);
+        }
+        return 1;
+    }
+
+    private static int clearGems(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players) {
+        for (ServerPlayerEntity player : players) {
+            GemPlayerState.initIfNeeded(player);
+            GemId active = GemPlayerState.getActiveGem(player);
+            GemPlayerState.setOwnedGemsExact(player, EnumSet.of(active));
+            resync(player);
+            source.sendFeedback(() -> Text.literal("Cleared owned gems for " + player.getName().getString() + " (kept " + active.name() + ")"), true);
+        }
         return 1;
     }
 
@@ -480,27 +579,26 @@ public final class GemsCommands {
     }
 
     private static void ensurePlayerHasItem(ServerPlayerEntity player, Item item) {
-        for (ItemStack stack : player.getInventory().main) {
+        for (ItemStack stack : player.getInventory().getMainStacks()) {
             if (stack.isOf(item)) {
                 return;
             }
         }
-        for (ItemStack stack : player.getInventory().offHand) {
-            if (stack.isOf(item)) {
-                return;
-            }
+        if (player.getOffHandStack().isOf(item)) {
+            return;
         }
-        for (ItemStack stack : player.getInventory().armor) {
-            if (stack.isOf(item)) {
-                return;
-            }
+        if (player.getEquippedStack(net.minecraft.entity.EquipmentSlot.HEAD).isOf(item)
+                || player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST).isOf(item)
+                || player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS).isOf(item)
+                || player.getEquippedStack(net.minecraft.entity.EquipmentSlot.FEET).isOf(item)) {
+            return;
         }
         player.giveItemStack(new ItemStack(item));
     }
 
     private static CompletableFuture<Suggestions> suggestOnlinePlayers(ServerCommandSource source, SuggestionsBuilder builder) {
         for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
-            builder.suggest(player.getGameProfile().getName());
+            builder.suggest(player.getName().getString());
         }
         return builder.buildFuture();
     }

@@ -7,18 +7,10 @@
     "TCT"
   ],
   "key": {
-    "T": {
-      "item": "minecraft:tnt"
-    },
-    "C": {
-      "item": "minecraft:fire_charge"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "S": {
-      "item": "minecraft:netherite_sword"
-    }
+    "T": "minecraft:tnt",
+    "C": "minecraft:fire_charge",
+    "D": "minecraft:diamond",
+    "S": "minecraft:netherite_sword"
   },
   "result": {
     "count": 1,

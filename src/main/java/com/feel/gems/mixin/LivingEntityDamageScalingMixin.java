@@ -27,22 +27,19 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityDamageScalingMixin {
     @ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true)
-    private float gems$scaleDamage(float amount, DamageSource source) {
+    private float gems$scaleDamage(float amount, ServerWorld world, DamageSource source, float originalAmount) {
         if (amount <= 0.0F) {
             return amount;
         }
 
         LivingEntity self = (LivingEntity) (Object) this;
-        if (self.getWorld().isClient) {
-            return amount;
-        }
 
         float scaled = amount;
 
         Entity attacker = source.getAttacker();
         if (attacker instanceof ServerPlayerEntity playerAttacker) {
             if (GemPowers.isPassiveActive(playerAttacker, PowerIds.SPACE_LUNAR_SCALING)) {
-                scaled *= SpaceLunarScaling.multiplier(playerAttacker.getServerWorld());
+                scaled *= SpaceLunarScaling.multiplier(playerAttacker.getEntityWorld());
             }
 
             if (!(self instanceof ServerPlayerEntity victim && GemTrust.isTrusted(playerAttacker, victim))) {
@@ -57,17 +54,16 @@ public abstract class LivingEntityDamageScalingMixin {
             }
         }
 
-        if (self instanceof ServerPlayerEntity victim) {
+            if (self instanceof ServerPlayerEntity victim) {
             if (AbilityRuntime.isReaperRetributionActive(victim)) {
                 if (attacker instanceof LivingEntity livingAttacker && livingAttacker != victim) {
                     float reflected = scaled * GemsBalance.v().reaper().retributionDamageMultiplier();
-                    livingAttacker.damage(victim.getDamageSources().magic(), reflected);
+                    livingAttacker.damage(world, victim.getDamageSources().magic(), reflected);
                     return 0.0F;
                 }
             }
 
             if (GemPowers.isPassiveActive(victim, PowerIds.SPACE_STARSHIELD) && source.isIn(DamageTypeTags.IS_PROJECTILE)) {
-                ServerWorld world = victim.getServerWorld();
                 if (world.getDimension().hasSkyLight() && world.isNight() && world.isSkyVisible(victim.getBlockPos())) {
                     scaled *= GemsBalance.v().space().starshieldProjectileDamageMultiplier();
                 }

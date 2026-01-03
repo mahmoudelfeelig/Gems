@@ -8,6 +8,7 @@ public class DataSpecRegressionTest {
 
     @Test
     void everyGemIdHasDefinitionWithPassivesAndAbilities() {
+        GemRegistry.init();
         for (GemId id : GemId.values()) {
             GemDefinition def = GemRegistry.definition(id);
             assertNotNull(def, "Missing GemDefinition for gem " + id);
@@ -19,6 +20,7 @@ public class DataSpecRegressionTest {
 
     @Test
     void gemDefinitionsFileCoversAllGemIds() throws Exception {
+        GemRegistry.init();
         java.nio.file.Path path = java.nio.file.Path.of("src", "main", "resources", "data", "gems", "gem_definitions.json");
         assertTrue(java.nio.file.Files.exists(path), "Gem definitions JSON is missing");
 

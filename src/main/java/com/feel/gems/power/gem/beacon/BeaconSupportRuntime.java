@@ -38,7 +38,9 @@ public final class BeaconSupportRuntime {
         }
 
         int amplifier = Math.max(0, (hearts / 2) - 1);
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
             if (other == player) {
@@ -68,13 +70,15 @@ public final class BeaconSupportRuntime {
 
         NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         long now = GemsTime.now(player);
-        long next = nbt.getLong(KEY_CORE_NEXT);
+        long next = nbt.getLong(KEY_CORE_NEXT, 0L);
         if (next > now) {
             return;
         }
         nbt.putLong(KEY_CORE_NEXT, now + pulse);
 
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
             if (GemTrust.isTrusted(player, other) || other == player) {
@@ -95,7 +99,9 @@ public final class BeaconSupportRuntime {
             return;
         }
 
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
             if (GemTrust.isTrusted(player, other) || other == player) {

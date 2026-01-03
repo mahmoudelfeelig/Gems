@@ -48,14 +48,14 @@ public final class AirDashAbility implements GemAbility {
 
         Vec3d dir = player.getRotationVec(1.0F).normalize();
         player.addVelocity(dir.x * velocity, up, dir.z * velocity);
-        player.velocityModified = true;
+        player.velocityDirty = true;
         if (iFrame > 0) {
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, iFrame, amp, true, false, false));
         }
 
-        AbilityFeedback.beam(player.getServerWorld(),
-                player.getPos().add(0.0D, 1.0D, 0.0D),
-                player.getPos().add(dir.multiply(3.0D)).add(0.0D, 1.0D, 0.0D),
+        AbilityFeedback.beam(player.getEntityWorld(),
+                player.getEntityPos().add(0.0D, 1.0D, 0.0D),
+                player.getEntityPos().add(dir.multiply(3.0D)).add(0.0D, 1.0D, 0.0D),
                 ParticleTypes.CLOUD,
                 12);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ENDER_DRAGON_FLAP, 0.7F, 1.4F);

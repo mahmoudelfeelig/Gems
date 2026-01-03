@@ -2,6 +2,7 @@ package com.feel.gems;
 
 import com.feel.gems.command.GemsCommands;
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.core.GemRegistry;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.GemsPayloads;
 import com.feel.gems.net.ServerAbilityNetworking;
@@ -23,6 +24,7 @@ public final class GemsMod implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Gems mod");
+        GemRegistry.init();
         GemsBalance.init();
         GemsPayloads.register();
         ModScreenHandlers.init();

@@ -9,6 +9,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.test.TestContext;
+import net.minecraft.world.GameMode;
 
 
 
@@ -17,18 +19,21 @@ public final class GemsGameTestUtil {
     private GemsGameTestUtil() {
     }
 
+    public static void forceSurvival(ServerPlayerEntity player) {
+        player.changeGameMode(GameMode.SURVIVAL);
+        player.setInvulnerable(false);
+        var abilities = player.getAbilities();
+        abilities.invulnerable = false;
+        abilities.creativeMode = false;
+        abilities.allowFlying = false;
+        abilities.flying = false;
+        player.sendAbilitiesUpdate();
+    }
+
     public static boolean hasItem(ServerPlayerEntity player, Item item) {
-        for (ItemStack stack : player.getInventory().main) {
-            if (stack.isOf(item)) {
-                return true;
-            }
-        }
-        for (ItemStack stack : player.getInventory().offHand) {
-            if (stack.isOf(item)) {
-                return true;
-            }
-        }
-        for (ItemStack stack : player.getInventory().armor) {
+        var inventory = player.getInventory();
+        for (int i = 0; i < inventory.size(); i++) {
+            ItemStack stack = inventory.getStack(i);
             if (stack.isOf(item)) {
                 return true;
             }
@@ -38,17 +43,9 @@ public final class GemsGameTestUtil {
 
     public static int countItem(ServerPlayerEntity player, Item item) {
         int count = 0;
-        for (ItemStack stack : player.getInventory().main) {
-            if (stack.isOf(item)) {
-                count += stack.getCount();
-            }
-        }
-        for (ItemStack stack : player.getInventory().offHand) {
-            if (stack.isOf(item)) {
-                count += stack.getCount();
-            }
-        }
-        for (ItemStack stack : player.getInventory().armor) {
+        var inventory = player.getInventory();
+        for (int i = 0; i < inventory.size(); i++) {
+            ItemStack stack = inventory.getStack(i);
             if (stack.isOf(item)) {
                 count += stack.getCount();
             }
@@ -58,17 +55,9 @@ public final class GemsGameTestUtil {
 
     public static int countGlint(ServerPlayerEntity player, Item item) {
         int glint = 0;
-        for (ItemStack stack : player.getInventory().main) {
-            if (stack.isOf(item) && stack.contains(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE)) {
-                glint++;
-            }
-        }
-        for (ItemStack stack : player.getInventory().offHand) {
-            if (stack.isOf(item) && stack.contains(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE)) {
-                glint++;
-            }
-        }
-        for (ItemStack stack : player.getInventory().armor) {
+        var inventory = player.getInventory();
+        for (int i = 0; i < inventory.size(); i++) {
+            ItemStack stack = inventory.getStack(i);
             if (stack.isOf(item) && stack.contains(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE)) {
                 glint++;
             }
@@ -86,14 +75,22 @@ public final class GemsGameTestUtil {
         return gemItems;
     }
 
-    public static boolean containsAirMace(ServerPlayerEntity player) {
-        for (ItemStack stack : player.getInventory().main) {
-            if (isAirMace(stack)) {
-                return true;
+    public static int countGemItems(ServerPlayerEntity player) {
+        var inventory = player.getInventory();
+        int gemItems = 0;
+        for (int i = 0; i < inventory.size(); i++) {
+            ItemStack stack = inventory.getStack(i);
+            if (stack.getItem() instanceof GemItem) {
+                gemItems++;
             }
         }
-        for (ItemStack stack : player.getInventory().offHand) {
-            if (isAirMace(stack)) {
+        return gemItems;
+    }
+
+    public static boolean containsAirMace(ServerPlayerEntity player) {
+        var inventory = player.getInventory();
+        for (int i = 0; i < inventory.size(); i++) {
+            if (isAirMace(inventory.getStack(i))) {
                 return true;
             }
         }
@@ -108,11 +105,16 @@ public final class GemsGameTestUtil {
         data.putInt("assassinHearts", AssassinState.maxHearts());
     }
 
+    @SuppressWarnings("removal")
+    public static ServerPlayerEntity createMockCreativeServerPlayer(TestContext context) {
+        return context.createMockCreativeServerPlayerInWorld();
+    }
+
     private static boolean isAirMace(ItemStack stack) {
         if (!stack.isOf(Items.MACE)) {
             return false;
         }
         var custom = stack.get(DataComponentTypes.CUSTOM_DATA);
-        return custom != null && custom.getNbt().getBoolean("gemsAirMace");
+        return custom != null && custom.copyNbt().getBoolean("gemsAirMace", false);
     }
 }

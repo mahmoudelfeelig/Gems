@@ -7,15 +7,9 @@
     " B "
   ],
   "key": {
-    "A": {
-      "item": "minecraft:amethyst_shard"
-    },
-    "T": {
-      "item": "minecraft:totem_of_undying"
-    },
-    "B": {
-      "item": "minecraft:blaze_rod"
-    }
+    "A": "minecraft:amethyst_shard",
+    "T": "minecraft:totem_of_undying",
+    "B": "minecraft:blaze_rod"
   },
   "result": {
     "count": 1,

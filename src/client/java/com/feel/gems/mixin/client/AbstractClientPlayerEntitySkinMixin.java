@@ -1,20 +1,24 @@
 package com.feel.gems.mixin.client;
 
 import com.feel.gems.client.ClientDisguiseState;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.util.SkinTextures;
+import com.mojang.authlib.GameProfile;
+import java.util.UUID;
+import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.entity.player.SkinTextures;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
-@Mixin(AbstractClientPlayerEntity.class)
+@Mixin(PlayerListEntry.class)
 public abstract class AbstractClientPlayerEntitySkinMixin {
-    @Inject(method = "getSkinTextures()Lnet/minecraft/client/util/SkinTextures;", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getSkinTextures()Lnet/minecraft/entity/player/SkinTextures;", at = @At("HEAD"), cancellable = true)
     private void gems$overrideSkin(CallbackInfoReturnable<SkinTextures> cir) {
-        AbstractClientPlayerEntity self = (AbstractClientPlayerEntity) (Object) this;
-        SkinTextures override = ClientDisguiseState.overrideSkin(self);
+        PlayerListEntry self = (PlayerListEntry) (Object) this;
+        GameProfile profile = self.getProfile();
+        UUID id = profile == null ? null : profile.id();
+        SkinTextures override = ClientDisguiseState.overrideSkin(id);
         if (override != null) {
             cir.setReturnValue(override);
         }

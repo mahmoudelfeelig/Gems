@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -80,8 +79,7 @@ public final class GemPowers {
         GemId activeGem = GemPlayerState.getActiveGem(player);
         GemDefinition def = GemRegistry.definition(activeGem);
         NbtCompound data = persistentRoot(player);
-        if (!data.contains(KEY_APPLIED_PASSIVES, NbtElement.LIST_TYPE)
-                || data.getList(KEY_APPLIED_PASSIVES, NbtElement.STRING_TYPE).isEmpty() && !def.passives().isEmpty()) {
+        if (readIdentifierSet(data, KEY_APPLIED_PASSIVES).isEmpty() && !def.passives().isEmpty()) {
             sync(player);
         }
         for (Identifier passiveId : def.passives()) {
@@ -115,13 +113,13 @@ public final class GemPowers {
     }
 
     private static Set<Identifier> readIdentifierSet(NbtCompound root, String key) {
-        if (!root.contains(key, NbtElement.LIST_TYPE)) {
+        NbtList list = root.getList(key).orElse(null);
+        if (list == null || list.isEmpty()) {
             return Set.of();
         }
-        NbtList list = root.getList(key, NbtElement.STRING_TYPE);
         Set<Identifier> result = new HashSet<>();
         for (int i = 0; i < list.size(); i++) {
-            String raw = list.getString(i);
+            String raw = list.getString(i, "");
             Identifier id = Identifier.tryParse(raw);
             if (id != null) {
                 result.add(id);

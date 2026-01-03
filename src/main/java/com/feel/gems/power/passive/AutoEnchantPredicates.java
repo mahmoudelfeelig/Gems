@@ -1,12 +1,10 @@
 package com.feel.gems.power.passive;
 
-import net.minecraft.item.AxeItem;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.BowItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.CrossbowItem;
-import net.minecraft.item.SwordItem;
-import net.minecraft.item.ToolItem;
 
 
 
@@ -17,11 +15,11 @@ public final class AutoEnchantPredicates {
 
     public static boolean isMeleeWeapon(ItemStack stack) {
         Item item = stack.getItem();
-        return item instanceof SwordItem || item instanceof AxeItem;
+        return stack.contains(DataComponentTypes.WEAPON) && !(item instanceof BowItem) && !(item instanceof CrossbowItem);
     }
 
     public static boolean isTool(ItemStack stack) {
-        return stack.getItem() instanceof ToolItem;
+        return stack.contains(DataComponentTypes.TOOL);
     }
 
     public static boolean isGearOrTool(ItemStack stack) {

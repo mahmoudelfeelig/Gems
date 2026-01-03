@@ -5,14 +5,12 @@ import com.feel.gems.GemsModEvents;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.core.GemId;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
 import java.util.EnumSet;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -55,26 +53,26 @@ public final class GemPlayerState {
     public static void initIfNeeded(ServerPlayerEntity player) {
         NbtCompound data = root(player);
 
-        if (!data.contains(KEY_ENERGY, NbtElement.INT_TYPE)) {
+        if (data.getInt(KEY_ENERGY).isEmpty()) {
             data.putInt(KEY_ENERGY, DEFAULT_ENERGY);
         }
-        if (!data.contains(KEY_ENERGY_CAP_PENALTY, NbtElement.INT_TYPE)) {
+        if (data.getInt(KEY_ENERGY_CAP_PENALTY).isEmpty()) {
             data.putInt(KEY_ENERGY_CAP_PENALTY, 0);
         }
-        if (!data.contains(KEY_MAX_HEARTS, NbtElement.INT_TYPE)) {
+        if (data.getInt(KEY_MAX_HEARTS).isEmpty()) {
             data.putInt(KEY_MAX_HEARTS, Math.max(DEFAULT_MAX_HEARTS, minMaxHearts()));
         }
-        if (!data.contains(KEY_GEM_EPOCH, NbtElement.INT_TYPE)) {
+        if (data.getInt(KEY_GEM_EPOCH).isEmpty()) {
             data.putInt(KEY_GEM_EPOCH, 0);
         }
-        if (!data.contains(KEY_PASSIVES_ENABLED, NbtElement.BYTE_TYPE)) {
+        if (data.getBoolean(KEY_PASSIVES_ENABLED).isEmpty()) {
             data.putBoolean(KEY_PASSIVES_ENABLED, true);
         }
-        if (!data.contains(KEY_ACTIVE_GEM, NbtElement.STRING_TYPE)) {
+        if (data.getString(KEY_ACTIVE_GEM).isEmpty()) {
             GemId assigned = randomGem(player);
             data.putString(KEY_ACTIVE_GEM, assigned.name());
             setOwnedGems(player, EnumSet.of(assigned));
-        } else if (!data.contains(KEY_OWNED_GEMS, NbtElement.LIST_TYPE)) {
+        } else if (data.getList(KEY_OWNED_GEMS).isEmpty()) {
             GemId current = getActiveGem(player);
             setOwnedGems(player, EnumSet.of(current));
         }
@@ -82,8 +80,8 @@ public final class GemPlayerState {
 
     public static GemId getActiveGem(PlayerEntity player) {
         NbtCompound data = root(player);
-        String raw = data.getString(KEY_ACTIVE_GEM);
-        if (raw == null || raw.isEmpty()) {
+        String raw = data.getString(KEY_ACTIVE_GEM, "");
+        if (raw.isEmpty()) {
             return GemId.ASTRA;
         }
         try {
@@ -106,7 +104,10 @@ public final class GemPlayerState {
         data.putString(KEY_ACTIVE_GEM, gem.name());
         addOwnedGem(player, gem);
         if (player instanceof ServerPlayerEntity sp) {
-            GemsModEvents.unlockStartingRecipes(sp.getServer(), sp);
+            var server = sp.getEntityWorld().getServer();
+            if (server != null) {
+                GemsModEvents.unlockStartingRecipes(server, sp);
+            }
         }
     }
 
@@ -120,13 +121,13 @@ public final class GemPlayerState {
 
     public static EnumSet<GemId> getOwnedGems(PlayerEntity player) {
         NbtCompound data = root(player);
-        if (!data.contains(KEY_OWNED_GEMS, NbtElement.LIST_TYPE)) {
+        if (data.getList(KEY_OWNED_GEMS).isEmpty()) {
             return EnumSet.of(getActiveGem(player));
         }
-        NbtList list = data.getList(KEY_OWNED_GEMS, NbtElement.STRING_TYPE);
+        NbtList list = data.getListOrEmpty(KEY_OWNED_GEMS);
         EnumSet<GemId> result = EnumSet.noneOf(GemId.class);
         for (int i = 0; i < list.size(); i++) {
-            String raw = list.getString(i);
+            String raw = list.getString(i, "");
             try {
                 result.add(GemId.valueOf(raw));
             } catch (IllegalArgumentException ignored) {
@@ -150,19 +151,16 @@ public final class GemPlayerState {
 
     public static int getEnergy(PlayerEntity player) {
         NbtCompound data = root(player);
-        if (!data.contains(KEY_ENERGY, NbtElement.INT_TYPE)) {
-            return DEFAULT_ENERGY;
-        }
-        return clamp(data.getInt(KEY_ENERGY), MIN_ENERGY, getMaxEnergy(player));
+        return clamp(data.getInt(KEY_ENERGY, DEFAULT_ENERGY), MIN_ENERGY, getMaxEnergy(player));
     }
 
     public static int getGemEpoch(PlayerEntity player) {
         NbtCompound data = root(player);
-        if (!data.contains(KEY_GEM_EPOCH, NbtElement.INT_TYPE)) {
+        if (data.getInt(KEY_GEM_EPOCH).isEmpty()) {
             data.putInt(KEY_GEM_EPOCH, 0);
             return 0;
         }
-        return data.getInt(KEY_GEM_EPOCH);
+        return data.getInt(KEY_GEM_EPOCH, 0);
     }
 
     public static int bumpGemEpoch(PlayerEntity player) {
@@ -187,11 +185,10 @@ public final class GemPlayerState {
 
     public static boolean arePassivesEnabled(PlayerEntity player) {
         NbtCompound data = root(player);
-        if (!data.contains(KEY_PASSIVES_ENABLED, NbtElement.BYTE_TYPE)) {
+        return data.getBoolean(KEY_PASSIVES_ENABLED).orElseGet(() -> {
             data.putBoolean(KEY_PASSIVES_ENABLED, true);
             return true;
-        }
-        return data.getBoolean(KEY_PASSIVES_ENABLED);
+        });
     }
 
     public static void setPassivesEnabled(ServerPlayerEntity player, boolean enabled) {
@@ -201,10 +198,7 @@ public final class GemPlayerState {
 
     public static int getEnergyCapPenalty(PlayerEntity player) {
         NbtCompound data = root(player);
-        if (!data.contains(KEY_ENERGY_CAP_PENALTY, NbtElement.INT_TYPE)) {
-            return 0;
-        }
-        return clamp(data.getInt(KEY_ENERGY_CAP_PENALTY), 0, MAX_ENERGY);
+        return clamp(data.getInt(KEY_ENERGY_CAP_PENALTY, 0), 0, MAX_ENERGY);
     }
 
     public static int getMaxEnergy(PlayerEntity player) {
@@ -227,10 +221,7 @@ public final class GemPlayerState {
 
     public static int getMaxHearts(PlayerEntity player) {
         NbtCompound data = root(player);
-        if (!data.contains(KEY_MAX_HEARTS, NbtElement.INT_TYPE)) {
-            return Math.max(DEFAULT_MAX_HEARTS, minMaxHearts());
-        }
-        return clamp(data.getInt(KEY_MAX_HEARTS), minMaxHearts(), MAX_MAX_HEARTS);
+        return clamp(data.getInt(KEY_MAX_HEARTS, Math.max(DEFAULT_MAX_HEARTS, minMaxHearts())), minMaxHearts(), MAX_MAX_HEARTS);
     }
 
     public static int setMaxHearts(PlayerEntity player, int hearts) {
@@ -244,7 +235,7 @@ public final class GemPlayerState {
     }
 
     public static void applyMaxHearts(ServerPlayerEntity player) {
-        EntityAttributeInstance maxHealth = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+        EntityAttributeInstance maxHealth = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
         if (maxHealth == null) {
             return;
         }

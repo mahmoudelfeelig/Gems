@@ -11,6 +11,7 @@ public class GemRegistryIntegrityTest {
     @Test
     void allRegisteredPowersExist() {
         MinecraftBootstrap.ensure();
+        GemRegistry.init();
         for (GemId gemId : GemId.values()) {
             GemDefinition def = GemRegistry.definition(gemId);
 

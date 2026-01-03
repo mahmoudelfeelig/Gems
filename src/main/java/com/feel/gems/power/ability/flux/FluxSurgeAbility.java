@@ -63,7 +63,7 @@ public final class FluxSurgeAbility implements GemAbility {
             }
         }
 
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         int radius = cfg.fluxSurgeRadiusBlocks();
         if (radius > 0) {
             double knockback = cfg.fluxSurgeKnockback();
@@ -72,9 +72,9 @@ public final class FluxSurgeAbility implements GemAbility {
                 if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
                     continue;
                 }
-                Vec3d delta = other.getPos().subtract(player.getPos()).normalize();
+                Vec3d delta = other.getEntityPos().subtract(player.getEntityPos()).normalize();
                 other.addVelocity(delta.x * knockback, 0.2D, delta.z * knockback);
-                other.velocityModified = true;
+                other.velocityDirty = true;
             }
         }
 

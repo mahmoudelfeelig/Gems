@@ -2,9 +2,9 @@ package com.feel.gems.mixin;
 
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.GemPowers;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.player.HungerManager;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.World;
@@ -16,18 +16,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
 
-@Mixin(PlayerEntity.class)
+@Mixin(ItemStack.class)
 public abstract class PlayerEntityDoubleSaturationMixin {
-    @Inject(method = "eatFood", at = @At("TAIL"))
-    private void gems$doubleSaturation(World world, ItemStack stack, FoodComponent food, CallbackInfoReturnable<ItemStack> cir) {
-        if (world.isClient) {
+    @Inject(method = "finishUsing", at = @At("TAIL"))
+    private void gems$doubleSaturation(World world, net.minecraft.entity.LivingEntity user, CallbackInfoReturnable<ItemStack> cir) {
+        if (world == null || world.isClient()) {
             return;
         }
-        PlayerEntity self = (PlayerEntity) (Object) this;
-        if (!(self instanceof ServerPlayerEntity player)) {
+        if (!(user instanceof ServerPlayerEntity player)) {
             return;
         }
         if (!GemPowers.isPassiveActive(player, PowerIds.DOUBLE_SATURATION)) {
+            return;
+        }
+
+        ItemStack self = (ItemStack) (Object) this;
+        FoodComponent food = self.get(DataComponentTypes.FOOD);
+        if (food == null) {
             return;
         }
 
@@ -36,4 +41,3 @@ public abstract class PlayerEntityDoubleSaturationMixin {
         hunger.setSaturationLevel(Math.min(hunger.getFoodLevel(), boosted));
     }
 }
-

@@ -62,7 +62,7 @@ public final class VitalityVortexAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         VortexMode mode = detectMode(world, player);
         int duration = GemsBalance.v().life().vitalityVortexDurationTicks();
         int radius = GemsBalance.v().life().vitalityVortexRadiusBlocks();

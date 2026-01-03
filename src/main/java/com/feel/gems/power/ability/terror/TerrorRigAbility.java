@@ -48,7 +48,7 @@ public final class TerrorRigAbility implements GemAbility {
             return false;
         }
 
-        AbilityFeedback.burstAt(player.getServerWorld(), blockHit.getPos(), ParticleTypes.SMOKE, 10, 0.15D);
+        AbilityFeedback.burstAt(player.getEntityWorld(), blockHit.getPos(), ParticleTypes.SMOKE, 10, 0.15D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_TNT_PRIMED, 0.7F, 1.2F);
         player.sendMessage(Text.literal("Block rigged."), true);
         return true;

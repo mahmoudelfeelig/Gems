@@ -38,7 +38,9 @@ public final class NullifyAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         int radius = GemsBalance.v().strength().nullifyRadiusBlocks();
         int affected = 0;
         Box box = new Box(player.getBlockPos()).expand(radius);
@@ -47,7 +49,7 @@ public final class NullifyAbility implements GemAbility {
                 continue;
             }
             other.clearStatusEffects();
-            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ENCHANT, 10, 0.25D);
+            AbilityFeedback.burstAt(world, other.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ENCHANT, 10, 0.25D);
             affected++;
         }
         AbilityFeedback.sound(player, SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, 0.8F, 0.8F);

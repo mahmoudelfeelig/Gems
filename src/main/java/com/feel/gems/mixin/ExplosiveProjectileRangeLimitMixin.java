@@ -37,7 +37,7 @@ public abstract class ExplosiveProjectileRangeLimitMixin implements RangeLimited
             return;
         }
         Entity self = (Entity) (Object) this;
-        if (self.getPos().squaredDistanceTo(gems$origin) > gems$maxDistSq) {
+        if (self.getEntityPos().squaredDistanceTo(gems$origin) > gems$maxDistSq) {
             self.discard();
         }
     }

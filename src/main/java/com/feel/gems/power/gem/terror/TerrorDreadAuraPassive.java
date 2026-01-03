@@ -34,7 +34,9 @@ public final class TerrorDreadAuraPassive implements GemMaintainedPassive {
 
     @Override
     public void maintain(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
         int radius = GemsBalance.v().terror().dreadAuraRadiusBlocks();
         if (radius <= 0) {
             return;

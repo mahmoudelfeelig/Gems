@@ -40,7 +40,9 @@ public final class GroupBreezyBashAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         int radius = GemsBalance.v().puff().groupBashRadiusBlocks();
         double kb = GemsBalance.v().puff().groupBashKnockback();
         double up = GemsBalance.v().puff().groupBashUpVelocityY();
@@ -50,13 +52,13 @@ public final class GroupBreezyBashAbility implements GemAbility {
             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
                 continue;
             }
-            Vec3d away = other.getPos().subtract(player.getPos()).normalize();
+            Vec3d away = other.getEntityPos().subtract(player.getEntityPos()).normalize();
             other.addVelocity(away.x * kb, up, away.z * kb);
-            other.velocityModified = true;
-            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.GUST, 12, 0.35D);
+            other.velocityDirty = true;
+            AbilityFeedback.burstAt(world, other.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.GUST, 12, 0.35D);
             affected++;
         }
-        AbilityFeedback.ring(world, player.getPos().add(0.0D, 0.2D, 0.0D), Math.min(6.0D, radius), ParticleTypes.GUST, 28);
+        AbilityFeedback.ring(world, player.getEntityPos().add(0.0D, 0.2D, 0.0D), Math.min(6.0D, radius), ParticleTypes.GUST, 28);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 1.0F, 1.0F);
         player.sendMessage(Text.literal("Bashed " + affected + " targets."), true);
         return true;

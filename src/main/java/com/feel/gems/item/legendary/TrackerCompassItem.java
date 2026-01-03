@@ -5,30 +5,32 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.legendary.LegendaryPlayerTracker;
 import com.feel.gems.net.TrackerCompassScreenPayload;
+import com.feel.gems.util.GemsNbt;
 import com.feel.gems.util.GemsTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LodestoneTrackerComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.CompassItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Item.TooltipContext;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.World;
@@ -56,19 +58,15 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        ItemStack stack = user.getStackInHand(hand);
-        if (!world.isClient && user instanceof ServerPlayerEntity player) {
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
+        if (!world.isClient() && user instanceof ServerPlayerEntity player) {
             openSelectionScreen(player);
         }
-        return TypedActionResult.success(stack);
+        return ActionResult.SUCCESS;
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        if (world.isClient) {
-            return;
-        }
+    public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, EquipmentSlot slot) {
         if (!(entity instanceof ServerPlayerEntity player)) {
             return;
         }
@@ -82,33 +80,33 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
         if (now - last < refresh) {
             return;
         }
-        updateTrackingData(stack, player.getServer(), target, now);
+        updateTrackingData(stack, player.getEntityWorld().getServer(), target, now);
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        tooltip.add(Text.translatable("item.gems.tracker_compass.desc"));
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        tooltip.accept(Text.translatable("item.gems.tracker_compass.desc"));
         NbtComponent data = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (data == null) {
-            tooltip.add(Text.literal("Target: none"));
+            tooltip.accept(Text.literal("Target: none"));
             return;
         }
-        NbtCompound nbt = data.getNbt();
-        if (!nbt.contains(KEY_TARGET_NAME, NbtElement.STRING_TYPE)) {
-            tooltip.add(Text.literal("Target: none"));
+        NbtCompound nbt = data.copyNbt();
+        if (nbt.getString(KEY_TARGET_NAME).isEmpty()) {
+            tooltip.accept(Text.literal("Target: none"));
             return;
         }
-        String name = nbt.getString(KEY_TARGET_NAME);
-        tooltip.add(Text.literal("Target: " + name));
+        String name = nbt.getString(KEY_TARGET_NAME, "");
+        tooltip.accept(Text.literal("Target: " + name));
         BlockPos pos = readBlockPos(nbt, KEY_TARGET_POS);
         if (pos != null) {
-            String dim = nbt.getString(KEY_TARGET_DIM);
-            tooltip.add(Text.literal("Last seen: " + pos.getX() + " " + pos.getY() + " " + pos.getZ() + " (" + dim + ")"));
+            String dim = nbt.getString(KEY_TARGET_DIM, "");
+            tooltip.accept(Text.literal("Last seen: " + pos.getX() + " " + pos.getY() + " " + pos.getZ() + " (" + dim + ")"));
         }
         BlockPos respawn = readBlockPos(nbt, KEY_TARGET_RESPAWN_POS);
         if (respawn != null) {
-            String dim = nbt.getString(KEY_TARGET_RESPAWN_DIM);
-            tooltip.add(Text.literal("Respawn: " + respawn.getX() + " " + respawn.getY() + " " + respawn.getZ() + " (" + dim + ")"));
+            String dim = nbt.getString(KEY_TARGET_RESPAWN_DIM, "");
+            tooltip.accept(Text.literal("Respawn: " + respawn.getX() + " " + respawn.getY() + " " + respawn.getZ() + " (" + dim + ")"));
         }
     }
 
@@ -128,16 +126,22 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
             player.sendMessage(Text.literal("Tracker Compass target cleared."), true);
             return;
         }
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
-        Optional<com.mojang.authlib.GameProfile> profile = server.getUserCache().findByName(name);
-        if (profile.isEmpty() || profile.get().getId() == null) {
+        LegendaryPlayerTracker.Snapshot snapshot = null;
+        for (LegendaryPlayerTracker.Snapshot entry : LegendaryPlayerTracker.knownSnapshots(server)) {
+            if (entry.name() != null && entry.name().equalsIgnoreCase(name)) {
+                snapshot = entry;
+                break;
+            }
+        }
+        if (snapshot == null) {
             player.sendMessage(Text.literal("Unknown player: " + name), true);
             return;
         }
-        applyTarget(player, stack, profile.get().getId(), profile.get().getName());
+        applyTarget(player, stack, snapshot.uuid(), snapshot.name());
     }
 
     public static void setTarget(ServerPlayerEntity player, UUID uuid) {
@@ -150,7 +154,7 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
             player.sendMessage(Text.literal("Hold the Tracker Compass to set a target."), true);
             return;
         }
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
@@ -173,7 +177,7 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
     }
 
     public static void openSelectionScreen(ServerPlayerEntity player) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
@@ -188,12 +192,12 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
     }
 
     private static void applyTarget(ServerPlayerEntity player, ItemStack stack, UUID uuid, String display) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
         NbtComponent.set(DataComponentTypes.CUSTOM_DATA, stack, nbt -> {
-            nbt.put(KEY_TARGET, NbtHelper.fromUuid(uuid));
+            nbt.put(KEY_TARGET, GemsNbt.fromUuid(uuid));
             nbt.putString(KEY_TARGET_NAME, display);
             nbt.putLong(KEY_LAST_UPDATE, 0L);
         });
@@ -248,11 +252,11 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
         if (data == null) {
             return null;
         }
-        NbtCompound nbt = data.getNbt();
-        if (!nbt.contains(KEY_TARGET, NbtElement.INT_ARRAY_TYPE)) {
+        NbtCompound nbt = data.copyNbt();
+        if (!nbt.contains(KEY_TARGET)) {
             return null;
         }
-        return NbtHelper.toUuid(nbt.get(KEY_TARGET));
+        return GemsNbt.toUuid(nbt.get(KEY_TARGET));
     }
 
     private static long lastUpdate(ItemStack stack) {
@@ -260,7 +264,7 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
         if (data == null) {
             return 0L;
         }
-        return data.getNbt().getLong(KEY_LAST_UPDATE);
+        return data.copyNbt().getLong(KEY_LAST_UPDATE, 0L);
     }
 
     private static void clearTarget(ItemStack stack) {
@@ -293,10 +297,10 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
     }
 
     private static BlockPos readBlockPos(NbtCompound nbt, String key) {
-        if (!nbt.contains(key, NbtElement.INT_ARRAY_TYPE)) {
+        int[] values = nbt.getIntArray(key).orElse(null);
+        if (values == null) {
             return null;
         }
-        int[] values = nbt.getIntArray(key);
         if (values.length != 3) {
             return null;
         }

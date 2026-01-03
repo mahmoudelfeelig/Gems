@@ -1,6 +1,5 @@
 package com.feel.gems.power.gem.wealth;
 
-import com.feel.gems.power.gem.wealth.HotbarLock;
 import net.minecraft.nbt.NbtCompound;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

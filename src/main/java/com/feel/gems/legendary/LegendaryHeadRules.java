@@ -37,11 +37,11 @@ public final class LegendaryHeadRules {
             if (profile == null) {
                 return false;
             }
-            GameProfile gameProfile = profile.gameProfile();
-            if (gameProfile == null || gameProfile.getId() == null) {
+            GameProfile gameProfile = profile.getGameProfile();
+            if (gameProfile == null || gameProfile.id() == null) {
                 return false;
             }
-            if (playerId.equals(gameProfile.getId())) {
+            if (playerId.equals(gameProfile.id())) {
                 return false;
             }
         }

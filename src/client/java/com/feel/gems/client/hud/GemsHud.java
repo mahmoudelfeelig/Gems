@@ -22,6 +22,7 @@ import net.minecraft.util.Identifier;
 
 
 
+@SuppressWarnings("deprecation")
 public final class GemsHud {
     private static boolean registered = false;
 

@@ -53,7 +53,9 @@ public final class BreezyBashTracker {
             if (onGround && !bash.wasOnGround) {
                 ServerPlayerEntity caster = server.getPlayerManager().getPlayer(bash.caster);
                 var source = caster != null ? caster.getDamageSources().playerAttack(caster) : target.getDamageSources().magic();
-                target.damage(source, GemsBalance.v().puff().breezyBashImpactDamage());
+                if (target.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld world) {
+                    target.damage(world, source, GemsBalance.v().puff().breezyBashImpactDamage());
+                }
                 it.remove();
                 continue;
             }

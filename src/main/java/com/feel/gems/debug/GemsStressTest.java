@@ -6,7 +6,6 @@ import com.feel.gems.core.GemRegistry;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.gem.astra.SoulSystem;
-import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.power.runtime.GemAbilities;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
@@ -48,7 +47,7 @@ public final class GemsStressTest {
     }
 
     public static void start(ServerPlayerEntity player, int seconds, int periodTicks, Mode mode, boolean cycleGems, boolean forceEnergy10) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.getEntityWorld().getServer();
         if (server == null) {
             return;
         }

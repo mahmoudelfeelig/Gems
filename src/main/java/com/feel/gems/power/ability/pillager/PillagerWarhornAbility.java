@@ -49,8 +49,8 @@ public final class PillagerWarhornAbility implements GemAbility {
             player.sendMessage(Text.literal("Warhorn is disabled."), true);
             return false;
         }
-        ServerWorld world = player.getServerWorld();
-        Box box = new Box(player.getPos(), player.getPos()).expand(radius);
+        ServerWorld world = player.getEntityWorld();
+        Box box = new Box(player.getEntityPos(), player.getEntityPos()).expand(radius);
         List<LivingEntity> targets = world.getEntitiesByClass(LivingEntity.class, box, LivingEntity::isAlive);
         int allySpeed = cfg.warhornAllySpeedAmplifier();
         int allyResist = cfg.warhornAllyResistanceAmplifier();

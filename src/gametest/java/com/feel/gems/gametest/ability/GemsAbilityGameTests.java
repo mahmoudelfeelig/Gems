@@ -1,20 +1,12 @@
 package com.feel.gems.gametest.ability;
 
-import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.config.GemsBalance;
-import com.feel.gems.core.GemDefinition;
-import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemId;
-import com.feel.gems.core.GemRegistry;
-import com.feel.gems.item.GemItemGlint;
-import com.feel.gems.item.GemKeepOnDeath;
-import com.feel.gems.item.ModItems;
-import com.feel.gems.net.CooldownSnapshotPayload;
+import com.feel.gems.gametest.util.GemsGameTestUtil;
 import com.feel.gems.power.ability.air.AirDashAbility;
 import com.feel.gems.power.ability.air.AirCrosswindAbility;
 import com.feel.gems.power.ability.air.AirWindJumpAbility;
 import com.feel.gems.power.ability.beacon.BeaconAuraAbility;
-import com.feel.gems.power.ability.flux.FluxBeamAbility;
 import com.feel.gems.power.ability.pillager.PillagerFangsAbility;
 import com.feel.gems.power.ability.pillager.PillagerVolleyAbility;
 import com.feel.gems.power.ability.spy.SpyMimicFormAbility;
@@ -23,7 +15,6 @@ import com.feel.gems.power.ability.summoner.SummonRecallAbility;
 import com.feel.gems.power.ability.summoner.SummonSlotAbility;
 import com.feel.gems.power.ability.terror.PanicRingAbility;
 import com.feel.gems.power.gem.beacon.BeaconAuraRuntime;
-import com.feel.gems.power.gem.flux.FluxCharge;
 import com.feel.gems.power.gem.pillager.PillagerDiscipline;
 import com.feel.gems.power.gem.pillager.PillagerVolleyRuntime;
 import com.feel.gems.power.gem.spy.SpyMimicSystem;
@@ -31,34 +22,26 @@ import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityDisables;
 import com.feel.gems.power.runtime.AbilityRuntime;
-import com.feel.gems.power.runtime.GemAbilities;
-import com.feel.gems.power.runtime.GemAbilityCooldowns;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
-import com.feel.gems.trade.GemTrading;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTime;
-import io.netty.buffer.Unpooled;
 import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicBoolean;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.component.DataComponentTypes;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.TntEntity;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.EvokerFangsEntity;
 import net.minecraft.entity.projectile.ArrowEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
-import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -69,20 +52,25 @@ import net.minecraft.world.GameMode;
 
 
 public final class GemsAbilityGameTests {
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+
+    private static void teleport(ServerPlayerEntity player, ServerWorld world, double x, double y, double z, float yaw, float pitch) {
+        player.teleport(world, x, y, z, EnumSet.noneOf(PositionFlag.class), yaw, pitch, false);
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void astralCameraReturnsToStart(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d startPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         BlockPos startBlock = BlockPos.ofFloored(startPos);
-        player.teleport(world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
+        teleport(player, world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
 
         AbilityRuntime.startAstralCamera(player, 20);
 
         Vec3d movedPos = context.getAbsolute(new Vec3d(6.5D, 2.0D, 0.5D));
-        player.teleport(world, movedPos.x, movedPos.y, movedPos.z, 90.0F, 0.0F);
+        teleport(player, world, movedPos.x, movedPos.y, movedPos.z, 90.0F, 0.0F);
 
         context.runAtTick(80L, () -> {
             if (!player.getBlockPos().equals(startBlock)) {
@@ -95,19 +83,19 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void heartLockDoesNotOscillate(TestContext context) {
         ServerWorld world = context.getWorld();
 
-        ServerPlayerEntity caster = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity caster = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         caster.changeGameMode(GameMode.SURVIVAL);
 
-        ServerPlayerEntity target = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity target = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         target.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d startPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        caster.teleport(world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
-        target.teleport(world, startPos.x + 1.0D, startPos.y, startPos.z, 0.0F, 0.0F);
+        teleport(caster, world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
+        teleport(target, world, startPos.x + 1.0D, startPos.y, startPos.z, 0.0F, 0.0F);
 
         target.setHealth(6.0F); // lock to 3 hearts (6 health points)
         AbilityRuntime.startHeartLock(caster, target, 120);
@@ -116,7 +104,7 @@ public final class GemsAbilityGameTests {
         long[] checks = new long[]{25L, 45L, 65L, 85L};
         for (long tick : checks) {
             context.runAtTick(tick, () -> {
-                double max = target.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH);
+                double max = target.getAttributeValue(EntityAttributes.MAX_HEALTH);
                 if (Math.abs(max - lockedMax) > 0.01D) {
                     context.throwGameTestException("Heart Lock oscillated: expected max=" + lockedMax + " got max=" + max);
                 }
@@ -125,14 +113,14 @@ public final class GemsAbilityGameTests {
         context.runAtTick(110L, context::complete);
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void panicRingSpawnsConfiguredTnt(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
         int expected = GemsBalance.v().terror().panicRingTntCount();
         context.runAtTick(2L, () -> {
@@ -152,14 +140,14 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 400)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 400)
     public void summonerSummonsHaveNoDropsAndRecallWorks(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
         GemPlayerState.setActiveGem(player, GemId.SUMMONER);
@@ -184,7 +172,7 @@ public final class GemsAbilityGameTests {
 
             // Kill one summon and ensure it drops no items or XP.
             var mob = summons.getFirst();
-            mob.damage(mob.getDamageSources().outOfWorld(), 10_000.0F);
+            mob.damage(world, mob.getDamageSources().outOfWorld(), 10_000.0F);
 
             context.runAtTick(40L, () -> {
                 Box lootBox = new Box(player.getBlockPos()).expand(12.0D);
@@ -213,21 +201,21 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void pillagerFangsSpawnsFangs(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d startPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        player.teleport(world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
+        teleport(player, world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
 
-        var target = EntityType.ARMOR_STAND.create(world);
+        Vec3d targetPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 1.5D));
+        var target = EntityType.ARMOR_STAND.create(world, armorStand -> { }, BlockPos.ofFloored(targetPos), SpawnReason.TRIGGERED, false, false);
         if (target == null) {
             context.throwGameTestException("Failed to create target entity");
             return;
         }
-        Vec3d targetPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 1.5D));
         target.refreshPositionAndAngles(targetPos.x, targetPos.y, targetPos.z, 0.0F, 0.0F);
         target.setNoGravity(true);
         world.spawnEntity(target);
@@ -239,7 +227,7 @@ public final class GemsAbilityGameTests {
         double dy = aimAt.y - player.getEyeY();
         float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0D);
         float pitch = (float) (-Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz))));
-        player.teleport(world, startPos.x, startPos.y, startPos.z, yaw, pitch);
+        teleport(player, world, startPos.x, startPos.y, startPos.z, yaw, pitch);
 
         context.runAtTick(5L, () -> {
             boolean activated = new PillagerFangsAbility().activate(player);
@@ -258,14 +246,14 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 220)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 220)
     public void spyStillnessCloakAppliesInvisibility(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d startPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        player.teleport(world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
+        teleport(player, world, startPos.x, startPos.y, startPos.z, 0.0F, 0.0F);
 
         context.runAtTick(10L, () -> {
             GemPlayerState.initIfNeeded(player);
@@ -288,7 +276,7 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void spyStealDisablesVictimAbility(TestContext context) {
         ServerWorld world = context.getWorld();
         var server = world.getServer();
@@ -297,16 +285,16 @@ public final class GemsAbilityGameTests {
             return;
         }
 
-        ServerPlayerEntity spy = context.createMockCreativeServerPlayerInWorld();
-        ServerPlayerEntity victim = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity spy = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity victim = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         spy.changeGameMode(GameMode.SURVIVAL);
         victim.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d spyPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         Vec3d victimPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 1.5D));
         // Yaw 0 faces toward +Z (victim is in front).
-        spy.teleport(world, spyPos.x, spyPos.y, spyPos.z, 0.0F, 0.0F);
-        victim.teleport(world, victimPos.x, victimPos.y, victimPos.z, 180.0F, 0.0F);
+        teleport(spy, world, spyPos.x, spyPos.y, spyPos.z, 0.0F, 0.0F);
+        teleport(victim, world, victimPos.x, victimPos.y, victimPos.z, 180.0F, 0.0F);
 
         context.runAtTick(10L, () -> {
             GemPlayerState.initIfNeeded(spy);
@@ -343,14 +331,14 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void airDashAppliesVelocityAndIFrames(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
         context.runAtTick(2L, () -> {
             boolean ok = new AirDashAbility().activate(player);
@@ -374,14 +362,14 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void airWindJumpResetsFallAndLaunchesUp(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
         context.runAtTick(2L, () -> {
             player.fallDistance = 10.0F;
@@ -404,23 +392,23 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void airCrosswindSlowsAndKnocksEnemies(TestContext context) {
         ServerWorld world = context.getWorld();
 
-        ServerPlayerEntity caster = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity caster = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         caster.changeGameMode(GameMode.SURVIVAL);
 
-        ServerPlayerEntity ally = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity ally = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         ally.changeGameMode(GameMode.SURVIVAL);
 
-        ServerPlayerEntity enemy = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity enemy = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         enemy.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        caster.teleport(world, pos.x, pos.y, pos.z, 90.0F, 0.0F);
-        ally.teleport(world, pos.x - 1.0D, pos.y, pos.z + 1.0D, 90.0F, 0.0F);
-        enemy.teleport(world, pos.x - 2.0D, pos.y, pos.z, 270.0F, 0.0F);
+        teleport(caster, world, pos.x, pos.y, pos.z, 90.0F, 0.0F);
+        teleport(ally, world, pos.x - 1.0D, pos.y, pos.z + 1.0D, 90.0F, 0.0F);
+        teleport(enemy, world, pos.x - 2.0D, pos.y, pos.z, 270.0F, 0.0F);
 
         GemTrust.trust(caster, ally.getUuid());
         final float enemyHealthBefore = enemy.getHealth();
@@ -477,23 +465,23 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 220)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 220)
     public void beaconAuraAppliesOnlyToTrusted(TestContext context) {
         ServerWorld world = context.getWorld();
 
-        ServerPlayerEntity beacon = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity beacon = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         beacon.changeGameMode(GameMode.SURVIVAL);
 
-        ServerPlayerEntity trusted = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity trusted = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         trusted.changeGameMode(GameMode.SURVIVAL);
 
-        ServerPlayerEntity untrusted = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity untrusted = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         untrusted.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        beacon.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
-        trusted.teleport(world, pos.x + 1.5D, pos.y, pos.z, 0.0F, 0.0F);
-        untrusted.teleport(world, pos.x + 3.0D, pos.y, pos.z, 0.0F, 0.0F);
+        teleport(beacon, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        teleport(trusted, world, pos.x + 1.5D, pos.y, pos.z, 0.0F, 0.0F);
+        teleport(untrusted, world, pos.x + 3.0D, pos.y, pos.z, 0.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(beacon);
         GemPlayerState.setActiveGem(beacon, GemId.BEACON);
@@ -532,7 +520,7 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 260)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 260)
     public void pillagerVolleyFiresAndStopsWhenEnergyGone(TestContext context) {
         ServerWorld world = context.getWorld();
         var server = world.getServer();
@@ -543,11 +531,11 @@ public final class GemsAbilityGameTests {
 
         final int[] arrowsAtStop = new int[1];
 
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
         GemPlayerState.setActiveGem(player, GemId.PILLAGER);
@@ -594,14 +582,14 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void pillagerDisciplineTriggersBelowThreshold(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
         GemPlayerState.setActiveGem(player, GemId.PILLAGER);
@@ -627,16 +615,16 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 340)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 340)
     public void spyMimicFormAppliesAndCleansUp(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity spy = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity spy = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         spy.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
-        spy.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        teleport(spy, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
-        var pig = EntityType.PIG.create(world);
+        var pig = EntityType.PIG.create(world, e -> { }, BlockPos.ofFloored(pos), SpawnReason.TRIGGERED, false, false);
         if (pig == null) {
             context.throwGameTestException("Failed to spawn pig to mimic");
             return;
@@ -658,8 +646,8 @@ public final class GemsAbilityGameTests {
         });
 
         context.runAtTick(20L, () -> {
-            double baseMax = spy.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH);
-            spy.damage(spy.getDamageSources().outOfWorld(), 0.0F); // force attribute sync
+            double baseMax = spy.getAttributeValue(EntityAttributes.MAX_HEALTH);
+            spy.damage(world, spy.getDamageSources().outOfWorld(), 0.0F); // force attribute sync
             if (baseMax <= 20.0D) {
                 context.throwGameTestException("Mimic Form did not increase max health");
                 return;
@@ -676,7 +664,7 @@ public final class GemsAbilityGameTests {
         }
 
         context.runAtTick(300L, () -> {
-            double after = spy.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH);
+            double after = spy.getAttributeValue(EntityAttributes.MAX_HEALTH);
             if (after > 20.1D) {
                 context.throwGameTestException("Mimic Form buffs did not clear");
                 return;
@@ -689,18 +677,18 @@ public final class GemsAbilityGameTests {
         });
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void spyStealRespectsWitnessCountEvenOnColdCache(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity spy = context.createMockCreativeServerPlayerInWorld();
-        ServerPlayerEntity caster = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity spy = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity caster = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         spy.changeGameMode(GameMode.SURVIVAL);
         caster.changeGameMode(GameMode.SURVIVAL);
 
         Vec3d spyPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         Vec3d casterPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 6.5D));
-        spy.teleport(world, spyPos.x, spyPos.y, spyPos.z, 0.0F, 0.0F); // yaw 0 faces +Z
-        caster.teleport(world, casterPos.x, casterPos.y, casterPos.z, 180.0F, 0.0F);
+        teleport(spy, world, spyPos.x, spyPos.y, spyPos.z, 0.0F, 0.0F); // yaw 0 faces +Z
+        teleport(caster, world, casterPos.x, casterPos.y, casterPos.z, 180.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(spy);
         GemPlayerState.setActiveGem(spy, GemId.SPY_MIMIC);
@@ -726,18 +714,18 @@ public final class GemsAbilityGameTests {
         context.complete();
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void summonerRecallCleansSummons(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity owner = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity owner = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         owner.changeGameMode(GameMode.SURVIVAL);
 
-        var zombie = EntityType.ZOMBIE.create(world);
+        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        var zombie = EntityType.ZOMBIE.create(world, e -> { }, BlockPos.ofFloored(pos), SpawnReason.TRIGGERED, false, false);
         if (zombie == null) {
             context.throwGameTestException("Failed to create zombie summon");
             return;
         }
-        Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         zombie.refreshPositionAndAngles(pos.x, pos.y, pos.z, 0.0F, 0.0F);
         zombie.setPersistent();
         world.spawnEntity(zombie);

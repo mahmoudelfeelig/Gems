@@ -16,6 +16,7 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.CyclingButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 
@@ -42,6 +43,13 @@ public final class GemsConfigScreen extends Screen {
     private int scrollPx = 0;
     private int maxScrollPx = 0;
 
+    private int sidebarScrollPx = 0;
+    private int sidebarMaxScrollPx = 0;
+    private int sidebarX = 0;
+    private int sidebarY = 0;
+    private int sidebarW = 0;
+    private int sidebarViewH = 0;
+
     public GemsConfigScreen(Screen parent) {
         super(Text.literal("Gems Config"));
         this.parent = parent;
@@ -59,6 +67,7 @@ public final class GemsConfigScreen extends Screen {
         this.loadError = result.error();
         this.dirty = false;
         this.scrollPx = 0;
+        this.sidebarScrollPx = 0;
         this.canEdit = canEditConfig();
         this.clientCfg = GemsClientConfigManager.loadOrCreate();
         this.clientDirty = false;
@@ -74,9 +83,24 @@ public final class GemsConfigScreen extends Screen {
         int sidebarH = 20;
         int sidebarGap = 4;
 
+        int footerTop = this.height - 80;
+        int sidebarViewH = Math.max(0, footerTop - sidebarY - 6);
+        int sidebarContentH = Section.values().length * (sidebarH + sidebarGap) - sidebarGap;
+        sidebarMaxScrollPx = Math.max(0, sidebarContentH - sidebarViewH);
+        int prevSidebarScroll = sidebarScrollPx;
+        sidebarScrollPx = clampInt(sidebarScrollPx, 0, sidebarMaxScrollPx);
+        if (prevSidebarScroll != sidebarScrollPx) {
+            rebuild();
+            return;
+        }
+        this.sidebarX = sidebarX;
+        this.sidebarY = sidebarY;
+        this.sidebarW = sidebarW;
+        this.sidebarViewH = sidebarViewH;
+
         for (int i = 0; i < Section.values().length; i++) {
             Section s = Section.values()[i];
-            int y = sidebarY + i * (sidebarH + sidebarGap);
+            int y = sidebarY + i * (sidebarH + sidebarGap) - sidebarScrollPx;
             ButtonWidget b = addDrawableChild(ButtonWidget.builder(Text.literal(s.label), btn -> {
                 section = s;
                 scrollPx = 0;
@@ -87,7 +111,6 @@ public final class GemsConfigScreen extends Screen {
 
         int contentX = sidebarX + sidebarW + 20;
         int fieldsTop = 52;
-        int footerTop = this.height - 80;
 
         int labelX = contentX;
         int available = this.width - contentX - 18;
@@ -517,6 +540,8 @@ public final class GemsConfigScreen extends Screen {
                 y = addIntRow("Terror Trade permanent energy penalty", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.terrorTradePermanentEnergyPenalty, v -> cfg.terror.terrorTradePermanentEnergyPenalty = v, 0, 10);
                 logicalY += ROW_H;
                 y = addIntRow("Terror Trade normal target hearts penalty", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.terrorTradeNormalTargetHeartsPenalty, v -> cfg.terror.terrorTradeNormalTargetHeartsPenalty = v, 0, 20);
+                logicalY += ROW_H;
+                y = addIntRow("Terror Trade normal target energy penalty", y, labelX, labelW, fieldX, fieldW, () -> cfg.terror.terrorTradeNormalTargetEnergyPenalty, v -> cfg.terror.terrorTradeNormalTargetEnergyPenalty = v, 0, 10);
                 logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;
@@ -1257,25 +1282,24 @@ public final class GemsConfigScreen extends Screen {
         return y + ROW_H;
     }
 
-	    private int addClientControlModeRow(String label, int y, int labelX, int labelW, int fieldX, int fieldW, Supplier<GemsClientConfig.ControlMode> getter, Consumer<GemsClientConfig.ControlMode> setter) {
-	        addDrawableChild(ButtonWidget.builder(Text.literal(label), b -> {
-	        }).dimensions(labelX, y, labelW, 20).build()).active = false;
-	
-	        CyclingButtonWidget<GemsClientConfig.ControlMode> btn = CyclingButtonWidget.<GemsClientConfig.ControlMode>builder(mode -> Text.literal(mode.name()))
-	                .values(java.util.Arrays.asList(GemsClientConfig.ControlMode.values()))
-	                .initially(getter.get())
-	                .build(fieldX, y, fieldW, 20, Text.empty(), (b, v) -> {
-	                    setter.accept(v);
-	                    clientDirty = true;
-	                    updateButtonState();
-                });
-        btn.active = true;
-        addDrawableChild(btn);
-        return y + ROW_H;
-    }
+		    private int addClientControlModeRow(String label, int y, int labelX, int labelW, int fieldX, int fieldW, Supplier<GemsClientConfig.ControlMode> getter, Consumer<GemsClientConfig.ControlMode> setter) {
+		        addDrawableChild(ButtonWidget.builder(Text.literal(label), b -> {
+		        }).dimensions(labelX, y, labelW, 20).build()).active = false;
+		
+		        CyclingButtonWidget<GemsClientConfig.ControlMode> btn = CyclingButtonWidget.builder(mode -> Text.literal(mode.name()), getter.get())
+		                .values(java.util.Arrays.asList(GemsClientConfig.ControlMode.values()))
+		                .build(fieldX, y, fieldW, 20, Text.empty(), (b, v) -> {
+		                    setter.accept(v);
+		                    clientDirty = true;
+		                    updateButtonState();
+	                });
+	        btn.active = true;
+	        addDrawableChild(btn);
+	        return y + ROW_H;
+	    }
 
     private int addIntRow(String label, int y, int labelX, int labelW, int fieldX, int fieldW, Supplier<Integer> getter, Consumer<Integer> setter, int min, int max) {
-        addDrawableChild(ButtonWidget.builder(Text.literal(label), b -> {
+        addDrawableChild(ButtonWidget.builder(labelWithRange(label, intRange(min, max)), b -> {
         }).dimensions(labelX, y, labelW, 20).build()).active = false;
         ValidationTracker.Flag flag = validation.flag();
         TextFieldWidget field = new TextFieldWidget(this.textRenderer, fieldX, y, fieldW, 20, Text.empty());
@@ -1317,7 +1341,7 @@ public final class GemsConfigScreen extends Screen {
     }
 
     private int addFloatRow(String label, int y, int labelX, int labelW, int fieldX, int fieldW, Supplier<Float> getter, Consumer<Float> setter, float min, float max) {
-        addDrawableChild(ButtonWidget.builder(Text.literal(label), b -> {
+        addDrawableChild(ButtonWidget.builder(labelWithRange(label, floatRange(min, max)), b -> {
         }).dimensions(labelX, y, labelW, 20).build()).active = false;
         ValidationTracker.Flag flag = validation.flag();
         TextFieldWidget field = new TextFieldWidget(this.textRenderer, fieldX, y, fieldW, 20, Text.empty());
@@ -1338,7 +1362,7 @@ public final class GemsConfigScreen extends Screen {
     }
 
     private int addDoubleRow(String label, int y, int labelX, int labelW, int fieldX, int fieldW, Supplier<Double> getter, Consumer<Double> setter, double min, double max) {
-        addDrawableChild(ButtonWidget.builder(Text.literal(label), b -> {
+        addDrawableChild(ButtonWidget.builder(labelWithRange(label, doubleRange(min, max)), b -> {
         }).dimensions(labelX, y, labelW, 20).build()).active = false;
         ValidationTracker.Flag flag = validation.flag();
         TextFieldWidget field = new TextFieldWidget(this.textRenderer, fieldX, y, fieldW, 20, Text.empty());
@@ -1394,12 +1418,50 @@ public final class GemsConfigScreen extends Screen {
         return Math.max(min, Math.min(max, v));
     }
 
+    private static Text labelWithRange(String label, String range) {
+        return Text.literal(label).append(Text.literal(" [" + range + "]").formatted(Formatting.DARK_GRAY));
+    }
+
+    private static String intRange(int min, int max) {
+        return min + ".." + max;
+    }
+
+    private static String floatRange(float min, float max) {
+        return formatNumber(min) + ".." + formatNumber(max);
+    }
+
+    private static String doubleRange(double min, double max) {
+        return formatNumber(min) + ".." + formatNumber(max);
+    }
+
+    private static String formatNumber(double v) {
+        String s = String.format(Locale.ROOT, "%.3f", v);
+        int end = s.length();
+        while (end > 0 && s.charAt(end - 1) == '0') {
+            end--;
+        }
+        if (end > 0 && s.charAt(end - 1) == '.') {
+            end--;
+        }
+        return s.substring(0, Math.max(1, end));
+    }
+
     private static Path balancePath() {
         return GemsConfigManager.balancePathForUi();
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (sidebarMaxScrollPx > 0
+                && mouseX >= sidebarX && mouseX < sidebarX + sidebarW
+                && mouseY >= sidebarY && mouseY < sidebarY + sidebarViewH) {
+            int delta = (int) Math.round(verticalAmount * 12.0D);
+            if (delta != 0) {
+                sidebarScrollPx = clampInt(sidebarScrollPx - delta, 0, sidebarMaxScrollPx);
+                rebuild();
+                return true;
+            }
+        }
         if (maxScrollPx <= 0) {
             return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
         }
@@ -1447,13 +1509,7 @@ public final class GemsConfigScreen extends Screen {
         if (client == null || client.player == null) {
             return false;
         }
-        if (client.isInSingleplayer()) {
-            return true;
-        }
-        if (client.getNetworkHandler() == null) {
-            return false;
-        }
-        return client.player.hasPermissionLevel(2);
+        return client.isInSingleplayer();
     }
 
     private enum Section {

@@ -1,13 +1,13 @@
 package com.feel.gems.legendary;
 
-import com.feel.gems.GemsMod;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.util.GemsTime;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.enchantment.Enchantment;
@@ -16,21 +16,17 @@ import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.RegistryWrapper.WrapperLookup;
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
+import net.minecraft.world.PersistentStateType;
 import net.minecraft.world.World;
 
 
@@ -38,8 +34,8 @@ import net.minecraft.world.World;
 
 public final class LegendaryCrafting {
     private static final String STATE_KEY = "gems_legendary_crafts";
-    private static final PersistentState.Type<State> STATE_TYPE =
-            new PersistentState.Type<>(State::new, State::fromNbt, DataFixTypes.SAVED_DATA_MAP_DATA);
+    private static final PersistentStateType<State> STATE_TYPE =
+            new PersistentStateType<>(STATE_KEY, State::new, State.CODEC, DataFixTypes.SAVED_DATA_MAP_DATA);
 
     private static final String KEY_CRAFTED = "crafted";
     private static final String KEY_ACTIVE = "active";
@@ -64,7 +60,7 @@ public final class LegendaryCrafting {
         if (!(stack.getItem() instanceof LegendaryItem legendary)) {
             return true;
         }
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.getEntityWorld().getServer();
         if (server == null) {
             return false;
         }
@@ -81,7 +77,7 @@ public final class LegendaryCrafting {
         if (!(stack.getItem() instanceof LegendaryItem legendary)) {
             return;
         }
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
@@ -131,7 +127,7 @@ public final class LegendaryCrafting {
     }
 
     public static void deliverPending(ServerPlayerEntity player) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
@@ -156,7 +152,7 @@ public final class LegendaryCrafting {
             return;
         }
         ItemStack stack = new ItemStack(item);
-        applyDefaultEnchants(player.getServer(), stack);
+        applyDefaultEnchants(player.getEntityWorld().getServer(), stack);
         if (!player.giveItemStack(stack)) {
             player.dropItem(stack, false);
         }
@@ -200,24 +196,27 @@ public final class LegendaryCrafting {
                 return;
             }
         }
-        for (int i = 0; i < player.getInventory().main.size(); i++) {
-            ItemStack stack = player.getInventory().main.get(i);
+        var mainStacks = player.getInventory().getMainStacks();
+        for (int i = 0; i < mainStacks.size(); i++) {
+            ItemStack stack = mainStacks.get(i);
             if (stack.isOf(item)) {
-                player.getInventory().main.set(i, ItemStack.EMPTY);
+                mainStacks.set(i, ItemStack.EMPTY);
                 return;
             }
         }
-        for (int i = 0; i < player.getInventory().offHand.size(); i++) {
-            ItemStack stack = player.getInventory().offHand.get(i);
-            if (stack.isOf(item)) {
-                player.getInventory().offHand.set(i, ItemStack.EMPTY);
-                return;
-            }
+        if (player.getOffHandStack().isOf(item)) {
+            player.equipStack(net.minecraft.entity.EquipmentSlot.OFFHAND, ItemStack.EMPTY);
+            return;
         }
-        for (int i = 0; i < player.getInventory().armor.size(); i++) {
-            ItemStack stack = player.getInventory().armor.get(i);
-            if (stack.isOf(item)) {
-                player.getInventory().armor.set(i, ItemStack.EMPTY);
+        net.minecraft.entity.EquipmentSlot[] armorSlots = {
+                net.minecraft.entity.EquipmentSlot.HEAD,
+                net.minecraft.entity.EquipmentSlot.CHEST,
+                net.minecraft.entity.EquipmentSlot.LEGS,
+                net.minecraft.entity.EquipmentSlot.FEET
+        };
+        for (var slot : armorSlots) {
+            if (player.getEquippedStack(slot).isOf(item)) {
+                player.equipStack(slot, ItemStack.EMPTY);
                 return;
             }
         }
@@ -236,9 +235,7 @@ public final class LegendaryCrafting {
     }
 
     private static RegistryEntry<Enchantment> resolveEnchantment(MinecraftServer server, net.minecraft.registry.RegistryKey<Enchantment> key) {
-        var registry = server.getRegistryManager().get(RegistryKeys.ENCHANTMENT);
-        var entry = registry.getEntry(key);
-        return entry.orElse(null);
+        return server.getRegistryManager().getOptionalEntry(key).orElse(null);
     }
 
     private static void announceCraftStart(MinecraftServer server, ServerPlayerEntity player, Item item, int craftTicks) {
@@ -258,7 +255,7 @@ public final class LegendaryCrafting {
     private static void notifyBlocked(ServerPlayerEntity player, String id) {
         long now = GemsTime.now(player);
         NbtCompound data = ((com.feel.gems.state.GemsPersistentDataHolder) player).gems$getPersistentData();
-        long next = data.getLong(KEY_BLOCKED_NOTIFY);
+        long next = data.getLong(KEY_BLOCKED_NOTIFY, 0L);
         if (next > now) {
             return;
         }
@@ -272,110 +269,45 @@ public final class LegendaryCrafting {
 
     private static State state(MinecraftServer server) {
         PersistentStateManager mgr = server.getOverworld().getPersistentStateManager();
-        return mgr.getOrCreate(STATE_TYPE, STATE_KEY);
+        return mgr.getOrCreate(STATE_TYPE);
     }
 
     private record ActiveCraft(String key, String id, UUID owner, long startTick, long finishTick, Identifier dimension, BlockPos pos) {
+        static final Codec<ActiveCraft> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.fieldOf(KEY_ID).forGetter(ActiveCraft::id),
+                Uuids.CODEC.fieldOf(KEY_OWNER).forGetter(ActiveCraft::owner),
+                Codec.LONG.fieldOf(KEY_START).forGetter(ActiveCraft::startTick),
+                Codec.LONG.fieldOf(KEY_FINISH).forGetter(ActiveCraft::finishTick),
+                Identifier.CODEC.fieldOf(KEY_DIM).forGetter(ActiveCraft::dimension),
+                BlockPos.CODEC.fieldOf(KEY_POS).forGetter(ActiveCraft::pos)
+        ).apply(instance, (id, owner, start, finish, dim, pos) -> new ActiveCraft(craftKey(id, owner, start), id, owner, start, finish, dim, pos)));
     }
 
     private static final class State extends PersistentState {
-        private final Map<String, Integer> crafted = new HashMap<>();
-        private final Map<String, ActiveCraft> active = new HashMap<>();
-        private final Map<UUID, List<String>> pending = new HashMap<>();
+        static final Codec<State> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.unboundedMap(Codec.STRING, Codec.INT).optionalFieldOf(KEY_CRAFTED, Map.of()).forGetter(state -> state.crafted),
+                Codec.unboundedMap(Codec.STRING, ActiveCraft.CODEC).optionalFieldOf(KEY_ACTIVE, Map.of()).forGetter(state -> state.active),
+                Codec.unboundedMap(Uuids.CODEC, Codec.STRING.listOf()).optionalFieldOf(KEY_PENDING, Map.of()).forGetter(state -> state.pending)
+        ).apply(instance, State::new));
 
-        static State fromNbt(NbtCompound nbt, WrapperLookup registryLookup) {
-            State state = new State();
-            if (nbt.contains(KEY_CRAFTED, NbtElement.LIST_TYPE)) {
-                NbtList list = nbt.getList(KEY_CRAFTED, NbtElement.STRING_TYPE);
-                for (int i = 0; i < list.size(); i++) {
-                    String id = list.getString(i);
-                    if (!id.isEmpty()) {
-                        state.crafted.put(id, state.crafted.getOrDefault(id, 0) + 1);
-                    }
-                }
-            }
-            if (nbt.contains(KEY_ACTIVE, NbtElement.LIST_TYPE)) {
-                NbtList list = nbt.getList(KEY_ACTIVE, NbtElement.COMPOUND_TYPE);
-                for (int i = 0; i < list.size(); i++) {
-                    NbtCompound entry = list.getCompound(i);
-                    String id = entry.getString(KEY_ID);
-                    if (!entry.containsUuid(KEY_OWNER)) {
-                        continue;
-                    }
-                    UUID owner = entry.getUuid(KEY_OWNER);
-                    long start = entry.getLong(KEY_START);
-                    long finish = entry.getLong(KEY_FINISH);
-                    Identifier dim = Identifier.tryParse(entry.getString(KEY_DIM));
-                    BlockPos pos = readBlockPos(entry, KEY_POS);
-                    if (dim == null || pos == null) {
-                        continue;
-                    }
-                    if (!id.isEmpty()) {
-                        String key = craftKey(id, owner, start);
-                        state.active.put(key, new ActiveCraft(key, id, owner, start, finish, dim, pos));
-                    }
-                }
-            }
-            if (nbt.contains(KEY_PENDING, NbtElement.LIST_TYPE)) {
-                NbtList list = nbt.getList(KEY_PENDING, NbtElement.COMPOUND_TYPE);
-                for (int i = 0; i < list.size(); i++) {
-                    NbtCompound entry = list.getCompound(i);
-                    if (!entry.containsUuid(KEY_OWNER)) {
-                        continue;
-                    }
-                    UUID owner = entry.getUuid(KEY_OWNER);
-                    NbtList items = entry.getList(KEY_ITEMS, NbtElement.STRING_TYPE);
-                    List<String> ids = new ArrayList<>(items.size());
-                    for (int j = 0; j < items.size(); j++) {
-                        ids.add(items.getString(j));
-                    }
-                    if (!ids.isEmpty()) {
-                        state.pending.put(owner, ids);
-                    }
-                }
-            }
-            return state;
+        private final Map<String, Integer> crafted;
+        private final Map<String, ActiveCraft> active;
+        private final Map<UUID, List<String>> pending;
+
+        State() {
+            this(Map.of(), Map.of(), Map.of());
         }
 
-        @Override
-        public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-            NbtList craftedList = new NbtList();
-            for (Map.Entry<String, Integer> entry : crafted.entrySet()) {
-                String id = entry.getKey();
-                int count = entry.getValue() != null ? entry.getValue() : 0;
-                for (int i = 0; i < count; i++) {
-                    craftedList.add(NbtString.of(id));
+        State(Map<String, Integer> crafted, Map<String, ActiveCraft> active, Map<UUID, List<String>> pending) {
+            this.crafted = new HashMap<>(crafted == null ? Map.of() : crafted);
+            this.active = new HashMap<>(active == null ? Map.of() : active);
+            this.pending = new HashMap<>();
+            if (pending != null) {
+                for (var entry : pending.entrySet()) {
+                    List<String> items = entry.getValue() == null ? List.of() : entry.getValue();
+                    this.pending.put(entry.getKey(), new ArrayList<>(items));
                 }
             }
-            nbt.put(KEY_CRAFTED, craftedList);
-
-            NbtList activeList = new NbtList();
-            for (ActiveCraft craft : active.values()) {
-                NbtCompound entry = new NbtCompound();
-                entry.putString(KEY_ID, craft.id);
-                entry.putUuid(KEY_OWNER, craft.owner);
-                entry.putLong(KEY_START, craft.startTick);
-                entry.putLong(KEY_FINISH, craft.finishTick);
-                entry.putString(KEY_DIM, craft.dimension.toString());
-                writeBlockPos(entry, KEY_POS, craft.pos);
-                activeList.add(entry);
-            }
-            nbt.put(KEY_ACTIVE, activeList);
-
-            NbtList pendingList = new NbtList();
-            for (Map.Entry<UUID, List<String>> entry : pending.entrySet()) {
-                NbtCompound out = new NbtCompound();
-                out.putUuid(KEY_OWNER, entry.getKey());
-                NbtList items = new NbtList();
-                for (String id : entry.getValue()) {
-                    items.add(NbtString.of(id));
-                }
-                out.put(KEY_ITEMS, items);
-                pendingList.add(out);
-            }
-            nbt.put(KEY_PENDING, pendingList);
-
-            return nbt;
         }
 
         boolean isAvailable(String id) {
@@ -425,21 +357,6 @@ public final class LegendaryCrafting {
         void addPending(UUID owner, String id) {
             pending.computeIfAbsent(owner, key -> new ArrayList<>()).add(id);
         }
-
-        private static BlockPos readBlockPos(NbtCompound nbt, String key) {
-            if (!nbt.contains(key, NbtElement.INT_ARRAY_TYPE)) {
-                return null;
-            }
-            int[] values = nbt.getIntArray(key);
-            if (values.length != 3) {
-                return null;
-            }
-            return new BlockPos(values[0], values[1], values[2]);
-        }
-
-        private static void writeBlockPos(NbtCompound nbt, String key, BlockPos pos) {
-            nbt.put(key, new net.minecraft.nbt.NbtIntArray(new int[]{pos.getX(), pos.getY(), pos.getZ()}));
-        }
     }
 
     private record CraftLocation(Identifier dimension, BlockPos pos) {
@@ -460,7 +377,7 @@ public final class LegendaryCrafting {
                 }
             }
         }
-        return new CraftLocation(player.getServerWorld().getRegistryKey().getValue(), player.getBlockPos());
+        return new CraftLocation(player.getEntityWorld().getRegistryKey().getValue(), player.getBlockPos());
     }
 
     private static void updateBossBars(MinecraftServer server, State state, long now) {

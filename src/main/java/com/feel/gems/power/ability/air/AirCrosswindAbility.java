@@ -49,11 +49,11 @@ public final class AirCrosswindAbility implements GemAbility {
         }
 
         Vec3d dir = player.getRotationVec(1.0F).normalize();
-        Vec3d start = player.getPos().add(0.0D, 1.0D, 0.0D);
+        Vec3d start = player.getEntityPos().add(0.0D, 1.0D, 0.0D);
         Vec3d end = start.add(dir.multiply(range));
         Box box = new Box(start, end).expand(radius);
 
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         float damage = cfg.crosswindDamage();
         double knockback = cfg.crosswindKnockback();
         int slowDuration = cfg.crosswindSlownessDurationTicks();
@@ -63,10 +63,10 @@ public final class AirCrosswindAbility implements GemAbility {
             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
                 continue;
             }
-            other.damage(world.getDamageSources().playerAttack(player), damage);
+            other.damage(world, player.getDamageSources().playerAttack(player), damage);
             if (knockback > 0.0D) {
                 other.addVelocity(dir.x * knockback, 0.1D, dir.z * knockback);
-                other.velocityModified = true;
+                other.velocityDirty = true;
             }
             if (slowDuration > 0) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, slowDuration, slowAmp, true, false, false));
@@ -74,7 +74,7 @@ public final class AirCrosswindAbility implements GemAbility {
             hits++;
         }
 
-        AbilityFeedback.ring(world, player.getPos().add(0.0D, 0.2D, 0.0D), Math.min(range, 12), ParticleTypes.GUST, 24);
+        AbilityFeedback.ring(world, player.getEntityPos().add(0.0D, 0.2D, 0.0D), Math.min(range, 12), ParticleTypes.GUST, 24);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 0.9F, 1.1F);
         player.sendMessage(Text.literal("Crosswind hit " + hits + " targets."), true);
         return true;

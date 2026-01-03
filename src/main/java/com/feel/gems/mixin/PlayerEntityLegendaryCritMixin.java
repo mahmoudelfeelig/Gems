@@ -23,10 +23,7 @@ public abstract class PlayerEntityLegendaryCritMixin {
     private static final String KEY_THIRD_STRIKE_COUNT = "legendaryThirdStrikeCount";
     private static final String KEY_THIRD_STRIKE_LAST = "legendaryThirdStrikeLast";
 
-    @Inject(
-            method = "attack",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;addCritParticles(Lnet/minecraft/entity/Entity;)V")
-    )
+    @Inject(method = "attack", at = @At("HEAD"))
     private void gems$legendaryCriticals(Entity target, CallbackInfo ci) {
         PlayerEntity self = (PlayerEntity) (Object) this;
         if (!(self instanceof ServerPlayerEntity attacker)) {
@@ -35,13 +32,16 @@ public abstract class PlayerEntityLegendaryCritMixin {
         if (!(target instanceof LivingEntity living)) {
             return;
         }
+        if (!gems$isVanillaCritical(attacker)) {
+            return;
+        }
 
         if (attacker.getMainHandStack().isOf(ModItems.THIRD_STRIKE_BLADE)) {
             long now = GemsTime.now(attacker);
             var data = ((com.feel.gems.state.GemsPersistentDataHolder) attacker).gems$getPersistentData();
-            long last = data.getLong(KEY_THIRD_STRIKE_LAST);
+            long last = data.getLong(KEY_THIRD_STRIKE_LAST, 0L);
             int window = GemsBalance.v().legendary().thirdStrikeWindowTicks();
-            int count = data.getInt(KEY_THIRD_STRIKE_COUNT);
+            int count = data.getInt(KEY_THIRD_STRIKE_COUNT, 0);
             if (window > 0 && now - last > window) {
                 count = 0;
             }
@@ -51,7 +51,7 @@ public abstract class PlayerEntityLegendaryCritMixin {
             if (count % 3 == 0 && living.isAlive()) {
                 float bonus = GemsBalance.v().legendary().thirdStrikeBonusDamage();
                 if (bonus > 0.0F) {
-                    living.damage(attacker.getDamageSources().playerAttack(attacker), bonus);
+                    living.damage(attacker.getEntityWorld(), attacker.getDamageSources().playerAttack(attacker), bonus);
                 }
             }
         }
@@ -82,5 +82,36 @@ public abstract class PlayerEntityLegendaryCritMixin {
                 living.addStatusEffect(new StatusEffectInstance(StatusEffects.WITHER, duration, amp, true, false, false));
             }
         }
+    }
+
+    private static boolean gems$isVanillaCritical(ServerPlayerEntity attacker) {
+        if (attacker.getAbilities().flying) {
+            return false;
+        }
+        if (attacker.isOnGround()) {
+            return false;
+        }
+        if (attacker.fallDistance <= 0.0F) {
+            return false;
+        }
+        if (attacker.isClimbing()) {
+            return false;
+        }
+        if (attacker.isTouchingWater()) {
+            return false;
+        }
+        if (attacker.hasVehicle()) {
+            return false;
+        }
+        if (attacker.hasStatusEffect(StatusEffects.BLINDNESS)) {
+            return false;
+        }
+        if (attacker.isSprinting()) {
+            return false;
+        }
+        if (attacker.isUsingItem()) {
+            return false;
+        }
+        return true;
     }
 }

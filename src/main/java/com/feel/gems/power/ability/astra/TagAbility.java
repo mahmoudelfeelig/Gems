@@ -51,9 +51,7 @@ public final class TagAbility implements GemAbility {
         }
         target.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, GemsBalance.v().astra().tagDurationTicks(), 0, true, false, false));
         AbilityFeedback.sound(player, SoundEvents.BLOCK_NOTE_BLOCK_PLING, 0.8F, 1.6F);
-        if (player.getServerWorld() != null) {
-            AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.GLOW, 14, 0.2D);
-        }
+        AbilityFeedback.burstAt(player.getEntityWorld(), target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.GLOW, 14, 0.2D);
         player.sendMessage(Text.literal("Tagged " + target.getName().getString()), true);
         return true;
     }

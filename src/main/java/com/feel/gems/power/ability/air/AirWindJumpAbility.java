@@ -43,7 +43,7 @@ public final class AirWindJumpAbility implements GemAbility {
         }
         Vec3d dir = player.getRotationVec(1.0F).normalize();
         player.addVelocity(dir.x * forward, up, dir.z * forward);
-        player.velocityModified = true;
+        player.velocityDirty = true;
         player.fallDistance = 0.0F;
         AbilityFeedback.burst(player, ParticleTypes.GUST, 18, 0.3D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 0.8F, 1.2F);

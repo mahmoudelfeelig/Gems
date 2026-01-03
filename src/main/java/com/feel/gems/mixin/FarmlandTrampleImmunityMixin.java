@@ -18,9 +18,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(FarmlandBlock.class)
 public abstract class FarmlandTrampleImmunityMixin {
-    @Inject(method = "onLandedUpon", at = @At("HEAD"), cancellable = true)
-    private void gems$preventTrample(World world, BlockState state, BlockPos pos, Entity entity, float fallDistance, CallbackInfo ci) {
-        if (world.isClient) {
+    @Inject(method = "onLandedUpon(Lnet/minecraft/world/World;Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;D)V", at = @At("HEAD"), cancellable = true)
+    private void gems$preventTrample(World world, BlockState state, BlockPos pos, Entity entity, double fallDistance, CallbackInfo ci) {
+        if (world.isClient()) {
             return;
         }
         if (entity instanceof ServerPlayerEntity player && GemPowers.isPassiveActive(player, PowerIds.CROP_TRAMPLE_IMMUNITY)) {

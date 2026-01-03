@@ -21,7 +21,7 @@ public abstract class LivingEntityHealScalingMixin {
         }
 
         LivingEntity self = (LivingEntity) (Object) this;
-        if (self.getWorld().isClient) {
+        if (self.getEntityWorld().isClient()) {
             return amount;
         }
 
@@ -31,6 +31,6 @@ public abstract class LivingEntityHealScalingMixin {
         if (!GemPowers.isPassiveActive(player, PowerIds.SPACE_LUNAR_SCALING)) {
             return amount;
         }
-        return amount * SpaceLunarScaling.multiplier(player.getServerWorld());
+        return amount * SpaceLunarScaling.multiplier(player.getEntityWorld());
     }
 }

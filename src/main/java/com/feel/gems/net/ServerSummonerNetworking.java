@@ -17,9 +17,9 @@ public final class ServerSummonerNetworking {
 
     public static void register() {
         ServerPlayNetworking.registerGlobalReceiver(SummonerLoadoutSavePayload.ID, (payload, context) ->
-                context.player().server.execute(() -> handleSave(context.player(), payload)));
+                context.player().getEntityWorld().getServer().execute(() -> handleSave(context.player(), payload)));
         ServerPlayNetworking.registerGlobalReceiver(SummonerLoadoutOpenRequestPayload.ID, (payload, context) ->
-            context.player().server.execute(() -> openEditor(context.player())));
+            context.player().getEntityWorld().getServer().execute(() -> openEditor(context.player())));
     }
 
     public static void openEditor(ServerPlayerEntity player) {

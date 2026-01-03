@@ -3,7 +3,8 @@ package com.feel.gems.mixin;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -34,17 +35,13 @@ public abstract class PlayerEntityDataMixin implements GemsPersistentDataHolder 
         gems$persistentData = (nbt == null) ? new NbtCompound() : nbt;
     }
 
-    @Inject(method = "writeCustomDataToNbt", at = @At("HEAD"))
-    private void gems$writeCustomDataToNbt(NbtCompound nbt, CallbackInfo ci) {
-        nbt.put(GEMS_PERSISTED_KEY, gems$getPersistentData());
+    @Inject(method = "writeCustomData", at = @At("HEAD"))
+    private void gems$writeCustomData(WriteView view, CallbackInfo ci) {
+        view.put(GEMS_PERSISTED_KEY, NbtCompound.CODEC, gems$getPersistentData());
     }
 
-    @Inject(method = "readCustomDataFromNbt", at = @At("HEAD"))
-    private void gems$readCustomDataFromNbt(NbtCompound nbt, CallbackInfo ci) {
-        if (nbt.contains(GEMS_PERSISTED_KEY, NbtElement.COMPOUND_TYPE)) {
-            gems$persistentData = nbt.getCompound(GEMS_PERSISTED_KEY);
-        } else {
-            gems$persistentData = new NbtCompound();
-        }
+    @Inject(method = "readCustomData", at = @At("HEAD"))
+    private void gems$readCustomData(ReadView view, CallbackInfo ci) {
+        gems$persistentData = view.read(GEMS_PERSISTED_KEY, NbtCompound.CODEC).orElseGet(NbtCompound::new);
     }
 }

@@ -41,7 +41,9 @@ public final class FumbleAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         int radius = GemsBalance.v().wealth().fumbleRadiusBlocks();
         int affected = 0;
         int duration = GemsBalance.v().wealth().fumbleDurationTicks();
@@ -56,7 +58,7 @@ public final class FumbleAbility implements GemAbility {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 0, true, false, false));
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
             }
-            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SMOKE, 10, 0.25D);
+            AbilityFeedback.burstAt(world, other.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SMOKE, 10, 0.25D);
             affected++;
         }
         AbilityFeedback.sound(player, SoundEvents.ENTITY_WITCH_THROW, 0.8F, 1.1F);

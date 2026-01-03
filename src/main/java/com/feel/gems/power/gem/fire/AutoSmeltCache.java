@@ -40,18 +40,17 @@ public final class AutoSmeltCache {
             return cached.isEmpty() ? null : scaledCopy(cached, input.getCount());
         }
 
-        Optional<RecipeEntry<?>> match = world.getRecipeManager().getFirstMatch(
-                RecipeType.SMELTING,
-                new SingleStackRecipeInput(new ItemStack(item)),
-                world
-        ).map(entry -> (RecipeEntry<?>) entry);
+        SingleStackRecipeInput recipeInput = new SingleStackRecipeInput(new ItemStack(item));
+        Optional<? extends RecipeEntry<?>> match = world.getRecipeManager().getFirstMatch(RecipeType.SMELTING, recipeInput, world);
 
         if (match.isEmpty()) {
             SMELT_CACHE.put(item, ItemStack.EMPTY);
             return null;
         }
 
-        ItemStack result = match.get().value().getResult(world.getRegistryManager());
+        @SuppressWarnings("unchecked")
+        var recipe = (net.minecraft.recipe.Recipe<SingleStackRecipeInput>) match.get().value();
+        ItemStack result = recipe.craft(recipeInput, world.getRegistryManager());
         if (result == null || result.isEmpty()) {
             SMELT_CACHE.put(item, ItemStack.EMPTY);
             return null;

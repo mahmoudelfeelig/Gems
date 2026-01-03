@@ -3,7 +3,6 @@ package com.feel.gems.assassin;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 
@@ -33,48 +32,48 @@ public final class AssassinState {
 
     public static void initIfNeeded(ServerPlayerEntity player) {
         NbtCompound nbt = root(player);
-        if (!nbt.contains(KEY_IS_ASSASSIN, NbtElement.BYTE_TYPE)) {
+        if (nbt.getBoolean(KEY_IS_ASSASSIN).isEmpty()) {
             nbt.putBoolean(KEY_IS_ASSASSIN, false);
         }
-        if (!nbt.contains(KEY_ELIMINATED, NbtElement.BYTE_TYPE)) {
+        if (nbt.getBoolean(KEY_ELIMINATED).isEmpty()) {
             nbt.putBoolean(KEY_ELIMINATED, false);
         }
-        if (!nbt.contains(KEY_ASSASSIN_HEARTS, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_ASSASSIN_HEARTS).isEmpty()) {
             nbt.putInt(KEY_ASSASSIN_HEARTS, maxHearts());
         }
-        if (!nbt.contains(KEY_TOTAL_NORMAL_KILLS, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_TOTAL_NORMAL_KILLS).isEmpty()) {
             nbt.putInt(KEY_TOTAL_NORMAL_KILLS, 0);
         }
-        if (!nbt.contains(KEY_TOTAL_FINAL_KILLS, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_TOTAL_FINAL_KILLS).isEmpty()) {
             nbt.putInt(KEY_TOTAL_FINAL_KILLS, 0);
         }
-        if (!nbt.contains(KEY_A_NORMAL_KILLS, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_A_NORMAL_KILLS).isEmpty()) {
             nbt.putInt(KEY_A_NORMAL_KILLS, 0);
         }
-        if (!nbt.contains(KEY_A_FINAL_KILLS, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_A_FINAL_KILLS).isEmpty()) {
             nbt.putInt(KEY_A_FINAL_KILLS, 0);
         }
-        if (!nbt.contains(KEY_A_NORMAL_KILLS_VS_NON, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_A_NORMAL_KILLS_VS_NON).isEmpty()) {
             nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
         }
-        if (!nbt.contains(KEY_A_FINAL_KILLS_VS_NON, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_A_FINAL_KILLS_VS_NON).isEmpty()) {
             nbt.putInt(KEY_A_FINAL_KILLS_VS_NON, 0);
         }
     }
 
     public static boolean isAssassin(ServerPlayerEntity player) {
-        return root(player).getBoolean(KEY_IS_ASSASSIN);
+        return root(player).getBoolean(KEY_IS_ASSASSIN, false);
     }
 
     public static boolean isEliminated(ServerPlayerEntity player) {
-        return root(player).getBoolean(KEY_ELIMINATED);
+        return root(player).getBoolean(KEY_ELIMINATED, false);
     }
 
     public static int getAssassinHearts(ServerPlayerEntity player) {
         if (!isAssassin(player)) {
             return maxHearts();
         }
-        int raw = root(player).getInt(KEY_ASSASSIN_HEARTS);
+        int raw = root(player).getInt(KEY_ASSASSIN_HEARTS, maxHearts());
         return clamp(raw, 0, maxHearts());
     }
 
@@ -86,7 +85,7 @@ public final class AssassinState {
     public static void becomeAssassin(ServerPlayerEntity player) {
         initIfNeeded(player);
         NbtCompound nbt = root(player);
-        if (nbt.getBoolean(KEY_IS_ASSASSIN)) {
+        if (nbt.getBoolean(KEY_IS_ASSASSIN, false)) {
             return;
         }
         nbt.putBoolean(KEY_IS_ASSASSIN, true);
@@ -94,6 +93,20 @@ public final class AssassinState {
         nbt.putInt(KEY_ASSASSIN_HEARTS, maxHearts());
 
         // Reset the "after turning" counters.
+        nbt.putInt(KEY_A_NORMAL_KILLS, 0);
+        nbt.putInt(KEY_A_FINAL_KILLS, 0);
+        nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
+        nbt.putInt(KEY_A_FINAL_KILLS_VS_NON, 0);
+    }
+
+    public static void reset(ServerPlayerEntity player) {
+        initIfNeeded(player);
+        NbtCompound nbt = root(player);
+        nbt.putBoolean(KEY_IS_ASSASSIN, false);
+        nbt.putBoolean(KEY_ELIMINATED, false);
+        nbt.putInt(KEY_ASSASSIN_HEARTS, maxHearts());
+        nbt.putInt(KEY_TOTAL_NORMAL_KILLS, 0);
+        nbt.putInt(KEY_TOTAL_FINAL_KILLS, 0);
         nbt.putInt(KEY_A_NORMAL_KILLS, 0);
         nbt.putInt(KEY_A_FINAL_KILLS, 0);
         nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
@@ -117,32 +130,32 @@ public final class AssassinState {
         NbtCompound nbt = root(killer);
 
         if (finalKill) {
-            nbt.putInt(KEY_TOTAL_FINAL_KILLS, nbt.getInt(KEY_TOTAL_FINAL_KILLS) + 1);
+            nbt.putInt(KEY_TOTAL_FINAL_KILLS, nbt.getInt(KEY_TOTAL_FINAL_KILLS, 0) + 1);
         } else {
-            nbt.putInt(KEY_TOTAL_NORMAL_KILLS, nbt.getInt(KEY_TOTAL_NORMAL_KILLS) + 1);
+            nbt.putInt(KEY_TOTAL_NORMAL_KILLS, nbt.getInt(KEY_TOTAL_NORMAL_KILLS, 0) + 1);
         }
 
         if (isAssassin(killer)) {
             if (finalKill) {
-                nbt.putInt(KEY_A_FINAL_KILLS, nbt.getInt(KEY_A_FINAL_KILLS) + 1);
+                nbt.putInt(KEY_A_FINAL_KILLS, nbt.getInt(KEY_A_FINAL_KILLS, 0) + 1);
                 if (!victimWasAssassin) {
-                    nbt.putInt(KEY_A_FINAL_KILLS_VS_NON, nbt.getInt(KEY_A_FINAL_KILLS_VS_NON) + 1);
+                    nbt.putInt(KEY_A_FINAL_KILLS_VS_NON, nbt.getInt(KEY_A_FINAL_KILLS_VS_NON, 0) + 1);
                 }
             } else {
-                nbt.putInt(KEY_A_NORMAL_KILLS, nbt.getInt(KEY_A_NORMAL_KILLS) + 1);
+                nbt.putInt(KEY_A_NORMAL_KILLS, nbt.getInt(KEY_A_NORMAL_KILLS, 0) + 1);
                 if (!victimWasAssassin) {
-                    nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, nbt.getInt(KEY_A_NORMAL_KILLS_VS_NON) + 1);
+                    nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, nbt.getInt(KEY_A_NORMAL_KILLS_VS_NON, 0) + 1);
                 }
             }
         }
     }
 
     public static int totalNormalKills(ServerPlayerEntity player) {
-        return root(player).getInt(KEY_TOTAL_NORMAL_KILLS);
+        return root(player).getInt(KEY_TOTAL_NORMAL_KILLS, 0);
     }
 
     public static int totalFinalKills(ServerPlayerEntity player) {
-        return root(player).getInt(KEY_TOTAL_FINAL_KILLS);
+        return root(player).getInt(KEY_TOTAL_FINAL_KILLS, 0);
     }
 
     public static int totalPoints(ServerPlayerEntity player) {
@@ -150,11 +163,11 @@ public final class AssassinState {
     }
 
     public static int assassinNormalKills(ServerPlayerEntity player) {
-        return root(player).getInt(KEY_A_NORMAL_KILLS);
+        return root(player).getInt(KEY_A_NORMAL_KILLS, 0);
     }
 
     public static int assassinFinalKills(ServerPlayerEntity player) {
-        return root(player).getInt(KEY_A_FINAL_KILLS);
+        return root(player).getInt(KEY_A_FINAL_KILLS, 0);
     }
 
     public static int assassinPoints(ServerPlayerEntity player) {
@@ -162,11 +175,11 @@ public final class AssassinState {
     }
 
     public static int assassinNormalKillsVsNonAssassins(ServerPlayerEntity player) {
-        return root(player).getInt(KEY_A_NORMAL_KILLS_VS_NON);
+        return root(player).getInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
     }
 
     public static int assassinFinalKillsVsNonAssassins(ServerPlayerEntity player) {
-        return root(player).getInt(KEY_A_FINAL_KILLS_VS_NON);
+        return root(player).getInt(KEY_A_FINAL_KILLS_VS_NON, 0);
     }
 
     public static int assassinPointsVsNonAssassins(ServerPlayerEntity player) {

@@ -44,12 +44,12 @@ public final class PillagerFangsAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         int range = GemsBalance.v().pillager().fangsRangeBlocks();
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
 
         LivingEntity living = Targeting.raycastLiving(player, range);
         Vec3d center;
         if (living != null) {
-            center = living.getPos();
+            center = living.getEntityPos();
         } else {
             HitResult hit = player.raycast(range, 1.0F, false);
             if (hit.getType() != HitResult.Type.BLOCK || !(hit instanceof BlockHitResult bhr)) {
@@ -64,7 +64,7 @@ public final class PillagerFangsAbility implements GemAbility {
         float spacing = GemsBalance.v().pillager().fangsSpacingBlocks();
         int warmupStep = GemsBalance.v().pillager().fangsWarmupStepTicks();
 
-        Vec3d toCenter = center.subtract(player.getPos());
+        Vec3d toCenter = center.subtract(player.getEntityPos());
         double distSq = toCenter.lengthSquared();
 
         // Close range: evoker-style ring of fangs around the target.

@@ -1,6 +1,9 @@
 package com.feel.gems.item;
 
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.util.GemsNbt;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
@@ -14,17 +17,13 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Box;
-import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
+import net.minecraft.world.PersistentStateType;
 
 
 
@@ -43,8 +42,8 @@ public final class GemOwnership {
     private static final Set<UUID> PURGE_IN_FLIGHT = new HashSet<>();
 
     private static final String KEY_OFFLINE_PENALTIES = "gems_offline_gem_penalties";
-    private static final PersistentState.Type<OfflinePenaltyState> OFFLINE_PENALTY_STATE_TYPE =
-            new PersistentState.Type<>(OfflinePenaltyState::new, OfflinePenaltyState::fromNbt, DataFixTypes.SAVED_DATA_MAP_DATA);
+    private static final PersistentStateType<OfflinePenaltyState> OFFLINE_PENALTY_STATE_TYPE =
+            new PersistentStateType<>(KEY_OFFLINE_PENALTIES, OfflinePenaltyState::new, OfflinePenaltyState.CODEC, DataFixTypes.SAVED_DATA_MAP_DATA);
 
     private GemOwnership() {
     }
@@ -54,7 +53,7 @@ public final class GemOwnership {
             return;
         }
         NbtComponent.set(DataComponentTypes.CUSTOM_DATA, stack, nbt -> {
-            nbt.putUuid(KEY_OWNER, owner);
+            GemsNbt.putUuid(nbt, KEY_OWNER, owner);
             nbt.putInt(KEY_EPOCH, epoch);
         });
     }
@@ -64,20 +63,20 @@ public final class GemOwnership {
             return;
         }
         NbtComponent.set(DataComponentTypes.CUSTOM_DATA, stack, nbt -> {
-            if (nbt.containsUuid(KEY_OWNER)) {
+            if (GemsNbt.containsUuid(nbt, KEY_OWNER)) {
                 return;
             }
-            nbt.putUuid(KEY_OWNER, owner.getUuid());
+            GemsNbt.putUuid(nbt, KEY_OWNER, owner.getUuid());
             nbt.putInt(KEY_EPOCH, GemPlayerState.getGemEpoch(owner));
         });
     }
 
     public static UUID ownerUuid(ItemStack stack) {
         NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
-        if (custom == null || !custom.getNbt().containsUuid(KEY_OWNER)) {
+        if (custom == null || !GemsNbt.containsUuid(custom.copyNbt(), KEY_OWNER)) {
             return null;
         }
-        return custom.getNbt().getUuid(KEY_OWNER);
+        return GemsNbt.getUuid(custom.copyNbt(), KEY_OWNER);
     }
 
     public static boolean isInvalidForEpoch(MinecraftServer server, ItemStack stack) {
@@ -85,12 +84,12 @@ public final class GemOwnership {
             return false;
         }
         NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
-        if (custom == null || !custom.getNbt().containsUuid(KEY_OWNER)) {
+        if (custom == null || !GemsNbt.containsUuid(custom.copyNbt(), KEY_OWNER)) {
             return false;
         }
-        NbtCompound tag = custom.getNbt();
-        UUID owner = tag.getUuid(KEY_OWNER);
-        int storedEpoch = tag.getInt(KEY_EPOCH);
+        NbtCompound tag = custom.copyNbt();
+        UUID owner = GemsNbt.getUuid(tag, KEY_OWNER);
+        int storedEpoch = tag.getInt(KEY_EPOCH, 0);
         ServerPlayerEntity player = server.getPlayerManager().getPlayer(owner);
         if (player == null) {
             return false; // Owner offline; leave it intact.
@@ -128,10 +127,11 @@ public final class GemOwnership {
 
     public static boolean isOwnedBy(ItemStack stack, UUID owner) {
         NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
-        if (custom == null || !custom.getNbt().containsUuid(KEY_OWNER)) {
+        if (custom == null || !GemsNbt.containsUuid(custom.copyNbt(), KEY_OWNER)) {
             return false;
         }
-        return custom.getNbt().getUuid(KEY_OWNER).equals(owner);
+        UUID stored = GemsNbt.getUuid(custom.copyNbt(), KEY_OWNER);
+        return stored != null && stored.equals(owner);
     }
 
     public static void applyOwnerPenalty(ServerPlayerEntity owner) {
@@ -141,13 +141,13 @@ public final class GemOwnership {
         GemPlayerState.setEnergy(owner, Math.min(energy, 1));
         GemPlayerState.applyMaxHearts(owner);
         ((com.feel.gems.state.GemsPersistentDataHolder) owner).gems$getPersistentData().putBoolean(KEY_SKIP_HEART_DROP, true);
-        owner.damage(owner.getDamageSources().magic(), Float.MAX_VALUE);
+        owner.damage(owner.getEntityWorld(), owner.getDamageSources().magic(), Float.MAX_VALUE);
         owner.sendMessage(net.minecraft.text.Text.literal("Your gem was activated by another player. You paid the cost."), false);
     }
 
     public static boolean consumeSkipHeartDrop(ServerPlayerEntity player) {
         var data = ((com.feel.gems.state.GemsPersistentDataHolder) player).gems$getPersistentData();
-        boolean skip = data.getBoolean(KEY_SKIP_HEART_DROP);
+        boolean skip = data.getBoolean(KEY_SKIP_HEART_DROP).orElse(false);
         if (skip) {
             data.remove(KEY_SKIP_HEART_DROP);
         }
@@ -160,33 +160,18 @@ public final class GemOwnership {
     }
 
     private static final class OfflinePenaltyState extends PersistentState {
-        private final Set<UUID> queued = new HashSet<>();
+        private static final Codec<OfflinePenaltyState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                net.minecraft.util.Uuids.SET_CODEC.optionalFieldOf(KEY_OFFLINE_PENALTIES, Set.of()).forGetter(state -> state.queued)
+        ).apply(instance, OfflinePenaltyState::new));
+
+        private final Set<UUID> queued;
 
         OfflinePenaltyState() {
+            this(Set.of());
         }
 
-        static OfflinePenaltyState fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-            OfflinePenaltyState state = new OfflinePenaltyState();
-            if (nbt.contains(KEY_OFFLINE_PENALTIES, NbtElement.LIST_TYPE)) {
-                NbtList list = nbt.getList(KEY_OFFLINE_PENALTIES, NbtElement.STRING_TYPE);
-                for (int i = 0; i < list.size(); i++) {
-                    try {
-                        state.queued.add(UUID.fromString(list.getString(i)));
-                    } catch (IllegalArgumentException ignored) {
-                    }
-                }
-            }
-            return state;
-        }
-
-        @Override
-        public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-            NbtList list = new NbtList();
-            for (UUID id : queued) {
-                list.add(NbtString.of(id.toString()));
-            }
-            nbt.put(KEY_OFFLINE_PENALTIES, list);
-            return nbt;
+        OfflinePenaltyState(Set<UUID> queued) {
+            this.queued = new HashSet<>(queued == null ? Set.of() : queued);
         }
 
         void queue(UUID owner) {
@@ -216,7 +201,7 @@ public final class GemOwnership {
     }
 
     public static void consumeOfflinePenalty(ServerPlayerEntity player) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
@@ -229,7 +214,7 @@ public final class GemOwnership {
 
     private static OfflinePenaltyState penalties(MinecraftServer server) {
         PersistentStateManager mgr = server.getOverworld().getPersistentStateManager();
-        return mgr.getOrCreate(OFFLINE_PENALTY_STATE_TYPE, KEY_OFFLINE_PENALTIES);
+        return mgr.getOrCreate(OFFLINE_PENALTY_STATE_TYPE);
     }
 
     public static void tickPurgeQueue(MinecraftServer server) {
@@ -244,49 +229,33 @@ public final class GemOwnership {
     }
 
     private static PurgeTask buildTask(MinecraftServer server, UUID owner) {
-        Deque<ServerPlayerEntity> players = new ArrayDeque<>(server.getPlayerManager().getPlayerList());
-        Deque<ChunkJob> chunks = new ArrayDeque<>();
-        int view = server.getPlayerManager().getViewDistance();
-
-        for (ServerWorld world : server.getWorlds()) {
-            int minY = world.getBottomY();
-            int maxY = world.getTopY();
-            Set<Long> seenChunks = new HashSet<>();
-            for (ServerPlayerEntity player : world.getPlayers()) {
-                ChunkPos center = player.getChunkPos();
-                for (int dx = -view; dx <= view; dx++) {
-                    for (int dz = -view; dz <= view; dz++) {
-                        ChunkPos chunk = new ChunkPos(center.x + dx, center.z + dz);
-                        long key = chunk.toLong();
-                        if (!seenChunks.add(key)) {
-                            continue;
-                        }
-                        if (!world.isChunkLoaded(chunk.x, chunk.z)) {
-                            continue; // skip unloaded chunks to keep the purge queue small
-                        }
-                        int minX = chunk.getStartX();
-                        int minZ = chunk.getStartZ();
-                        int maxX = chunk.getEndX() + 1;
-                        int maxZ = chunk.getEndZ() + 1;
-                        Box box = new Box(minX, minY, minZ, maxX, maxY, maxZ);
-                        chunks.add(new ChunkJob(world, box));
-                    }
-                }
+        Deque<ServerPlayerEntity> players = new ArrayDeque<>();
+        ServerPlayerEntity ownerPlayer = server.getPlayerManager().getPlayer(owner);
+        if (ownerPlayer != null) {
+            players.add(ownerPlayer);
+        }
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            if (ownerPlayer != null && player == ownerPlayer) {
+                continue;
             }
+            players.add(player);
         }
 
-        return new PurgeTask(owner, players, chunks);
+        int view = server.getPlayerManager().getViewDistance();
+        return new PurgeTask(owner, players, view);
     }
 
     private static final class PurgeTask {
         private final UUID owner;
         private final Deque<ServerPlayerEntity> players;
-        private final Deque<ChunkJob> chunks;
+        private final int viewDistanceChunks;
+        private java.util.Iterator<ItemEntity> scanningItems;
+        private int scanBudgetRemaining;
 
-        PurgeTask(UUID owner, Deque<ServerPlayerEntity> players, Deque<ChunkJob> chunks) {
+        PurgeTask(UUID owner, Deque<ServerPlayerEntity> players, int viewDistanceChunks) {
             this.owner = owner;
             this.players = players;
-            this.chunks = chunks;
+            this.viewDistanceChunks = viewDistanceChunks;
         }
 
         UUID owner() {
@@ -299,14 +268,23 @@ public final class GemOwnership {
                 purgePlayerInventories(server, players.poll());
             }
 
-            int chunkBudget = CHUNK_PURGE_BUDGET;
-            while (chunkBudget-- > 0 && !chunks.isEmpty()) {
-                ChunkJob job = chunks.poll();
-                if (job == null || job.world().getServer() != server) {
-                    continue;
+            if (scanningItems == null) {
+                while (!players.isEmpty() && scanningItems == null) {
+                    ServerPlayerEntity next = players.poll();
+                    if (next == null || next.isRemoved() || next.getEntityWorld().getServer() != server) {
+                        continue;
+                    }
+                    scanBudgetRemaining = CHUNK_PURGE_BUDGET * 64;
+                    scanningItems = findNearbyItemEntities(next);
                 }
+            }
 
-                for (ItemEntity itemEntity : job.world().getEntitiesByClass(ItemEntity.class, job.box(), e -> true)) {
+            if (scanningItems != null) {
+                while (scanBudgetRemaining-- > 0 && scanningItems.hasNext()) {
+                    ItemEntity itemEntity = scanningItems.next();
+                    if (itemEntity == null) {
+                        continue;
+                    }
                     ItemStack stack = itemEntity.getStack();
                     if (stack.isEmpty()) {
                         continue;
@@ -315,12 +293,30 @@ public final class GemOwnership {
                         itemEntity.discard();
                     }
                 }
+                if (!scanningItems.hasNext()) {
+                    scanningItems = null;
+                }
             }
 
-            return players.isEmpty() && chunks.isEmpty();
+            return players.isEmpty() && scanningItems == null;
         }
-    }
 
-    private record ChunkJob(ServerWorld world, Box box) {
+        private java.util.Iterator<ItemEntity> findNearbyItemEntities(ServerPlayerEntity aroundPlayer) {
+            ServerWorld world = aroundPlayer.getEntityWorld();
+            if (world == null) {
+                return java.util.List.<ItemEntity>of().iterator();
+            }
+            int radiusBlocks = Math.max(0, viewDistanceChunks) * 16;
+            if (radiusBlocks <= 0) {
+                return java.util.List.<ItemEntity>of().iterator();
+            }
+            int minY = world.getBottomY();
+            int maxY = world.getTopYInclusive();
+            Box box = new Box(
+                    aroundPlayer.getX() - radiusBlocks, minY, aroundPlayer.getZ() - radiusBlocks,
+                    aroundPlayer.getX() + radiusBlocks, maxY, aroundPlayer.getZ() + radiusBlocks
+            );
+            return world.getEntitiesByClass(ItemEntity.class, box, e -> true).iterator();
+        }
     }
 }

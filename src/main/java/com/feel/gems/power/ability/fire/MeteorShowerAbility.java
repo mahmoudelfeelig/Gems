@@ -40,7 +40,7 @@ public final class MeteorShowerAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         HitResult hit = player.raycast(GemsBalance.v().fire().meteorShowerTargetRangeBlocks(), 1.0F, false);
         BlockPos center = BlockPos.ofFloored(hit.getPos());
         AbilityFeedback.ring(world, new Vec3d(center.getX() + 0.5D, center.getY() + 0.2D, center.getZ() + 0.5D), 3.0D, ParticleTypes.FLAME, 24);

@@ -5,23 +5,23 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.entity.player.PlayerEntity;
-import java.util.List;
+import java.util.function.Consumer;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Item.TooltipContext;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
+import com.feel.gems.util.GemsTeleport;
 
 
 
@@ -40,16 +40,16 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        ItemStack stack = user.getStackInHand(hand);
-        if (world.isClient) {
-            return TypedActionResult.success(stack);
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
+        if (world.isClient()) {
+            return ActionResult.SUCCESS;
         }
         if (!(user instanceof ServerPlayerEntity player)) {
-            return TypedActionResult.pass(stack);
+            return ActionResult.PASS;
         }
-        if (player.getItemCooldownManager().isCoolingDown(this)) {
-            return TypedActionResult.success(stack);
+        ItemStack held = player.getStackInHand(hand);
+        if (player.getItemCooldownManager().isCoolingDown(held)) {
+            return ActionResult.SUCCESS;
         }
         if (hasMark(player)) {
             teleportToMark(player);
@@ -58,14 +58,14 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
         }
         int cooldown = GemsBalance.v().legendary().recallCooldownTicks();
         if (cooldown > 0) {
-            player.getItemCooldownManager().set(this, cooldown);
+            player.getItemCooldownManager().set(held, cooldown);
         }
-        return TypedActionResult.success(stack);
+        return ActionResult.SUCCESS;
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        tooltip.add(Text.translatable("item.gems.recall_relic.desc"));
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        tooltip.accept(Text.translatable("item.gems.recall_relic.desc"));
     }
 
     public static void ensureForceload(ServerPlayerEntity player) {
@@ -76,7 +76,8 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
         if (mark == null) {
             return;
         }
-        ServerWorld world = player.getServer() == null ? null : player.getServer().getWorld(mark.dimension());
+        MinecraftServer server = player.getEntityWorld().getServer();
+        ServerWorld world = server == null ? null : server.getWorld(mark.dimension());
         if (world == null) {
             return;
         }
@@ -94,29 +95,26 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
     }
 
     private static boolean hasRelic(ServerPlayerEntity player) {
-        for (ItemStack stack : player.getInventory().main) {
+        for (ItemStack stack : player.getInventory().getMainStacks()) {
             if (stack.getItem() instanceof RecallRelicItem) {
                 return true;
             }
         }
-        for (ItemStack stack : player.getInventory().offHand) {
-            if (stack.getItem() instanceof RecallRelicItem) {
-                return true;
-            }
+        if (player.getOffHandStack().getItem() instanceof RecallRelicItem) {
+            return true;
         }
-        for (ItemStack stack : player.getInventory().armor) {
-            if (stack.getItem() instanceof RecallRelicItem) {
-                return true;
-            }
-        }
-        return false;
+        return player.getEquippedStack(net.minecraft.entity.EquipmentSlot.HEAD).getItem() instanceof RecallRelicItem
+                || player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST).getItem() instanceof RecallRelicItem
+                || player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS).getItem() instanceof RecallRelicItem
+                || player.getEquippedStack(net.minecraft.entity.EquipmentSlot.FEET).getItem() instanceof RecallRelicItem;
     }
 
     private static void setMark(ServerPlayerEntity player) {
         NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        data.putString(KEY_MARK_DIM, player.getServerWorld().getRegistryKey().getValue().toString());
+        ServerWorld world = player.getEntityWorld();
+        data.putString(KEY_MARK_DIM, world.getRegistryKey().getValue().toString());
         writeBlockPos(data, KEY_MARK_POS, player.getBlockPos());
-        forceChunk(player.getServerWorld(), player.getBlockPos(), true);
+        forceChunk(world, player.getBlockPos(), true);
         player.sendMessage(Text.literal("Recall mark set."), true);
     }
 
@@ -126,7 +124,7 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
             clearMark(player);
             return;
         }
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
@@ -137,25 +135,23 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
             return;
         }
         BlockPos pos = mark.pos();
-        player.teleport(targetWorld, pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, player.getYaw(), player.getPitch());
+        GemsTeleport.teleport(player, targetWorld, pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, player.getYaw(), player.getPitch());
         clearMark(player);
         player.sendMessage(Text.literal("Recalled to mark."), true);
     }
 
     private static boolean hasMark(ServerPlayerEntity player) {
         NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        return data.contains(KEY_MARK_DIM, NbtElement.STRING_TYPE) && data.contains(KEY_MARK_POS, NbtElement.INT_ARRAY_TYPE);
+        return data.getString(KEY_MARK_DIM).isPresent() && data.getIntArray(KEY_MARK_POS).isPresent();
     }
 
     private static Mark readMark(ServerPlayerEntity player) {
         NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        if (!data.contains(KEY_MARK_DIM, NbtElement.STRING_TYPE)) {
+        String dimRaw = data.getString(KEY_MARK_DIM, "");
+        if (dimRaw.isEmpty()) {
             return null;
         }
-        if (!data.contains(KEY_MARK_POS, NbtElement.INT_ARRAY_TYPE)) {
-            return null;
-        }
-        Identifier dim = Identifier.tryParse(data.getString(KEY_MARK_DIM));
+        Identifier dim = Identifier.tryParse(dimRaw);
         BlockPos pos = readBlockPos(data, KEY_MARK_POS);
         if (dim == null || pos == null) {
             return null;
@@ -165,8 +161,9 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
 
     private static void clearMark(ServerPlayerEntity player) {
         Mark mark = readMark(player);
-        if (mark != null && player.getServer() != null) {
-            ServerWorld world = player.getServer().getWorld(mark.dimension());
+        MinecraftServer server = player.getEntityWorld().getServer();
+        if (mark != null && server != null) {
+            ServerWorld world = server.getWorld(mark.dimension());
             if (world != null) {
                 forceChunk(world, mark.pos(), false);
             }
@@ -186,7 +183,10 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
     }
 
     private static BlockPos readBlockPos(NbtCompound nbt, String key) {
-        int[] values = nbt.getIntArray(key);
+        int[] values = nbt.getIntArray(key).orElse(null);
+        if (values == null) {
+            return null;
+        }
         if (values.length != 3) {
             return null;
         }

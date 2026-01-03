@@ -7,18 +7,10 @@
     "FHF"
   ],
   "key": {
-    "F": {
-      "item": "minecraft:phantom_membrane"
-    },
-    "H": {
-      "item": "minecraft:feather"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "B": {
-      "item": "minecraft:netherite_boots"
-    }
+    "F": "minecraft:phantom_membrane",
+    "H": "minecraft:feather",
+    "D": "minecraft:diamond",
+    "B": "minecraft:netherite_boots"
   },
   "result": {
     "count": 1,

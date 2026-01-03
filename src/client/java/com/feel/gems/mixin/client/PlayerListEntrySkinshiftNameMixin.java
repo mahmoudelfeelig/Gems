@@ -19,7 +19,7 @@ public abstract class PlayerListEntrySkinshiftNameMixin {
     private void gems$overrideDisplayName(CallbackInfoReturnable<Text> cir) {
         PlayerListEntry self = (PlayerListEntry) (Object) this;
         GameProfile profile = self.getProfile();
-        UUID id = profile == null ? null : profile.getId();
+        UUID id = profile == null ? null : profile.id();
         Text override = ClientDisguiseState.overrideName(id);
         if (override != null) {
             cir.setReturnValue(override);

@@ -4,9 +4,8 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.gametest.util.GemsGameTestUtil;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
 import net.minecraft.world.GameMode;
 
@@ -14,9 +13,9 @@ import net.minecraft.world.GameMode;
 
 
 public final class GemsAirMaceGameTests {
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void airMaceDoesNotRespawnWhenDropped(TestContext context) {
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
+        ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         player.changeGameMode(GameMode.SURVIVAL);
 
         GemPlayerState.initIfNeeded(player);

@@ -5,6 +5,7 @@
   "refmap": "gems-refmap.json",
   "mixins": [
     "BlockAutoSmeltMixin",
+    "ChunkGeneratorFixedLootMixin",
     "ExplosiveProjectileRangeLimitMixin",
     "ExplosiveProjectileTrailMixin",
     "PersistentProjectileEntityRaidersTrainingMixin",

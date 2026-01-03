@@ -1,5 +1,6 @@
 package com.feel.gems.power.runtime;
 
+import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemId;
@@ -65,12 +66,15 @@ public final class GemAbilities {
             return;
         }
 
+        boolean noCooldowns = GemsAdmin.noCooldowns(player);
         long now = GemsTime.now(player);
-        long nextAllowed = GemAbilityCooldowns.nextAllowedTick(player, abilityId);
-        if (nextAllowed > now) {
-            long remainingTicks = nextAllowed - now;
-            player.sendMessage(Text.literal(ability.name() + " is on cooldown (" + ticksToSeconds(remainingTicks) + "s)"), true);
-            return;
+        if (!noCooldowns) {
+            long nextAllowed = GemAbilityCooldowns.nextAllowedTick(player, abilityId);
+            if (nextAllowed > now) {
+                long remainingTicks = nextAllowed - now;
+                player.sendMessage(Text.literal(ability.name() + " is on cooldown (" + ticksToSeconds(remainingTicks) + "s)"), true);
+                return;
+            }
         }
 
         boolean ok = ability.activate(player);
@@ -78,10 +82,10 @@ public final class GemAbilities {
             return;
         }
 
-        SpyMimicSystem.onAbilityUsed(player.getServer(), player, abilityId);
+        SpyMimicSystem.onAbilityUsed(player.getEntityWorld().getServer(), player, abilityId);
 
         int cooldown = Math.max(0, ability.cooldownTicks());
-        if (cooldown > 0) {
+        if (cooldown > 0 && !noCooldowns) {
             GemAbilityCooldowns.setNextAllowedTick(player, abilityId, now + cooldown);
             ServerPlayNetworking.send(player, new AbilityCooldownPayload(gemId.ordinal(), abilityIndex, cooldown));
         }

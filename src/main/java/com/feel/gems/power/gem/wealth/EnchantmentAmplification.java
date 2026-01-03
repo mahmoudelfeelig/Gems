@@ -8,7 +8,6 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -25,11 +24,16 @@ public final class EnchantmentAmplification {
     public static void apply(ServerPlayerEntity player, int durationTicks) {
         long until = GemsTime.now(player) + durationTicks;
 
-        amplifyStack(player.getServerWorld(), player.getMainHandStack(), until);
-        amplifyStack(player.getServerWorld(), player.getOffHandStack(), until);
-        for (ItemStack armor : player.getInventory().armor) {
-            amplifyStack(player.getServerWorld(), armor, until);
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return;
         }
+        amplifyStack(world, player.getMainHandStack(), until);
+        amplifyStack(world, player.getOffHandStack(), until);
+        amplifyStack(world, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.HEAD), until);
+        amplifyStack(world, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST), until);
+        amplifyStack(world, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS), until);
+        amplifyStack(world, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.FEET), until);
+        amplifyStack(world, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.BODY), until);
     }
 
     private static void amplifyStack(ServerWorld world, ItemStack stack, long until) {
@@ -41,7 +45,7 @@ public final class EnchantmentAmplification {
         }
 
         NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
-        if (custom != null && custom.getNbt().contains(CUSTOM_DATA_KEY_AMPLIFY, NbtElement.COMPOUND_TYPE)) {
+        if (custom != null && custom.copyNbt().contains(CUSTOM_DATA_KEY_AMPLIFY)) {
             return;
         }
 
@@ -56,7 +60,7 @@ public final class EnchantmentAmplification {
             int level = entry.getIntValue();
 
             NbtCompound e = new NbtCompound();
-            e.putString("id", world.getRegistryManager().get(RegistryKeys.ENCHANTMENT).getId(enchantment.value()).toString());
+            e.putString("id", world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getId(enchantment.value()).toString());
             e.putInt("lvl", level);
             originalList.add(e);
         }
@@ -85,16 +89,19 @@ public final class EnchantmentAmplification {
         }
 
         EnchantmentHelper.set(stack, ItemEnchantmentsComponent.DEFAULT);
-        var registry = world.getRegistryManager().get(RegistryKeys.ENCHANTMENT);
+        var registry = world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
         for (int i = 0; i < list.size(); i++) {
-            NbtCompound e = list.getCompound(i);
-            String rawId = e.getString("id");
-            int lvl = e.getInt("lvl");
+            NbtCompound e = list.getCompound(i).orElse(null);
+            if (e == null) {
+                continue;
+            }
+            String rawId = e.getString("id", "");
+            int lvl = e.getInt("lvl", 0);
             var id = net.minecraft.util.Identifier.tryParse(rawId);
             if (id == null) {
                 continue;
             }
-            var entry = registry.getEntry(net.minecraft.registry.RegistryKey.of(RegistryKeys.ENCHANTMENT, id));
+            var entry = registry.getEntry(id);
             if (entry.isEmpty()) {
                 continue;
             }

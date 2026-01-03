@@ -39,7 +39,7 @@ public final class SpaceBlackHoleAbility implements GemAbility {
             player.sendMessage(Text.literal("Black Hole is disabled."), true);
             return false;
         }
-        Vec3d center = player.getPos().add(0.0D, 0.2D, 0.0D);
+        Vec3d center = player.getEntityPos().add(0.0D, 0.2D, 0.0D);
         SpaceAnomalies.spawnBlackHole(player, center);
         player.sendMessage(Text.literal("Black Hole spawned."), true);
         return true;

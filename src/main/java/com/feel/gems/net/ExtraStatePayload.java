@@ -26,7 +26,7 @@ public record ExtraStatePayload(
             ExtraStatePayload::activeGemOrdinal,
             PacketCodecs.VAR_INT.cast(),
             ExtraStatePayload::fluxChargePercent,
-            PacketCodecs.BOOL.cast(),
+            PacketCodecs.BOOLEAN.cast(),
             ExtraStatePayload::hasSoul,
             PacketCodecs.string(128),
             ExtraStatePayload::soulTypeId,

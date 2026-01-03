@@ -3,7 +3,6 @@ package com.feel.gems.power.ability.summoner;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
-import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemPowers;
@@ -21,6 +20,7 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -65,6 +65,9 @@ public final class SummonSlotAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         GemPlayerState.initIfNeeded(player);
         if (GemPlayerState.getActiveGem(player) != GemId.SUMMONER) {
+            return false;
+        }
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
             return false;
         }
 
@@ -115,13 +118,13 @@ public final class SummonSlotAbility implements GemAbility {
                 continue;
             }
             for (int i = 0; i < spec.count() && remaining >= cost; i++) {
-                Entity e = type.create(player.getServerWorld());
+                Entity e = type.create(world, SpawnReason.MOB_SUMMONED);
                 if (!(e instanceof MobEntity mob)) {
                     continue;
                 }
                 Vec3d spawnPos = spawnPos(player, spawned);
                 mob.refreshPositionAndAngles(spawnPos.x, spawnPos.y, spawnPos.z, player.getYaw(), player.getPitch());
-                mob.initialize(player.getServerWorld(), player.getServerWorld().getLocalDifficulty(BlockPos.ofFloored(spawnPos)), SpawnReason.MOB_SUMMONED, null);
+                mob.initialize(world, world.getLocalDifficulty(BlockPos.ofFloored(spawnPos)), SpawnReason.MOB_SUMMONED, null);
                 SummonerSummons.tuneControlledMob(mob);
                 SummonerSummons.mark(mob, player.getUuid(), until);
                 mob.disableExperienceDropping();
@@ -129,12 +132,12 @@ public final class SummonSlotAbility implements GemAbility {
                     SummonerSummons.applyBonusHealth(mob, bonusHealthAmount);
                 }
                 mob.setHealth(mob.getMaxHealth());
-                player.getServerWorld().spawnEntity(mob);
+                world.spawnEntity(mob);
                 SummonerSummons.trackSpawn(player, mob);
 
                 if (markTarget != null) {
-                    Entity target = SummonerSummons.findEntity(player.getServer(), markTarget);
-                    if (target instanceof LivingEntity living && living.getWorld() == mob.getWorld()) {
+                    Entity target = SummonerSummons.findEntity(world.getServer(), markTarget);
+                    if (target instanceof LivingEntity living && living.getEntityWorld() == mob.getEntityWorld()) {
                         mob.setTarget(living);
                     }
                 }
@@ -160,7 +163,7 @@ public final class SummonSlotAbility implements GemAbility {
         int ringLayers = Math.max(1, cfg.summonSpawnRingLayers());
         int ringSegments = Math.max(1, cfg.summonSpawnRingSegments());
         Vec3d forward = player.getRotationVec(1.0F).normalize();
-        Vec3d base = player.getPos()
+        Vec3d base = player.getEntityPos()
                 .add(forward.multiply(cfg.summonSpawnForwardBlocks()))
                 .add(0.0D, cfg.summonSpawnUpBlocks(), 0.0D);
         double radius = cfg.summonSpawnRingBaseBlocks() + (index % ringLayers) * cfg.summonSpawnRingStepBlocks();

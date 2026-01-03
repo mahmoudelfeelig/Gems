@@ -5,8 +5,6 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.util.collection.DefaultedList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -16,14 +14,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class PlayerInventoryRecipeBookMixin {
     private static final String OWNER_KEY = "gemsOwner";
 
-    @Inject(method = "indexOf", at = @At("HEAD"), cancellable = true)
-    private void gems$indexOfIgnoreOwner(ItemStack stack, CallbackInfoReturnable<Integer> cir) {
+    @Inject(method = "getSlotWithStack(Lnet/minecraft/item/ItemStack;)I", at = @At("HEAD"), cancellable = true, require = 0)
+    private void gems$getSlotWithStackIgnoreOwner(ItemStack stack, CallbackInfoReturnable<Integer> cir) {
         if (stack.isEmpty()) {
             cir.setReturnValue(-1);
             return;
         }
         PlayerInventory self = (PlayerInventory) (Object) this;
-        DefaultedList<ItemStack> main = self.main;
+        var main = self.getMainStacks();
         boolean targetHasCustomData = stack.contains(DataComponentTypes.CUSTOM_DATA);
         for (int i = 0; i < main.size(); i++) {
             ItemStack candidate = main.get(i);
@@ -52,8 +50,8 @@ public abstract class PlayerInventoryRecipeBookMixin {
         if (custom == null) {
             return false;
         }
-        NbtCompound nbt = custom.getNbt();
-        if (!nbt.contains(OWNER_KEY, NbtElement.INT_ARRAY_TYPE)) {
+        NbtCompound nbt = custom.copyNbt();
+        if (!nbt.contains(OWNER_KEY)) {
             return false;
         }
         return nbt.getKeys().size() == 1;

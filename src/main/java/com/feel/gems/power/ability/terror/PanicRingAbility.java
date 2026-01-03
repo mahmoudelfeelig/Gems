@@ -42,8 +42,8 @@ public final class PanicRingAbility implements GemAbility {
             return false;
         }
 
-        var world = player.getServerWorld();
-        Vec3d center = player.getPos();
+        var world = player.getEntityWorld();
+        Vec3d center = player.getEntityPos();
         double radius = GemsBalance.v().terror().panicRingRadiusBlocks();
         int fuse = GemsBalance.v().terror().panicRingFuseTicks();
 

@@ -53,7 +53,7 @@ public final class BeaconAuraAbility implements GemAbility {
         BeaconSupportRuntime.applyRally(player);
         BeaconAuraRuntime.setActive(player, type);
 
-        AbilityFeedback.ring(player.getServerWorld(), player.getPos().add(0.0D, 0.1D, 0.0D), 2.5D, ParticleTypes.END_ROD, 24);
+        AbilityFeedback.ring(player.getEntityWorld(), player.getEntityPos().add(0.0D, 0.1D, 0.0D), 2.5D, ParticleTypes.END_ROD, 24);
         AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_POWER_SELECT, 0.8F, 1.2F);
         player.sendMessage(Text.literal("Beacon aura set to " + type.label() + "."), true);
         return true;

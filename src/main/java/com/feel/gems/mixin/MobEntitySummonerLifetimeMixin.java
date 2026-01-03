@@ -19,7 +19,7 @@ public abstract class MobEntitySummonerLifetimeMixin {
     @Inject(method = "tick", at = @At("HEAD"), require = 0)
     private void gems$summonerDespawnIfExpiredOrOwnerOffline(CallbackInfo ci) {
         MobEntity self = (MobEntity) (Object) this;
-        if (!(self.getWorld() instanceof ServerWorld world)) {
+        if (!(self.getEntityWorld() instanceof ServerWorld world)) {
             return;
         }
         if (!SummonerSummons.isSummon(self)) {

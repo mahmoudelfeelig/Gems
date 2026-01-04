@@ -1,6 +1,7 @@
 package com.feel.gems.trade;
 
 import com.feel.gems.core.GemId;
+import com.feel.gems.config.GemsDisables;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.GemOwnership;
 import com.feel.gems.item.ModItems;
@@ -28,6 +29,11 @@ public final class GemTrading {
 
     public static Result trade(ServerPlayerEntity player, GemId gemId) {
         GemPlayerState.initIfNeeded(player);
+
+        if (GemsDisables.isGemDisabledFor(player, gemId)) {
+            player.sendMessage(Text.literal("That gem is disabled on this server."), true);
+            return new Result(false, false, false);
+        }
 
         GemId activeBefore = GemPlayerState.getActiveGem(player);
         if (gemId == activeBefore) {
@@ -63,6 +69,11 @@ public final class GemTrading {
 
     public static PurchaseResult purchase(ServerPlayerEntity player, GemId gemId) {
         GemPlayerState.initIfNeeded(player);
+
+        if (GemsDisables.isGemDisabledFor(player, gemId)) {
+            player.sendMessage(Text.literal("That gem is disabled on this server."), true);
+            return new PurchaseResult(false, false, false);
+        }
 
         boolean consumedToken = consumePurchaseToken(player);
         if (!consumedToken) {

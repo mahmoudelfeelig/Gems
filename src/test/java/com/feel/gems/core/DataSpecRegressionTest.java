@@ -1,10 +1,13 @@
 package com.feel.gems.core;
 
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 
 public class DataSpecRegressionTest {
+    // Special gems that are allowed to have empty abilities or passives
+    private static final Set<GemId> SPECIAL_GEMS = Set.of(GemId.VOID, GemId.CHAOS, GemId.PRISM);
 
     @Test
     void everyGemIdHasDefinitionWithPassivesAndAbilities() {
@@ -12,9 +15,13 @@ public class DataSpecRegressionTest {
         for (GemId id : GemId.values()) {
             GemDefinition def = GemRegistry.definition(id);
             assertNotNull(def, "Missing GemDefinition for gem " + id);
-            assertFalse(def.passives().isEmpty(), "Passives empty for gem " + id);
-            // Some gems legitimately have only a couple abilities; allow empty only if spec later adds.
-            assertFalse(def.abilities().isEmpty(), "Abilities empty for gem " + id);
+            
+            // Special gems (Void, Chaos, Prism) can have empty passives/abilities
+            if (!SPECIAL_GEMS.contains(id)) {
+                assertFalse(def.passives().isEmpty(), "Passives empty for gem " + id);
+                // Some gems legitimately have only a couple abilities; allow empty only if spec later adds.
+                assertFalse(def.abilities().isEmpty(), "Abilities empty for gem " + id);
+            }
         }
     }
 

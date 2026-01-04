@@ -3,6 +3,7 @@ package com.feel.gems;
 import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.assassin.AssassinTeams;
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.config.GemsDisables;
 import com.feel.gems.core.GemId;
 import com.feel.gems.debug.GemsPerfMonitor;
 import com.feel.gems.debug.GemsStressTest;
@@ -17,10 +18,12 @@ import com.feel.gems.legendary.LegendaryPlayerTracker;
 import com.feel.gems.legendary.LegendaryTargeting;
 import com.feel.gems.legendary.SupremeSetRuntime;
 import com.feel.gems.net.GemStateSync;
+import com.feel.gems.net.ServerDisablesPayload;
 import com.feel.gems.power.ability.pillager.PillagerVindicatorBreakAbility;
 import com.feel.gems.power.gem.astra.SoulSystem;
 import com.feel.gems.power.gem.beacon.BeaconAuraRuntime;
 import com.feel.gems.power.gem.beacon.BeaconSupportRuntime;
+import com.feel.gems.power.gem.chaos.ChaosRotationRuntime;
 import com.feel.gems.power.gem.fire.AutoSmeltCache;
 import com.feel.gems.power.gem.flux.FluxCharge;
 import com.feel.gems.power.gem.pillager.PillagerDiscipline;
@@ -48,6 +51,7 @@ import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -187,6 +191,7 @@ public final class GemsModEvents {
             GemPowers.sync(player);
             GemItemGlint.sync(player);
             GemStateSync.send(player);
+            sendDisables(player);
             SpyMimicSystem.syncSkinshifts(player);
             SpyMimicSystem.syncSkinshiftSelf(player);
             unlockStartingRecipes(server, player);
@@ -255,6 +260,7 @@ public final class GemsModEvents {
                 SpeedFrictionlessSteps.tick(s);
                 GemsStressTest.tick(s);
                 GemOwnership.tickPurgeQueue(s);
+                ChaosRotationRuntime.tick(s);
                 for (ServerPlayerEntity player : s.getPlayerManager().getPlayerList()) {
                     TerrorRigRuntime.checkStep(player);
                 }
@@ -296,6 +302,20 @@ public final class GemsModEvents {
             // Tail hook: perf monitor should run after all scheduled work for the tick.
             GemsTickScheduler.scheduleRepeating(server, 0, 1, Integer.MAX_VALUE, s -> GemsPerfMonitor.onTickEnd());
         });
+    }
+
+    private static void sendDisables(ServerPlayerEntity player) {
+        var v = GemsDisables.v();
+        if (player != null && player.getCommandSource().getPermissions().hasPermission(new net.minecraft.command.permission.Permission.Level(net.minecraft.command.permission.PermissionLevel.fromLevel(2)))) {
+            ServerPlayNetworking.send(player, new ServerDisablesPayload(java.util.List.of(), java.util.List.of(), java.util.List.of(), java.util.List.of(), java.util.List.of()));
+            return;
+        }
+        java.util.List<Integer> disabledGems = v.disabledGems().stream().map(com.feel.gems.core.GemId::ordinal).sorted().toList();
+        java.util.List<String> disabledAbilities = v.disabledAbilities().stream().map(net.minecraft.util.Identifier::toString).sorted().toList();
+        java.util.List<String> disabledPassives = v.disabledPassives().stream().map(net.minecraft.util.Identifier::toString).sorted().toList();
+        java.util.List<String> disabledBonusAbilities = v.disabledBonusAbilities().stream().map(net.minecraft.util.Identifier::toString).sorted().toList();
+        java.util.List<String> disabledBonusPassives = v.disabledBonusPassives().stream().map(net.minecraft.util.Identifier::toString).sorted().toList();
+        ServerPlayNetworking.send(player, new ServerDisablesPayload(disabledGems, disabledAbilities, disabledPassives, disabledBonusAbilities, disabledBonusPassives));
     }
 
     private static void ensureActiveGemItem(ServerPlayerEntity player) {

@@ -168,6 +168,22 @@ public final class GemsConfigScreen extends Screen {
                 y = addDoubleRow("Controlled follow speed", y, labelX, labelW, fieldX, fieldW, () -> cfg.systems.controlledFollowSpeed, v -> cfg.systems.controlledFollowSpeed = v, 0.0D, 3.0D);
                 logicalY += ROW_H;
             }
+            case BONUS_POOL -> {
+                y = addIntRow("Max bonus abilities", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.maxBonusAbilities, v -> cfg.bonusPool.maxBonusAbilities = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Max bonus passives", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.maxBonusPassives, v -> cfg.bonusPool.maxBonusPassives = v, 0, 10);
+                logicalY += ROW_H;
+                y = addBoolRow("Show bonuses in HUD", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.showBonusesInHud, v -> cfg.bonusPool.showBonusesInHud = v);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addFloatRow("Ability cooldown multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.bonusAbilityCooldownMultiplier, v -> cfg.bonusPool.bonusAbilityCooldownMultiplier = v, 0.1F, 10.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Ability damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.bonusAbilityDamageMultiplier, v -> cfg.bonusPool.bonusAbilityDamageMultiplier = v, 0.1F, 10.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Passive effect multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.bonusPassiveEffectMultiplier, v -> cfg.bonusPool.bonusPassiveEffectMultiplier = v, 0.1F, 10.0F);
+                logicalY += ROW_H;
+            }
             case ASTRA -> {
                 y = addIntRow("Shadow Anchor window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.astra.shadowAnchorWindowSeconds, v -> cfg.astra.shadowAnchorWindowSeconds = v, 0, 60);
                 logicalY += ROW_H;
@@ -1516,6 +1532,7 @@ public final class GemsConfigScreen extends Screen {
         CLIENT("Client"),
         VISUAL("Visual"),
         SYSTEMS("Systems"),
+        BONUS_POOL("Bonus Pool"),
         ASTRA("Astra"),
         FIRE("Fire"),
         FLUX("Flux"),
@@ -1598,6 +1615,9 @@ public final class GemsConfigScreen extends Screen {
         }
         if (cfg.legendary == null) {
             cfg.legendary = new GemsBalanceConfig.Legendary();
+        }
+        if (cfg.bonusPool == null) {
+            cfg.bonusPool = new GemsBalanceConfig.BonusPool();
         }
         return cfg;
     }

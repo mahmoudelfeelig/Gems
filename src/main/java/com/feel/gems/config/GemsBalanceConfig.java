@@ -29,7 +29,12 @@ public final class GemsBalanceConfig {
     public SpyMimic spyMimic = new SpyMimic();
     public Beacon beacon = new Beacon();
     public Air air = new Air();
+    public Duelist duelist = new Duelist();
+    public Hunter hunter = new Hunter();
+    public Sentinel sentinel = new Sentinel();
+    public Trickster trickster = new Trickster();
     public Legendary legendary = new Legendary();
+    public BonusPool bonusPool = new BonusPool();
 
     /**
      * Universal mob blacklist for Hypno Staff, Summoner summons, and Astra soul captures.
@@ -685,6 +690,130 @@ public final class GemsBalanceConfig {
         public int airMaceFireAspectLevel = 2;
     }
 
+    public static final class Duelist {
+        // Passives
+        public float riposteBonusDamageMultiplier = 1.50F;
+        public int riposteWindowSeconds = 2;
+        public float focusBonusDamageMultiplier = 1.25F;
+        public int focusRadiusBlocks = 15;
+        public float combatStanceSpeedMultiplier = 1.10F;
+
+        // Abilities
+        public int lungeCooldownSeconds = 8;
+        public int lungeDistanceBlocks = 8;
+        public float lungeDamage = 6.0F;
+
+        public int parryCooldownSeconds = 12;
+        public int parryWindowTicks = 10;
+        public int parryStunSeconds = 2;
+
+        public int flourishCooldownSeconds = 15;
+        public int flourishRadiusBlocks = 3;
+        public float flourishDamage = 5.0F;
+
+        public int mirrorMatchCooldownSeconds = 90;
+        public int mirrorMatchDurationSeconds = 15;
+        public int mirrorMatchRangeBlocks = 20;
+
+        public int bladeDanceCooldownSeconds = 30;
+        public int bladeDanceDurationSeconds = 10;
+        public float bladeDanceStartingMultiplier = 1.0F;
+        public float bladeDanceIncreasePerHit = 0.10F;
+        public float bladeDanceMaxMultiplier = 2.0F;
+        public int bladeDanceResetSeconds = 3;
+    }
+
+    public static final class Hunter {
+        // Passives
+        public float preyMarkBonusDamageMultiplier = 1.15F;
+        public int preyMarkDurationSeconds = 30;
+        public int trackersEyeRangeBlocks = 30;
+        public int trophyHunterDurationSeconds = 60;
+
+        // Abilities
+        public int huntingTrapCooldownSeconds = 20;
+        public int huntingTrapRootSeconds = 3;
+        public float huntingTrapDamage = 4.0F;
+        public int huntingTrapLifetimeSeconds = 60;
+
+        public int pounceCooldownSeconds = 15;
+        public int pounceRangeBlocks = 20;
+        public float pounceDamage = 6.0F;
+
+        public int netShotCooldownSeconds = 25;
+        public int netShotSlowSeconds = 5;
+        public int netShotRangeBlocks = 30;
+
+        public int cripplingCooldownSeconds = 20;
+        public float cripplingSlowMultiplier = 0.50F;
+        public int cripplingDurationSeconds = 8;
+        public int cripplingRangeBlocks = 30;
+
+        public int packTacticsCooldownSeconds = 45;
+        public float packTacticsBonusDamageMultiplier = 1.20F;
+        public int packTacticsDurationSeconds = 10;
+        public int packTacticsRadiusBlocks = 10;
+    }
+
+    public static final class Sentinel {
+        // Passives
+        public float guardianAuraDamageReduction = 0.15F;
+        public int guardianAuraRadiusBlocks = 8;
+        public int fortressStandStillSeconds = 2;
+        public int fortressResistanceAmplifier = 1;
+        public float retributionThornsDamageMultiplier = 0.20F;
+
+        // Abilities
+        public int shieldWallCooldownSeconds = 30;
+        public int shieldWallDurationSeconds = 8;
+        public int shieldWallWidthBlocks = 5;
+        public int shieldWallHeightBlocks = 3;
+
+        public int tauntCooldownSeconds = 45;
+        public int tauntDurationSeconds = 5;
+        public int tauntRadiusBlocks = 10;
+        public float tauntDamageReduction = 0.30F;
+
+        public int interventionCooldownSeconds = 60;
+        public int interventionRangeBlocks = 30;
+
+        public int rallyCryCooldownSeconds = 60;
+        public float rallyCryHealHearts = 4.0F;
+        public int rallyCryResistanceDurationSeconds = 8;
+        public int rallyCryRadiusBlocks = 12;
+
+        public int lockdownCooldownSeconds = 90;
+        public int lockdownDurationSeconds = 10;
+        public int lockdownRadiusBlocks = 8;
+    }
+
+    public static final class Trickster {
+        // Passives
+        public float sleightOfHandChance = 0.20F;
+        public float slipperyChance = 0.25F;
+
+        // Abilities
+        public int shadowSwapCooldownSeconds = 20;
+        public int shadowSwapCloneDurationSeconds = 30;
+
+        public int mirageCooldownSeconds = 30;
+        public int mirageDurationSeconds = 10;
+        public int mirageCloneCount = 3;
+
+        public int glitchStepCooldownSeconds = 10;
+        public int glitchStepDistanceBlocks = 8;
+        public float glitchStepAfterimgDamage = 4.0F;
+        public int glitchStepAfterimgRadiusBlocks = 2;
+
+        public int puppetMasterCooldownSeconds = 60;
+        public int puppetMasterDurationSeconds = 3;
+        public int puppetMasterRangeBlocks = 15;
+
+        public int mindGamesCooldownSeconds = 45;
+        public int mindGamesDurationSeconds = 5;
+        public int mindGamesRangeBlocks = 20;
+    }
+
     public static final class Legendary {
         public int craftSeconds = 600;
         public int craftMaxPerItem = 1;
@@ -748,5 +877,464 @@ public final class GemsBalanceConfig {
             map.put("gems:vampiric_edge_discount", "life");
             return map;
         }
+    }
+
+    /**
+     * Balance settings for bonus abilities and passives claimed at max energy.
+     */
+    public static final class BonusPool {
+        /** Number of bonus abilities a player can claim at max energy */
+        public int maxBonusAbilities = 1;
+        /** Number of bonus passives a player can claim at max energy */
+        public int maxBonusPassives = 1;
+        /** Whether to show claimed bonuses in the HUD */
+        public boolean showBonusesInHud = true;
+        /** Global cooldown multiplier for bonus abilities (1.0 = normal) */
+        public float bonusAbilityCooldownMultiplier = 1.0F;
+        /** Global damage multiplier for bonus abilities (1.0 = normal) */
+        public float bonusAbilityDamageMultiplier = 1.0F;
+        /** Global effect duration multiplier for bonus passives (1.0 = normal) */
+        public float bonusPassiveEffectMultiplier = 1.0F;
+
+        // ================= BONUS ABILITY CONFIGS =================
+        // Thunderstrike
+        public int thunderstrikeCooldownSeconds = 15;
+        public float thunderstrikeDamage = 8.0F;
+        public int thunderstrikeRangeBlocks = 30;
+
+        // Frostbite
+        public int frostbiteCooldownSeconds = 12;
+        public float frostbiteDamage = 4.0F;
+        public int frostbiteFreezeSeconds = 3;
+        public int frostbiteRangeBlocks = 20;
+
+        // Earthshatter
+        public int earthshatterCooldownSeconds = 20;
+        public float earthshatterDamage = 6.0F;
+        public int earthshatterRadiusBlocks = 5;
+
+        // Shadowstep
+        public int shadowstepCooldownSeconds = 8;
+        public int shadowstepDistanceBlocks = 10;
+
+        // Radiant Burst
+        public int radiantBurstCooldownSeconds = 25;
+        public float radiantBurstDamage = 5.0F;
+        public int radiantBurstRadiusBlocks = 6;
+        public int radiantBurstBlindSeconds = 3;
+
+        // Venomspray
+        public int venomsprayCooldownSeconds = 15;
+        public int venomsprayPoisonSeconds = 8;
+        public int venomsprayConeAngleDegrees = 45;
+        public int venomsprayRangeBlocks = 8;
+
+        // Timewarp
+        public int timewarpCooldownSeconds = 45;
+        public int timewarpDurationSeconds = 4;
+        public int timewarpRadiusBlocks = 10;
+        public int timewarpSlownessAmplifier = 3;
+
+        // Decoy Trap (was Mirror Image)
+        public int decoyTrapCooldownSeconds = 30;
+        public float decoyTrapExplosionDamage = 6.0F;
+        public int decoyTrapArmTimeSeconds = 2;
+
+        // Gravity Well
+        public int gravityWellCooldownSeconds = 30;
+        public int gravityWellDurationSeconds = 5;
+        public int gravityWellRadiusBlocks = 6;
+        public float gravityWellPullStrength = 0.5F;
+
+        // Chain Lightning
+        public int chainLightningCooldownSeconds = 12;
+        public float chainLightningDamage = 4.0F;
+        public int chainLightningMaxBounces = 5;
+        public int chainLightningBounceRangeBlocks = 8;
+
+        // Magma Pool
+        public int magmaPoolCooldownSeconds = 25;
+        public float magmaPoolDamagePerSecond = 2.0F;
+        public int magmaPoolDurationSeconds = 8;
+        public int magmaPoolRadiusBlocks = 4;
+
+        // Ice Wall
+        public int iceWallCooldownSeconds = 20;
+        public int iceWallDurationSeconds = 10;
+        public int iceWallWidthBlocks = 5;
+        public int iceWallHeightBlocks = 3;
+
+        // Wind Slash
+        public int windSlashCooldownSeconds = 6;
+        public float windSlashDamage = 5.0F;
+        public int windSlashRangeBlocks = 15;
+
+        // Curse Bolt (was Soul Drain)
+        public int curseBoltCooldownSeconds = 18;
+        public float curseBoltDamage = 3.0F;
+        public int curseBoltEffectDurationSeconds = 6;
+
+        // Berserker Rage
+        public int berserkerRageCooldownSeconds = 60;
+        public int berserkerRageDurationSeconds = 10;
+        public float berserkerRageDamageBoostPercent = 50.0F;
+        public float berserkerRageDamageTakenBoostPercent = 25.0F;
+
+        // Ethereal Step (was Phase Shift)
+        public int etherealStepCooldownSeconds = 10;
+        public int etherealStepDistanceBlocks = 8;
+
+        // Arcane Missiles
+        public int arcaneMissilesCooldownSeconds = 10;
+        public float arcaneMissilesDamagePerMissile = 2.0F;
+        public int arcaneMissilesCount = 5;
+
+        // Life Tap
+        public int lifeTapCooldownSeconds = 45;
+        public float lifeTapHealthCost = 4.0F;
+        public float lifeTapCooldownReductionPercent = 50.0F;
+
+        // Doom Bolt
+        public int doomBoltCooldownSeconds = 20;
+        public float doomBoltDamage = 12.0F;
+        public float doomBoltVelocity = 0.5F;
+
+        // Sanctuary
+        public int sanctuaryCooldownSeconds = 60;
+        public int sanctuaryDurationSeconds = 6;
+        public int sanctuaryRadiusBlocks = 4;
+
+        // Spectral Chains
+        public int spectralChainsCooldownSeconds = 18;
+        public int spectralChainsDurationSeconds = 4;
+        public int spectralChainsRangeBlocks = 15;
+
+        // Void Rift
+        public int voidRiftCooldownSeconds = 30;
+        public float voidRiftDamagePerSecond = 3.0F;
+        public int voidRiftDurationSeconds = 5;
+        public int voidRiftRadiusBlocks = 4;
+
+        // Inferno Dash
+        public int infernoDashCooldownSeconds = 12;
+        public float infernoDashDamage = 3.0F;
+        public int infernoDashDistanceBlocks = 10;
+        public int infernoDashFireDurationSeconds = 4;
+
+        // Tidal Wave
+        public int tidalWaveCooldownSeconds = 25;
+        public float tidalWaveDamage = 4.0F;
+        public int tidalWaveRangeBlocks = 12;
+        public int tidalWaveSlowSeconds = 3;
+
+        // Starfall
+        public int starfallCooldownSeconds = 35;
+        public float starfallDamagePerHit = 3.0F;
+        public int starfallMeteorCount = 8;
+        public int starfallRadiusBlocks = 8;
+
+        // Bloodlust
+        public int bloodlustCooldownSeconds = 40;
+        public int bloodlustDurationSeconds = 12;
+        public float bloodlustAttackSpeedPerKill = 0.1F;
+        public int bloodlustMaxStacks = 5;
+
+        // Crystal Cage
+        public int crystalCageCooldownSeconds = 35;
+        public int crystalCageDurationSeconds = 3;
+        public int crystalCageRangeBlocks = 20;
+
+        // Phantasm
+        public int phantasmCooldownSeconds = 25;
+        public int phantasmDurationSeconds = 5;
+        public float phantasmExplosionDamage = 6.0F;
+
+        // Sonic Boom
+        public int sonicBoomCooldownSeconds = 20;
+        public float sonicBoomDamage = 4.0F;
+        public int sonicBoomRadiusBlocks = 8;
+        public float sonicBoomKnockbackStrength = 2.0F;
+
+        // Vampiric Touch
+        public int vampiricTouchCooldownSeconds = 15;
+        public float vampiricTouchDamage = 6.0F;
+        public float vampiricTouchHealPercent = 50.0F;
+
+        // Blinding Flash
+        public int blindingFlashCooldownSeconds = 25;
+        public int blindingFlashBlindSeconds = 4;
+        public int blindingFlashRadiusBlocks = 10;
+
+        // Storm Call
+        public int stormCallCooldownSeconds = 45;
+        public float stormCallDamagePerStrike = 4.0F;
+        public int stormCallDurationSeconds = 6;
+        public int stormCallRadiusBlocks = 12;
+        public int stormCallStrikesPerSecond = 2;
+
+        // Quicksand
+        public int quicksandCooldownSeconds = 25;
+        public int quicksandDurationSeconds = 8;
+        public int quicksandRadiusBlocks = 5;
+        public int quicksandSlownessAmplifier = 3;
+
+        // Searing Light
+        public int searingLightCooldownSeconds = 14;
+        public float searingLightDamage = 5.0F;
+        public float searingLightUndeadBonusDamage = 4.0F;
+        public int searingLightRangeBlocks = 20;
+
+        // Spectral Blade (was Shadow Clone)
+        public int spectralBladeCooldownSeconds = 20;
+        public float spectralBladeDamage = 3.0F;
+        public int spectralBladeDurationSeconds = 8;
+
+        // Nether Portal
+        public int netherPortalCooldownSeconds = 15;
+        public int netherPortalDistanceBlocks = 15;
+
+        // Entangle
+        public int entangleCooldownSeconds = 20;
+        public int entangleDurationSeconds = 4;
+        public int entangleRadiusBlocks = 6;
+
+        // Mind Spike
+        public int mindSpikeCooldownSeconds = 16;
+        public float mindSpikeDamagePerSecond = 2.0F;
+        public int mindSpikeDurationSeconds = 5;
+        public int mindSpikeRangeBlocks = 25;
+
+        // Seismic Slam
+        public int seismicSlamCooldownSeconds = 18;
+        public float seismicSlamDamage = 6.0F;
+        public int seismicSlamRadiusBlocks = 6;
+        public float seismicSlamKnockupStrength = 0.8F;
+
+        // Icicle Barrage
+        public int icicleBarrageCooldownSeconds = 12;
+        public float icicleBarrageDamagePerIcicle = 2.0F;
+        public int icicleBarrageCount = 8;
+        public int icicleBarrageRangeBlocks = 20;
+
+        // Banishment
+        public int banishmentCooldownSeconds = 60;
+        public int banishmentDistanceBlocks = 50;
+        public int banishmentRangeBlocks = 20;
+
+        // Corpse Explosion
+        public int corpseExplosionCooldownSeconds = 25;
+        public float corpseExplosionDamage = 5.0F;
+        public int corpseExplosionRadiusBlocks = 6;
+        public int corpseExplosionCorpseRangeBlocks = 10;
+
+        // Soul Swap
+        public int soulSwapCooldownSeconds = 30;
+        public int soulSwapRangeBlocks = 25;
+
+        // Mark of Death
+        public int markOfDeathCooldownSeconds = 35;
+        public int markOfDeathDurationSeconds = 8;
+        public float markOfDeathBonusDamagePercent = 30.0F;
+        public int markOfDeathRangeBlocks = 30;
+
+        // Iron Maiden
+        public int ironMaidenCooldownSeconds = 40;
+        public int ironMaidenDurationSeconds = 6;
+        public float ironMaidenReflectPercent = 50.0F;
+
+        // Warp Strike (was Spirit Walk)
+        public int warpStrikeCooldownSeconds = 14;
+        public float warpStrikeDamage = 5.0F;
+        public int warpStrikeRangeBlocks = 15;
+
+        // Vortex Strike
+        public int vortexStrikeCooldownSeconds = 18;
+        public float vortexStrikeDamage = 4.0F;
+        public int vortexStrikeRadiusBlocks = 5;
+        public float vortexStrikePullStrength = 1.0F;
+
+        // Plague Cloud
+        public int plagueCloudCooldownSeconds = 30;
+        public int plagueCloudDurationSeconds = 10;
+        public int plagueCloudPoisonAmplifier = 1;
+        public int plagueCloudWeaknessAmplifier = 0;
+
+        // Overcharge
+        public int overchargeCooldownSeconds = 45;
+        public float overchargeDamageMultiplier = 2.0F;
+        public float overchargeHealthCost = 4.0F;
+        public int overchargeDurationSeconds = 10;
+
+        // Gravity Crush (was Temporal Anchor)
+        public int gravityCrushCooldownSeconds = 22;
+        public float gravityCrushDamage = 5.0F;
+        public int gravityCrushRootDurationSeconds = 2;
+        public int gravityCrushRangeBlocks = 20;
+
+        // ================= BONUS PASSIVE CONFIGS =================
+        // Thorns Aura
+        public float thornsAuraDamagePercent = 25.0F;
+
+        // Lifesteal
+        public float lifestealPercent = 10.0F;
+
+        // Dodge Chance
+        public float dodgeChancePercent = 10.0F;
+
+        // Critical Strike
+        public float criticalStrikeBonusDamagePercent = 50.0F;
+        public float criticalStrikeChanceBonus = 15.0F;
+
+        // Mana Shield
+        public float manaShieldXpPerDamage = 2.0F;
+
+        // Regeneration Boost
+        public int regenerationBoostAmplifier = 0;
+
+        // Damage Reduction
+        public float damageReductionPercent = 10.0F;
+
+        // Attack Speed
+        public float attackSpeedBoostPercent = 15.0F;
+
+        // Reach Extend
+        public float reachExtendBlocks = 1.5F;
+
+        // Impact Absorb (was Night Vision)
+        public float impactAbsorbPercent = 20.0F;
+        public int impactAbsorbMaxAbsorption = 4;
+
+        // Adrenaline Surge (was Water Breathing)
+        public int adrenalineSurgeDurationSeconds = 3;
+        public int adrenalineSurgeCooldownSeconds = 10;
+
+        // Intimidate (was Fire Walker)
+        public float intimidateDamageReductionPercent = 10.0F;
+        public int intimidateRadiusBlocks = 8;
+
+        // Evasive Roll (was Feather Fall)
+        public int evasiveRollCooldownSeconds = 8;
+        public int evasiveRollDistanceBlocks = 4;
+
+        // Combat Meditate (was Swift Sneak)
+        public float combatMeditateHealPerSecond = 1.0F;
+        public int combatMeditateDelaySeconds = 2;
+
+        // Weapon Mastery (was Soul Speed)
+        public float weaponMasteryBonusDamage = 1.0F;
+
+        // Culling Blade (was Depth Strider)
+        public float cullingBladeThresholdPercent = 10.0F;
+
+        // Thick Skin (was Frost Walker)
+        public float thickSkinProjectileReductionPercent = 25.0F;
+
+        // XP Boost
+        public float xpBoostPercent = 25.0F;
+
+        // Hunger Resist
+        public float hungerResistReductionPercent = 50.0F;
+
+        // Poison Immunity
+        public boolean poisonImmunityFull = true;
+
+        // Second Wind
+        public int secondWindCooldownSeconds = 300;
+        public float secondWindHealAmount = 4.0F;
+
+        // Echo Strike
+        public float echoStrikeChancePercent = 15.0F;
+
+        // Chain Breaker (was Momentum)
+        public float chainBreakerDurationReductionPercent = 50.0F;
+
+        // Stone Skin
+        public float stoneSkinFlatReduction = 1.0F;
+
+        // Arcane Barrier
+        public int arcaneBarrierCooldownSeconds = 30;
+        public float arcaneBarrierAbsorbAmount = 4.0F;
+
+        // Predator Sense
+        public float predatorSenseThresholdPercent = 30.0F;
+        public int predatorSenseRangeBlocks = 20;
+
+        // Battle Medic
+        public float battleMedicHealPerSecond = 0.5F;
+        public int battleMedicRadiusBlocks = 8;
+
+        // Last Stand
+        public float lastStandThresholdPercent = 25.0F;
+        public float lastStandDamageBoostPercent = 50.0F;
+
+        // Executioner
+        public float executionerThresholdPercent = 25.0F;
+        public float executionerBonusDamagePercent = 30.0F;
+
+        // Bloodthirst
+        public float bloodthirstHealOnKill = 4.0F;
+
+        // Steel Resolve
+        public boolean steelResolveFullKnockbackImmunity = true;
+
+        // Elemental Harmony
+        public float elementalHarmonyReductionPercent = 25.0F;
+
+        // Treasure Hunter
+        public float treasureHunterDropBoostPercent = 20.0F;
+
+        // Counter Strike (was Shadowmeld)
+        public float counterStrikeDamageMultiplier = 2.0F;
+        public int counterStrikeWindowSeconds = 3;
+
+        // Bulwark
+        public float bulwarkBlockEffectivenessBoostPercent = 50.0F;
+
+        // Quick Recovery
+        public float quickRecoveryDebuffReductionPercent = 30.0F;
+
+        // Overflowing Vitality
+        public int overfowingVitalityBonusHearts = 4;
+
+        // Magnetic Pull
+        public float magneticPullRangeMultiplier = 2.0F;
+
+        // Vengeance
+        public float vengeanceBuffDurationSeconds = 5.0F;
+        public float vengeanceDamageBoostPercent = 50.0F;
+
+        // Nemesis (was Phoenix Blessing)
+        public float nemesisBonusDamagePercent = 25.0F;
+
+        // Hunter's Instinct (was Spectral Sight)
+        public float huntersInstinctCritBoostPercent = 20.0F;
+
+        // Berserker Blood
+        public float berserkerBloodMaxAttackSpeedBoost = 50.0F;
+
+        // Opportunist
+        public float opportunistBackstabBonusPercent = 25.0F;
+
+        // Ironclad
+        public float ironcladArmorBoostPercent = 25.0F;
+
+        // Mist Form
+        public float mistFormPhaseChancePercent = 10.0F;
+
+        // War Cry
+        public int warCryRadiusBlocks = 10;
+        public int warCryStrengthDurationSeconds = 5;
+
+        // Siphon Soul
+        public int siphonSoulRegenDurationSeconds = 4;
+
+        // Unbreakable
+        public float unbreakableDurabilityReductionPercent = 50.0F;
+
+        // Focused Mind
+        public float focusedMindCooldownReductionPercent = 15.0F;
+
+        // Sixth Sense
+        public int sixthSenseWarningRangeBlocks = 15;
     }
 }

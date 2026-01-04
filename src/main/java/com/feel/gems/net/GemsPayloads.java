@@ -29,6 +29,7 @@ public final class GemsPayloads {
         PayloadTypeRegistry.playS2C().register(SummonerLoadoutScreenPayload.ID, SummonerLoadoutScreenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(TrackerCompassScreenPayload.ID, TrackerCompassScreenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(SpySkinshiftPayload.ID, SpySkinshiftPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ServerDisablesPayload.ID, ServerDisablesPayload.CODEC);
         registered = true;
     }
 }

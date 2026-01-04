@@ -1,6 +1,7 @@
 package com.feel.gems.power.gem.spy;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.config.GemsDisables;
 import com.feel.gems.core.GemId;
 import com.feel.gems.net.SpySkinshiftPayload;
 import com.feel.gems.power.gem.astra.SoulSummons;
@@ -110,6 +111,9 @@ public final class SpyMimicSystem {
 
     public static void onAbilityUsed(MinecraftServer server, ServerPlayerEntity caster, Identifier abilityId) {
         if (server == null) {
+            return;
+        }
+        if (GemsDisables.isAbilityDisabled(abilityId)) {
             return;
         }
         long now = GemsTime.now(caster);
@@ -252,6 +256,10 @@ public final class SpyMimicSystem {
         Identifier abilityId = lastSeenAbility(spy);
         if (abilityId == null) {
             spy.sendMessage(Text.literal("No observed ability."), true);
+            return false;
+        }
+        if (GemsDisables.isAbilityDisabled(abilityId)) {
+            spy.sendMessage(Text.literal("That ability is disabled on this server."), true);
             return false;
         }
         if (!canSteal(spy, abilityId, now)) {

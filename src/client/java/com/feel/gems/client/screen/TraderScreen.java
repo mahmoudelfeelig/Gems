@@ -1,8 +1,11 @@
 package com.feel.gems.client.screen;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.client.ClientDisables;
 import com.feel.gems.core.GemId;
 import com.feel.gems.screen.TraderScreenHandler;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -28,6 +31,8 @@ public final class TraderScreen extends HandledScreen<TraderScreenHandler> {
     private int hintY;
     private java.util.List<net.minecraft.text.OrderedText> hintLines = java.util.List.of();
 
+    private List<GemId> visibleGems = List.of();
+
     public TraderScreen(TraderScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, TITLE_TRADE);
     }
@@ -35,14 +40,15 @@ public final class TraderScreen extends HandledScreen<TraderScreenHandler> {
     @Override
     protected void init() {
         super.init();
+        clearChildren();
 
         int buttonWidth = 140;
         int buttonHeight = 20;
         int gap = 8;
         int columns = 2;
 
-        GemId[] gems = GemId.values();
-        int rows = (gems.length + columns - 1) / columns;
+        visibleGems = computeVisibleGems();
+        int rows = (visibleGems.size() + columns - 1) / columns;
         int gridWidth = columns * buttonWidth + (columns - 1) * gap;
         int gridHeight = rows * buttonHeight + (rows - 1) * gap;
 
@@ -64,8 +70,8 @@ public final class TraderScreen extends HandledScreen<TraderScreenHandler> {
         this.panelTop = Math.max(6, titleY - 6);
         this.panelBottom = Math.min(this.height - 6, gridStartY + gridHeight + 54);
 
-        for (int i = 0; i < gems.length; i++) {
-            GemId gemId = gems[i];
+        for (int i = 0; i < visibleGems.size(); i++) {
+            GemId gemId = visibleGems.get(i);
             int row = i / columns;
             int col = i % columns;
 
@@ -73,12 +79,23 @@ public final class TraderScreen extends HandledScreen<TraderScreenHandler> {
             int y = this.gridStartY + row * (buttonHeight + gap);
 
             Text label = Text.translatable("item." + GemsMod.MOD_ID + "." + gemId.name().toLowerCase() + "_gem");
-            int buttonId = i;
+            int buttonId = gemId.ordinal();
             addDrawableChild(ButtonWidget.builder(label, btn -> select(buttonId)).dimensions(x, y, buttonWidth, buttonHeight).build());
         }
 
         int cancelWidth = gridWidth;
         addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), btn -> close()).dimensions(this.gridStartX, this.gridStartY + gridHeight + 18, cancelWidth, buttonHeight).build());
+    }
+
+    private List<GemId> computeVisibleGems() {
+        List<GemId> out = new ArrayList<>();
+        for (GemId gem : GemId.values()) {
+            if (ClientDisables.isInitialized() && ClientDisables.isGemDisabled(gem)) {
+                continue;
+            }
+            out.add(gem);
+        }
+        return List.copyOf(out);
     }
 
     private void select(int buttonId) {

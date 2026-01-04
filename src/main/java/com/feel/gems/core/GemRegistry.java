@@ -8,12 +8,11 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
 import java.util.List;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.resource.SynchronousResourceReloader;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.NotNull;
 
 
 
@@ -21,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Lightweight in-memory registry for gem definitions. Meant to be bridged to the loader's registry system.
  */
-@SuppressWarnings("deprecation")
 public final class GemRegistry {
     private static EnumMap<GemId, GemDefinition> DEFINITIONS = new EnumMap<>(GemId.class);
     private static final Gson GSON = new Gson();
@@ -48,17 +46,10 @@ public final class GemRegistry {
         // Dedicated/integrated servers: reload from datapacks on /reload and startup.
         // Unit tests may run without Fabric Loader being fully bootstrapped; skip if unavailable.
         try {
-            ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
-                @Override
-                public @NotNull Identifier getFabricId() {
-                    return Identifier.of(GemsMod.MOD_ID, "gem_registry");
-                }
-
-                @Override
-                public void reload(ResourceManager manager) {
-                    reloadFromResourceManager(manager);
-                }
-            });
+            ResourceLoader.get(ResourceType.SERVER_DATA).registerReloader(
+                    Identifier.of(GemsMod.MOD_ID, "gem_registry"),
+                    (SynchronousResourceReloader) GemRegistry::reloadFromResourceManager
+            );
         } catch (Throwable t) {
             GemsMod.LOGGER.debug("Skipping gem registry reload listener registration (likely unit-test environment)", t);
         }

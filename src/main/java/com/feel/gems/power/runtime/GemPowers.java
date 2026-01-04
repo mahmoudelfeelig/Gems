@@ -3,6 +3,7 @@ package com.feel.gems.power.runtime;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
+import com.feel.gems.config.GemsDisables;
 import com.feel.gems.power.api.GemMaintainedPassive;
 import com.feel.gems.power.api.GemPassive;
 import com.feel.gems.power.passive.StatusEffectPassive;
@@ -35,9 +36,19 @@ public final class GemPowers {
         boolean passivesEnabled = GemPlayerState.arePassivesEnabled(player);
         boolean suppressed = AbilityRestrictions.isSuppressed(player);
 
-        List<Identifier> targetPassives = (energy > 0 && passivesEnabled && !suppressed)
-                ? GemRegistry.definition(activeGem).passives()
-                : List.of();
+        List<Identifier> targetPassives = List.of();
+        if (energy > 0 && passivesEnabled && !suppressed) {
+            List<Identifier> raw = GemRegistry.definition(activeGem).passives();
+            if (!raw.isEmpty()) {
+                java.util.ArrayList<Identifier> filtered = new java.util.ArrayList<>(raw.size());
+                for (Identifier id : raw) {
+                    if (!GemsDisables.isPassiveDisabledFor(player, id)) {
+                        filtered.add(id);
+                    }
+                }
+                targetPassives = List.copyOf(filtered);
+            }
+        }
 
         NbtCompound data = persistentRoot(player);
         Set<Identifier> applied = readIdentifierSet(data, KEY_APPLIED_PASSIVES);
@@ -83,6 +94,9 @@ public final class GemPowers {
             sync(player);
         }
         for (Identifier passiveId : def.passives()) {
+            if (GemsDisables.isPassiveDisabledFor(player, passiveId)) {
+                continue;
+            }
             GemPassive passive = ModPassives.get(passiveId);
             if (passive instanceof StatusEffectPassive) {
                 passive.apply(player);
@@ -105,7 +119,7 @@ public final class GemPowers {
             return false;
         }
         GemId activeGem = GemPlayerState.getActiveGem(player);
-        return GemRegistry.definition(activeGem).passives().contains(passiveId);
+        return GemRegistry.definition(activeGem).passives().contains(passiveId) && !GemsDisables.isPassiveDisabledFor(player, passiveId);
     }
 
     private static NbtCompound persistentRoot(ServerPlayerEntity player) {

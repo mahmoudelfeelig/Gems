@@ -3,11 +3,19 @@ package com.feel.gems.item;
 import com.feel.gems.GemsMod;
 import com.feel.gems.core.GemId;
 import com.feel.gems.item.legendary.BloodOathBladeItem;
+import com.feel.gems.item.legendary.ChallengersGauntletItem;
 import com.feel.gems.item.legendary.DemolitionBladeItem;
+import com.feel.gems.item.legendary.DuelistsRapierItem;
 import com.feel.gems.item.legendary.EarthsplitterPickItem;
+import com.feel.gems.item.legendary.ExperienceBladeItem;
+import com.feel.gems.item.legendary.GemSeerItem;
+import com.feel.gems.item.legendary.GladiatorsMarkItem;
 import com.feel.gems.item.legendary.HunterSightBowItem;
+import com.feel.gems.item.legendary.HuntersTrophyNecklaceItem;
 import com.feel.gems.item.legendary.HypnoStaffItem;
 import com.feel.gems.item.legendary.RecallRelicItem;
+import com.feel.gems.item.legendary.ReversalMirrorItem;
+import com.feel.gems.item.legendary.SoulShackleItem;
 import com.feel.gems.item.legendary.SupremeArmorItem;
 import com.feel.gems.item.legendary.ThirdStrikeBladeItem;
 import com.feel.gems.item.legendary.TrackerCompassItem;
@@ -73,6 +81,32 @@ public final class ModItems {
     public static final Item SPY_MIMIC_GEM = registerGem(GemId.SPY_MIMIC);
     public static final Item BEACON_GEM = registerGem(GemId.BEACON);
     public static final Item AIR_GEM = registerGem(GemId.AIR);
+    public static final Item VOID_GEM = registerGem(GemId.VOID);
+    public static final Item CHAOS_GEM = registerGem(GemId.CHAOS);
+    public static final Item PRISM_GEM = registerGem(GemId.PRISM);
+    public static final Item DUELIST_GEM = registerGem(GemId.DUELIST);
+    public static final Item HUNTER_GEM = registerGem(GemId.HUNTER);
+    public static final Item SENTINEL_GEM = registerGem(GemId.SENTINEL);
+    public static final Item TRICKSTER_GEM = registerGem(GemId.TRICKSTER);
+
+    // Legendary Items
+    public static final Item GEM_SEER = register("gem_seer", settings -> new GemSeerItem(settings.maxCount(1)));
+
+    // PvP Legendary Items
+    public static final Item EXPERIENCE_BLADE = register("experience_blade",
+            settings -> new ExperienceBladeItem(ToolMaterial.NETHERITE, settings.maxCount(1)));
+    public static final Item REVERSAL_MIRROR = register("reversal_mirror",
+            settings -> new ReversalMirrorItem(settings.maxCount(1)));
+    public static final Item HUNTERS_TROPHY_NECKLACE = register("hunters_trophy_necklace",
+            settings -> new HuntersTrophyNecklaceItem(settings.maxCount(1)));
+    public static final Item GLADIATORS_MARK = register("gladiators_mark",
+            settings -> new GladiatorsMarkItem(settings.maxCount(1)));
+    public static final Item SOUL_SHACKLE = register("soul_shackle",
+            settings -> new SoulShackleItem(settings.maxCount(1)));
+    public static final Item DUELISTS_RAPIER = register("duelists_rapier",
+            settings -> new DuelistsRapierItem(ToolMaterial.NETHERITE, settings.maxCount(1)));
+    public static final Item CHALLENGERS_GAUNTLET = register("challengers_gauntlet",
+            settings -> new ChallengersGauntletItem(settings.maxCount(1)));
 
     private ModItems() {
     }
@@ -100,6 +134,13 @@ public final class ModItems {
             case SPY_MIMIC -> SPY_MIMIC_GEM;
             case BEACON -> BEACON_GEM;
             case AIR -> AIR_GEM;
+            case VOID -> VOID_GEM;
+            case CHAOS -> CHAOS_GEM;
+            case PRISM -> PRISM_GEM;
+            case DUELIST -> DUELIST_GEM;
+            case HUNTER -> HUNTER_GEM;
+            case SENTINEL -> SENTINEL_GEM;
+            case TRICKSTER -> TRICKSTER_GEM;
         };
     }
 

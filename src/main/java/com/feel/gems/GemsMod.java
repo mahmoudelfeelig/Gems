@@ -2,6 +2,7 @@ package com.feel.gems;
 
 import com.feel.gems.command.GemsCommands;
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.config.GemsDisables;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.GemsPayloads;
@@ -26,6 +27,7 @@ public final class GemsMod implements ModInitializer {
         LOGGER.info("Initializing Gems mod");
         GemRegistry.init();
         GemsBalance.init();
+        GemsDisables.init();
         GemsPayloads.register();
         ModScreenHandlers.init();
         ModItems.init();

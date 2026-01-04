@@ -18,6 +18,7 @@ import net.minecraft.util.Identifier;
 public final class ClientCooldowns {
     private static final Map<Identifier, Long> END_TICKS = new HashMap<>();
     private static GemId activeGem = null;
+    private static Identifier lastUsedAbility = null;
 
     private ClientCooldowns() {
     }
@@ -25,6 +26,7 @@ public final class ClientCooldowns {
     public static void reset() {
         activeGem = null;
         END_TICKS.clear();
+        lastUsedAbility = null;
     }
 
     public static void clearIfGemChanged(GemId gem) {
@@ -33,6 +35,7 @@ public final class ClientCooldowns {
         }
         activeGem = gem;
         END_TICKS.clear();
+        lastUsedAbility = null;
     }
 
     public static void applySnapshot(GemId gem, java.util.List<Integer> remainingAbilityCooldownTicks) {
@@ -76,7 +79,9 @@ public final class ClientCooldowns {
         if (abilityIndex < 0 || abilityIndex >= abilities.size()) {
             return;
         }
-        END_TICKS.put(abilities.get(abilityIndex), now + cooldownTicks);
+        Identifier abilityId = abilities.get(abilityIndex);
+        END_TICKS.put(abilityId, now + cooldownTicks);
+        lastUsedAbility = abilityId;
     }
 
     public static int remainingTicks(GemId gem, Identifier abilityId) {
@@ -100,5 +105,9 @@ public final class ClientCooldowns {
             return Integer.MAX_VALUE;
         }
         return (int) remaining;
+    }
+
+    public static boolean isLastUsed(GemId gem, Identifier abilityId) {
+        return activeGem == gem && abilityId != null && abilityId.equals(lastUsedAbility);
     }
 }

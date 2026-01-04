@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "gems:item/legendary/weapons/hunters_sight_bow_pulling_1"
-  }
-}

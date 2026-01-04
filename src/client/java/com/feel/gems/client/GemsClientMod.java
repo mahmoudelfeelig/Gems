@@ -20,6 +20,7 @@ public final class GemsClientMod implements ClientModInitializer {
         com.feel.gems.client.hud.GemsHud.register();
         com.feel.gems.client.hud.GemsTooltips.register();
         HandledScreens.register(com.feel.gems.screen.ModScreenHandlers.TRADER, com.feel.gems.client.screen.TraderScreen::new);
+        HandledScreens.register(com.feel.gems.screen.ModScreenHandlers.GEM_SEER, com.feel.gems.client.screen.GemSeerScreen::new);
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             GemsClientConfig cfg = GemsClientConfigManager.config();

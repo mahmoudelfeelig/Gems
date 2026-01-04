@@ -4,7 +4,7 @@ Source of truth: specs live in checklist.md and gameplay.md. This document maps 
 
 ## Existing tests
 
-- **GameTests**
+- **GameTests** (60 total)
   - Core (src/gametest/java/com/feel/gems/gametest/core/GemsCoreGameTests.java)
     - Death keeps active gem only (GemKeepOnDeath stash/restore)
     - Unlock order follows energy spec (per gem definitions)
@@ -32,9 +32,15 @@ Source of truth: specs live in checklist.md and gameplay.md. This document maps 
   - Space (src/gametest/java/com/feel/gems/gametest/space/GemsSpaceMiningGameTests.java)
     - Orbital laser mining breaks normal blocks (regression for mining-mode filtering)
   - Air (src/gametest/java/com/feel/gems/gametest/air/GemsAirMaceGameTests.java)
-    - Air mace does not respawn when dropped; re-grants after passive re-enabled
+    - Air mace granted once ever (no respawn on drop, energy toggle, or gem switch)
+    - Air mace clearEverGranted allows new mace (admin reset only)
   - Terror (src/gametest/java/com/feel/gems/gametest/terror/GemsTerrorTradeGameTests.java)
     - Normal-player Terror Trade kills both, bypasses totems, and applies 2-heart penalty to target
+  - Bonus Pool (src/gametest/java/com/feel/gems/gametest/bonus/GemsBonusPoolGameTests.java)
+    - Claim count enforcement (max 2 abilities, max 2 passives)
+    - Cross-player uniqueness (claimed power unavailable to others)
+    - Release and re-claim flow
+    - Energy requirement (must be at max energy to claim)
 
 - **Unit/Integration (JUnit)**
   - GemsBalanceDefaultsTest (balance defaults match config)
@@ -42,15 +48,32 @@ Source of truth: specs live in checklist.md and gameplay.md. This document maps 
   - GemRegistryIntegrityTest (registry integrity)
   - GemEnergyTierTest (energy tier logic)
   - GemEnergyStateTest (energy state transitions)
-   - GemEnergySpecTest (energy unlock spec compliance)
-   - DataSpecRegressionTest (all gem definitions present with passives/abilities)
+  - GemEnergySpecTest (energy unlock spec compliance)
+  - DataSpecRegressionTest (all gem definitions present with passives/abilities)
   - AssassinStateTest (assassin state logic)
   - HotbarLockTest (hotbar lock enforcement)
-   - TimeSourceConsistencyTest (forbids per-world time in power/net/state/trade/trust packages)
-   - TelemetryParsingTest (perf snapshot regex guard)
-   - GemItemGlintTest (glint flag toggles component)
-   - HeartRecipeTest (expensive heart crafting recipe stays stable)
+  - TimeSourceConsistencyTest (forbids per-world time in power/net/state/trade/trust packages)
+  - TelemetryParsingTest (perf snapshot regex guard)
+  - GemItemGlintTest (glint flag toggles component)
+  - HeartRecipeTest (expensive heart crafting recipe stays stable)
   - WealthFumbleTest (wealth fumble behavior)
+  - BonusPoolRegistryTest (16 tests)
+    - All 50 bonus abilities are registered
+    - All 50 bonus passives are registered
+    - No duplicate identifiers in abilities or passives
+    - Ability identifiers follow naming convention
+    - Passive identifiers follow naming convention
+    - All abilities have valid cooldowns (> 0)
+    - All passives have descriptions
+    - Bonus abilities are distinct from gem abilities
+    - Bonus passives are distinct from gem passives
+    - All bonus abilities resolve to GemAbility instances
+    - All bonus passives resolve to GemPassive instances
+    - No null entries in ability pool
+    - No null entries in passive pool
+    - Pool sizes match expected counts
+    - Balance config has entries for all bonus abilities
+    - Balance config has entries for all bonus passives
   - MinecraftBootstrap (test bootstrap helper)
 
 ## Notes

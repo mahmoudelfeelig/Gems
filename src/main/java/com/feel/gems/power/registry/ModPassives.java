@@ -7,6 +7,7 @@ import com.feel.gems.power.gem.terror.TerrorFearlessPassive;
 import com.feel.gems.power.passive.AutoEnchantPassive;
 import com.feel.gems.power.passive.MarkerPassive;
 import com.feel.gems.power.passive.StatusEffectPassive;
+import com.feel.gems.power.passive.bonus.*;
 import com.feel.gems.power.passive.flux.FluxCapacitorPassive;
 import com.feel.gems.power.passive.puff.PuffWindbornePassive;
 import com.feel.gems.power.passive.strength.StrengthAdrenalinePassive;
@@ -364,6 +365,110 @@ public final class ModPassives {
                 PowerIds.AIR_WIND_SHEAR,
                 "Wind Shear",
                 "Mace strikes add extra knockback and a short slow."
+        ));
+
+        // Bonus Pool Passives (claimable at energy 10/10)
+        register(new BonusThornsAuraPassive());
+        register(new BonusLifestealPassive());
+        register(new BonusDodgeChancePassive());
+        register(new BonusCriticalStrikePassive());
+        register(new BonusManaShieldPassive());
+        register(new BonusRegenerationBoostPassive());
+        register(new BonusDamageReductionPassive());
+        register(new BonusAttackSpeedPassive());
+        register(new BonusReachExtendPassive());
+        register(new BonusImpactAbsorbPassive());
+        register(new BonusAdrenalineSurgePassive());
+        register(new BonusIntimidatePassive());
+        register(new BonusEvasiveRollPassive());
+        register(new BonusCombatMeditatePassive());
+        register(new BonusWeaponMasteryPassive());
+        register(new BonusCullingBladePassive());
+        register(new BonusThickSkinPassive());
+        register(new BonusXpBoostPassive());
+        register(new BonusHungerResistPassive());
+        register(new BonusPoisonImmunityPassive());
+
+        // Void gem passive
+        register(new MarkerPassive(
+                PowerIds.VOID_IMMUNITY,
+                "Void Immunity",
+                "Immune to all gem abilities and passives from other players."
+        ));
+
+        // Chaos gem passive
+        register(new MarkerPassive(
+                PowerIds.CHAOS_RANDOM_ROTATION,
+                "Chaos Rotation",
+                "Gain a random ability and passive every 5 minutes."
+        ));
+
+        // Duelist gem passives
+        register(new MarkerPassive(
+                PowerIds.DUELIST_RIPOSTE,
+                "Riposte",
+                "After a successful parry, your next melee attack deals bonus damage."
+        ));
+        register(new MarkerPassive(
+                PowerIds.DUELIST_FOCUS,
+                "Focus",
+                "Brief damage boost after hitting a single target repeatedly."
+        ));
+        register(new MarkerPassive(
+                PowerIds.DUELIST_COMBAT_STANCE,
+                "Combat Stance",
+                "Reduced damage when facing a single opponent."
+        ));
+
+        // Hunter gem passives
+        register(new MarkerPassive(
+                PowerIds.HUNTER_PREY_MARK,
+                "Prey Mark",
+                "Hitting an enemy marks them as prey; deal bonus damage to marked targets."
+        ));
+        register(new MarkerPassive(
+                PowerIds.HUNTER_TRACKERS_EYE,
+                "Tracker's Eye",
+                "Nearby damaged players are outlined in red."
+        ));
+        register(new MarkerPassive(
+                PowerIds.HUNTER_TROPHY_HUNTER,
+                "Trophy Hunter",
+                "On player kill, temporarily gain one of their random passives."
+        ));
+
+        // Sentinel gem passives
+        register(new MarkerPassive(
+                PowerIds.SENTINEL_GUARDIAN_AURA,
+                "Guardian Aura",
+                "Nearby allies take reduced damage while you're healthy."
+        ));
+        register(new MarkerPassive(
+                PowerIds.SENTINEL_FORTRESS,
+                "Fortress",
+                "Reduced knockback and incoming damage while standing still."
+        ));
+        register(new MarkerPassive(
+                PowerIds.SENTINEL_RETRIBUTION_THORNS,
+                "Retribution Thorns",
+                "Attackers take reflected damage when they hit you."
+        ));
+
+        // Trickster gem passives
+        register(new MarkerPassive(
+                PowerIds.TRICKSTER_SLEIGHT_OF_HAND,
+                "Sleight of Hand",
+                "Reduced cooldowns after successful deception."
+        ));
+        register(new MarkerPassive(
+                PowerIds.TRICKSTER_CHAOS_AGENT,
+                "Chaos Agent",
+                "Random beneficial effects when hitting enemies."
+        ));
+        register(new MarkerPassive(
+                PowerIds.TRICKSTER_SLIPPERY,
+                "Slippery",
+                "Small chance to evade damage entirely."
         ));
     }
 

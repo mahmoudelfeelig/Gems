@@ -1,6 +1,7 @@
 package com.feel.gems.power.ability.spy;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.config.GemsDisables;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.power.registry.PowerIds;
@@ -39,6 +40,10 @@ public final class SpyEchoAbility implements GemAbility {
             player.sendMessage(Text.literal("No observed ability."), true);
             return false;
         }
+        if (GemsDisables.isAbilityDisabled(last)) {
+            player.sendMessage(Text.literal("That ability is disabled on this server."), true);
+            return false;
+        }
         long now = GemsTime.now(player);
         long seenAt = SpyMimicSystem.lastSeenAt(player);
         int window = GemsBalance.v().spyMimic().echoWindowTicks();
@@ -65,4 +70,3 @@ public final class SpyEchoAbility implements GemAbility {
         return ok;
     }
 }
-

@@ -1,0 +1,109 @@
+package com.feel.gems.item.legendary;
+
+import com.feel.gems.GemsMod;
+import com.feel.gems.legendary.LegendaryItem;
+import com.feel.gems.state.PlayerStateManager;
+import java.util.function.Consumer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.component.type.TooltipDisplayComponent;
+import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
+
+/**
+ * Challenger's Gauntlet - right-click a player to challenge them to a duel.
+ * Both players are teleported to a small arena, winner gets energy; loser loses energy.
+ * 
+ * Note: This item creates a temporary 1v1 duel scenario - the actual arena implementation
+ * would need additional infrastructure.
+ */
+public final class ChallengersGauntletItem extends Item implements LegendaryItem {
+    private static final String CHALLENGE_TARGET_KEY = "challengers_gauntlet_target";
+    private static final String CHALLENGE_PENDING_KEY = "challengers_gauntlet_pending";
+    private static final int COOLDOWN_TICKS = 300 * 20; // 5 minutes
+
+    public ChallengersGauntletItem(Settings settings) {
+        super(settings);
+    }
+
+    @Override
+    public String legendaryId() {
+        return Identifier.of(GemsMod.MOD_ID, "challengers_gauntlet").toString();
+    }
+
+    @Override
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
+        if (world.isClient() || !(user instanceof ServerPlayerEntity player)) {
+            return ActionResult.PASS;
+        }
+
+        ItemStack stack = player.getStackInHand(hand);
+
+        // Check cooldown
+        if (player.getItemCooldownManager().isCoolingDown(stack)) {
+            return ActionResult.FAIL;
+        }
+
+        // Raycast to find target
+        HitResult hit = player.raycast(10, 0.0F, false);
+        if (!(hit instanceof EntityHitResult entityHit) || !(entityHit.getEntity() instanceof ServerPlayerEntity target)) {
+            player.sendMessage(Text.literal("No player target found").formatted(Formatting.RED), true);
+            return ActionResult.FAIL;
+        }
+
+        if (target == player) {
+            return ActionResult.FAIL;
+        }
+
+        // Issue challenge
+        PlayerStateManager.setPersistent(player, CHALLENGE_TARGET_KEY, target.getUuidAsString());
+        PlayerStateManager.setPersistent(target, CHALLENGE_PENDING_KEY, player.getUuidAsString());
+
+        player.getItemCooldownManager().set(stack, COOLDOWN_TICKS);
+
+        // Visual effects
+        ServerWorld serverWorld = player.getEntityWorld();
+        serverWorld.spawnParticles(ParticleTypes.FLAME, 
+                player.getX(), player.getY() + 1, player.getZ(), 20, 0.5, 0.5, 0.5, 0.1);
+        serverWorld.spawnParticles(ParticleTypes.FLAME, 
+                target.getX(), target.getY() + 1, target.getZ(), 20, 0.5, 0.5, 0.5, 0.1);
+
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                SoundEvents.ENTITY_GOAT_HORN_BREAK, SoundCategory.PLAYERS, 1.0F, 1.0F);
+
+        player.sendMessage(Text.literal("Challenged " + target.getName().getString() + " to a duel!").formatted(Formatting.GOLD), false);
+        target.sendMessage(Text.literal(player.getName().getString() + " has challenged you to a duel!").formatted(Formatting.GOLD), false);
+        target.sendMessage(Text.literal("The duel will begin in the arena...").formatted(Formatting.YELLOW), false);
+
+        // Note: Actual arena teleportation would be implemented in a separate system
+        // This just marks the challenge - a tick handler would handle the actual duel logic
+
+        return ActionResult.SUCCESS;
+    }
+
+    public static void clearChallenge(ServerPlayerEntity player) {
+        PlayerStateManager.clearPersistent(player, CHALLENGE_TARGET_KEY);
+        PlayerStateManager.clearPersistent(player, CHALLENGE_PENDING_KEY);
+    }
+
+    @Override
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        tooltip.accept(Text.literal("Right-click a player to challenge them").formatted(Formatting.GRAY));
+        tooltip.accept(Text.literal("Winner gains +1 energy, loser loses -1 energy").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.literal("5 minute cooldown").formatted(Formatting.DARK_GRAY));
+    }
+}

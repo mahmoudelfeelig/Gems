@@ -97,6 +97,17 @@ public final class GemsGameTestUtil {
         return false;
     }
 
+    public static int countAirMaces(ServerPlayerEntity player) {
+        int count = 0;
+        var inventory = player.getInventory();
+        for (int i = 0; i < inventory.size(); i++) {
+            if (isAirMace(inventory.getStack(i))) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public static void resetAssassinState(ServerPlayerEntity player) {
         AssassinState.initIfNeeded(player);
         var data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
@@ -105,7 +116,6 @@ public final class GemsGameTestUtil {
         data.putInt("assassinHearts", AssassinState.maxHearts());
     }
 
-    @SuppressWarnings("removal")
     public static ServerPlayerEntity createMockCreativeServerPlayer(TestContext context) {
         return context.createMockCreativeServerPlayerInWorld();
     }

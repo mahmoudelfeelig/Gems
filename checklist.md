@@ -26,6 +26,7 @@
   - Hunter's Sight Bow: aim assist toward last hit target (player or mob) within 50 blocks and line of sight.
   - Third-Strike Blade: every 3rd crit within a 5s chain window deals bonus damage.
   - Vampiric Edge: each crit heals 1 heart.
+  - Gem Seer: right-click to open a selection screen showing all online players; select one to view their active gem, energy level, and owned gems. No cooldown; not consumed on use.
   - Player head recipes: Blood Oath Blade + Tracker Compass require a player head that is not your own.
   - Universal mob blacklist (config): applies to Hypno Staff, Summoner summons, and Astra Soul Capture.
 

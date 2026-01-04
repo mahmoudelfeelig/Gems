@@ -17,6 +17,12 @@ public final class ModScreenHandlers {
             new ScreenHandlerType<>(TraderScreenHandler::new, FeatureSet.empty())
     );
 
+    public static final ScreenHandlerType<GemSeerScreenHandler> GEM_SEER = Registry.register(
+            Registries.SCREEN_HANDLER,
+            Identifier.of(GemsMod.MOD_ID, "gem_seer"),
+            new ScreenHandlerType<>(GemSeerScreenHandler::new, FeatureSet.empty())
+    );
+
     private ModScreenHandlers() {
     }
 

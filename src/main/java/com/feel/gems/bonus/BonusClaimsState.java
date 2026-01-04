@@ -1,0 +1,201 @@
+package com.feel.gems.bonus;
+
+import com.feel.gems.GemsMod;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.datafixer.DataFixTypes;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.Uuids;
+import net.minecraft.world.PersistentState;
+import net.minecraft.world.PersistentStateManager;
+import net.minecraft.world.PersistentStateType;
+import net.minecraft.world.World;
+import java.util.*;
+
+/**
+ * Server-wide state tracking which bonus abilities/passives are claimed by which players.
+ * Claims are unique per player - if player A claims an ability, player B cannot claim it.
+ * Claims are released when:
+ * - Player loses energy levels (drops below 10)
+ * - Player switches to another gem
+ */
+public final class BonusClaimsState extends PersistentState {
+    private static final String STATE_ID = GemsMod.MOD_ID + "_bonus_claims";
+    
+    // Maps ability/passive ID -> player UUID who claimed it
+    private final Map<Identifier, UUID> abilityClaims;
+    private final Map<Identifier, UUID> passiveClaims;
+    
+    // Maps player UUID -> set of claimed ability/passive IDs (computed from above)
+    private final Map<UUID, Set<Identifier>> playerAbilities;
+    private final Map<UUID, Set<Identifier>> playerPassives;
+
+    static final Codec<BonusClaimsState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.unboundedMap(Identifier.CODEC, Uuids.CODEC)
+                    .optionalFieldOf("abilityClaims", Map.of())
+                    .forGetter(state -> state.abilityClaims),
+            Codec.unboundedMap(Identifier.CODEC, Uuids.CODEC)
+                    .optionalFieldOf("passiveClaims", Map.of())
+                    .forGetter(state -> state.passiveClaims)
+    ).apply(instance, BonusClaimsState::new));
+
+    private static final PersistentStateType<BonusClaimsState> TYPE =
+            new PersistentStateType<>(STATE_ID, BonusClaimsState::new, CODEC, DataFixTypes.SAVED_DATA_MAP_DATA);
+
+    public BonusClaimsState() {
+        this(Map.of(), Map.of());
+    }
+
+    public BonusClaimsState(Map<Identifier, UUID> abilityClaims, Map<Identifier, UUID> passiveClaims) {
+        this.abilityClaims = new HashMap<>(abilityClaims == null ? Map.of() : abilityClaims);
+        this.passiveClaims = new HashMap<>(passiveClaims == null ? Map.of() : passiveClaims);
+        
+        // Build reverse lookup maps
+        this.playerAbilities = new HashMap<>();
+        this.playerPassives = new HashMap<>();
+        
+        for (var entry : this.abilityClaims.entrySet()) {
+            playerAbilities.computeIfAbsent(entry.getValue(), k -> new HashSet<>()).add(entry.getKey());
+        }
+        for (var entry : this.passiveClaims.entrySet()) {
+            playerPassives.computeIfAbsent(entry.getValue(), k -> new HashSet<>()).add(entry.getKey());
+        }
+    }
+
+    public static BonusClaimsState get(MinecraftServer server) {
+        PersistentStateManager manager = server.getWorld(World.OVERWORLD).getPersistentStateManager();
+        return manager.getOrCreate(TYPE);
+    }
+
+    /**
+     * Try to claim a bonus ability for a player.
+     * @return true if claim succeeded, false if already claimed by someone else
+     */
+    public boolean claimAbility(UUID playerUuid, Identifier abilityId) {
+        if (!BonusPoolRegistry.isBonusAbility(abilityId)) {
+            return false;
+        }
+        
+        UUID existing = abilityClaims.get(abilityId);
+        if (existing != null && !existing.equals(playerUuid)) {
+            return false; // Already claimed by another player
+        }
+        
+        Set<Identifier> playerSet = playerAbilities.computeIfAbsent(playerUuid, k -> new HashSet<>());
+        if (playerSet.size() >= 2) {
+            return false; // Player already has max 2 bonus abilities
+        }
+        
+        abilityClaims.put(abilityId, playerUuid);
+        playerSet.add(abilityId);
+        markDirty();
+        return true;
+    }
+
+    /**
+     * Try to claim a bonus passive for a player.
+     * @return true if claim succeeded, false if already claimed by someone else
+     */
+    public boolean claimPassive(UUID playerUuid, Identifier passiveId) {
+        if (!BonusPoolRegistry.isBonusPassive(passiveId)) {
+            return false;
+        }
+        
+        UUID existing = passiveClaims.get(passiveId);
+        if (existing != null && !existing.equals(playerUuid)) {
+            return false; // Already claimed by another player
+        }
+        
+        Set<Identifier> playerSet = playerPassives.computeIfAbsent(playerUuid, k -> new HashSet<>());
+        if (playerSet.size() >= 2) {
+            return false; // Player already has max 2 bonus passives
+        }
+        
+        passiveClaims.put(passiveId, playerUuid);
+        playerSet.add(passiveId);
+        markDirty();
+        return true;
+    }
+
+    /**
+     * Release all claims for a player.
+     */
+    public void releaseAllClaims(UUID playerUuid) {
+        Set<Identifier> abilities = playerAbilities.remove(playerUuid);
+        if (abilities != null) {
+            for (Identifier id : abilities) {
+                abilityClaims.remove(id);
+            }
+        }
+        
+        Set<Identifier> passives = playerPassives.remove(playerUuid);
+        if (passives != null) {
+            for (Identifier id : passives) {
+                passiveClaims.remove(id);
+            }
+        }
+        
+        markDirty();
+    }
+
+    /**
+     * Get all abilities claimed by a player.
+     */
+    public Set<Identifier> getPlayerAbilities(UUID playerUuid) {
+        return Set.copyOf(playerAbilities.getOrDefault(playerUuid, Set.of()));
+    }
+
+    /**
+     * Get all passives claimed by a player.
+     */
+    public Set<Identifier> getPlayerPassives(UUID playerUuid) {
+        return Set.copyOf(playerPassives.getOrDefault(playerUuid, Set.of()));
+    }
+
+    /**
+     * Check if an ability is available to claim.
+     */
+    public boolean isAbilityAvailable(Identifier abilityId) {
+        return !abilityClaims.containsKey(abilityId);
+    }
+
+    /**
+     * Check if a passive is available to claim.
+     */
+    public boolean isPassiveAvailable(Identifier passiveId) {
+        return !passiveClaims.containsKey(passiveId);
+    }
+
+    /**
+     * Get all available (unclaimed) abilities.
+     */
+    public List<Identifier> getAvailableAbilities() {
+        return BonusPoolRegistry.BONUS_ABILITIES.stream()
+                .filter(this::isAbilityAvailable)
+                .toList();
+    }
+
+    /**
+     * Get all available (unclaimed) passives.
+     */
+    public List<Identifier> getAvailablePassives() {
+        return BonusPoolRegistry.BONUS_PASSIVES.stream()
+                .filter(this::isPassiveAvailable)
+                .toList();
+    }
+
+    /**
+     * Get the player who claimed an ability, or null if unclaimed.
+     */
+    public UUID getAbilityClaimant(Identifier abilityId) {
+        return abilityClaims.get(abilityId);
+    }
+
+    /**
+     * Get the player who claimed a passive, or null if unclaimed.
+     */
+    public UUID getPassiveClaimant(Identifier passiveId) {
+        return passiveClaims.get(passiveId);
+    }
+}

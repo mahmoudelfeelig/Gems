@@ -20,7 +20,8 @@ import net.minecraft.util.Identifier;
 
 public final class AirMacePassive implements GemMaintainedPassive {
     private static final String TAG_AIR_MACE = "gemsAirMace";
-    private static final String KEY_GRANTED = "airMaceGranted";
+    /** Persistent flag: mace was ever granted to this player (never resets except by admin). */
+    private static final String KEY_EVER_GRANTED = "airMaceEverGranted";
 
     private final Identifier id;
     private final String name;
@@ -54,13 +55,8 @@ public final class AirMacePassive implements GemMaintainedPassive {
 
     @Override
     public void maintain(ServerPlayerEntity player) {
-        if (hasAirMace(player)) {
-            setGranted(player, true);
-            return;
-        }
-        if (isGranted(player)) {
-            // Player explicitly got rid of the mace (dropped/stashed/etc). Do not respawn spam;
-            // they can re-enable the passive (energy/gem switch) to get a new one.
+        // If player was ever granted a mace, never give another.
+        if (isEverGranted(player)) {
             return;
         }
         ItemStack mace = createAirMace(player);
@@ -68,44 +64,17 @@ public final class AirMacePassive implements GemMaintainedPassive {
             return;
         }
         player.giveItemStack(mace);
-        setGranted(player, true);
+        setEverGranted(player, true);
     }
 
     @Override
     public void remove(ServerPlayerEntity player) {
-        // Intentionally does not remove the mace to avoid deleting player-owned items.
-        setGranted(player, false);
+        // Intentionally does not remove the mace or reset the flag.
+        // One mace ever - flag persists forever.
     }
 
     public static boolean isHoldingMace(ServerPlayerEntity player) {
         return player.getMainHandStack().isOf(Items.MACE);
-    }
-
-    private static boolean hasAirMace(ServerPlayerEntity player) {
-        for (ItemStack stack : player.getInventory().getMainStacks()) {
-            if (isAirMace(stack)) {
-                return true;
-            }
-        }
-        if (isAirMace(player.getOffHandStack())) {
-            return true;
-        }
-        return false;
-    }
-
-    private static boolean isAirMace(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) {
-            return false;
-        }
-        if (!stack.isOf(Items.MACE)) {
-            return false;
-        }
-        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
-        if (custom == null) {
-            return false;
-        }
-        NbtCompound nbt = custom.copyNbt();
-        return nbt.contains(TAG_AIR_MACE) && nbt.getBoolean(TAG_AIR_MACE, false);
     }
 
     private static ItemStack createAirMace(ServerPlayerEntity player) {
@@ -139,14 +108,23 @@ public final class AirMacePassive implements GemMaintainedPassive {
         return mace;
     }
 
-    private static boolean isGranted(ServerPlayerEntity player) {
+    private static boolean isEverGranted(ServerPlayerEntity player) {
         NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        return data.getBoolean(KEY_GRANTED, false);
+        return data.getBoolean(KEY_EVER_GRANTED, false);
     }
 
-    private static void setGranted(ServerPlayerEntity player, boolean granted) {
+    private static void setEverGranted(ServerPlayerEntity player, boolean granted) {
         NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        data.putBoolean(KEY_GRANTED, granted);
+        data.putBoolean(KEY_EVER_GRANTED, granted);
+    }
+
+    /**
+     * Clears the "ever granted" flag, allowing the player to receive a new mace.
+     * Only for admin commands.
+     */
+    public static void clearEverGranted(ServerPlayerEntity player) {
+        NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        data.remove(KEY_EVER_GRANTED);
     }
 
     private static RegistryEntry<Enchantment> resolve(ServerPlayerEntity player, RegistryKey<Enchantment> key) {

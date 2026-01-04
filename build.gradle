@@ -45,6 +45,12 @@ configurations.configureEach {
 
 loom {
     splitEnvironmentSourceSets()
+
+    mixin {
+        useLegacyMixinAp = true
+        add sourceSets.main, "gems-refmap.json"
+        add sourceSets.client, "client-gems-refmap.json"
+    }
 }
 
 sourceSets {

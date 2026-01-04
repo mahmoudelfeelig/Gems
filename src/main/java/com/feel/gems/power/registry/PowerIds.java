@@ -204,6 +204,172 @@ public final class PowerIds {
     public static final Identifier AIR_DASH = id("air_dash");
     public static final Identifier AIR_CROSSWIND = id("air_crosswind");
 
+    // Void gem (immunity)
+    public static final Identifier VOID_IMMUNITY = id("void_immunity");
+
+    // Chaos gem
+    public static final Identifier CHAOS_RANDOM_ROTATION = id("chaos_random_rotation");
+
+    // Duelist gem
+    public static final Identifier DUELIST_RIPOSTE = id("duelist_riposte");
+    public static final Identifier DUELIST_FOCUS = id("duelist_focus");
+    public static final Identifier DUELIST_COMBAT_STANCE = id("duelist_combat_stance");
+    public static final Identifier DUELIST_FIRST_BLOOD = id("duelist_first_blood");
+    public static final Identifier DUELIST_HONORABLE_DUEL = id("duelist_honorable_duel");
+    public static final Identifier DUELIST_BLADE_FINESSE = id("duelist_blade_finesse");
+    public static final Identifier DUELIST_LUNGE = id("duelist_lunge");
+    public static final Identifier DUELIST_PARRY = id("duelist_parry");
+    public static final Identifier DUELIST_FLOURISH = id("duelist_flourish");
+    public static final Identifier DUELIST_MIRROR_MATCH = id("duelist_mirror_match");
+    public static final Identifier DUELIST_BLADE_DANCE = id("duelist_blade_dance");
+
+    // Hunter gem
+    public static final Identifier HUNTER_PREY_MARK = id("hunter_prey_mark");
+    public static final Identifier HUNTER_TRACKERS_EYE = id("hunter_trackers_eye");
+    public static final Identifier HUNTER_BLOODHOUND = id("hunter_bloodhound");
+    public static final Identifier HUNTER_TROPHY_HUNTER = id("hunter_trophy_hunter");
+    public static final Identifier HUNTER_PREDATOR_INSTINCT = id("hunter_predator_instinct");
+    public static final Identifier HUNTER_HUNTING_TRAP = id("hunter_hunting_trap");
+    public static final Identifier HUNTER_POUNCE = id("hunter_pounce");
+    public static final Identifier HUNTER_NET_SHOT = id("hunter_net_shot");
+    public static final Identifier HUNTER_CRIPPLING_SHOT = id("hunter_crippling_shot");
+    public static final Identifier HUNTER_PACK_TACTICS = id("hunter_pack_tactics");
+
+    // Sentinel gem
+    public static final Identifier SENTINEL_GUARDIAN_AURA = id("sentinel_guardian_aura");
+    public static final Identifier SENTINEL_FORTRESS = id("sentinel_fortress");
+    public static final Identifier SENTINEL_RETRIBUTION_THORNS = id("sentinel_retribution_thorns");
+    public static final Identifier SENTINEL_IRONCLAD = id("sentinel_ironclad");
+    public static final Identifier SENTINEL_STALWART = id("sentinel_stalwart");
+    public static final Identifier SENTINEL_GUARDIAN_LINK = id("sentinel_guardian_link");
+    public static final Identifier SENTINEL_LAST_STAND = id("sentinel_last_stand");
+    public static final Identifier SENTINEL_SHIELD_WALL = id("sentinel_shield_wall");
+    public static final Identifier SENTINEL_TAUNT = id("sentinel_taunt");
+    public static final Identifier SENTINEL_INTERVENTION = id("sentinel_intervention");
+    public static final Identifier SENTINEL_RALLY_CRY = id("sentinel_rally_cry");
+    public static final Identifier SENTINEL_LOCKDOWN = id("sentinel_lockdown");
+
+    // Trickster gem
+    public static final Identifier TRICKSTER_SLEIGHT_OF_HAND = id("trickster_sleight_of_hand");
+    public static final Identifier TRICKSTER_CHAOS_AGENT = id("trickster_chaos_agent");
+    public static final Identifier TRICKSTER_SLIPPERY = id("trickster_slippery");
+    public static final Identifier TRICKSTER_MISDIRECTION = id("trickster_misdirection");
+    public static final Identifier TRICKSTER_PHANTOM_STEPS = id("trickster_phantom_steps");
+    public static final Identifier TRICKSTER_CUNNING_ESCAPE = id("trickster_cunning_escape");
+    public static final Identifier TRICKSTER_SHADOW_SWAP = id("trickster_shadow_swap");
+    public static final Identifier TRICKSTER_MIRAGE = id("trickster_mirage");
+    public static final Identifier TRICKSTER_GLITCH_STEP = id("trickster_glitch_step");
+    public static final Identifier TRICKSTER_PUPPET_MASTER = id("trickster_puppet_master");
+    public static final Identifier TRICKSTER_MIND_GAMES = id("trickster_mind_games");
+
+    // ==================== BONUS POOL ABILITIES ====================
+    // Claimable at energy 10/10, unique per player (50 total)
+    public static final Identifier BONUS_THUNDERSTRIKE = id("bonus_thunderstrike");
+    public static final Identifier BONUS_FROSTBITE = id("bonus_frostbite");
+    public static final Identifier BONUS_EARTHSHATTER = id("bonus_earthshatter");
+    public static final Identifier BONUS_SHADOWSTEP = id("bonus_shadowstep");
+    public static final Identifier BONUS_RADIANT_BURST = id("bonus_radiant_burst");
+    public static final Identifier BONUS_VENOMSPRAY = id("bonus_venomspray");
+    public static final Identifier BONUS_TIMEWARP = id("bonus_timewarp");
+    public static final Identifier BONUS_DECOY_TRAP = id("bonus_decoy_trap");           // Place a fake item that explodes when picked up
+    public static final Identifier BONUS_GRAVITY_WELL = id("bonus_gravity_well");
+    public static final Identifier BONUS_CHAIN_LIGHTNING = id("bonus_chain_lightning");
+    public static final Identifier BONUS_MAGMA_POOL = id("bonus_magma_pool");
+    public static final Identifier BONUS_ICE_WALL = id("bonus_ice_wall");
+    public static final Identifier BONUS_WIND_SLASH = id("bonus_wind_slash");
+    public static final Identifier BONUS_CURSE_BOLT = id("bonus_curse_bolt");             // Projectile that applies random negative effects
+    public static final Identifier BONUS_BERSERKER_RAGE = id("bonus_berserker_rage");
+    public static final Identifier BONUS_ETHEREAL_STEP = id("bonus_ethereal_step");       // Short dash that passes through one wall
+    public static final Identifier BONUS_ARCANE_MISSILES = id("bonus_arcane_missiles");
+    public static final Identifier BONUS_LIFE_TAP = id("bonus_life_tap");
+    public static final Identifier BONUS_DOOM_BOLT = id("bonus_doom_bolt");
+    public static final Identifier BONUS_SANCTUARY = id("bonus_sanctuary");
+    // New bonus abilities (30 more)
+    public static final Identifier BONUS_SPECTRAL_CHAINS = id("bonus_spectral_chains");       // Root enemies in place with ghostly chains
+    public static final Identifier BONUS_VOID_RIFT = id("bonus_void_rift");                   // Open a rift that pulls nearby entities toward it
+    public static final Identifier BONUS_INFERNO_DASH = id("bonus_inferno_dash");             // Dash forward leaving a trail of fire
+    public static final Identifier BONUS_TIDAL_WAVE = id("bonus_tidal_wave");                 // Summon a wave that knocks back and slows enemies
+    public static final Identifier BONUS_STARFALL = id("bonus_starfall");                     // Rain down small meteors in an area
+    public static final Identifier BONUS_BLOODLUST = id("bonus_bloodlust");                   // Gain attack speed for each nearby enemy
+    public static final Identifier BONUS_CRYSTAL_CAGE = id("bonus_crystal_cage");             // Trap target in an unbreakable crystal for 3 seconds
+    public static final Identifier BONUS_PHANTASM = id("bonus_phantasm");                     // Create a decoy that taunts enemies and explodes
+    public static final Identifier BONUS_SONIC_BOOM = id("bonus_sonic_boom");                 // Emit a shockwave that deafens and staggers enemies
+    public static final Identifier BONUS_VAMPIRIC_TOUCH = id("bonus_vampiric_touch");         // Drain health from touched enemy over time
+    public static final Identifier BONUS_BLINDING_FLASH = id("bonus_blinding_flash");         // Blind all nearby enemies briefly
+    public static final Identifier BONUS_STORM_CALL = id("bonus_storm_call");                 // Summon a lightning storm in an area
+    public static final Identifier BONUS_QUICKSAND = id("bonus_quicksand");                   // Create a zone that slows and sinks enemies
+    public static final Identifier BONUS_SEARING_LIGHT = id("bonus_searing_light");           // Beam of holy light that burns undead extra
+    public static final Identifier BONUS_SPECTRAL_BLADE = id("bonus_spectral_blade");         // Summon a ghostly sword that attacks nearby enemies
+    public static final Identifier BONUS_NETHER_PORTAL = id("bonus_nether_portal");           // Short-range teleport through a nether rift
+    public static final Identifier BONUS_ENTANGLE = id("bonus_entangle");                     // Vines erupt from ground to root enemies
+    public static final Identifier BONUS_MIND_SPIKE = id("bonus_mind_spike");                 // Psychic damage that also reveals enemy location
+    public static final Identifier BONUS_SEISMIC_SLAM = id("bonus_seismic_slam");             // Ground-pound that creates shockwaves
+    public static final Identifier BONUS_ICICLE_BARRAGE = id("bonus_icicle_barrage");         // Fire a volley of piercing icicles
+    public static final Identifier BONUS_BANISHMENT = id("bonus_banishment");                 // Teleport enemy far away randomly
+    public static final Identifier BONUS_CORPSE_EXPLOSION = id("bonus_corpse_explosion");     // Detonate nearby corpses for AoE damage
+    public static final Identifier BONUS_SOUL_SWAP = id("bonus_soul_swap");                   // Swap positions with target player/mob
+    public static final Identifier BONUS_MARK_OF_DEATH = id("bonus_mark_of_death");           // Mark target to take bonus damage from all sources
+    public static final Identifier BONUS_IRON_MAIDEN = id("bonus_iron_maiden");               // Enemies that hit you take reflect damage for duration
+    public static final Identifier BONUS_WARP_STRIKE = id("bonus_warp_strike");               // Teleport behind target and strike
+    public static final Identifier BONUS_VORTEX_STRIKE = id("bonus_vortex_strike");           // Spin attack that pulls enemies closer
+    public static final Identifier BONUS_PLAGUE_CLOUD = id("bonus_plague_cloud");             // Create a lingering cloud that poisons and weakens
+    public static final Identifier BONUS_OVERCHARGE = id("bonus_overcharge");                 // Next ability deals double damage but costs health
+    public static final Identifier BONUS_GRAVITY_CRUSH = id("bonus_gravity_crush");           // Slam target to ground, rooting and damaging them
+
+    // ==================== BONUS POOL PASSIVES ====================
+    // Claimable at energy 10/10, unique per player (50 total)
+    public static final Identifier BONUS_THORNS_AURA = id("bonus_thorns_aura");
+    public static final Identifier BONUS_LIFESTEAL = id("bonus_lifesteal");
+    public static final Identifier BONUS_DODGE_CHANCE = id("bonus_dodge_chance");
+    public static final Identifier BONUS_CRITICAL_STRIKE = id("bonus_critical_strike");
+    public static final Identifier BONUS_MANA_SHIELD = id("bonus_mana_shield");
+    public static final Identifier BONUS_REGENERATION_BOOST = id("bonus_regeneration_boost");
+    public static final Identifier BONUS_DAMAGE_REDUCTION = id("bonus_damage_reduction");
+    public static final Identifier BONUS_ATTACK_SPEED = id("bonus_attack_speed");
+    public static final Identifier BONUS_REACH_EXTEND = id("bonus_reach_extend");
+    public static final Identifier BONUS_IMPACT_ABSORB = id("bonus_impact_absorb");           // Convert 20% of damage taken into temporary absorption
+    public static final Identifier BONUS_ADRENALINE_SURGE = id("bonus_adrenaline_surge");     // Gain brief Speed when taking damage
+    public static final Identifier BONUS_INTIMIDATE = id("bonus_intimidate");                 // Enemies near you deal 10% less damage
+    public static final Identifier BONUS_EVASIVE_ROLL = id("bonus_evasive_roll");             // When hit while sprinting, automatically dodge backward
+    public static final Identifier BONUS_COMBAT_MEDITATE = id("bonus_combat_meditate");       // Standing still rapidly restores health
+    public static final Identifier BONUS_WEAPON_MASTERY = id("bonus_weapon_mastery");         // +1 attack damage with all weapons
+    public static final Identifier BONUS_CULLING_BLADE = id("bonus_culling_blade");           // Instantly kill enemies below 10% HP on hit
+    public static final Identifier BONUS_THICK_SKIN = id("bonus_thick_skin");                 // Projectiles deal 25% less damage to you
+    public static final Identifier BONUS_XP_BOOST = id("bonus_xp_boost");
+    public static final Identifier BONUS_HUNGER_RESIST = id("bonus_hunger_resist");
+    public static final Identifier BONUS_POISON_IMMUNITY = id("bonus_poison_immunity");
+    // New bonus passives (30 more)
+    public static final Identifier BONUS_SECOND_WIND = id("bonus_second_wind");               // Once per life, survive a killing blow with 1 HP
+    public static final Identifier BONUS_ECHO_STRIKE = id("bonus_echo_strike");               // Attacks have 15% chance to strike twice
+    public static final Identifier BONUS_CHAIN_BREAKER = id("bonus_chain_breaker");           // Automatically break free from roots/slows faster
+    public static final Identifier BONUS_STONE_SKIN = id("bonus_stone_skin");                 // Reduce all incoming damage by flat 1 HP
+    public static final Identifier BONUS_ARCANE_BARRIER = id("bonus_arcane_barrier");         // Absorb first hit every 30 seconds
+    public static final Identifier BONUS_PREDATOR_SENSE = id("bonus_predator_sense");         // Glowing effect on low-health enemies
+    public static final Identifier BONUS_BATTLE_MEDIC = id("bonus_battle_medic");             // Heal nearby allies slowly in combat
+    public static final Identifier BONUS_LAST_STAND = id("bonus_last_stand");                 // Deal 50% more damage when below 25% health
+    public static final Identifier BONUS_EXECUTIONER = id("bonus_executioner");               // Deal 30% more damage to enemies below 25% health
+    public static final Identifier BONUS_BLOODTHIRST = id("bonus_bloodthirst");               // Kills restore 2 hearts
+    public static final Identifier BONUS_STEEL_RESOLVE = id("bonus_steel_resolve");           // Immune to knockback
+    public static final Identifier BONUS_ELEMENTAL_HARMONY = id("bonus_elemental_harmony");   // Resistance to fire, ice, and lightning damage
+    public static final Identifier BONUS_TREASURE_HUNTER = id("bonus_treasure_hunter");       // Increased rare drop chance from mobs
+    public static final Identifier BONUS_COUNTER_STRIKE = id("bonus_counter_strike");         // After blocking an attack, your next hit deals 2x damage
+    public static final Identifier BONUS_BULWARK = id("bonus_bulwark");                       // Blocking is 50% more effective
+    public static final Identifier BONUS_QUICK_RECOVERY = id("bonus_quick_recovery");         // Reduce all debuff durations by 30%
+    public static final Identifier BONUS_OVERFLOWING_VITALITY = id("bonus_overflowing_vitality"); // +4 max hearts permanently
+    public static final Identifier BONUS_MAGNETIC_PULL = id("bonus_magnetic_pull");           // Items and XP are attracted from farther away
+    public static final Identifier BONUS_VENGEANCE = id("bonus_vengeance");                   // After being hit, next attack deals +50% damage
+    public static final Identifier BONUS_NEMESIS = id("bonus_nemesis");                       // Deal 25% more damage to the last player who killed you
+    public static final Identifier BONUS_HUNTERS_INSTINCT = id("bonus_hunters_instinct");     // Crit chance increases against fleeing enemies
+    public static final Identifier BONUS_BERSERKER_BLOOD = id("bonus_berserker_blood");       // Attack speed increases as health decreases
+    public static final Identifier BONUS_OPPORTUNIST = id("bonus_opportunist");               // Deal bonus damage to enemies attacking others
+    public static final Identifier BONUS_IRONCLAD = id("bonus_ironclad");                     // Armor is 25% more effective
+    public static final Identifier BONUS_MIST_FORM = id("bonus_mist_form");                   // 10% chance to phase through attacks
+    public static final Identifier BONUS_WAR_CRY = id("bonus_war_cry");                       // Nearby allies gain Strength I when you're hit
+    public static final Identifier BONUS_SIPHON_SOUL = id("bonus_siphon_soul");               // Killing blows grant brief regeneration
+    public static final Identifier BONUS_UNBREAKABLE = id("bonus_unbreakable");               // Equipment durability loss reduced by 50%
+    public static final Identifier BONUS_FOCUSED_MIND = id("bonus_focused_mind");             // Ability cooldowns reduced by 15%
+    public static final Identifier BONUS_SIXTH_SENSE = id("bonus_sixth_sense");               // Warning particle effect when enemy targets you
+
     private PowerIds() {
     }
 

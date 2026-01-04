@@ -1,6 +1,7 @@
 package com.feel.gems.power.ability.spy;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.config.GemsDisables;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.power.registry.PowerIds;
@@ -46,6 +47,10 @@ public final class SpyStolenCastAbility implements GemAbility {
             player.sendMessage(Text.literal("No stolen abilities."), true);
             return false;
         }
+        if (GemsDisables.isAbilityDisabled(id)) {
+            player.sendMessage(Text.literal("That ability is disabled on this server."), true);
+            return false;
+        }
         GemAbility ability = ModAbilities.get(id);
         if (ability == null) {
             player.sendMessage(Text.literal("Stolen ability not found: " + id), true);
@@ -58,4 +63,3 @@ public final class SpyStolenCastAbility implements GemAbility {
         return ok;
     }
 }
-

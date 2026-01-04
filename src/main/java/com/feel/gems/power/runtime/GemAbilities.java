@@ -1,6 +1,7 @@
 package com.feel.gems.power.runtime;
 
 import com.feel.gems.admin.GemsAdmin;
+import com.feel.gems.config.GemsDisables;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemId;
@@ -56,6 +57,10 @@ public final class GemAbilities {
         }
 
         Identifier abilityId = abilities.get(abilityIndex);
+        if (GemsDisables.isAbilityDisabledFor(player, abilityId)) {
+            player.sendMessage(Text.literal("That ability is disabled on this server."), true);
+            return;
+        }
         GemAbility ability = ModAbilities.get(abilityId);
         if (ability == null) {
             player.sendMessage(Text.literal("Ability not registered: " + abilityId), true);

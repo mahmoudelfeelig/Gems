@@ -65,5 +65,12 @@
   "item.gems.pillager_gem": "Pillager Gem",
   "item.gems.spy_mimic_gem": "Spy/Mimic Gem",
   "item.gems.beacon_gem": "Beacon Gem",
-  "item.gems.air_gem": "Air Gem"
+  "item.gems.air_gem": "Air Gem",
+  "item.gems.void_gem": "Void Gem",
+  "item.gems.chaos_gem": "Chaos Gem",
+  "item.gems.prism_gem": "Prism Gem",
+  "item.gems.gem_seer": "Gem Seer",
+  "item.gems.gem_seer.desc": "Right-click to view any online player's gem info.",
+  "screen.gems.gem_seer.title": "Gem Seer",
+  "screen.gems.gem_seer.hint": "Select a player to view their gem info."
 }

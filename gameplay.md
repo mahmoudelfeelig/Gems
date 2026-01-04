@@ -36,6 +36,14 @@
 - Hunter's Sight Bow: aim assist toward your last hit target (player or mob) within 50 blocks and line of sight.
 - Third-Strike Blade: every 3rd crit within a 5s chain window deals bonus damage.
 - Vampiric Edge: each crit heals 1 heart.
+- Gem Seer: right-click to open a selection screen of all online players; choose one to view their active gem, energy level, and owned gems. No cooldown and not consumed.
+- Challenger's Gauntlet: right-click a player to challenge them to a duel; both players are teleported to a small arena, winner gets energy; loser loses energy.
+- Duelist's Rapier: parry window on right-click; successful parry grants guaranteed crit on next hit.
+- Experience Blade: consume XP to gain Sharpness (10 levels → Sharpness II, 20 → IV, 30 → VI, max Sharpness XX at 100 levels). Enchantment persists until death.
+- Reversal Mirror: right-click to activate for 5s; all incoming damage is reflected back to the attacker.
+- Hunter's Trophy Necklace: on player kill, permanently gain the victim's highest-level gem passive (persists through death/logout).
+- Gladiator's Mark: brand a player; both you and the marked player deal 50% more damage to each other for 60s.
+- Soul Shackle: link yourself to an enemy; damage you take is split between you both for 10s.
 - Universal mob blacklist (config): applies to Hypno Staff, Summoner summons, and Astra Soul Capture.
 
 ## Trust and ownership
@@ -295,6 +303,197 @@ Abilities:
 - Gale Slam: empower your next mace slam with a stronger wind burst.
 - Crosswind: cutting gust forward that knocks back and slows enemies.
 - Air Dash: forward dash with brief i-frames.
+
+### Void Gem
+
+Passives:
+- Void Immunity: immune to all gem abilities and passives from other players.
+
+Abilities: None.
+
+### Chaos Gem
+
+Passives:
+- Chaos Random Rotation: every 5 minutes, gain a random ability and passive from any other gem. Can use the ability with a 10-second cooldown between uses.
+
+Abilities: None (provided dynamically by the passive).
+
+### Prism Gem
+
+Passives: None (selected at max energy).
+
+Abilities: None (selected at max energy).
+
+At energy 10/10, Prism players can select:
+- Up to 3 abilities from normal gems + 2 from the bonus pool (5 total).
+- Up to 3 passives from normal gems + 2 from the bonus pool (5 total).
+- Blacklisted powers (Void Immunity, Chaos Random Rotation, Nullify) cannot be selected.
+
+### Duelist Gem
+
+Passives:
+- Riposte: after a successful block, your next attack within 2s deals 50% bonus damage.
+- Duelist's Focus: deal 25% more damage in 1v1 combat (no other players within 15 blocks).
+- Combat Stance: while holding a sword, gain +10% movement speed.
+
+Abilities:
+- Lunge: dash forward with your sword, dealing damage to the first enemy hit.
+- Parry: brief window to deflect incoming melee attacks; successful parry stuns the attacker.
+- Flourish: quick 360° sword sweep that hits all nearby enemies.
+- Mirror Match: force a target into a 1v1 duel for 15s (barrier prevents escape); also copies your skin and name onto them.
+- Blade Dance: combo system where consecutive hits deal increasing damage (resets after 3s without hitting).
+
+### Hunter Gem
+
+Passives:
+- Prey Mark: hitting an enemy marks them; marked targets take 15% more damage from you.
+- Tracker's Eye: marked enemies are visible through walls within 30 blocks.
+- Trophy Hunter: on player kill, gain one of their random passives temporarily (60s); persists through death.
+
+Abilities:
+- Hunting Trap: place an invisible trap that roots and damages the first enemy who walks over it.
+- Pounce: leap toward a marked target from up to 20 blocks away.
+- Net Shot: fire a net that slows and grounds enemies (disables flight/elytra).
+- Crippling Shot: ranged attack that reduces target's movement speed by 50% for 8s.
+- Pack Tactics: nearby trusted allies deal 20% more damage to your marked target for 10s.
+
+### Sentinel Gem
+
+Passives:
+- Guardian Aura: nearby trusted allies take 15% less damage.
+- Fortress: while standing still for 2s, gain Resistance II.
+- Retribution Thorns: attackers take 20% of damage dealt back as true damage.
+
+Abilities:
+- Shield Wall: deploy an energy barrier that blocks projectiles and slows enemies passing through.
+- Taunt: force nearby enemies to target you for 5s; gain damage reduction during taunt.
+- Intervention: instantly teleport to a trusted ally and absorb the next hit they would take.
+- Rally Cry: heal all nearby trusted allies and grant Resistance I for 8s.
+- Lockdown: create a zone where enemies cannot use movement abilities for 10s.
+
+### Trickster Gem
+
+Passives:
+- Sleight of Hand: 20% chance to not consume items when using throwables.
+- Chaos Agent: your abilities have randomized bonus effects (can be beneficial or detrimental).
+- Slippery: 25% chance to ignore slowing effects.
+
+Abilities:
+- Shadow Swap: instantly swap places with your shadow clone (must have clone active).
+- Mirage: create 3 illusory copies that mirror your movements for 10s; clones take one hit to dispel.
+- Glitch Step: short-range teleport that leaves a damaging afterimage at your origin.
+- Puppet Master: briefly control an enemy's movement for 3s (they walk where you aim).
+- Mind Games: reverse an enemy's movement controls for 5s (left becomes right, forward becomes back).
+
+## Bonus Abilities and Passives
+
+At energy 10/10, any gem holder can claim up to 2 bonus abilities and 2 bonus passives from a server-wide pool. Claims are unique per player—once claimed, no other player can use that ability/passive until it is released. All bonus abilities have configurable cooldowns, damage values, and radii in the balance config (`bonusPool.*`).
+
+### Bonus Abilities (50)
+
+- Thunderstrike: call down a lightning bolt on a targeted location.
+- Frostbite: freeze a target in place briefly with ice damage.
+- Earthshatter: slam the ground to create a damaging shockwave.
+- Shadowstep: teleport a short distance in the direction you're facing.
+- Radiant Burst: emit a burst of holy light that damages and blinds nearby enemies.
+- Venomspray: spray poison in a cone, applying Poison to hit enemies.
+- Timewarp: briefly slow time for enemies in an area.
+- Decoy Trap: place a fake item that explodes when picked up.
+- Gravity Well: create a point that pulls enemies inward.
+- Chain Lightning: launch lightning that bounces between nearby enemies.
+- Magma Pool: create a pool of lava at the target location.
+- Ice Wall: summon a wall of ice blocks to block movement.
+- Wind Slash: send a cutting wind projectile forward.
+- Curse Bolt: fire a projectile that applies random negative effects.
+- Berserker Rage: gain massive damage boost but take increased damage.
+- Ethereal Step: short dash that passes through one wall.
+- Arcane Missiles: fire a volley of homing magic projectiles.
+- Life Tap: sacrifice health to reduce cooldowns.
+- Doom Bolt: launch a slow but devastating dark projectile.
+- Sanctuary: create a protective dome that blocks enemy projectiles.
+- Spectral Chains: bind enemies in ethereal chains that root them.
+- Void Rift: tear open a rift that damages enemies who touch it.
+- Inferno Dash: dash forward leaving a trail of fire behind you.
+- Tidal Wave: summon a wave of water that pushes and damages enemies.
+- Starfall: call down celestial projectiles on a target area.
+- Bloodlust: gain attack speed based on nearby enemies.
+- Crystal Cage: trap an enemy in an unbreakable crystal prison briefly.
+- Phantasm: create a decoy that taunts enemies and explodes on death.
+- Sonic Boom: release a soundwave that knocks back and damages enemies.
+- Vampiric Touch: drain health from touched enemy over time.
+- Blinding Flash: blind all nearby enemies with an intense flash.
+- Storm Call: summon a lightning storm in an area with random strikes.
+- Quicksand: create a zone that slows and sinks enemies.
+- Searing Light: beam of holy light that burns undead extra.
+- Spectral Blade: summon a ghostly sword that attacks nearby enemies.
+- Nether Portal: short-range teleport through a nether rift.
+- Entangle: vines erupt from ground to root enemies.
+- Mind Spike: psychic damage that also reveals enemy location.
+- Seismic Slam: ground-pound that creates shockwaves.
+- Icicle Barrage: fire a volley of piercing icicles.
+- Banishment: teleport enemy far away randomly.
+- Corpse Explosion: detonate nearby corpses for AoE damage.
+- Soul Swap: swap positions with target player/mob.
+- Mark of Death: mark target to take bonus damage from all sources.
+- Iron Maiden: enemies that hit you take reflect damage for duration.
+- Warp Strike: teleport behind target and strike.
+- Vortex Strike: spin attack that pulls enemies closer.
+- Plague Cloud: create a lingering cloud that poisons and weakens.
+- Overcharge: next ability deals double damage but costs health.
+- Gravity Crush: slam target to ground, rooting and damaging them.
+
+### Bonus Passives (50)
+
+- Thorns Aura: attackers take 25% damage reflected when they hit you.
+- Lifesteal: melee attacks heal you for 10% of damage dealt.
+- Dodge Chance: 10% chance to completely avoid incoming attacks.
+- Critical Strike: +15% crit chance and +50% crit damage.
+- Mana Shield: absorb damage using XP levels (2 XP per damage).
+- Regeneration Boost: passive Regeneration I effect.
+- Damage Reduction: flat 10% reduction to all incoming damage.
+- Attack Speed: +15% melee attack speed.
+- Reach Extend: +1.5 block melee and interaction range.
+- Impact Absorb: 20% of damage taken becomes temporary absorption hearts.
+- Adrenaline Surge: gain brief Speed when taking damage.
+- Intimidate: enemies within 8 blocks deal 10% less damage.
+- Evasive Roll: when hit while sprinting, auto-dodge backward (8s cooldown).
+- Combat Meditate: standing still for 2s rapidly restores health.
+- Weapon Mastery: +1 attack damage with all weapons.
+- Culling Blade: instantly kill enemies below 10% HP on hit.
+- Thick Skin: projectiles deal 25% less damage to you.
+- XP Boost: gain 25% bonus XP from all sources.
+- Hunger Resist: 50% slower hunger depletion.
+- Poison Immunity: immune to Poison effects.
+- Second Wind: survive one killing blow per 5 minutes, restore to half health.
+- Echo Strike: 15% chance for melee attacks to hit twice.
+- Chain Breaker: break free from roots/slows 50% faster.
+- Stone Skin: flat 1 damage reduction from all sources.
+- Arcane Barrier: absorb first hit every 30s.
+- Predator Sense: enemies below 30% HP are highlighted with glowing effect through walls.
+- Battle Medic: heal nearby trusted allies 0.5 HP/sec.
+- Last Stand: deal 50% more damage when below 25% HP.
+- Executioner: deal 30% more damage to enemies below 25% HP.
+- Bloodthirst: kills restore 2 hearts.
+- Steel Resolve: immune to knockback.
+- Elemental Harmony: 25% reduced damage from fire, frost, and lightning.
+- Treasure Hunter: 20% increased rare loot drop chance.
+- Counter Strike: after blocking, next hit deals 2x damage (3s window).
+- Bulwark: blocking is 50% more effective.
+- Quick Recovery: debuff durations reduced by 30%.
+- Overflowing Vitality: +4 maximum hearts permanently.
+- Magnetic Pull: items attracted from 2x distance.
+- Vengeance: after being hit, next attack deals +50% damage (5s window).
+- Nemesis: deal 25% more damage to the last player who killed you.
+- Hunter's Instinct: +20% crit chance against fleeing enemies.
+- Berserker Blood: attack speed increases as health decreases (up to +50%).
+- Opportunist: +25% damage when attacking from behind.
+- Ironclad: armor is 25% more effective.
+- Mist Form: 10% chance to phase through attacks.
+- War Cry: killing enemies grants nearby allies Strength I for 5s.
+- Siphon Soul: killing blows grant Regeneration for 4s.
+- Unbreakable: equipment durability loss reduced by 50%.
+- Focused Mind: all ability cooldowns reduced by 15%.
+- Sixth Sense: warning particles appear when enemies target you from 15 blocks.
 
 ## Assassin endgame
 

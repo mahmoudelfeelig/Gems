@@ -6,6 +6,7 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.net.CooldownSnapshotPayload;
 import com.feel.gems.net.ExtraStatePayload;
+import com.feel.gems.net.ServerDisablesPayload;
 import com.feel.gems.net.StateSyncPayload;
 import com.feel.gems.net.SummonerLoadoutScreenPayload;
 import com.feel.gems.net.TrackerCompassScreenPayload;
@@ -28,6 +29,7 @@ public final class ClientNetworking {
             ClientExtraState.reset();
             ClientAbilitySelection.reset();
             ClientDisguiseState.reset();
+            ClientDisables.reset();
         }));
 
         ClientPlayNetworking.registerGlobalReceiver(StateSyncPayload.ID, (payload, context) ->
@@ -74,6 +76,10 @@ public final class ClientNetworking {
                 }));
         ClientPlayNetworking.registerGlobalReceiver(SpySkinshiftPayload.ID, (payload, context) ->
                 context.client().execute(() -> ClientDisguiseState.update(payload.player(), payload.target()))
+        );
+
+        ClientPlayNetworking.registerGlobalReceiver(ServerDisablesPayload.ID, (payload, context) ->
+                context.client().execute(() -> ClientDisables.update(payload))
         );
     }
 

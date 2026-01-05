@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "gems:item/hunters_sight_bow"
+    "model": "gems:item/legendary/weapons/hunters_sight_bow"
   }
 }

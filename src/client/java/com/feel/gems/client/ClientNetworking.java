@@ -1,9 +1,13 @@
 package com.feel.gems.client;
 
+import com.feel.gems.client.screen.BonusSelectionScreen;
 import com.feel.gems.client.screen.SummonerLoadoutScreen;
 import com.feel.gems.client.screen.TrackerCompassScreen;
 import com.feel.gems.core.GemId;
 import com.feel.gems.net.AbilityCooldownPayload;
+import com.feel.gems.net.BonusSelectionScreenPayload;
+import com.feel.gems.net.ChaosSlotPayload;
+import com.feel.gems.net.ChaosStatePayload;
 import com.feel.gems.net.CooldownSnapshotPayload;
 import com.feel.gems.net.ExtraStatePayload;
 import com.feel.gems.net.ServerDisablesPayload;
@@ -28,6 +32,7 @@ public final class ClientNetworking {
             ClientCooldowns.reset();
             ClientExtraState.reset();
             ClientAbilitySelection.reset();
+            ClientChaosState.reset();
             ClientDisguiseState.reset();
             ClientDisables.reset();
         }));
@@ -81,6 +86,25 @@ public final class ClientNetworking {
         ClientPlayNetworking.registerGlobalReceiver(ServerDisablesPayload.ID, (payload, context) ->
                 context.client().execute(() -> ClientDisables.update(payload))
         );
+
+        // Legacy chaos state (kept for compatibility)
+        ClientPlayNetworking.registerGlobalReceiver(ChaosStatePayload.ID, (payload, context) -> {
+            // Old system - ignore
+        });
+        
+        // New chaos slots system
+        ClientPlayNetworking.registerGlobalReceiver(ChaosSlotPayload.ID, (payload, context) ->
+                context.client().execute(() -> ClientChaosState.update(payload))
+        );
+
+        // Bonus selection screen
+        ClientPlayNetworking.registerGlobalReceiver(BonusSelectionScreenPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    MinecraftClient client = context.client();
+                    if (client != null) {
+                        client.setScreen(new BonusSelectionScreen(payload));
+                    }
+                }));
     }
 
     private static GemId safeGemId(int ordinal) {

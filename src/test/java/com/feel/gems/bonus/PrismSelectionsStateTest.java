@@ -2,7 +2,6 @@ package com.feel.gems.bonus;
 
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.testutil.MinecraftBootstrap;
-import net.minecraft.util.Identifier;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

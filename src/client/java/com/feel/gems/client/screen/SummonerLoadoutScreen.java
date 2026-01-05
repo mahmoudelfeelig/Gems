@@ -94,7 +94,7 @@ public final class SummonerLoadoutScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
 
         context.fill(panelLeft, panelTop, panelRight, panelBottom, 0xAA101010);
         context.fill(panelLeft, panelTop, panelRight, panelTop + 1, 0x44FFFFFF);
@@ -113,8 +113,6 @@ public final class SummonerLoadoutScreen extends Screen {
                 slot.renderLabels(context, this.textRenderer);
             }
         }
-
-        super.render(context, mouseX, mouseY, delta);
 
         int bottomLine = this.height - 62;
         if (maxPoints > 0) {

@@ -1,6 +1,7 @@
 package com.feel.gems.power.runtime;
 
 import com.feel.gems.config.GemsBalance;
+import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -16,6 +17,14 @@ public final class AbilityFeedback {
     private static final double VISUAL_BOOST = 1.5D;
 
     private AbilityFeedback() {
+    }
+
+    /**
+     * Sync velocity immediately to the client. Use this after setting player velocity
+     * for abilities that move the player (jumps, dashes, etc.).
+     */
+    public static void syncVelocity(ServerPlayerEntity player) {
+        player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player));
     }
 
     public static void sound(ServerPlayerEntity player, SoundEvent sound, float volume, float pitch) {

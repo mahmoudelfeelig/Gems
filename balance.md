@@ -36,6 +36,23 @@ These are global caps/switches for particles/sounds emitted by abilities (useful
 - `visual.maxBeamSteps`: hard cap for beam "steps" (0..2048).
 - `visual.maxRingPoints`: hard cap for ring/aura "points" (0..2048).
 
+## Client config
+
+Client-side settings are stored in `config/gems/client.json` (per-client, not synced to server).
+
+- `passivesEnabled`: toggle your gem's passives on/off (default `true`). Useful if a passive interferes with your playstyle.
+- `controlMode`: controls how ability keybinds work.
+  - `CHORD` (default): Hold the Gems Modifier key (default Left Alt) + press a hotbar key (1-9).
+  - `CUSTOM`: Each ability slot has its own dedicated keybind (`Gems Ability 1` through `Gems Ability 9`), unbound by default.
+
+All keybinds are configurable in **Options -> Controls -> Gems**:
+- **Gems Modifier**: the modifier key for CHORD mode (default: Left Alt)
+- **Gems Ability 1-9**: dedicated ability keybinds for CUSTOM mode (unbound by default)
+- **Bonus Ability 1-2**: dedicated keybinds for bonus abilities (unbound by default, work in both modes)
+- **Bonus Selection Screen**: open the bonus ability/passive claim UI (default: B)
+
+In CHORD mode, bonus abilities are also accessible via LAlt + 5 and LAlt + 6.
+
 ## Ability defaults
 
 These are the default values generated in `config/gems/balance.json`.

@@ -4,7 +4,6 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
-import com.feel.gems.state.PlayerStateManager;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.Entity;
 import net.minecraft.particle.ParticleTypes;
@@ -12,11 +11,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
-import java.util.HashSet;
-import java.util.Set;
 
 public final class SentinelLockdownAbility implements GemAbility {
     @Override

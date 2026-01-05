@@ -4,7 +4,6 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
-import com.feel.gems.state.PlayerStateManager;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTeleport;
 import net.minecraft.entity.Entity;

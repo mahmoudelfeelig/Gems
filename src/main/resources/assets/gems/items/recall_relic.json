@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "gems:item/recall_relic"
+    "model": "gems:item/legendary/tools/recall_relic"
   }
 }

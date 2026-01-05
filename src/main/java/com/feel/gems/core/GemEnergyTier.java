@@ -5,7 +5,7 @@ package com.feel.gems.core;
 
 /**
  * Normalized energy tiers for gems. Values are clamped between 0 and 10.
- * Naming follows the Legendary → Broken ladder with Legendary +1…+5 overflow.
+ * Naming follows the Legendary -> Broken ladder with Legendary +1 to +5 overflow.
  */
 public enum GemEnergyTier {
     BROKEN(0),

@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "gems:item/blood_oath_blade"
+    "model": "gems:item/legendary/weapons/blood_oath_blade"
   }
 }

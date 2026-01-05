@@ -1,15 +1,16 @@
 package com.feel.gems.power.gem.chaos;
 
-import com.feel.gems.GemsMod;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
+import com.feel.gems.net.ChaosStatePayload;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.api.GemPassive;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.power.registry.ModPassives;
 import com.feel.gems.state.GemPlayerState;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -59,7 +60,10 @@ public final class ChaosRotationRuntime {
         
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             if (GemPlayerState.getActiveGem(player) != GemId.CHAOS) {
-                playerStates.remove(player.getUuid());
+                if (playerStates.remove(player.getUuid()) != null) {
+                    // Clear client state when switching away from Chaos
+                    ServerPlayNetworking.send(player, new ChaosStatePayload("", "", "", 0));
+                }
                 continue;
             }
             
@@ -71,6 +75,9 @@ public final class ChaosRotationRuntime {
             ChaosState state = playerStates.get(player.getUuid());
             if (state == null || currentTick - state.lastRotationTick >= ROTATION_TICKS) {
                 rotate(player, currentTick);
+            } else if (currentTick % 20 == 0) {
+                // Sync timer every second
+                syncToClient(player);
             }
         }
     }
@@ -107,9 +114,30 @@ public final class ChaosRotationRuntime {
         String abilityName = newAbility != null ? getAbilityName(newAbility) : "None";
         String passiveName = newPassive != null ? getPassiveName(newPassive) : "None";
         
-        player.sendMessage(Text.literal("⚡ Chaos Rotation! ⚡").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
+        player.sendMessage(Text.literal("Let's go gambling!").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
         player.sendMessage(Text.literal("  Ability: " + abilityName).formatted(Formatting.AQUA), false);
         player.sendMessage(Text.literal("  Passive: " + passiveName).formatted(Formatting.GREEN), false);
+
+        // Sync to client for HUD display
+        syncToClient(player);
+    }
+
+    /**
+     * Sync the current chaos state to the client for HUD display.
+     */
+    public static void syncToClient(ServerPlayerEntity player) {
+        ChaosState state = playerStates.get(player.getUuid());
+        if (state == null) {
+            ServerPlayNetworking.send(player, new ChaosStatePayload("", "", "", 0));
+            return;
+        }
+        String abilityName = state.currentAbility != null ? getAbilityName(state.currentAbility) : "";
+        String abilityId = state.currentAbility != null ? state.currentAbility.toString() : "";
+        String passiveName = state.currentPassive != null ? getPassiveName(state.currentPassive) : "";
+        long currentTick = player.getEntityWorld().getTime();
+        int remainingTicks = (int) Math.max(0, ROTATION_TICKS - (currentTick - state.lastRotationTick));
+        int remainingSeconds = remainingTicks / 20;
+        ServerPlayNetworking.send(player, new ChaosStatePayload(abilityName, abilityId, passiveName, remainingSeconds));
     }
 
     private static Identifier pickRandomAbility(net.minecraft.util.math.random.Random random) {
@@ -172,7 +200,13 @@ public final class ChaosRotationRuntime {
      */
     public static boolean activateAbility(ServerPlayerEntity player) {
         ChaosState state = playerStates.get(player.getUuid());
+        if (state == null) {
+            // Force rotate now if no state yet
+            rotate(player, player.getEntityWorld().getTime());
+            state = playerStates.get(player.getUuid());
+        }
         if (state == null || state.currentAbility == null) {
+            player.sendMessage(Text.literal("Chaos rotation not ready yet.").formatted(Formatting.RED), true);
             return false;
         }
         

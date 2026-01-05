@@ -98,13 +98,12 @@ public final class TrackerCompassScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 12, 0xFFFFFF);
         if (!entries.isEmpty()) {
             int maxPage = Math.max(0, (entries.size() - 1) / ENTRIES_PER_PAGE) + 1;
             String pageText = "Page " + (page + 1) + " / " + maxPage;
             context.drawCenteredTextWithShadow(this.textRenderer, pageText, this.width / 2, 20, 0xA0A0A0);
         }
-        super.render(context, mouseX, mouseY, delta);
     }
 }

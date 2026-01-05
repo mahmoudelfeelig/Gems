@@ -6,7 +6,9 @@ import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.GemOwnership;
 import com.feel.gems.item.ModItems;
+import com.feel.gems.item.legendary.HuntersTrophyNecklaceItem;
 import com.feel.gems.net.GemStateSync;
+import com.feel.gems.power.gem.hunter.HunterTrophyHunterRuntime;
 import com.feel.gems.power.gem.spy.SpyMimicSystem;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.power.gem.terror.TerrorBloodPrice;
@@ -66,6 +68,14 @@ public final class GemsPlayerDeath {
             if (GemPowers.isPassiveActive(killer, PowerIds.TERROR_BLOOD_PRICE)) {
                 TerrorBloodPrice.onPlayerKill(killer);
             }
+
+            // Hunter Trophy Hunter passive - gain a random passive from the victim
+            if (GemPowers.isPassiveActive(killer, PowerIds.HUNTER_TROPHY_HUNTER)) {
+                HunterTrophyHunterRuntime.onPlayerKill(killer, victim);
+            }
+
+            // Hunter's Trophy Necklace legendary - permanently gain a random passive
+            HuntersTrophyNecklaceItem.onKillPlayer(killer, victim);
 
             if (victimWasAssassin && killerWasAssassin) {
                 var cfg = com.feel.gems.config.GemsBalance.v().systems();

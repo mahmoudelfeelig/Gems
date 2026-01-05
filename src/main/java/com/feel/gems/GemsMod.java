@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 
 
 
+import com.feel.gems.net.ServerBonusNetworking;
+
 public final class GemsMod implements ModInitializer {
     public static final String MOD_ID = "gems";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
@@ -35,6 +37,7 @@ public final class GemsMod implements ModInitializer {
         ServerClientConfigNetworking.register();
         ServerLegendaryNetworking.register();
         ServerSummonerNetworking.register();
+        ServerBonusNetworking.register();
         GemsModEvents.register();
         GemsCommands.register();
     }

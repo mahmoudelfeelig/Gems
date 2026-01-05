@@ -27,7 +27,7 @@ import net.minecraft.world.World;
 /**
  * Lightweight runtime for Space gem "anomalies" that require per-tick physics (black/white holes and delayed orbital strikes).
  *
- * <p>Important: keep this performant — it should early-exit when no anomalies exist and keep radii clamped by config.</p>
+ * <p>Important: keep this performant, it should early-exit when no anomalies exist and keep radii clamped by config.</p>
  */
 public final class SpaceAnomalies {
     private static final List<Anomaly> ACTIVE = new ArrayList<>();

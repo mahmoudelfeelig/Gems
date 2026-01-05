@@ -3,7 +3,6 @@ package com.feel.gems.power.ability.trickster;
 import com.feel.gems.state.PlayerStateManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Vec3d;
-import java.util.*;
 
 public final class TricksterShadowCloneRuntime {
     private static final String CLONE_X_KEY = "trickster_clone_x";

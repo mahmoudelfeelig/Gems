@@ -2,9 +2,11 @@ package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
 import com.feel.gems.legendary.LegendaryItem;
+import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.PlayerStateManager;
+import java.util.List;
+import java.util.Random;
 import java.util.function.Consumer;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.component.type.TooltipDisplayComponent;
@@ -20,6 +22,7 @@ import net.minecraft.util.Identifier;
  */
 public final class HuntersTrophyNecklaceItem extends Item implements LegendaryItem {
     private static final String TROPHY_PASSIVE_KEY = "trophy_necklace_passive";
+    private static final Random RANDOM = new Random();
 
     public HuntersTrophyNecklaceItem(Settings settings) {
         super(settings);
@@ -59,10 +62,9 @@ public final class HuntersTrophyNecklaceItem extends Item implements LegendaryIt
     }
 
     private static Identifier pickRandomPassive(ServerPlayerEntity victim) {
-        // This would integrate with GemPowers to get the victim's active passives
-        // and pick a random one from them
-        // For now, return null - actual implementation would query the power system
-        return null;
+        List<Identifier> victimPassives = GemPowers.getActivePassives(victim);
+        if (victimPassives.isEmpty()) return null;
+        return victimPassives.get(RANDOM.nextInt(victimPassives.size()));
     }
 
     public static Identifier getTrophyPassive(ServerPlayerEntity player) {

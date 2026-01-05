@@ -56,6 +56,7 @@ public final class HunterPounceAbility implements GemAbility {
         double verticalVel = Math.min(distance / 15.0, 1.0);
         player.setVelocity(dir.x * horizontalVel, verticalVel, dir.z * horizontalVel);
         player.velocityDirty = true;
+        AbilityFeedback.syncVelocity(player);
 
         // Deal damage on arrival (handled by landing check in runtime)
         HunterPounceRuntime.setPouncing(player, target.getUuid(), damage);

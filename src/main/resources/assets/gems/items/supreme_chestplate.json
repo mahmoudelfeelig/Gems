@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "gems:item/supreme_chestplate"
+    "model": "gems:item/legendary/armor/supreme_chestplate"
   }
 }

@@ -1,12 +1,10 @@
 package com.feel.gems.power.gem.hunter;
 
 import com.feel.gems.config.GemsBalance;
-import com.feel.gems.power.api.GemPassive;
-import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.PlayerStateManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -23,7 +21,7 @@ public final class HunterTrophyHunterRuntime {
 
     public static void onPlayerKill(ServerPlayerEntity hunter, ServerPlayerEntity victim) {
         // Get victim's active passives
-        List<Identifier> victimPassives = getVictimPassives(victim);
+        List<Identifier> victimPassives = GemPowers.getActivePassives(victim);
         if (victimPassives.isEmpty()) return;
 
         // Pick a random passive
@@ -34,14 +32,6 @@ public final class HunterTrophyHunterRuntime {
 
         PlayerStateManager.setPersistent(hunter, TROPHY_PASSIVE_KEY, stolenPassive.toString());
         PlayerStateManager.setPersistent(hunter, TROPHY_END_KEY, String.valueOf(endTime));
-    }
-
-    private static List<Identifier> getVictimPassives(ServerPlayerEntity victim) {
-        // This would integrate with GemPowers to get the victim's active passives
-        // For now, return an empty list - the actual implementation would query the power system
-        List<Identifier> passives = new ArrayList<>();
-        // TODO: Integrate with GemPowers.getActivePassives(victim)
-        return passives;
     }
 
     public static Identifier getTrophyPassive(ServerPlayerEntity hunter) {

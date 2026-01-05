@@ -17,8 +17,12 @@ Optional (recommended for profiling/testing):
 ### Config
 - Main balance file: `config/gems/balance.json`
 - Reload at runtime (op level 2+): `/gems reloadBalance`
-- Dump effective (clamped) values (op level 2+): `/gems dumpBalance` → writes `config/gems/balance.effective.json`
+- Dump effective (clamped) values (op level 2+): `/gems dumpBalance` -> writes `config/gems/balance.effective.json`
+- Client config: `config/gems/client.json` (per-client, not synced)
+  - `passivesEnabled`: toggle passives on/off
+  - `controlMode`: `CHORD` (modifier + hotbar) or `CUSTOM` (dedicated keybinds)
 - ModMenu config edits are op-only in multiplayer; non-ops see a read-only view.
+- All keybinds are customizable in Options -> Controls -> Gems.
 
 ### Permissions
 - Player commands: `/gems status`, `/gems trust`, `/gems untrust`, `/gems trustlist`, `/gems trade ...`, `/gems track <player>`

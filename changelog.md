@@ -5,7 +5,7 @@
 - **Legendary items**: one-of-a-kind crafts with a 10-minute crafting timer, global location announcement, boss-bar progress, and drop-at-table completion.
 - **Legendary arsenal**: Tracker Compass, Recall Relic, Hypno Staff, Earthsplitter Pick, Supreme armor set, Blood Oath Blade, Demolition Blade, Hunter’s Sight Bow, Third-Strike Blade, and Vampiric Edge.
 - **Recipe system**: legendary discount recipes gated by active gem, auto-unlocked recipes on join, and recipe IDs tied to `legendary.recipeGemRequirements`.
-- **Summons AI**: unified AI priority across Summoner, Astra Soul Release, and Hypno (last target → attacker/hostile → follow), with summon targeting protections.
+- **Summons AI**: unified AI priority across Summoner, Astra Soul Release, and Hypno (last target -> attacker/hostile -> follow), with summon targeting protections.
 - **Terror updates**: rigged blocks detonate on use/step/break/update; breach charge is immediate with wither-style VFX.
 
 
@@ -28,7 +28,7 @@
 
 - **Systems & economy changes**
   - Energy ladder enforced: start 3 energy; deaths -1; kills +1 up to Legendary +5 (10) with glint + upgrade drop at cap.
-  - Ability availability tied to energy: 0–1 none; 2–4 first abilities only; 5+ all abilities.
+  - Ability availability tied to energy: 0-1 none; 2-4 first abilities only; 5+ all abilities.
   - Heart items respect the **5-heart floor** and block teammate boosting; expensive heart crafting and energy upgrade crafting enabled; Trader item swaps to any gem of same level.
   - Config-driven balance with runtime clamps (`config/gems/balance.json`), hot reload via `/gems reloadBalance` and export via `/gems dumpBalance`.
 

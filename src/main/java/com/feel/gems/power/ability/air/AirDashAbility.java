@@ -49,6 +49,7 @@ public final class AirDashAbility implements GemAbility {
         Vec3d dir = player.getRotationVec(1.0F).normalize();
         player.addVelocity(dir.x * velocity, up, dir.z * velocity);
         player.velocityDirty = true;
+        AbilityFeedback.syncVelocity(player);
         if (iFrame > 0) {
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, iFrame, amp, true, false, false));
         }

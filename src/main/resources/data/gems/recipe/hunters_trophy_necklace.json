@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CHC",
+    "NEN",
+    "CHC"
+  ],
+  "key": {
+    "C": "minecraft:iron_bars",
+    "H": "minecraft:player_head",
+    "N": "minecraft:netherite_ingot",
+    "E": "minecraft:ender_eye"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:hunters_trophy_necklace"
+  }
+}

@@ -23,9 +23,10 @@ import com.feel.gems.power.ability.pillager.PillagerVindicatorBreakAbility;
 import com.feel.gems.power.gem.astra.SoulSystem;
 import com.feel.gems.power.gem.beacon.BeaconAuraRuntime;
 import com.feel.gems.power.gem.beacon.BeaconSupportRuntime;
-import com.feel.gems.power.gem.chaos.ChaosRotationRuntime;
+import com.feel.gems.power.gem.chaos.ChaosSlotRuntime;
 import com.feel.gems.power.gem.fire.AutoSmeltCache;
 import com.feel.gems.power.gem.flux.FluxCharge;
+import com.feel.gems.power.gem.hunter.HunterPreyMarkRuntime;
 import com.feel.gems.power.gem.pillager.PillagerDiscipline;
 import com.feel.gems.power.gem.pillager.PillagerVolleyRuntime;
 import com.feel.gems.power.gem.puff.BreezyBashTracker;
@@ -149,6 +150,11 @@ public final class GemsModEvents {
                     }
                 }
             }
+
+            // Hunter: Prey Mark - mark hit players
+            if (living instanceof ServerPlayerEntity victim) {
+                HunterPreyMarkRuntime.applyMark(sp, victim);
+            }
             return ActionResult.PASS;
         });
 
@@ -260,7 +266,7 @@ public final class GemsModEvents {
                 SpeedFrictionlessSteps.tick(s);
                 GemsStressTest.tick(s);
                 GemOwnership.tickPurgeQueue(s);
-                ChaosRotationRuntime.tick(s);
+                ChaosSlotRuntime.tick(s);
                 for (ServerPlayerEntity player : s.getPlayerManager().getPlayerList()) {
                     TerrorRigRuntime.checkStep(player);
                 }

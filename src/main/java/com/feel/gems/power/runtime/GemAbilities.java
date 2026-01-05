@@ -8,6 +8,7 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.chaos.ChaosSlotRuntime;
 import com.feel.gems.power.gem.spy.SpyMimicSystem;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.state.GemPlayerState;
@@ -41,6 +42,12 @@ public final class GemAbilities {
         int energy = GemPlayerState.getEnergy(player);
         if (energy <= 1) {
             player.sendMessage(Text.literal("No abilities unlocked at this energy."), true);
+            return;
+        }
+
+        // Chaos gem uses 4 independent ability slots (0-3)
+        if (gemId == GemId.CHAOS && abilityIndex >= 0 && abilityIndex < ChaosSlotRuntime.SLOT_COUNT) {
+            ChaosSlotRuntime.activateSlot(player, abilityIndex);
             return;
         }
 

@@ -45,6 +45,7 @@ public final class DashAbility implements GemAbility {
         double dashVel = GemsBalance.v().puff().dashVelocity();
         player.addVelocity(dir.x * dashVel, 0.1D, dir.z * dashVel);
         player.velocityDirty = true;
+        AbilityFeedback.syncVelocity(player);
         AbilityFeedback.beam(world, player.getEntityPos().add(0.0D, 1.0D, 0.0D), player.getEntityPos().add(dir.multiply(3.0D)).add(0.0D, 1.0D, 0.0D), ParticleTypes.CLOUD, 10);
 
         Box box = player.getBoundingBox().stretch(dir.multiply(GemsBalance.v().puff().dashHitRangeBlocks())).expand(1.0D);

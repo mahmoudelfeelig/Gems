@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "gems:item/earthsplitter_pick"
+    "model": "gems:item/legendary/tools/earthsplitter_pick"
   }
 }

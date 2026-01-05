@@ -10,7 +10,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;

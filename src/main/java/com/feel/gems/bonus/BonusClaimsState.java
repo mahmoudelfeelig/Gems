@@ -198,4 +198,30 @@ public final class BonusClaimsState extends PersistentState {
     public UUID getPassiveClaimant(Identifier passiveId) {
         return passiveClaims.get(passiveId);
     }
+
+    /**
+     * Release a specific ability claim for a player.
+     */
+    public void releaseAbility(UUID playerUuid, Identifier abilityId) {
+        if (abilityClaims.remove(abilityId, playerUuid)) {
+            Set<Identifier> playerSet = playerAbilities.get(playerUuid);
+            if (playerSet != null) {
+                playerSet.remove(abilityId);
+            }
+            markDirty();
+        }
+    }
+
+    /**
+     * Release a specific passive claim for a player.
+     */
+    public void releasePassive(UUID playerUuid, Identifier passiveId) {
+        if (passiveClaims.remove(passiveId, playerUuid)) {
+            Set<Identifier> playerSet = playerPassives.get(playerUuid);
+            if (playerSet != null) {
+                playerSet.remove(passiveId);
+            }
+            markDirty();
+        }
+    }
 }

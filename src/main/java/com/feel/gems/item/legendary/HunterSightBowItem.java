@@ -15,7 +15,7 @@ import net.minecraft.util.Identifier;
 
 public final class HunterSightBowItem extends BowItem implements LegendaryItem {
     public HunterSightBowItem(Settings settings) {
-        super(settings.enchantable(1));
+        super(settings.enchantable(15));
     }
 
     @Override

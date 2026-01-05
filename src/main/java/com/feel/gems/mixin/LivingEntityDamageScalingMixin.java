@@ -1,8 +1,11 @@
 package com.feel.gems.mixin;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.power.gem.duelist.DuelistPassiveRuntime;
 import com.feel.gems.power.gem.flux.FluxCharge;
+import com.feel.gems.power.gem.hunter.HunterPreyMarkRuntime;
 import com.feel.gems.power.gem.reaper.ReaperBloodCharge;
+import com.feel.gems.power.gem.sentinel.SentinelPassiveRuntime;
 import com.feel.gems.power.gem.space.SpaceLunarScaling;
 import com.feel.gems.power.gem.air.AirMacePassive;
 import com.feel.gems.power.registry.PowerIds;
@@ -52,6 +55,25 @@ public abstract class LivingEntityDamageScalingMixin {
                     scaled += GemsBalance.v().reaper().deathOathBonusDamage();
                 }
             }
+
+            // Duelist: Riposte - bonus damage after successful block
+            if (DuelistPassiveRuntime.consumeRiposte(playerAttacker)) {
+                scaled *= DuelistPassiveRuntime.getRiposteDamageMultiplier();
+            }
+
+            // Duelist: Focus - bonus damage in 1v1 combat
+            if (self instanceof ServerPlayerEntity victim) {
+                if (DuelistPassiveRuntime.isIn1v1Combat(playerAttacker, victim)) {
+                    scaled *= DuelistPassiveRuntime.getFocusDamageMultiplier();
+                }
+            }
+
+            // Hunter: Prey Mark - bonus damage to marked targets
+            if (self instanceof ServerPlayerEntity victim) {
+                if (HunterPreyMarkRuntime.isMarked(playerAttacker, victim)) {
+                    scaled *= HunterPreyMarkRuntime.getDamageMultiplier();
+                }
+            }
         }
 
             if (self instanceof ServerPlayerEntity victim) {
@@ -83,6 +105,19 @@ public abstract class LivingEntityDamageScalingMixin {
                 int charge = FluxCharge.get(victim);
                 if (charge >= GemsBalance.v().flux().fluxInsulationChargeThreshold()) {
                     scaled *= GemsBalance.v().flux().fluxInsulationDamageMultiplier();
+                }
+            }
+
+            // Sentinel: Guardian Aura - nearby allies take less damage
+            if (SentinelPassiveRuntime.isProtectedByGuardianAura(victim)) {
+                scaled *= (1.0f - SentinelPassiveRuntime.getGuardianAuraDamageReduction());
+            }
+
+            // Sentinel: Retribution Thorns - attackers take reflected damage
+            if (SentinelPassiveRuntime.hasRetributionThorns(victim)) {
+                if (attacker instanceof LivingEntity livingAttacker && livingAttacker != victim) {
+                    float reflected = scaled * SentinelPassiveRuntime.getRetributionThornsDamagePercent();
+                    livingAttacker.damage(world, victim.getDamageSources().thorns(victim), reflected);
                 }
             }
         }

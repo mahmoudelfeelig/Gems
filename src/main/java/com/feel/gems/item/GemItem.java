@@ -56,12 +56,16 @@ public final class GemItem extends Item {
 
         // Gem items are only valid for gems you currently own (prevents re-activating traded-away gems).
         if (!GemPlayerState.getOwnedGems(player).contains(gemId)) {
-            if (ownedByPlayer) {
+            // Creative mode: grant the gem on first use so testing is easy.
+            if (player.isCreative()) {
+                GemPlayerState.addOwnedGem(player, gemId);
+            } else if (ownedByPlayer) {
                 player.setStackInHand(hand, ItemStack.EMPTY);
                 return ActionResult.SUCCESS.withNewHandStack(ItemStack.EMPTY);
+            } else {
+                player.sendMessage(Text.literal("You no longer own this gem."), true);
+                return ActionResult.FAIL;
             }
-            player.sendMessage(Text.literal("You no longer own this gem."), true);
-            return ActionResult.FAIL;
         }
 
         var ownerUuid = GemOwnership.ownerUuid(stack);

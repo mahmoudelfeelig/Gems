@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RDR",
+    "GHG",
+    "RDR"
+  ],
+  "key": {
+    "R": "minecraft:redstone_block",
+    "D": "minecraft:diamond",
+    "G": "minecraft:golden_apple",
+    "H": "minecraft:goat_horn"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:gladiators_mark"
+  }
+}

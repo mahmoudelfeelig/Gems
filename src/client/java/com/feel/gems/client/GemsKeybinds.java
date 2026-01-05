@@ -4,6 +4,8 @@ import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.ActivateAbilityPayload;
+import com.feel.gems.net.ActivateBonusAbilityPayload;
+import com.feel.gems.net.BonusSelectionOpenRequestPayload;
 import com.feel.gems.net.FluxChargePayload;
 import com.feel.gems.net.SoulReleasePayload;
 import com.feel.gems.net.SummonerLoadoutOpenRequestPayload;
@@ -25,6 +27,8 @@ public final class GemsKeybinds {
     private static boolean registered = false;
     private static KeyBinding MODIFIER;
     private static KeyBinding[] CUSTOM_KEYS;
+    private static KeyBinding[] BONUS_ABILITY_KEYS;
+    private static KeyBinding BONUS_SCREEN_KEY;
 
     private GemsKeybinds() {
     }
@@ -43,6 +47,14 @@ public final class GemsKeybinds {
         for (int i = 0; i < CUSTOM_KEYS.length; i++) {
             CUSTOM_KEYS[i] = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.ability_" + (i + 1), GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
         }
+        
+        // Bonus ability keybinds (unbound by default, customizable via Controls)
+        BONUS_ABILITY_KEYS = new KeyBinding[2];
+        BONUS_ABILITY_KEYS[0] = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.bonus_ability_1", GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
+        BONUS_ABILITY_KEYS[1] = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.bonus_ability_2", GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
+        
+        // Bonus selection screen keybind (B by default)
+        BONUS_SCREEN_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.bonus_screen", GLFW.GLFW_KEY_B, CATEGORY));
     }
 
     public static boolean isModifierDown() {
@@ -72,6 +84,22 @@ public final class GemsKeybinds {
     }
 
     public static void tick(MinecraftClient client) {
+        // Check bonus screen key (works regardless of control mode)
+        if (BONUS_SCREEN_KEY != null && client.currentScreen == null) {
+            while (BONUS_SCREEN_KEY.wasPressed()) {
+                openBonusScreen(client);
+            }
+        }
+        
+        // Check bonus ability keybinds (work regardless of control mode)
+        if (BONUS_ABILITY_KEYS != null && client.currentScreen == null) {
+            for (int i = 0; i < BONUS_ABILITY_KEYS.length; i++) {
+                while (BONUS_ABILITY_KEYS[i].wasPressed()) {
+                    activateBonusAbility(client, i);
+                }
+            }
+        }
+        
         if (!useCustomControls() || CUSTOM_KEYS == null || client.currentScreen != null) {
             return;
         }
@@ -80,6 +108,38 @@ public final class GemsKeybinds {
                 activateSlotChord(client, i + 1);
             }
         }
+    }
+    
+    private static void activateBonusAbility(MinecraftClient client, int slotIndex) {
+        if (client.getNetworkHandler() == null) {
+            sendActionBar(client, Text.literal("Not connected."));
+            return;
+        }
+        if (!ClientGemState.isInitialized()) {
+            sendActionBar(client, Text.literal("Gem state not synced yet."));
+            return;
+        }
+        if (ClientGemState.energy() < 10) {
+            sendActionBar(client, Text.literal("You need energy 10/10 to use bonus abilities."));
+            return;
+        }
+        ClientPlayNetworking.send(new ActivateBonusAbilityPayload(slotIndex));
+    }
+    
+    private static void openBonusScreen(MinecraftClient client) {
+        if (client.getNetworkHandler() == null) {
+            sendActionBar(client, Text.literal("Not connected."));
+            return;
+        }
+        if (!ClientGemState.isInitialized()) {
+            sendActionBar(client, Text.literal("Gem state not synced yet."));
+            return;
+        }
+        if (ClientGemState.energy() < 10) {
+            sendActionBar(client, Text.literal("You need energy 10/10 to access bonus powers."));
+            return;
+        }
+        ClientPlayNetworking.send(BonusSelectionOpenRequestPayload.INSTANCE);
     }
 
     public static boolean useChordControls() {
@@ -141,6 +201,16 @@ public final class GemsKeybinds {
         if (ClientGemState.activeGem() == GemId.ASTRA && slotNumber == abilityCount + 1) {
             activateSoulRelease(client);
             return;
+        }
+
+        // Bonus abilities: slots 5-6 (if player has energy 10)
+        // These are mapped to bonus ability index 0-1 (claimed abilities)
+        if (slotNumber == 5 || slotNumber == 6) {
+            if (ClientGemState.energy() >= 10) {
+                int bonusSlot = slotNumber - 5; // 0 or 1
+                ClientPlayNetworking.send(new ActivateBonusAbilityPayload(bonusSlot));
+                return;
+            }
         }
 
         int abilityIndex = slotNumber - 1;

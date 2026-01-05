@@ -43,6 +43,7 @@ public final class DoubleJumpAbility implements GemAbility {
         Vec3d v = player.getVelocity();
         player.setVelocity(v.x, GemsBalance.v().puff().doubleJumpVelocityY(), v.z);
         player.velocityDirty = true;
+        AbilityFeedback.syncVelocity(player);
         AbilityFeedback.burst(player, ParticleTypes.CLOUD, 12, 0.2D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, 0.7F, 1.5F);
         return true;

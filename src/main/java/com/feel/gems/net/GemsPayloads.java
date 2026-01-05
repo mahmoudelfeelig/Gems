@@ -16,12 +16,15 @@ public final class GemsPayloads {
             return;
         }
         PayloadTypeRegistry.playC2S().register(ActivateAbilityPayload.ID, ActivateAbilityPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ActivateBonusAbilityPayload.ID, ActivateBonusAbilityPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(SoulReleasePayload.ID, SoulReleasePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(FluxChargePayload.ID, FluxChargePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(ClientPassiveTogglePayload.ID, ClientPassiveTogglePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(SummonerLoadoutOpenRequestPayload.ID, SummonerLoadoutOpenRequestPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(SummonerLoadoutSavePayload.ID, SummonerLoadoutSavePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(TrackerCompassSelectPayload.ID, TrackerCompassSelectPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(BonusSelectionOpenRequestPayload.ID, BonusSelectionOpenRequestPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(BonusSelectionClaimPayload.ID, BonusSelectionClaimPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(StateSyncPayload.ID, StateSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(CooldownSnapshotPayload.ID, CooldownSnapshotPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(AbilityCooldownPayload.ID, AbilityCooldownPayload.CODEC);
@@ -30,6 +33,9 @@ public final class GemsPayloads {
         PayloadTypeRegistry.playS2C().register(TrackerCompassScreenPayload.ID, TrackerCompassScreenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(SpySkinshiftPayload.ID, SpySkinshiftPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ServerDisablesPayload.ID, ServerDisablesPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ChaosStatePayload.ID, ChaosStatePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ChaosSlotPayload.ID, ChaosSlotPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(BonusSelectionScreenPayload.ID, BonusSelectionScreenPayload.CODEC);
         registered = true;
     }
 }

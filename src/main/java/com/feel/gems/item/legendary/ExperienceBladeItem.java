@@ -27,7 +27,7 @@ import net.minecraft.world.World;
 
 /**
  * Experience Blade - consume XP to gain Sharpness.
- * 10 levels → Sharpness II, 20 → IV, 30 → VI, max Sharpness XX at 100 levels.
+ * 10 levels -> Sharpness II, 20 -> IV, 30 -> VI, max Sharpness XX at 100 levels.
  * Enchantment persists until death.
  */
 public final class ExperienceBladeItem extends Item implements LegendaryItem {
@@ -133,6 +133,6 @@ public final class ExperienceBladeItem extends Item implements LegendaryItem {
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
         tooltip.accept(Text.literal("Right-click to consume XP and upgrade Sharpness").formatted(Formatting.GRAY));
-        tooltip.accept(Text.literal("10 levels → II, 20 → IV, ... max XX").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.literal("10 levels -> II, 20 -> IV, ... max XX").formatted(Formatting.DARK_GRAY));
     }
 }

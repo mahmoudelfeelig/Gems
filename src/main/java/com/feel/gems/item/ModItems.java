@@ -21,6 +21,7 @@ import com.feel.gems.item.legendary.ThirdStrikeBladeItem;
 import com.feel.gems.item.legendary.TrackerCompassItem;
 import com.feel.gems.item.legendary.VampiricEdgeItem;
 import java.util.function.Function;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ToolMaterial;
 import net.minecraft.item.equipment.ArmorMaterials;
@@ -41,7 +42,7 @@ public final class ModItems {
     public static final Item GEM_TRADER = register("gem_trader", settings -> new TraderItem(settings.maxCount(1)));
     public static final Item GEM_PURCHASE = register("gem_purchase", settings -> new GemPurchaseItem(settings.maxCount(1)));
 
-    public static final Item TRACKER_COMPASS = register("tracker_compass", settings -> new TrackerCompassItem(settings.maxCount(1)));
+    public static final Item TRACKER_COMPASS = register("tracker_compass", settings -> new TrackerCompassItem(settings.maxCount(1).component(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true)));
     public static final Item RECALL_RELIC = register("recall_relic", settings -> new RecallRelicItem(settings.maxCount(1)));
     public static final Item HYPNO_STAFF = register("hypno_staff", settings -> new HypnoStaffItem(settings.maxCount(1)));
     public static final Item EARTHSPLITTER_PICK = register("earthsplitter_pick",

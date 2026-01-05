@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SDS",
+    "CHC",
+    "SDS"
+  ],
+  "key": {
+    "S": "minecraft:soul_sand",
+    "D": "minecraft:diamond",
+    "C": "minecraft:iron_bars",
+    "H": "minecraft:player_head"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:soul_shackle"
+  }
+}

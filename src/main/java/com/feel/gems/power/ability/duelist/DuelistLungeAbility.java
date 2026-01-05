@@ -47,6 +47,7 @@ public final class DuelistLungeAbility implements GemAbility {
         double vel = distance / 4.0;
         player.setVelocity(dir.x * vel, 0.1D, dir.z * vel);
         player.velocityDirty = true;
+        AbilityFeedback.syncVelocity(player);
 
         // Find first enemy in path
         Box box = player.getBoundingBox().stretch(dir.multiply(distance)).expand(1.0D);

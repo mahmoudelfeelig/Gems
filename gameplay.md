@@ -39,7 +39,7 @@
 - Gem Seer: right-click to open a selection screen of all online players; choose one to view their active gem, energy level, and owned gems. No cooldown and not consumed.
 - Challenger's Gauntlet: right-click a player to challenge them to a duel; both players are teleported to a small arena, winner gets energy; loser loses energy.
 - Duelist's Rapier: parry window on right-click; successful parry grants guaranteed crit on next hit.
-- Experience Blade: consume XP to gain Sharpness (10 levels → Sharpness II, 20 → IV, 30 → VI, max Sharpness XX at 100 levels). Enchantment persists until death.
+- Experience Blade: consume XP to gain Sharpness (10 levels -> Sharpness II, 20 -> IV, 30 -> VI, max Sharpness XX at 100 levels). Enchantment persists until death.
 - Reversal Mirror: right-click to activate for 5s; all incoming damage is reflected back to the attacker.
 - Hunter's Trophy Necklace: on player kill, permanently gain the victim's highest-level gem passive (persists through death/logout).
 - Gladiator's Mark: brand a player; both you and the marked player deal 50% more damage to each other for 60s.
@@ -56,10 +56,15 @@
 
 - Cast an ability: hold Gems Modifier (default Left Alt) + press a hotbar number (1-9).
 - Controls can be switched to fully custom keybinds via `config/gems/client.json` (`controlMode`: `CHORD` or `CUSTOM`).
+  - **CHORD mode** (default): Hold Gems Modifier + hotbar key. The modifier is customizable in Options -> Controls -> Gems.
+  - **CUSTOM mode**: Each ability slot has its own keybind (`Gems Ability 1` through `Gems Ability 9`) in Options -> Controls -> Gems. These are unbound by default.
 - Client config can disable your own gem passives (`passivesEnabled`).
 - Astra Soul Release: the slot after Astra's last ability.
 - Summoner loadout UI: Gems Modifier + the hotbar key after Recall (default Alt + 7).
-- HUD shows current gem, energy tier, cooldowns, and special states (like Flux charge or Astra soul).
+- Bonus Selection: press B (default) to open the bonus ability/passive selection screen (requires energy 10/10). Customizable in Options -> Controls -> Gems.
+- Bonus abilities: LAlt + 5 and LAlt + 6 (in CHORD mode) OR use the dedicated `Bonus Ability 1` and `Bonus Ability 2` keybinds (customizable, unbound by default).
+- Chaos slots: LAlt + 1-4 to roll or use chaos abilities.
+- HUD shows current gem, energy tier, cooldowns, and special states (like Flux charge, Astra soul, or Chaos slots).
 
 ## Gems
 
@@ -314,9 +319,10 @@ Abilities: None.
 ### Chaos Gem
 
 Passives:
-- Chaos Random Rotation: every 5 minutes, gain a random ability and passive from any other gem. Can use the ability with a 10-second cooldown between uses.
+- Chaos Agent: grants access to 4 independent random ability slots.
 
-Abilities: None (provided dynamically by the passive).
+Abilities:
+- Slot 1-4 (LAlt + 1-4): each slot can be rolled independently. Press a slot key when empty to roll a random ability and passive from any other gem. The rolled ability lasts 5 minutes and can be used with a 10-second cooldown. All 4 slots operate independently.
 
 ### Prism Gem
 
@@ -341,7 +347,7 @@ Abilities:
 - Parry: brief window to deflect incoming melee attacks; successful parry stuns the attacker.
 - Flourish: quick 360° sword sweep that hits all nearby enemies.
 - Mirror Match: force a target into a 1v1 duel for 15s (barrier prevents escape); also copies your skin and name onto them.
-- Blade Dance: combo system where consecutive hits deal increasing damage (resets after 3s without hitting).
+- Blade Dance: combo system where consecutive hits deal increasing damage (resets after 3s` without hitting).
 
 ### Hunter Gem
 
@@ -387,7 +393,14 @@ Abilities:
 
 ## Bonus Abilities and Passives
 
-At energy 10/10, any gem holder can claim up to 2 bonus abilities and 2 bonus passives from a server-wide pool. Claims are unique per player—once claimed, no other player can use that ability/passive until it is released. All bonus abilities have configurable cooldowns, damage values, and radii in the balance config (`bonusPool.*`).
+At energy 10/10, any gem holder can claim up to 2 bonus abilities and 2 bonus passives from a server-wide pool. Press B (default keybind) to open the Bonus Selection screen.
+
+Key mechanics:
+- Claims are unique per player - once claimed, no other player can use that ability/passive until it is released.
+- Bonus abilities are cast using LAlt + 5 and LAlt + 6 (for your 1st and 2nd claimed ability).
+- Bonus passives are automatically applied while claimed and active.
+- Claims are released when your energy drops below 10 (you will be notified).
+- All bonus abilities have configurable cooldowns, damage values, and radii in the balance config (`bonusPool.*`).
 
 ### Bonus Abilities (50)
 

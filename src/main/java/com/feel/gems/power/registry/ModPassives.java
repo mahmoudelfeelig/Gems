@@ -8,8 +8,10 @@ import com.feel.gems.power.passive.AutoEnchantPassive;
 import com.feel.gems.power.passive.MarkerPassive;
 import com.feel.gems.power.passive.StatusEffectPassive;
 import com.feel.gems.power.passive.bonus.*;
+import com.feel.gems.power.passive.duelist.DuelistCombatStancePassive;
 import com.feel.gems.power.passive.flux.FluxCapacitorPassive;
 import com.feel.gems.power.passive.puff.PuffWindbornePassive;
+import com.feel.gems.power.passive.sentinel.SentinelFortressPassive;
 import com.feel.gems.power.passive.strength.StrengthAdrenalinePassive;
 import java.util.Collections;
 import java.util.HashMap;
@@ -411,14 +413,10 @@ public final class ModPassives {
         ));
         register(new MarkerPassive(
                 PowerIds.DUELIST_FOCUS,
-                "Focus",
-                "Brief damage boost after hitting a single target repeatedly."
+                "Duelist's Focus",
+                "Deal 25% more damage in 1v1 combat when no other players are within 15 blocks."
         ));
-        register(new MarkerPassive(
-                PowerIds.DUELIST_COMBAT_STANCE,
-                "Combat Stance",
-                "Reduced damage when facing a single opponent."
-        ));
+        register(new DuelistCombatStancePassive());
 
         // Hunter gem passives
         register(new MarkerPassive(
@@ -429,7 +427,7 @@ public final class ModPassives {
         register(new MarkerPassive(
                 PowerIds.HUNTER_TRACKERS_EYE,
                 "Tracker's Eye",
-                "Nearby damaged players are outlined in red."
+                "Marked enemies are visible through walls within 30 blocks."
         ));
         register(new MarkerPassive(
                 PowerIds.HUNTER_TROPHY_HUNTER,
@@ -441,13 +439,9 @@ public final class ModPassives {
         register(new MarkerPassive(
                 PowerIds.SENTINEL_GUARDIAN_AURA,
                 "Guardian Aura",
-                "Nearby allies take reduced damage while you're healthy."
+                "Nearby trusted allies take 15% less damage."
         ));
-        register(new MarkerPassive(
-                PowerIds.SENTINEL_FORTRESS,
-                "Fortress",
-                "Reduced knockback and incoming damage while standing still."
-        ));
+        register(new SentinelFortressPassive());
         register(new MarkerPassive(
                 PowerIds.SENTINEL_RETRIBUTION_THORNS,
                 "Retribution Thorns",
@@ -458,17 +452,17 @@ public final class ModPassives {
         register(new MarkerPassive(
                 PowerIds.TRICKSTER_SLEIGHT_OF_HAND,
                 "Sleight of Hand",
-                "Reduced cooldowns after successful deception."
+                "20% chance to not consume items when using throwables."
         ));
         register(new MarkerPassive(
                 PowerIds.TRICKSTER_CHAOS_AGENT,
                 "Chaos Agent",
-                "Random beneficial effects when hitting enemies."
+                "Your abilities have randomized bonus effects (can be beneficial or detrimental)."
         ));
         register(new MarkerPassive(
                 PowerIds.TRICKSTER_SLIPPERY,
                 "Slippery",
-                "Small chance to evade damage entirely."
+                "25% chance to ignore slowing effects."
         ));
     }
 

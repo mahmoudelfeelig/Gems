@@ -1,7 +1,5 @@
 package com.feel.gems.client.screen;
 
-import com.feel.gems.GemsMod;
-import com.feel.gems.core.GemId;
 import com.feel.gems.screen.GemSeerScreenHandler;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -125,7 +123,6 @@ public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
         this.drawMouseoverTooltip(context, mouseX, mouseY);
 

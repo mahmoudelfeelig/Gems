@@ -45,6 +45,7 @@ public final class AirWindJumpAbility implements GemAbility {
         player.addVelocity(dir.x * forward, up, dir.z * forward);
         player.velocityDirty = true;
         player.fallDistance = 0.0F;
+        AbilityFeedback.syncVelocity(player);
         AbilityFeedback.burst(player, ParticleTypes.GUST, 18, 0.3D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 0.8F, 1.2F);
         return true;

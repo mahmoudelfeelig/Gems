@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "gems:item/third_strike_blade"
+    "model": "gems:item/legendary/weapons/third_strike_blade"
   }
 }

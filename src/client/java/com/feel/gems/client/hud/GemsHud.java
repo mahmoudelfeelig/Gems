@@ -2,6 +2,7 @@ package com.feel.gems.client.hud;
 
 import com.feel.gems.GemsMod;
 import com.feel.gems.client.ClientAbilitySelection;
+import com.feel.gems.client.ClientChaosState;
 import com.feel.gems.client.ClientCooldowns;
 import com.feel.gems.client.ClientExtraState;
 import com.feel.gems.client.ClientGemState;
@@ -62,7 +63,7 @@ public final class GemsHud {
         int lineHeight = tr.fontHeight + 2;
 
         if (!ClientGemState.isInitialized()) {
-            ctx.drawTextWithShadow(tr, "Gem: syncing…", x, y, opaque(0xAAAAAA));
+            ctx.drawTextWithShadow(tr, "Gem: syncing...", x, y, opaque(0xAAAAAA));
             return;
         }
 
@@ -174,6 +175,53 @@ public final class GemsHud {
                     if (y > client.getWindow().getScaledHeight() - lineHeight) {
                         break;
                     }
+                }
+            }
+        } else if (gem == GemId.CHAOS) {
+            // Chaos has 4 independent ability slots
+            for (int i = 0; i < ClientChaosState.SLOT_COUNT; i++) {
+                ClientChaosState.SlotState slot = ClientChaosState.getSlot(i);
+                String key = GemsKeybinds.chordSlotLabel(i + 1);
+                boolean selected = selectedSlot == (i + 1);
+                
+                if (slot.isActive()) {
+                    String abilityName = slot.abilityName();
+                    String passiveName = slot.passiveName();
+                    int remaining = slot.remainingSeconds();
+                    int cooldown = slot.cooldownSeconds();
+                    
+                    String prefix = selected ? "» " : "";
+                    int lineColor;
+                    String stateSuffix;
+                    
+                    if (cooldown > 0) {
+                        stateSuffix = " (CD " + cooldown + "s)";
+                        lineColor = selected ? opaque(0xFF5555) : opaque(0xFFCC33);
+                    } else {
+                        stateSuffix = "";
+                        lineColor = selected ? opaque(0x55FF55) : opaque(0xFFFFFF);
+                    }
+                    
+                    // Line 1: Ability
+                    String base = prefix + key + " " + abilityName;
+                    ctx.drawTextWithShadow(tr, base + stateSuffix, x, y, lineColor);
+                    y += lineHeight;
+                    
+                    // Line 2: Passive + remaining time
+                    int mins = remaining / 60;
+                    int secs = remaining % 60;
+                    String passiveText = "    ↳ " + passiveName + " [" + mins + ":" + String.format("%02d", secs) + "]";
+                    ctx.drawTextWithShadow(tr, passiveText, x, y, opaque(0x55FF55));
+                    y += lineHeight;
+                } else {
+                    // Inactive slot - can be activated
+                    String prefix = selected ? "» " : "";
+                    ctx.drawTextWithShadow(tr, prefix + key + " [Press to roll]", x, y, selected ? opaque(0xAA55FF) : opaque(0x777777));
+                    y += lineHeight;
+                }
+                
+                if (y > client.getWindow().getScaledHeight() - lineHeight * 2) {
+                    break;
                 }
             }
         } else {

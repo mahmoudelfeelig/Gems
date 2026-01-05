@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "gems:item/hypno_staff"
+    "model": "gems:item/legendary/tools/hypno_staff"
   }
 }

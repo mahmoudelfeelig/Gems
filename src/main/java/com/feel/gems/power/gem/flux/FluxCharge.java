@@ -36,26 +36,26 @@ public final class FluxCharge {
 
     public static boolean tryConsumeChargeItem(ServerPlayerEntity player) {
         if (!GemPowers.isPassiveActive(player, PowerIds.FLUX_CHARGE_STORAGE)) {
-            player.sendMessage(Text.literal("Charge Storage is not active."), true);
+            player.sendMessage(Text.translatable("gems.flux.charge_storage_not_active"), true);
             return false;
         }
 
         int charge = get(player);
         if (charge >= 100) {
-            player.sendMessage(Text.literal("Flux charge is already at 100%."), true);
+            player.sendMessage(Text.translatable("gems.flux.charge_at_100"), true);
             return false;
         }
 
         int[] fuel = findFuelSlot(player);
         if (fuel == null) {
-            player.sendMessage(Text.literal("No charge item found (offhand or inventory)."), true);
+            player.sendMessage(Text.translatable("gems.flux.no_charge_item"), true);
             return false;
         }
 
         ItemStack fuelStack = getFuelStack(player, fuel);
         int add = chargeValue(fuelStack);
         if (add <= 0) {
-            player.sendMessage(Text.literal("No valid charge item found."), true);
+            player.sendMessage(Text.translatable("gems.flux.no_valid_charge_item"), true);
             return false;
         }
 
@@ -65,7 +65,7 @@ public final class FluxCharge {
         if (charge < 100 && next >= 100) {
             persistent(player).putLong(KEY_AT_100, GemsTime.now(player));
         }
-        player.sendMessage(Text.literal("Flux charge: " + next + "%"), true);
+        player.sendMessage(Text.translatable("gems.flux.charge_percent", next), true);
         return true;
     }
 

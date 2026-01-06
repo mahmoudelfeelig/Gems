@@ -115,7 +115,7 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
         data.putString(KEY_MARK_DIM, world.getRegistryKey().getValue().toString());
         writeBlockPos(data, KEY_MARK_POS, player.getBlockPos());
         forceChunk(world, player.getBlockPos(), true);
-        player.sendMessage(Text.literal("Recall mark set."), true);
+        player.sendMessage(Text.translatable("gems.item.recall_relic.mark_set"), true);
     }
 
     private static void teleportToMark(ServerPlayerEntity player) {
@@ -130,14 +130,14 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
         }
         ServerWorld targetWorld = server.getWorld(mark.dimension());
         if (targetWorld == null) {
-            player.sendMessage(Text.literal("Recall failed: target world missing."), true);
+            player.sendMessage(Text.translatable("gems.item.recall_relic.failed"), true);
             clearMark(player);
             return;
         }
         BlockPos pos = mark.pos();
         GemsTeleport.teleport(player, targetWorld, pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, player.getYaw(), player.getPitch());
         clearMark(player);
-        player.sendMessage(Text.literal("Recalled to mark."), true);
+        player.sendMessage(Text.translatable("gems.item.recall_relic.recalled"), true);
     }
 
     private static boolean hasMark(ServerPlayerEntity player) {

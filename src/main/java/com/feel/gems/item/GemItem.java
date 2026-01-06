@@ -49,7 +49,7 @@ public final class GemItem extends Item {
                 GemOwnership.tagOwned(stack, player.getUuid(), GemPlayerState.getGemEpoch(player));
             } else if (GemOwnership.purgeIfInvalid(server, stack)) {
                 player.setStackInHand(hand, ItemStack.EMPTY);
-                player.sendMessage(Text.literal("This gem has been reclaimed by its owner."), true);
+                player.sendMessage(Text.translatable("gems.item.gem.reclaimed"), true);
                 return ActionResult.SUCCESS.withNewHandStack(ItemStack.EMPTY);
             }
         }
@@ -63,7 +63,7 @@ public final class GemItem extends Item {
                 player.setStackInHand(hand, ItemStack.EMPTY);
                 return ActionResult.SUCCESS.withNewHandStack(ItemStack.EMPTY);
             } else {
-                player.sendMessage(Text.literal("You no longer own this gem."), true);
+                player.sendMessage(Text.translatable("gems.item.gem.not_owned"), true);
                 return ActionResult.FAIL;
             }
         }
@@ -85,7 +85,7 @@ public final class GemItem extends Item {
         GemPowers.sync(player);
         GemStateSync.send(player);
         GemItemGlint.sync(player);
-        player.sendMessage(Text.literal("Active gem set to " + gemId.name()), true);
+        player.sendMessage(Text.translatable("gems.item.gem.activated", gemId.name()), true);
         return ActionResult.SUCCESS;
     }
 }

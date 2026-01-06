@@ -37,12 +37,12 @@ public final class SpySkinshiftAbility implements GemAbility {
         int range = GemsBalance.v().spyMimic().skinshiftRangeBlocks();
         LivingEntity target = Targeting.raycastLiving(player, range);
         if (!(target instanceof ServerPlayerEntity other) || other == player) {
-            player.sendMessage(Text.literal("No player targeted."), true);
+            player.sendMessage(Text.translatable("gems.message.no_player_target"), true);
             return false;
         }
         int duration = GemsBalance.v().spyMimic().skinshiftDurationTicks();
         if (duration <= 0) {
-            player.sendMessage(Text.literal("Skinshift is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.spy.skinshift.disabled"), true);
             return false;
         }
         return SpyMimicSystem.startSkinshift(player, other, duration);

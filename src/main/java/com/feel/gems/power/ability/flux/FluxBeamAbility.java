@@ -48,7 +48,7 @@ public final class FluxBeamAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().flux().fluxBeamRangeBlocks());
         if (target == null) {
-            player.sendMessage(Text.literal("No target."), true);
+            player.sendMessage(Text.translatable("gems.message.no_target"), true);
             return false;
         }
 
@@ -68,7 +68,7 @@ public final class FluxBeamAbility implements GemAbility {
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other) && GemPowers.isPassiveActive(player, PowerIds.FLUX_ALLY_INVERSION)) {
             repairArmor(other, durabilityDamage);
             beamFx(player, other.getEntityPos().add(0.0D, 1.0D, 0.0D), true);
-            player.sendMessage(Text.literal("Flux Beam: repaired ally armor (" + charge + "%)"), true);
+            player.sendMessage(Text.translatable("gems.ability.flux.beam.repaired", charge), true);
             consumeCharge(player);
             return true;
         }
@@ -80,7 +80,7 @@ public final class FluxBeamAbility implements GemAbility {
             damageArmor(victim, durabilityDamage);
         }
         beamFx(player, target.getEntityPos().add(0.0D, 1.0D, 0.0D), false);
-        player.sendMessage(Text.literal("Flux Beam: " + charge + "%"), true);
+        player.sendMessage(Text.translatable("gems.ability.flux.beam.fired", charge), true);
         consumeCharge(player);
         return true;
     }

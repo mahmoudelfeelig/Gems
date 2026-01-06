@@ -35,7 +35,7 @@ public final class PillagerVolleyAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int duration = GemsBalance.v().pillager().volleyDurationTicks();
         if (duration <= 0) {
-            player.sendMessage(Text.literal("Volley is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.pillager.volley.disabled"), true);
             return false;
         }
         PillagerVolleyRuntime.start(player, duration);

@@ -60,7 +60,7 @@ public final class ChallengersGauntletItem extends Item implements LegendaryItem
         // Raycast to find target
         HitResult hit = player.raycast(10, 0.0F, false);
         if (!(hit instanceof EntityHitResult entityHit) || !(entityHit.getEntity() instanceof ServerPlayerEntity target)) {
-            player.sendMessage(Text.literal("No player target found").formatted(Formatting.RED), true);
+            player.sendMessage(Text.translatable("gems.message.no_player_target").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
         }
 
@@ -84,9 +84,9 @@ public final class ChallengersGauntletItem extends Item implements LegendaryItem
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.ENTITY_GOAT_HORN_BREAK, SoundCategory.PLAYERS, 1.0F, 1.0F);
 
-        player.sendMessage(Text.literal("Challenged " + target.getName().getString() + " to a duel!").formatted(Formatting.GOLD), false);
-        target.sendMessage(Text.literal(player.getName().getString() + " has challenged you to a duel!").formatted(Formatting.GOLD), false);
-        target.sendMessage(Text.literal("The duel will begin in the arena...").formatted(Formatting.YELLOW), false);
+        player.sendMessage(Text.translatable("gems.item.challengers_gauntlet.challenged", target.getName().getString()).formatted(Formatting.GOLD), false);
+        target.sendMessage(Text.translatable("gems.item.challengers_gauntlet.challenged_victim", player.getName().getString()).formatted(Formatting.GOLD), false);
+        target.sendMessage(Text.translatable("gems.item.challengers_gauntlet.duel_begin").formatted(Formatting.YELLOW), false);
 
         // Note: Actual arena teleportation would be implemented in a separate system
         // This just marks the challenge - a tick handler would handle the actual duel logic
@@ -101,8 +101,8 @@ public final class ChallengersGauntletItem extends Item implements LegendaryItem
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.literal("Right-click a player to challenge them").formatted(Formatting.GRAY));
-        tooltip.accept(Text.literal("Winner gains +1 energy, loser loses -1 energy").formatted(Formatting.DARK_GRAY));
-        tooltip.accept(Text.literal("5 minute cooldown").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.translatable("gems.item.challengers_gauntlet.tooltip.1").formatted(Formatting.GRAY));
+        tooltip.accept(Text.translatable("gems.item.challengers_gauntlet.tooltip.2").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.translatable("gems.item.challengers_gauntlet.tooltip.3").formatted(Formatting.DARK_GRAY));
     }
 }

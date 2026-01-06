@@ -35,14 +35,14 @@ public final class SummonRecallAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int before = SummonerSummons.pruneAndCount(player);
         if (before <= 0) {
-            player.sendMessage(Text.literal("No summons to recall."), true);
+            player.sendMessage(Text.translatable("gems.ability.summoner.recall.no_summons"), true);
             return false;
         }
         SummonerSummons.discardAll(player);
         SummonerSummons.applyCooldown(player);
         AbilityFeedback.burst(player, net.minecraft.particle.ParticleTypes.POOF, 18, 0.35D);
         AbilityFeedback.sound(player, net.minecraft.sound.SoundEvents.ENTITY_ENDERMAN_TELEPORT, 0.7F, 1.2F);
-        player.sendMessage(Text.literal("Recalled summons."), true);
+        player.sendMessage(Text.translatable("gems.ability.summoner.recall.recalled"), true);
         return true;
     }
 }

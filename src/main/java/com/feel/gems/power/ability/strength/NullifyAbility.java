@@ -54,7 +54,7 @@ public final class NullifyAbility implements GemAbility {
         }
         AbilityFeedback.sound(player, SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, 0.8F, 0.8F);
         AbilityFeedback.burst(player, ParticleTypes.ENCHANT, 14, 0.35D);
-        player.sendMessage(Text.literal("Nullified " + affected + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.strength.nullify.affected", affected), true);
         return true;
     }
 }

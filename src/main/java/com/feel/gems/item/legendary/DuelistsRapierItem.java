@@ -60,7 +60,7 @@ public final class DuelistsRapierItem extends Item implements LegendaryItem {
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.ENTITY_PLAYER_ATTACK_WEAK, SoundCategory.PLAYERS, 1.0F, 1.5F);
 
-        player.sendMessage(Text.literal("Parry ready!").formatted(Formatting.YELLOW), true);
+        player.sendMessage(Text.translatable("gems.item.duelists_rapier.parry_ready").formatted(Formatting.YELLOW), true);
         return ActionResult.SUCCESS;
     }
 
@@ -87,7 +87,7 @@ public final class DuelistsRapierItem extends Item implements LegendaryItem {
         clearParryWindow(player);
         PlayerStateManager.setPersistent(player, CRIT_READY_KEY, "true");
 
-        player.sendMessage(Text.literal("Perfect parry! Next hit is a guaranteed crit!").formatted(Formatting.GOLD), true);
+        player.sendMessage(Text.translatable("gems.item.duelists_rapier.perfect_parry").formatted(Formatting.GOLD), true);
         player.getEntityWorld().playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, SoundCategory.PLAYERS, 1.0F, 1.2F);
     }
@@ -114,8 +114,8 @@ public final class DuelistsRapierItem extends Item implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.literal("Right-click to enter parry stance").formatted(Formatting.GRAY));
-        tooltip.accept(Text.literal("Block during parry window for guaranteed crit").formatted(Formatting.DARK_GRAY));
-        tooltip.accept(Text.literal("8 second cooldown").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.translatable("gems.item.duelists_rapier.tooltip.1").formatted(Formatting.GRAY));
+        tooltip.accept(Text.translatable("gems.item.duelists_rapier.tooltip.2").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.translatable("gems.item.duelists_rapier.tooltip.3").formatted(Formatting.DARK_GRAY));
     }
 }

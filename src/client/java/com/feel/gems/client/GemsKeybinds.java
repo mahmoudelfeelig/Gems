@@ -112,15 +112,15 @@ public final class GemsKeybinds {
     
     private static void activateBonusAbility(MinecraftClient client, int slotIndex) {
         if (client.getNetworkHandler() == null) {
-            sendActionBar(client, Text.literal("Not connected."));
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
             return;
         }
         if (!ClientGemState.isInitialized()) {
-            sendActionBar(client, Text.literal("Gem state not synced yet."));
+            sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
             return;
         }
         if (ClientGemState.energy() < 10) {
-            sendActionBar(client, Text.literal("You need energy 10/10 to use bonus abilities."));
+            sendActionBar(client, Text.translatable("gems.bonus.need_energy_use"));
             return;
         }
         ClientPlayNetworking.send(new ActivateBonusAbilityPayload(slotIndex));
@@ -128,15 +128,15 @@ public final class GemsKeybinds {
     
     private static void openBonusScreen(MinecraftClient client) {
         if (client.getNetworkHandler() == null) {
-            sendActionBar(client, Text.literal("Not connected."));
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
             return;
         }
         if (!ClientGemState.isInitialized()) {
-            sendActionBar(client, Text.literal("Gem state not synced yet."));
+            sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
             return;
         }
         if (ClientGemState.energy() < 10) {
-            sendActionBar(client, Text.literal("You need energy 10/10 to access bonus powers."));
+            sendActionBar(client, Text.translatable("gems.bonus.need_energy_access"));
             return;
         }
         ClientPlayNetworking.send(BonusSelectionOpenRequestPayload.INSTANCE);
@@ -163,11 +163,11 @@ public final class GemsKeybinds {
 
     public static void activateSlotChord(MinecraftClient client, int slotNumber) {
         if (client.getNetworkHandler() == null) {
-            sendActionBar(client, Text.literal("Not connected."));
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
             return;
         }
         if (!ClientGemState.isInitialized()) {
-            sendActionBar(client, Text.literal("Gem state not synced yet."));
+            sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
             return;
         }
         ClientAbilitySelection.record(ClientGemState.activeGem(), slotNumber);
@@ -224,11 +224,11 @@ public final class GemsKeybinds {
 
     private static void activateSoulRelease(MinecraftClient client) {
         if (client.getNetworkHandler() == null) {
-            sendActionBar(client, Text.literal("Not connected."));
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
             return;
         }
         if (!ClientGemState.isInitialized()) {
-            sendActionBar(client, Text.literal("Gem state not synced yet."));
+            sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
             return;
         }
         ClientAbilitySelection.record(ClientGemState.activeGem(), GemRegistry.definition(ClientGemState.activeGem()).abilities().size() + 1);

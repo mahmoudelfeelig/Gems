@@ -38,13 +38,13 @@ public final class SpaceOrbitalLaserAbility implements GemAbility {
         int range = GemsBalance.v().space().orbitalLaserRangeBlocks();
         HitResult hit = player.raycast(range, 1.0F, false);
         if (hit.getType() != HitResult.Type.BLOCK || !(hit instanceof BlockHitResult bhr)) {
-            player.sendMessage(Text.literal("No target block."), true);
+            player.sendMessage(Text.translatable("gems.message.no_block_target"), true);
             return false;
         }
         BlockPos target = bhr.getBlockPos();
         boolean mining = player.isSneaking();
         SpaceAnomalies.scheduleOrbitalLaser(player, target, mining);
-        player.sendMessage(Text.literal(mining ? "Orbital Laser (mining)" : "Orbital Laser (damage)"), true);
+        player.sendMessage(Text.translatable(mining ? "gems.ability.space.orbital_laser.mining" : "gems.ability.space.orbital_laser.damage"), true);
         return true;
     }
 }

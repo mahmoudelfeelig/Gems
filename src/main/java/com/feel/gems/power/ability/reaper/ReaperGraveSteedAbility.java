@@ -43,7 +43,7 @@ public final class ReaperGraveSteedAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int duration = GemsBalance.v().reaper().graveSteedDurationTicks();
         if (duration <= 0) {
-            player.sendMessage(Text.literal("Grave Steed is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.grave_steed.disabled"), true);
             return false;
         }
         if (!(player.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld world)) {
@@ -51,7 +51,7 @@ public final class ReaperGraveSteedAbility implements GemAbility {
         }
         SkeletonHorseEntity horse = EntityType.SKELETON_HORSE.create(world, SpawnReason.MOB_SUMMONED);
         if (horse == null) {
-            player.sendMessage(Text.literal("Failed to summon steed."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.grave_steed.failed"), true);
             return false;
         }
         horse.refreshPositionAndAngles(player.getX(), player.getY(), player.getZ(), player.getYaw(), 0.0F);
@@ -64,7 +64,7 @@ public final class ReaperGraveSteedAbility implements GemAbility {
 
         AbilityRuntime.startReaperGraveSteed(player, horse.getUuid(), duration);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_SKELETON_HORSE_AMBIENT, 0.9F, 1.0F);
-        player.sendMessage(Text.literal("Grave Steed summoned."), true);
+        player.sendMessage(Text.translatable("gems.ability.reaper.grave_steed.summoned"), true);
         return true;
     }
 }

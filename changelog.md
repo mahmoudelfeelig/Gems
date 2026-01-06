@@ -1,6 +1,6 @@
 # Changelog
 
-## 28.12.2025: Legendary Items, Crafting, and System Updates
+## V1.2 28.12.2025: Legendary Items, Crafting, and System Updates
 
 - **Legendary items**: one-of-a-kind crafts with a 10-minute crafting timer, global location announcement, boss-bar progress, and drop-at-table completion.
 - **Legendary arsenal**: Tracker Compass, Recall Relic, Hypno Staff, Earthsplitter Pick, Supreme armor set, Blood Oath Blade, Demolition Blade, Hunter’s Sight Bow, Third-Strike Blade, and Vampiric Edge.
@@ -9,7 +9,7 @@
 - **Terror updates**: rigged blocks detonate on use/step/break/update; breach charge is immediate with wither-style VFX.
 
 
-## 22.12.2025: New Gems & Assassin Endgame
+## V1.1 22.12.2025: New Gems & Assassin Endgame
 
 - Added **eight new gems** with full passives, ability unlock ordering, config knobs, and GameTest coverage:
   - **Terror**: Darkness aura + self-sacrifice execute (totem-respect), TNT panic ring, limited-use heart/energy costing assassination.

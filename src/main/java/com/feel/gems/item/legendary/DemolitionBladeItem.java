@@ -69,7 +69,7 @@ public final class DemolitionBladeItem extends Item implements LegendaryItem {
             }
         }
         if (spawnPos == null) {
-            player.sendMessage(Text.literal("No target for demolition charge."), true);
+            player.sendMessage(Text.translatable("gems.item.demolition_blade.no_target"), true);
             return ActionResult.SUCCESS;
         }
         int fuse = Math.max(1, GemsBalance.v().legendary().demolitionFuseTicks());

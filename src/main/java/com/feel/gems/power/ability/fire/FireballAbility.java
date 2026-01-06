@@ -54,7 +54,7 @@ public final class FireballAbility implements GemAbility {
         long now = GemsTime.now(player);
         long lastFire = nbt.getLong(KEY_LAST_FIRE, 0L);
         if (now - lastFire < GemsBalance.v().fire().fireballInternalCooldownTicks()) {
-            player.sendMessage(Text.literal("Fireball is on cooldown."), true);
+            player.sendMessage(Text.translatable("gems.ability.fire.fireball.on_cooldown"), true);
             return true;
         }
 
@@ -75,7 +75,7 @@ public final class FireballAbility implements GemAbility {
         launch(player, charge);
         AbilityFeedback.burst(player, ParticleTypes.FLAME, 14, 0.25D);
         AbilityFeedback.burst(player, ParticleTypes.SMOKE, 10, 0.25D);
-        player.sendMessage(Text.literal("Fireball launched!").formatted(Formatting.GOLD), true);
+        player.sendMessage(Text.translatable("gems.ability.fire.fireball.launched").formatted(Formatting.GOLD), true);
         return true;
     }
 
@@ -123,11 +123,11 @@ public final class FireballAbility implements GemAbility {
         bar.append(Text.literal("]"));
 
         var percent = Text.literal(" " + clamped + "%").formatted(Formatting.GRAY);
-        var message = Text.literal("Fireball charge ").formatted(Formatting.GOLD)
+        var message = Text.translatable("gems.ability.fire.fireball.charge").formatted(Formatting.GOLD)
                 .append(bar)
                 .append(percent);
         if (clamped >= 100) {
-            message.append(Text.literal(" READY").formatted(Formatting.GOLD));
+            message.append(Text.translatable("gems.ability.fire.fireball.ready").formatted(Formatting.GOLD));
         }
         return message;
     }

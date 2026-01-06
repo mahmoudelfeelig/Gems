@@ -46,7 +46,7 @@ public final class PillagerWarhornAbility implements GemAbility {
         int radius = cfg.warhornRadiusBlocks();
         int duration = cfg.warhornDurationTicks();
         if (radius <= 0 || duration <= 0) {
-            player.sendMessage(Text.literal("Warhorn is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.pillager.warhorn.disabled"), true);
             return false;
         }
         ServerWorld world = player.getEntityWorld();
@@ -71,7 +71,7 @@ public final class PillagerWarhornAbility implements GemAbility {
 
         AbilityFeedback.burst(player, ParticleTypes.CLOUD, 14, 0.35D);
         AbilityFeedback.sound(player, SoundEvents.EVENT_RAID_HORN, 0.9F, 1.0F);
-        player.sendMessage(Text.literal("Warhorn sounded."), true);
+        player.sendMessage(Text.translatable("gems.ability.pillager.warhorn.sounded"), true);
         return true;
     }
 

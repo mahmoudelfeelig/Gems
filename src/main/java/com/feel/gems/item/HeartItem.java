@@ -34,7 +34,7 @@ public final class HeartItem extends Item {
 
         AssassinState.initIfNeeded(player);
         if (AssassinState.isAssassin(player)) {
-            player.sendMessage(net.minecraft.text.Text.literal("Assassins can't consume hearts."), true);
+            player.sendMessage(net.minecraft.text.Text.translatable("gems.item.heart.assassin_blocked"), true);
             return ActionResult.FAIL;
         }
 
@@ -42,7 +42,7 @@ public final class HeartItem extends Item {
         if (ownerUuid != null && !ownerUuid.equals(player.getUuid())) {
             ServerPlayerEntity owner = player.getEntityWorld().getServer().getPlayerManager().getPlayer(ownerUuid);
             if (owner != null && GemTrust.isTrusted(owner, player)) {
-                player.sendMessage(net.minecraft.text.Text.literal("You can't consume a teammate's heart."), true);
+                player.sendMessage(net.minecraft.text.Text.translatable("gems.item.heart.teammate_blocked"), true);
                 return ActionResult.FAIL;
             }
         }

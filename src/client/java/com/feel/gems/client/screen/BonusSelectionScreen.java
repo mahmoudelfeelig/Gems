@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TabButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -33,7 +32,7 @@ public final class BonusSelectionScreen extends Screen {
     private ButtonWidget tabPassives;
     
     public BonusSelectionScreen(BonusSelectionScreenPayload payload) {
-        super(Text.literal("Bonus Selection"));
+        super(Text.translatable("gems.screen.bonus_selection.title"));
         this.abilities = new ArrayList<>(payload.abilities());
         this.passives = new ArrayList<>(payload.passives());
         this.maxAbilities = payload.maxAbilities();
@@ -55,12 +54,12 @@ public final class BonusSelectionScreen extends Screen {
         // Tab buttons
         int tabY = topY;
         tabAbilities = addDrawableChild(ButtonWidget.builder(
-                        Text.literal("Abilities").formatted(showingAbilities ? Formatting.UNDERLINE : Formatting.RESET),
+                        Text.translatable("gems.screen.bonus_selection.tab_abilities").formatted(showingAbilities ? Formatting.UNDERLINE : Formatting.RESET),
                         btn -> switchTab(true))
                 .dimensions(centerX - TAB_WIDTH - 4, tabY, TAB_WIDTH, TAB_HEIGHT)
                 .build());
         tabPassives = addDrawableChild(ButtonWidget.builder(
-                        Text.literal("Passives").formatted(!showingAbilities ? Formatting.UNDERLINE : Formatting.RESET),
+                        Text.translatable("gems.screen.bonus_selection.tab_passives").formatted(!showingAbilities ? Formatting.UNDERLINE : Formatting.RESET),
                         btn -> switchTab(false))
                 .dimensions(centerX + 4, tabY, TAB_WIDTH, TAB_HEIGHT)
                 .build());
@@ -75,7 +74,7 @@ public final class BonusSelectionScreen extends Screen {
         int y = topY + TAB_HEIGHT + 26;
         
         if (currentList.isEmpty()) {
-            addDrawableChild(ButtonWidget.builder(Text.literal("No bonuses available").formatted(Formatting.GRAY), btn -> {})
+            addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.bonus_selection.no_bonuses").formatted(Formatting.GRAY), btn -> {})
                     .dimensions(centerX - (panelWidth / 2), y, panelWidth, buttonHeight)
                     .build()).active = false;
         } else {
@@ -114,10 +113,10 @@ public final class BonusSelectionScreen extends Screen {
         // Pagination
         int bottomY = this.height - 64;
         int smallWidth = 70;
-        ButtonWidget prev = ButtonWidget.builder(Text.literal("< Prev"), btn -> changePage(-1))
+        ButtonWidget prev = ButtonWidget.builder(Text.translatable("gems.screen.button.prev"), btn -> changePage(-1))
                 .dimensions(centerX - smallWidth - 8, bottomY, smallWidth, buttonHeight)
                 .build();
-        ButtonWidget next = ButtonWidget.builder(Text.literal("Next >"), btn -> changePage(1))
+        ButtonWidget next = ButtonWidget.builder(Text.translatable("gems.screen.button.next"), btn -> changePage(1))
                 .dimensions(centerX + 8, bottomY, smallWidth, buttonHeight)
                 .build();
         
@@ -129,7 +128,7 @@ public final class BonusSelectionScreen extends Screen {
         
         // Close button
         int bottomY2 = bottomY + buttonHeight + 6;
-        addDrawableChild(ButtonWidget.builder(Text.literal("Close"), btn -> close())
+        addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.close"), btn -> close())
                 .dimensions(centerX - 50, bottomY2, 100, buttonHeight)
                 .build());
     }
@@ -160,7 +159,7 @@ public final class BonusSelectionScreen extends Screen {
             if (currentClaims >= max) {
                 if (this.client != null && this.client.player != null) {
                     this.client.player.sendMessage(
-                            Text.literal("You've reached the maximum of " + max + " bonus " + (isAbility ? "abilities" : "passives") + "."),
+                            Text.translatable(isAbility ? "gems.screen.bonus_selection.max_abilities" : "gems.screen.bonus_selection.max_passives", max),
                             true
                     );
                 }
@@ -243,11 +242,11 @@ public final class BonusSelectionScreen extends Screen {
                 }
                 
                 if (entry.claimed()) {
-                    tooltip.add(Text.literal("Click to release").formatted(Formatting.YELLOW));
+                    tooltip.add(Text.translatable("gems.screen.bonus_selection.click_release").formatted(Formatting.YELLOW));
                 } else if (entry.available()) {
-                    tooltip.add(Text.literal("Click to claim").formatted(Formatting.GREEN));
+                    tooltip.add(Text.translatable("gems.screen.bonus_selection.click_claim").formatted(Formatting.GREEN));
                 } else {
-                    tooltip.add(Text.literal("Claimed by another player").formatted(Formatting.RED));
+                    tooltip.add(Text.translatable("gems.screen.bonus_selection.claimed_by_other").formatted(Formatting.RED));
                 }
                 
                 context.drawTooltip(this.textRenderer, tooltip, mouseX, mouseY);

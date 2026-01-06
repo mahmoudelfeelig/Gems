@@ -139,7 +139,7 @@ public final class ChaosSlotRuntime {
                     }
                     state = state.withSlot(i, SlotState.inactive());
                     changed = true;
-                    player.sendMessage(Text.literal("Chaos slot " + (i + 1) + " expired!").formatted(Formatting.GRAY), true);
+                    player.sendMessage(Text.translatable("gems.chaos.slot_expired", i + 1).formatted(Formatting.GRAY), true);
                 }
             }
             
@@ -180,13 +180,13 @@ public final class ChaosSlotRuntime {
         if (!slot.canUseAbility(currentTick)) {
             int remaining = slot.abilityCooldownRemaining(currentTick);
             int seconds = (remaining + 19) / 20;
-            player.sendMessage(Text.literal("Slot " + (slotIndex + 1) + " ability on cooldown: " + seconds + "s").formatted(Formatting.RED), true);
+            player.sendMessage(Text.translatable("gems.chaos.slot_on_cooldown", slotIndex + 1, seconds).formatted(Formatting.RED), true);
             return false;
         }
         
         GemAbility ability = ModAbilities.get(slot.abilityId);
         if (ability == null) {
-            player.sendMessage(Text.literal("Ability not found!").formatted(Formatting.RED), true);
+            player.sendMessage(Text.translatable("gems.chaos.ability_not_found").formatted(Formatting.RED), true);
             return false;
         }
         
@@ -230,10 +230,10 @@ public final class ChaosSlotRuntime {
         }
         
         // Notify player
-        player.sendMessage(Text.literal("🎲 Slot " + (slotIndex + 1) + " rolled!").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
-        player.sendMessage(Text.literal("  Ability: " + abilityName).formatted(Formatting.AQUA), false);
-        player.sendMessage(Text.literal("  Passive: " + passiveName).formatted(Formatting.GREEN), false);
-        player.sendMessage(Text.literal("  Duration: 5 minutes").formatted(Formatting.GRAY), false);
+        player.sendMessage(Text.translatable("gems.chaos.slot_rolled", slotIndex + 1).formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
+        player.sendMessage(Text.translatable("gems.chaos.ability_label", abilityName).formatted(Formatting.AQUA), false);
+        player.sendMessage(Text.translatable("gems.chaos.passive_label", passiveName).formatted(Formatting.GREEN), false);
+        player.sendMessage(Text.translatable("gems.chaos.duration_label").formatted(Formatting.GRAY), false);
         
         syncAllToClient(player, newState, currentTick);
     }

@@ -36,18 +36,18 @@ public final class ReaperBloodChargeAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int maxCharge = GemsBalance.v().reaper().bloodChargeMaxChargeTicks();
         if (maxCharge <= 0) {
-            player.sendMessage(Text.literal("Blood Charge is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.blood_charge.disabled"), true);
             return false;
         }
         if (!ReaperBloodCharge.isCharging(player)) {
             AbilityRuntime.startReaperBloodChargeCharging(player, maxCharge);
-            player.sendMessage(Text.literal("Blood Charge: charging... (press again to lock in)"), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.blood_charge.charging"), true);
             return false; // do not consume cooldown on start
         }
 
         boolean ok = AbilityRuntime.finishReaperBloodChargeCharging(player);
         if (ok) {
-            player.sendMessage(Text.literal("Blood Charge: stored for next hit."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.blood_charge.stored"), true);
         }
         return ok;
     }

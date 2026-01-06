@@ -57,7 +57,7 @@ public final class GladiatorsMarkItem extends Item implements LegendaryItem {
         // Raycast to find target
         HitResult hit = player.raycast(20, 0.0F, false);
         if (!(hit instanceof EntityHitResult entityHit) || !(entityHit.getEntity() instanceof ServerPlayerEntity target)) {
-            player.sendMessage(Text.literal("No player target found").formatted(Formatting.RED), true);
+            player.sendMessage(Text.translatable("gems.message.no_player_target").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
         }
 
@@ -81,8 +81,8 @@ public final class GladiatorsMarkItem extends Item implements LegendaryItem {
         world.playSound(null, target.getX(), target.getY(), target.getZ(),
                 SoundEvents.ENTITY_WITHER_SPAWN, SoundCategory.PLAYERS, 0.5F, 1.5F);
 
-        player.sendMessage(Text.literal("Gladiator's Mark: You and " + target.getName().getString() + " deal 50% more damage to each other!").formatted(Formatting.RED), true);
-        target.sendMessage(Text.literal("Gladiator's Mark: " + player.getName().getString() + " has marked you! 50% more damage between you!").formatted(Formatting.RED), true);
+        player.sendMessage(Text.translatable("gems.item.gladiators_mark.marked", target.getName().getString()).formatted(Formatting.RED), true);
+        target.sendMessage(Text.translatable("gems.item.gladiators_mark.marked_victim", player.getName().getString()).formatted(Formatting.RED), true);
 
         return ActionResult.SUCCESS;
     }
@@ -116,8 +116,8 @@ public final class GladiatorsMarkItem extends Item implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.literal("Right-click a player to brand them").formatted(Formatting.GRAY));
-        tooltip.accept(Text.literal("Both of you deal 50% more damage to each other").formatted(Formatting.DARK_GRAY));
-        tooltip.accept(Text.literal("Lasts 60 seconds, 2 minute cooldown").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.translatable("gems.item.gladiators_mark.tooltip.1").formatted(Formatting.GRAY));
+        tooltip.accept(Text.translatable("gems.item.gladiators_mark.tooltip.2").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.translatable("gems.item.gladiators_mark.tooltip.3").formatted(Formatting.DARK_GRAY));
     }
 }

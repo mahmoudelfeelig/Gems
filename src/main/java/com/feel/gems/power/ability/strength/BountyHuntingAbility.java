@@ -39,21 +39,21 @@ public final class BountyHuntingAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         ItemStack stack = player.getMainHandStack();
         if (stack.isEmpty()) {
-            player.sendMessage(Text.literal("Hold an item to track."), true);
+            player.sendMessage(Text.translatable("gems.ability.strength.bounty.hold_item"), true);
             return false;
         }
         UUID owner = AbilityRuntime.getOwner(stack);
         if (owner == null) {
-            player.sendMessage(Text.literal("That item has no recorded owner."), true);
+            player.sendMessage(Text.translatable("gems.ability.strength.bounty.no_owner"), true);
             return false;
         }
         if (owner.equals(player.getUuid())) {
-            player.sendMessage(Text.literal("That's your own item."), true);
+            player.sendMessage(Text.translatable("gems.ability.strength.bounty.own_item"), true);
             return false;
         }
         var target = player.getEntityWorld().getServer().getPlayerManager().getPlayer(owner);
         if (target == null) {
-            player.sendMessage(Text.literal("Owner is offline."), true);
+            player.sendMessage(Text.translatable("gems.ability.strength.bounty.owner_offline"), true);
             return false;
         }
 
@@ -61,7 +61,7 @@ public final class BountyHuntingAbility implements GemAbility {
         AbilityRuntime.startBounty(player, owner, GemsBalance.v().strength().bountyDurationTicks());
         AbilityFeedback.sound(player, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.9F, 0.9F);
         AbilityFeedback.burst(player, ParticleTypes.COMPOSTER, 10, 0.25D);
-        player.sendMessage(Text.literal("Tracking " + target.getName().getString()), true);
+        player.sendMessage(Text.translatable("gems.ability.strength.bounty.tracking", target.getName().getString()), true);
         return true;
     }
 }

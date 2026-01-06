@@ -67,28 +67,28 @@ public final class SoulSystem {
 
     public static boolean release(ServerPlayerEntity player) {
         if (!GemPowers.isPassiveActive(player, PowerIds.SOUL_CAPTURE)) {
-            player.sendMessage(Text.literal("Soul Capture is not active."), true);
+            player.sendMessage(Text.translatable("gems.astra.soul_capture_not_active"), true);
             return false;
         }
         NbtCompound nbt = persistent(player);
         if (!nbt.contains(KEY_SOUL_TYPE)) {
-            player.sendMessage(Text.literal("No captured soul."), true);
+            player.sendMessage(Text.translatable("gems.astra.no_captured_soul"), true);
             return false;
         }
         Identifier id = Identifier.tryParse(nbt.getString(KEY_SOUL_TYPE, ""));
         if (id == null) {
             nbt.remove(KEY_SOUL_TYPE);
-            player.sendMessage(Text.literal("Captured soul was invalid and was cleared."), true);
+            player.sendMessage(Text.translatable("gems.astra.soul_invalid"), true);
             return false;
         }
         if (MobBlacklist.isBlacklisted(id)) {
             nbt.remove(KEY_SOUL_TYPE);
-            player.sendMessage(Text.literal("Captured soul is blacklisted and was cleared."), true);
+            player.sendMessage(Text.translatable("gems.astra.soul_blacklisted"), true);
             return false;
         }
         if (!(player.getEntityWorld() instanceof ServerWorld world)) {
             nbt.remove(KEY_SOUL_TYPE);
-            player.sendMessage(Text.literal("Cannot release soul here."), true);
+            player.sendMessage(Text.translatable("gems.astra.cannot_release_soul"), true);
             return false;
         }
         EntityType<?> type = Registries.ENTITY_TYPE.get(id);
@@ -103,7 +103,7 @@ public final class SoulSystem {
         Entity entity = type.create(world, net.minecraft.entity.SpawnReason.MOB_SUMMONED);
         if (entity == null) {
             nbt.remove(KEY_SOUL_TYPE);
-            player.sendMessage(Text.literal("Cannot summon: " + id), true);
+            player.sendMessage(Text.translatable("gems.astra.cannot_summon", id.toString()), true);
             return false;
         }
         if (entity instanceof net.minecraft.entity.mob.MobEntity mob) {
@@ -133,7 +133,7 @@ public final class SoulSystem {
         }
         AbilityFeedback.sound(player, SoundEvents.ITEM_TOTEM_USE, 0.8F, 1.4F);
         AbilityFeedback.burstAt(world, pos.add(0.0D, 1.0D, 0.0D), ParticleTypes.SCULK_SOUL, 18, 0.35D);
-        player.sendMessage(Text.literal("Released soul: " + id), true);
+        player.sendMessage(Text.translatable("gems.astra.released_soul", id.toString()), true);
         return true;
     }
 

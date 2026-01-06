@@ -49,7 +49,7 @@ public final class HuntersTrophyNecklaceItem extends Item implements LegendaryIt
         // Store permanently (persists through death/logout)
         PlayerStateManager.setPersistent(killer, TROPHY_PASSIVE_KEY, stolenPassive.toString());
 
-        killer.sendMessage(Text.literal("Trophy Necklace captured: " + stolenPassive.getPath()).formatted(Formatting.GOLD), false);
+        killer.sendMessage(Text.translatable("gems.item.trophy_necklace.captured", stolenPassive.getPath()).formatted(Formatting.GOLD), false);
     }
 
     private static boolean hasNecklace(ServerPlayerEntity player) {
@@ -88,8 +88,8 @@ public final class HuntersTrophyNecklaceItem extends Item implements LegendaryIt
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.literal("On player kill: permanently gain one of").formatted(Formatting.GRAY));
-        tooltip.accept(Text.literal("their random gem passives").formatted(Formatting.GRAY));
-        tooltip.accept(Text.literal("Persists through death and logout!").formatted(Formatting.GOLD));
+        tooltip.accept(Text.translatable("gems.item.trophy_necklace.tooltip.1").formatted(Formatting.GRAY));
+        tooltip.accept(Text.translatable("gems.item.trophy_necklace.tooltip.2").formatted(Formatting.GRAY));
+        tooltip.accept(Text.translatable("gems.item.trophy_necklace.tooltip.3").formatted(Formatting.GOLD));
     }
 }

@@ -37,17 +37,17 @@ public final class BonusAbilityRuntime {
         GemPlayerState.initIfNeeded(player);
 
         if (AbilityRestrictions.isStunned(player)) {
-            player.sendMessage(Text.literal("You are stunned."), true);
+            player.sendMessage(Text.translatable("gems.ability.stunned"), true);
             return;
         }
         if (AbilityRestrictions.isSuppressed(player)) {
-            player.sendMessage(Text.literal("Your abilities are suppressed."), true);
+            player.sendMessage(Text.translatable("gems.ability.suppressed"), true);
             return;
         }
 
         int energy = GemPlayerState.getEnergy(player);
         if (energy < 10) {
-            player.sendMessage(Text.literal("You need energy 10/10 to use bonus abilities."), true);
+            player.sendMessage(Text.translatable("gems.bonus.need_energy_use"), true);
             return;
         }
 
@@ -58,7 +58,7 @@ public final class BonusAbilityRuntime {
         Set<Identifier> playerAbilities = claims.getPlayerAbilities(player.getUuid());
 
         if (playerAbilities.isEmpty()) {
-            player.sendMessage(Text.literal("You have no bonus abilities claimed."), true);
+            player.sendMessage(Text.translatable("gems.bonus.no_abilities_claimed"), true);
             return;
         }
 
@@ -68,24 +68,24 @@ public final class BonusAbilityRuntime {
                 .toList();
 
         if (slotIndex < 0 || slotIndex >= abilityList.size()) {
-            player.sendMessage(Text.literal("Invalid bonus ability slot."), true);
+            player.sendMessage(Text.translatable("gems.bonus.invalid_slot"), true);
             return;
         }
 
         Identifier abilityId = abilityList.get(slotIndex);
 
         if (GemsDisables.isBonusAbilityDisabledFor(player, abilityId)) {
-            player.sendMessage(Text.literal("That bonus ability is disabled on this server."), true);
+            player.sendMessage(Text.translatable("gems.bonus.ability_disabled"), true);
             return;
         }
 
         GemAbility ability = ModAbilities.get(abilityId);
         if (ability == null) {
-            player.sendMessage(Text.literal("Bonus ability not registered: " + abilityId), true);
+            player.sendMessage(Text.translatable("gems.ability.not_registered", abilityId.toString()), true);
             return;
         }
         if (AbilityDisables.isDisabled(player, abilityId)) {
-            player.sendMessage(Text.literal("That ability has been stolen from you."), true);
+            player.sendMessage(Text.translatable("gems.ability.stolen"), true);
             return;
         }
 
@@ -95,7 +95,7 @@ public final class BonusAbilityRuntime {
             long nextAllowed = GemAbilityCooldowns.nextAllowedTick(player, abilityId);
             if (nextAllowed > now) {
                 long remainingTicks = nextAllowed - now;
-                player.sendMessage(Text.literal(ability.name() + " is on cooldown (" + ticksToSeconds(remainingTicks) + "s)"), true);
+                player.sendMessage(Text.translatable("gems.ability.on_cooldown", ability.name(), ticksToSeconds(remainingTicks)), true);
                 return;
             }
         }

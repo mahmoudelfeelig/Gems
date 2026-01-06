@@ -88,25 +88,25 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
         tooltip.accept(Text.translatable("item.gems.tracker_compass.desc"));
         NbtComponent data = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (data == null) {
-            tooltip.accept(Text.literal("Target: none"));
+            tooltip.accept(Text.translatable("gems.item.tracker_compass.tooltip.target_none"));
             return;
         }
         NbtCompound nbt = data.copyNbt();
         if (nbt.getString(KEY_TARGET_NAME).isEmpty()) {
-            tooltip.accept(Text.literal("Target: none"));
+            tooltip.accept(Text.translatable("gems.item.tracker_compass.tooltip.target_none"));
             return;
         }
         String name = nbt.getString(KEY_TARGET_NAME, "");
-        tooltip.accept(Text.literal("Target: " + name));
+        tooltip.accept(Text.translatable("gems.item.tracker_compass.tooltip.target", name));
         BlockPos pos = readBlockPos(nbt, KEY_TARGET_POS);
         if (pos != null) {
             String dim = nbt.getString(KEY_TARGET_DIM, "");
-            tooltip.accept(Text.literal("Last seen: " + pos.getX() + " " + pos.getY() + " " + pos.getZ() + " (" + dim + ")"));
+            tooltip.accept(Text.translatable("gems.item.tracker_compass.tooltip.last_seen", pos.getX(), pos.getY(), pos.getZ(), dim));
         }
         BlockPos respawn = readBlockPos(nbt, KEY_TARGET_RESPAWN_POS);
         if (respawn != null) {
             String dim = nbt.getString(KEY_TARGET_RESPAWN_DIM, "");
-            tooltip.accept(Text.literal("Respawn: " + respawn.getX() + " " + respawn.getY() + " " + respawn.getZ() + " (" + dim + ")"));
+            tooltip.accept(Text.translatable("gems.item.tracker_compass.tooltip.respawn", respawn.getX(), respawn.getY(), respawn.getZ(), dim));
         }
     }
 
@@ -118,12 +118,12 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
     public static void setTarget(ServerPlayerEntity player, String name) {
         ItemStack stack = findHeldCompass(player);
         if (stack.isEmpty()) {
-            player.sendMessage(Text.literal("Hold the Tracker Compass to set a target."), true);
+            player.sendMessage(Text.translatable("gems.item.tracker_compass.hold_to_set"), true);
             return;
         }
         if (name == null || name.isBlank()) {
             clearTarget(stack);
-            player.sendMessage(Text.literal("Tracker Compass target cleared."), true);
+            player.sendMessage(Text.translatable("gems.item.tracker_compass.target_cleared"), true);
             return;
         }
         MinecraftServer server = player.getEntityWorld().getServer();
@@ -138,7 +138,7 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
             }
         }
         if (snapshot == null) {
-            player.sendMessage(Text.literal("Unknown player: " + name), true);
+            player.sendMessage(Text.translatable("gems.item.tracker_compass.unknown_player", name), true);
             return;
         }
         applyTarget(player, stack, snapshot.uuid(), snapshot.name());
@@ -151,7 +151,7 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
         }
         ItemStack stack = findHeldCompass(player);
         if (stack.isEmpty()) {
-            player.sendMessage(Text.literal("Hold the Tracker Compass to set a target."), true);
+            player.sendMessage(Text.translatable("gems.item.tracker_compass.hold_to_set"), true);
             return;
         }
         MinecraftServer server = player.getEntityWorld().getServer();
@@ -160,7 +160,7 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
         }
         LegendaryPlayerTracker.Snapshot snapshot = LegendaryPlayerTracker.snapshot(server, uuid);
         if (snapshot == null) {
-            player.sendMessage(Text.literal("Unknown player to track."), true);
+            player.sendMessage(Text.translatable("gems.item.tracker_compass.unknown_player_track"), true);
             return;
         }
         applyTarget(player, stack, uuid, snapshot.name());
@@ -169,11 +169,11 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
     public static void clearTarget(ServerPlayerEntity player) {
         ItemStack stack = findHeldCompass(player);
         if (stack.isEmpty()) {
-            player.sendMessage(Text.literal("Hold the Tracker Compass to clear a target."), true);
+            player.sendMessage(Text.translatable("gems.item.tracker_compass.hold_to_clear"), true);
             return;
         }
         clearTarget(stack);
-        player.sendMessage(Text.literal("Tracker Compass target cleared."), true);
+        player.sendMessage(Text.translatable("gems.item.tracker_compass.target_cleared"), true);
     }
 
     public static void openSelectionScreen(ServerPlayerEntity player) {
@@ -202,7 +202,7 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
             nbt.putLong(KEY_LAST_UPDATE, 0L);
         });
         updateTrackingData(stack, server, uuid, GemsTime.now(server));
-        player.sendMessage(Text.literal("Tracker Compass now tracking " + display + "."), true);
+        player.sendMessage(Text.translatable("gems.item.tracker_compass.now_tracking", display), true);
         sendTargetInfo(player, server, uuid);
     }
 
@@ -213,10 +213,8 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
         }
         BlockPos pos = snapshot.pos();
         BlockPos respawn = snapshot.respawnPos();
-        player.sendMessage(Text.literal("Current: " + pos.getX() + " " + pos.getY() + " " + pos.getZ()
-                + " (" + snapshot.dimension() + ")"), true);
-        player.sendMessage(Text.literal("Respawn: " + respawn.getX() + " " + respawn.getY() + " " + respawn.getZ()
-                + " (" + snapshot.respawnDimension() + ")"), true);
+        player.sendMessage(Text.translatable("gems.item.tracker_compass.current_pos", pos.getX(), pos.getY(), pos.getZ(), snapshot.dimension()), true);
+        player.sendMessage(Text.translatable("gems.item.tracker_compass.respawn_pos", respawn.getX(), respawn.getY(), respawn.getZ(), snapshot.respawnDimension()), true);
     }
 
     private static void updateTrackingData(ItemStack stack, MinecraftServer server, UUID target, long now) {

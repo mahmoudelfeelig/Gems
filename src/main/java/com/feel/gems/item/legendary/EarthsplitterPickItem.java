@@ -89,7 +89,7 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
         setTunnelMode(stack, tunnel);
         if (user instanceof ServerPlayerEntity player) {
             String mode = tunnel ? "Tunnel 9x3x1" : "Cube 3x3x3";
-            player.sendMessage(Text.literal("Earthsplitter mode: " + mode), true);
+            player.sendMessage(Text.translatable("gems.item.earthsplitter_pick.mode", mode), true);
         }
         return ActionResult.SUCCESS;
     }

@@ -60,7 +60,7 @@ public final class GroupBreezyBashAbility implements GemAbility {
         }
         AbilityFeedback.ring(world, player.getEntityPos().add(0.0D, 0.2D, 0.0D), Math.min(6.0D, radius), ParticleTypes.GUST, 28);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 1.0F, 1.0F);
-        player.sendMessage(Text.literal("Bashed " + affected + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.puff.group_bash.affected", affected), true);
         return true;
     }
 }

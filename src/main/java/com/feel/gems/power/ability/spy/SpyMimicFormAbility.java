@@ -33,7 +33,7 @@ public final class SpyMimicFormAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         if (SpyMimicSystem.lastKilledType(player) == null) {
-            player.sendMessage(Text.literal("No recent mob to mimic."), true);
+            player.sendMessage(Text.translatable("gems.ability.spy.mimic_form.no_mob"), true);
             return false;
         }
         int duration = GemsBalance.v().spyMimic().mimicFormDurationTicks();

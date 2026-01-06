@@ -30,18 +30,18 @@ public final class GemAbilities {
         GemPlayerState.initIfNeeded(player);
 
         if (AbilityRestrictions.isStunned(player)) {
-            player.sendMessage(Text.literal("You are stunned."), true);
+            player.sendMessage(Text.translatable("gems.ability.stunned"), true);
             return;
         }
         if (AbilityRestrictions.isSuppressed(player)) {
-            player.sendMessage(Text.literal("Your gem abilities are suppressed."), true);
+            player.sendMessage(Text.translatable("gems.ability.suppressed"), true);
             return;
         }
 
         GemId gemId = GemPlayerState.getActiveGem(player);
         int energy = GemPlayerState.getEnergy(player);
         if (energy <= 1) {
-            player.sendMessage(Text.literal("No abilities unlocked at this energy."), true);
+            player.sendMessage(Text.translatable("gems.ability.no_abilities_unlocked"), true);
             return;
         }
 
@@ -55,26 +55,26 @@ public final class GemAbilities {
         List<Identifier> abilities = def.abilities();
         int unlocked = new GemEnergyState(energy).unlockedAbilityCount(abilities.size());
         if (unlocked <= 0) {
-            player.sendMessage(Text.literal("No abilities unlocked at this energy."), true);
+            player.sendMessage(Text.translatable("gems.ability.no_abilities_unlocked"), true);
             return;
         }
         if (abilityIndex < 0 || abilityIndex >= unlocked) {
-            player.sendMessage(Text.literal("That ability is not unlocked."), true);
+            player.sendMessage(Text.translatable("gems.ability.not_unlocked"), true);
             return;
         }
 
         Identifier abilityId = abilities.get(abilityIndex);
         if (GemsDisables.isAbilityDisabledFor(player, abilityId)) {
-            player.sendMessage(Text.literal("That ability is disabled on this server."), true);
+            player.sendMessage(Text.translatable("gems.ability.disabled_server"), true);
             return;
         }
         GemAbility ability = ModAbilities.get(abilityId);
         if (ability == null) {
-            player.sendMessage(Text.literal("Ability not registered: " + abilityId), true);
+            player.sendMessage(Text.translatable("gems.ability.not_registered", abilityId.toString()), true);
             return;
         }
         if (AbilityDisables.isDisabled(player, abilityId)) {
-            player.sendMessage(Text.literal("That ability has been stolen from you."), true);
+            player.sendMessage(Text.translatable("gems.ability.stolen"), true);
             return;
         }
 
@@ -84,7 +84,7 @@ public final class GemAbilities {
             long nextAllowed = GemAbilityCooldowns.nextAllowedTick(player, abilityId);
             if (nextAllowed > now) {
                 long remainingTicks = nextAllowed - now;
-                player.sendMessage(Text.literal(ability.name() + " is on cooldown (" + ticksToSeconds(remainingTicks) + "s)"), true);
+                player.sendMessage(Text.translatable("gems.ability.on_cooldown", ability.name(), ticksToSeconds(remainingTicks)), true);
                 return;
             }
         }

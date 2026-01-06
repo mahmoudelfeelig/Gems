@@ -43,7 +43,7 @@ public final class TerminalVelocityAbility implements GemAbility {
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, duration, GemsBalance.v().speed().terminalVelocityHasteAmplifier(), true, false, false));
         AbilityFeedback.sound(player, SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, 0.9F, 1.3F);
         AbilityFeedback.burst(player, ParticleTypes.CLOUD, 14, 0.35D);
-        player.sendMessage(Text.literal("Terminal Velocity!"), true);
+        player.sendMessage(Text.translatable("gems.ability.speed.terminal_velocity.active"), true);
         return true;
     }
 }

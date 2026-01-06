@@ -51,7 +51,7 @@ public final class StaticBurstAbility implements GemAbility {
         NbtCompound nbt = persistent(player);
         float stored = nbt.getFloat(KEY_STORED_DAMAGE, 0.0F);
         if (stored <= 0.0F) {
-            player.sendMessage(Text.literal("No stored damage."), true);
+            player.sendMessage(Text.translatable("gems.ability.flux.static_burst.no_stored"), true);
             return false;
         }
 
@@ -72,7 +72,7 @@ public final class StaticBurstAbility implements GemAbility {
         nbt.putLong(KEY_STORED_AT, GemsTime.now(world));
         AbilityFeedback.sound(player, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5F, 1.4F);
         AbilityFeedback.burst(player, ParticleTypes.ELECTRIC_SPARK, 24, 0.5D);
-        player.sendMessage(Text.literal("Static Burst hit " + hits + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.flux.static_burst.hit", hits), true);
         return true;
     }
 

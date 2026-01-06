@@ -345,7 +345,7 @@ Passives:
 Abilities:
 - Lunge: dash forward with your sword, dealing damage to the first enemy hit.
 - Parry: brief window to deflect incoming melee attacks; successful parry stuns the attacker.
-- Flourish: quick 360° sword sweep that hits all nearby enemies.
+- Flourish: quick 360 sword sweep that hits all nearby enemies.
 - Mirror Match: force a target into a 1v1 duel for 15s (barrier prevents escape); also copies your skin and name onto them.
 - Blade Dance: combo system where consecutive hits deal increasing damage (resets after 3s` without hitting).
 

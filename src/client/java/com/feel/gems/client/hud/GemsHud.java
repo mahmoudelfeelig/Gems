@@ -134,7 +134,7 @@ public final class GemsHud {
 
                 boolean selected = selectedSlot == slotNumber;
                 boolean lastUsed = ClientCooldowns.isLastUsed(gem, id);
-                String prefix = selected ? "» " : (lastUsed && remaining > 0 ? "• " : "");
+                String prefix = selected ? "> " : (lastUsed && remaining > 0 ? "* " : "");
                 int lineColor = stateColor;
                 if (selected && isUnlocked) {
                     lineColor = remaining > 0 ? opaque(0xFF5555) : opaque(0x55FF55);
@@ -166,7 +166,7 @@ public final class GemsHud {
                     boolean selectedCharge = selectedSlot == 2;
                     ctx.drawTextWithShadow(
                             tr,
-                            (selectedCharge ? "» " : "") + GemsKeybinds.chordSlotLabel(2) + " Flux Charge",
+                            (selectedCharge ? "> " : "") + GemsKeybinds.chordSlotLabel(2) + " Flux Charge",
                             x,
                             y,
                             selectedCharge ? opaque(0x55FF55) : opaque(0x55FFFF)
@@ -190,7 +190,7 @@ public final class GemsHud {
                     int remaining = slot.remainingSeconds();
                     int cooldown = slot.cooldownSeconds();
                     
-                    String prefix = selected ? "» " : "";
+                    String prefix = selected ? "> " : "";
                     int lineColor;
                     String stateSuffix;
                     
@@ -215,7 +215,7 @@ public final class GemsHud {
                     y += lineHeight;
                 } else {
                     // Inactive slot - can be activated
-                    String prefix = selected ? "» " : "";
+                    String prefix = selected ? "> " : "";
                     ctx.drawTextWithShadow(tr, prefix + key + " [Press to roll]", x, y, selected ? opaque(0xAA55FF) : opaque(0x777777));
                     y += lineHeight;
                 }
@@ -250,7 +250,7 @@ public final class GemsHud {
 
                 boolean selected = selectedSlot == (i + 1);
                 boolean lastUsed = ClientCooldowns.isLastUsed(gem, id);
-                String prefix = selected ? "» " : (lastUsed && remaining > 0 ? "• " : "");
+                String prefix = selected ? "> " : (lastUsed && remaining > 0 ? "* " : "");
                 int lineColor = stateColor;
                 if (selected && isUnlocked) {
                     lineColor = remaining > 0 ? opaque(0xFF5555) : opaque(0x55FF55);
@@ -286,7 +286,7 @@ public final class GemsHud {
                 boolean selected = selectedSlot == soulSlot;
                 ctx.drawTextWithShadow(
                         tr,
-                        (selected ? "» " : "") + GemsKeybinds.chordSlotLabel(soulSlot) + " Soul Release",
+                        (selected ? "> " : "") + GemsKeybinds.chordSlotLabel(soulSlot) + " Soul Release",
                         x,
                         y,
                         selected ? opaque(0x55FF55) : opaque(0x55FFFF)
@@ -299,7 +299,7 @@ public final class GemsHud {
                 boolean selected = selectedSlot == customizeSlot;
                 ctx.drawTextWithShadow(
                         tr,
-                        (selected ? "» " : "") + GemsKeybinds.chordSlotLabel(customizeSlot) + " Customize",
+                        (selected ? "> " : "") + GemsKeybinds.chordSlotLabel(customizeSlot) + " Customize",
                         x,
                         y,
                         selected ? opaque(0x55FF55) : opaque(0x55FFFF)

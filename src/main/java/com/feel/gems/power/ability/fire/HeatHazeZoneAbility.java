@@ -39,7 +39,7 @@ public final class HeatHazeZoneAbility implements GemAbility {
         AbilityRuntime.startHeatHazeZone(player, GemsBalance.v().fire().heatHazeDurationTicks());
         AbilityFeedback.sound(player, SoundEvents.ITEM_FIRECHARGE_USE, 0.9F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.FLAME, 20, 0.35D);
-        player.sendMessage(Text.literal("Heat Haze Zone active."), true);
+        player.sendMessage(Text.translatable("gems.ability.fire.heat_haze.active"), true);
         return true;
     }
 }

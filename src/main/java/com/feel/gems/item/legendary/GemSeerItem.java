@@ -44,7 +44,7 @@ public final class GemSeerItem extends Item implements LegendaryItem {
         player.openHandledScreen(new NamedScreenHandlerFactory() {
             @Override
             public Text getDisplayName() {
-                return Text.literal("Gem Seer");
+                return Text.translatable("screen.gems.gem_seer.title");
             }
 
             @Override

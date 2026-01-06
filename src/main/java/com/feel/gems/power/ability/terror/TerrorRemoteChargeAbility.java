@@ -37,27 +37,27 @@ public final class TerrorRemoteChargeAbility implements GemAbility {
         if (TerrorRemoteChargeRuntime.detonate(player)) {
             AbilityFeedback.burst(player, ParticleTypes.SMOKE, 10, 0.2D);
             AbilityFeedback.sound(player, SoundEvents.ENTITY_TNT_PRIMED, 0.8F, 0.9F);
-            player.sendMessage(Text.literal("Remote charge detonated."), true);
+            player.sendMessage(Text.translatable("gems.ability.terror.remote_charge.detonated"), true);
             return true;
         }
 
         if (TerrorRemoteChargeRuntime.hasActiveCharge(player)) {
-            player.sendMessage(Text.literal("Remote charge is already armed. Use the ability again to detonate."), true);
+            player.sendMessage(Text.translatable("gems.ability.terror.remote_charge.already_armed"), true);
             return false;
         }
 
         if (TerrorRemoteChargeRuntime.isOnCooldown(player)) {
-            player.sendMessage(Text.literal("Remote charge is on cooldown."), true);
+            player.sendMessage(Text.translatable("gems.ability.terror.remote_charge.on_cooldown"), true);
             return false;
         }
 
         if (!TerrorRemoteChargeRuntime.startArming(player)) {
-            player.sendMessage(Text.literal("Remote charge is unavailable."), true);
+            player.sendMessage(Text.translatable("gems.ability.terror.remote_charge.unavailable"), true);
             return false;
         }
 
         int windowSeconds = GemsBalance.v().terror().remoteChargeArmWindowTicks() / 20;
-        player.sendMessage(Text.literal("Right-click a block within " + windowSeconds + "s to arm the charge."), true);
+        player.sendMessage(Text.translatable("gems.ability.terror.remote_charge.arm_prompt", windowSeconds), true);
         return true;
     }
 }

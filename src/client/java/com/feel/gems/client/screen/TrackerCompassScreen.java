@@ -20,7 +20,7 @@ public final class TrackerCompassScreen extends Screen {
     private int page = 0;
 
     public TrackerCompassScreen(TrackerCompassScreenPayload payload) {
-        super(Text.literal("Tracker Compass"));
+        super(Text.translatable("gems.screen.tracker_compass.title"));
         this.entries = new ArrayList<>(payload.entries());
         this.entries.sort(Comparator.comparing(entry -> entry.name().toLowerCase(java.util.Locale.ROOT)));
     }
@@ -45,7 +45,7 @@ public final class TrackerCompassScreen extends Screen {
         int y = topY + 18;
 
         if (entries.isEmpty()) {
-            addDrawableChild(ButtonWidget.builder(Text.literal("No known players").formatted(Formatting.GRAY), btn -> {
+            addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.tracker_compass.no_players").formatted(Formatting.GRAY), btn -> {
             }).dimensions(centerX - (panelWidth / 2), y, panelWidth, buttonHeight).build()).active = false;
         } else {
             for (int i = start; i < end; i++) {
@@ -60,10 +60,10 @@ public final class TrackerCompassScreen extends Screen {
 
         int bottomY = this.height - 44;
         int smallWidth = 70;
-        ButtonWidget prev = ButtonWidget.builder(Text.literal("< Prev"), btn -> changePage(-1))
+        ButtonWidget prev = ButtonWidget.builder(Text.translatable("gems.screen.button.prev"), btn -> changePage(-1))
                 .dimensions(centerX - smallWidth - 8, bottomY, smallWidth, buttonHeight)
                 .build();
-        ButtonWidget next = ButtonWidget.builder(Text.literal("Next >"), btn -> changePage(1))
+        ButtonWidget next = ButtonWidget.builder(Text.translatable("gems.screen.button.next"), btn -> changePage(1))
                 .dimensions(centerX + 8, bottomY, smallWidth, buttonHeight)
                 .build();
         prev.active = page > 0;
@@ -72,10 +72,10 @@ public final class TrackerCompassScreen extends Screen {
         addDrawableChild(next);
 
         int bottomY2 = bottomY + buttonHeight + 6;
-        addDrawableChild(ButtonWidget.builder(Text.literal("Clear"), btn -> clearTarget())
+        addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.clear"), btn -> clearTarget())
                 .dimensions(centerX - smallWidth - 8, bottomY2, smallWidth, buttonHeight)
                 .build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), btn -> close())
+        addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.cancel"), btn -> close())
                 .dimensions(centerX + 8, bottomY2, smallWidth, buttonHeight)
                 .build());
     }

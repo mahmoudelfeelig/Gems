@@ -90,7 +90,7 @@ public final class ArcShotAbility implements GemAbility {
 
         hits.sort(Comparator.comparingDouble(h -> h.t));
         if (hits.isEmpty()) {
-            player.sendMessage(Text.literal("No targets."), true);
+            player.sendMessage(Text.translatable("gems.message.no_targets"), true);
             return false;
         }
 

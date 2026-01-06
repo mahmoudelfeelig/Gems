@@ -96,7 +96,7 @@ public final class GemsModEvents {
         ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, sender, params) -> {
             if (sender instanceof ServerPlayerEntity player) {
                 if (SpyMimicSystem.isSkinshiftTarget(player)) {
-                    player.sendMessage(Text.literal("You cannot chat while being skinshifted."), true);
+                    player.sendMessage(Text.translatable("gems.spy.cannot_chat_skinshifted"), true);
                     return false;
                 }
                 Text disguise = SpyMimicSystem.chatDisguiseName(player);
@@ -167,7 +167,7 @@ public final class GemsModEvents {
             }
             if (com.feel.gems.power.gem.terror.TerrorRemoteChargeRuntime.tryArm(sp, hitResult.getBlockPos())) {
                 com.feel.gems.power.runtime.AbilityFeedback.sound(sp, net.minecraft.sound.SoundEvents.ENTITY_TNT_PRIMED, 0.8F, 1.2F);
-                sp.sendMessage(net.minecraft.text.Text.literal("Remote charge armed."), true);
+                sp.sendMessage(net.minecraft.text.Text.translatable("gems.terror.remote_charge_armed"), true);
                 return ActionResult.SUCCESS;
             }
             if (TerrorRigRuntime.tryTriggerUse(sp, hitResult.getBlockPos())) {
@@ -208,7 +208,7 @@ public final class GemsModEvents {
 
             if (AssassinState.isEliminated(player)) {
                 player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
-                player.sendMessage(net.minecraft.text.Text.literal("You have been eliminated as an assassin.").formatted(net.minecraft.util.Formatting.RED), false);
+                player.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.eliminated").formatted(net.minecraft.util.Formatting.RED), false);
             }
         });
 
@@ -246,7 +246,7 @@ public final class GemsModEvents {
 
             if (AssassinState.isEliminated(newPlayer)) {
                 newPlayer.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
-                newPlayer.sendMessage(net.minecraft.text.Text.literal("You have been eliminated as an assassin.").formatted(net.minecraft.util.Formatting.RED), false);
+                newPlayer.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.eliminated").formatted(net.minecraft.util.Formatting.RED), false);
             }
         });
 

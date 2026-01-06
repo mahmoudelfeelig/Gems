@@ -41,7 +41,7 @@ public final class TerrorBreachChargeAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int range = GemsBalance.v().terror().breachChargeRangeBlocks();
         if (range <= 0) {
-            player.sendMessage(Text.literal("Breach Charge is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.terror.breach_charge.disabled"), true);
             return false;
         }
         Vec3d spawnPos = null;
@@ -55,7 +55,7 @@ public final class TerrorBreachChargeAbility implements GemAbility {
             }
         }
         if (spawnPos == null) {
-            player.sendMessage(Text.literal("No target for breach charge."), true);
+            player.sendMessage(Text.translatable("gems.ability.terror.breach_charge.no_target"), true);
             return false;
         }
 

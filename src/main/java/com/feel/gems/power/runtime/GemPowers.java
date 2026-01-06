@@ -111,7 +111,7 @@ public final class GemPowers {
                 
                 // Release all claims
                 claims.releaseAllClaims(player.getUuid());
-                player.sendMessage(net.minecraft.text.Text.literal("Your bonus powers have been released (energy below 10)."), false);
+                player.sendMessage(net.minecraft.text.Text.translatable("gems.bonus.powers_released"), false);
             }
             return;
         }

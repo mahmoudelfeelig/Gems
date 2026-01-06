@@ -98,7 +98,7 @@ public final class LegendaryCrafting {
 
         removeCraftResult(player, stack.getItem());
         announceCraftStart(server, player, stack.getItem(), craftTicks);
-        player.sendMessage(Text.literal("Legendary craft started. Return in " + seconds(craftTicks) + "s."), true);
+        player.sendMessage(Text.translatable("gems.legendary.craft_started", seconds(craftTicks)), true);
     }
 
     public static void tick(MinecraftServer server) {
@@ -156,7 +156,7 @@ public final class LegendaryCrafting {
         if (!player.giveItemStack(stack)) {
             player.dropItem(stack, false);
         }
-        player.sendMessage(Text.literal("Legendary craft complete: " + stack.getName().getString()), false);
+        player.sendMessage(Text.translatable("gems.legendary.craft_complete", stack.getName().getString()), false);
     }
 
     private static void dropAtLocation(MinecraftServer server, ActiveCraft craft) {
@@ -180,9 +180,8 @@ public final class LegendaryCrafting {
         net.minecraft.entity.ItemEntity entity = new net.minecraft.entity.ItemEntity(world, pos.getX() + 0.5D, pos.getY() + 1.1D, pos.getZ() + 0.5D, stack);
         world.spawnEntity(entity);
         String itemName = stack.getName().getString();
-        Text text = Text.literal("Legendary craft complete: " + itemName + " dropped at "
-                + pos.getX() + " " + pos.getY() + " " + pos.getZ()
-                + " (" + craft.dimension + ").");
+        Text text = Text.translatable("gems.legendary.craft_dropped", itemName,
+                pos.getX(), pos.getY(), pos.getZ(), craft.dimension.toString());
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             player.sendMessage(text, false);
         }
@@ -243,10 +242,9 @@ public final class LegendaryCrafting {
         BlockPos pos = location.pos;
         String dim = location.dimension.toString();
         String itemName = new ItemStack(item).getName().getString();
-        Text text = Text.literal(player.getName().getString()
-                + " began crafting " + itemName
-                + " at " + pos.getX() + " " + pos.getY() + " " + pos.getZ()
-                + " (" + dim + ").");
+        Text text = Text.translatable("gems.legendary.craft_announce",
+                player.getName().getString(), itemName,
+                pos.getX(), pos.getY(), pos.getZ(), dim);
         for (ServerPlayerEntity other : server.getPlayerManager().getPlayerList()) {
             other.sendMessage(text, false);
         }
@@ -260,7 +258,7 @@ public final class LegendaryCrafting {
             return;
         }
         data.putLong(KEY_BLOCKED_NOTIFY, now + 40);
-        player.sendMessage(Text.literal("That legendary item has reached its crafting limit."), true);
+        player.sendMessage(Text.translatable("gems.legendary.crafting_limit"), true);
     }
 
     private static int seconds(int ticks) {
@@ -387,7 +385,7 @@ public final class LegendaryCrafting {
         }
         for (ActiveCraft craft : state.active.values()) {
             net.minecraft.entity.boss.ServerBossBar bar = ACTIVE_BARS.computeIfAbsent(craft.key, key -> new net.minecraft.entity.boss.ServerBossBar(
-                    Text.literal("Legendary Craft"),
+                    Text.translatable("gems.legendary.craft_bossbar_title"),
                     net.minecraft.entity.boss.BossBar.Color.PURPLE,
                     net.minecraft.entity.boss.BossBar.Style.PROGRESS
             ));
@@ -397,9 +395,8 @@ public final class LegendaryCrafting {
 
             Item item = Registries.ITEM.get(Identifier.of(craft.id));
             String itemName = item != null ? new ItemStack(item).getName().getString() : craft.id;
-            String title = "Crafting " + itemName + " @ " + craft.pos.getX() + " " + craft.pos.getY() + " " + craft.pos.getZ()
-                    + " (" + craft.dimension + ")";
-            bar.setName(Text.literal(title));
+            bar.setName(Text.translatable("gems.legendary.craft_bossbar", itemName,
+                    craft.pos.getX(), craft.pos.getY(), craft.pos.getZ(), craft.dimension.toString()));
 
             bar.clearPlayers();
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {

@@ -43,7 +43,7 @@ public final class PuffGustAbility implements GemAbility {
         var cfg = GemsBalance.v().puff();
         int radius = cfg.gustRadiusBlocks();
         if (radius <= 0) {
-            player.sendMessage(Text.literal("Gust is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.puff.gust.disabled"), true);
             return false;
         }
 
@@ -82,7 +82,7 @@ public final class PuffGustAbility implements GemAbility {
 
         AbilityFeedback.burst(player, ParticleTypes.CLOUD, 30, 0.6D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_PHANTOM_FLAP, 0.8F, 0.9F);
-        player.sendMessage(Text.literal("Gust hit " + hits + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.puff.gust.hit", hits), true);
         return true;
     }
 }

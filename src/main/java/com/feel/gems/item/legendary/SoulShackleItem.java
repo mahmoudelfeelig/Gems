@@ -57,7 +57,7 @@ public final class SoulShackleItem extends Item implements LegendaryItem {
         // Raycast to find target
         HitResult hit = player.raycast(15, 0.0F, false);
         if (!(hit instanceof EntityHitResult entityHit) || !(entityHit.getEntity() instanceof ServerPlayerEntity target)) {
-            player.sendMessage(Text.literal("No player target found").formatted(Formatting.RED), true);
+            player.sendMessage(Text.translatable("gems.message.no_player_target").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
         }
 
@@ -78,8 +78,8 @@ public final class SoulShackleItem extends Item implements LegendaryItem {
         world.playSound(null, target.getX(), target.getY(), target.getZ(),
                 SoundEvents.BLOCK_CHAIN_BREAK, SoundCategory.PLAYERS, 1.0F, 0.8F);
 
-        player.sendMessage(Text.literal("Soul Shackle: Linked to " + target.getName().getString() + "! Damage split for 10s.").formatted(Formatting.DARK_PURPLE), true);
-        target.sendMessage(Text.literal("Soul Shackle: " + player.getName().getString() + " has linked their soul to yours!").formatted(Formatting.DARK_PURPLE), true);
+        player.sendMessage(Text.translatable("gems.item.soul_shackle.linked", target.getName().getString()).formatted(Formatting.DARK_PURPLE), true);
+        target.sendMessage(Text.translatable("gems.item.soul_shackle.linked_victim", player.getName().getString()).formatted(Formatting.DARK_PURPLE), true);
 
         return ActionResult.SUCCESS;
     }
@@ -133,8 +133,8 @@ public final class SoulShackleItem extends Item implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.literal("Right-click an enemy to link souls").formatted(Formatting.GRAY));
-        tooltip.accept(Text.literal("50% of damage you take is also dealt to them").formatted(Formatting.DARK_GRAY));
-        tooltip.accept(Text.literal("Lasts 10 seconds, 90 second cooldown").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.translatable("gems.item.soul_shackle.tooltip.1").formatted(Formatting.GRAY));
+        tooltip.accept(Text.translatable("gems.item.soul_shackle.tooltip.2").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.translatable("gems.item.soul_shackle.tooltip.3").formatted(Formatting.DARK_GRAY));
     }
 }

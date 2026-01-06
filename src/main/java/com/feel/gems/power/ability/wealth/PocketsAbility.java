@@ -40,7 +40,7 @@ public final class PocketsAbility implements GemAbility {
         NamedScreenHandlerFactory factory = new NamedScreenHandlerFactory() {
             @Override
             public Text getDisplayName() {
-                return Text.literal("Pockets");
+                return Text.translatable("gems.ability.wealth.pockets.title");
             }
 
             @Override

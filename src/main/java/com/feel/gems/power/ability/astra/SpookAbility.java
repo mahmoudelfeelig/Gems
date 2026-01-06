@@ -56,7 +56,7 @@ public final class SpookAbility implements GemAbility {
             affected++;
         }
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ENDERMAN_STARE, 0.8F, 0.8F);
-        player.sendMessage(Text.literal("Spooked " + affected + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.astra.spook.affected", affected), true);
         return true;
     }
 }

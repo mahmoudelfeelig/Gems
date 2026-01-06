@@ -82,7 +82,7 @@ public final class SummonSlotAbility implements GemAbility {
             default -> loadout.slot1();
         };
         if (specs.isEmpty()) {
-            player.sendMessage(Text.literal("No summons configured for slot " + slot + "."), true);
+            player.sendMessage(Text.translatable("gems.ability.summoner.slot.no_summons", slot), true);
             return false;
         }
 
@@ -90,7 +90,7 @@ public final class SummonSlotAbility implements GemAbility {
         int maxPoints = cfg.maxPoints();
         int remaining = maxPoints > 0 ? Math.max(0, maxPoints - stats.points()) : 0;
         if (remaining <= 0) {
-            player.sendMessage(Text.literal("Summon point cap reached."), true);
+            player.sendMessage(Text.translatable("gems.ability.summoner.slot.cap_reached"), true);
             return false;
         }
 
@@ -148,13 +148,13 @@ public final class SummonSlotAbility implements GemAbility {
         }
 
         if (spawned <= 0) {
-            player.sendMessage(Text.literal("No valid summons spawned."), true);
+            player.sendMessage(Text.translatable("gems.ability.summoner.slot.no_valid"), true);
             return false;
         }
 
         AbilityFeedback.burst(player, net.minecraft.particle.ParticleTypes.PORTAL, 18, 0.35D);
         AbilityFeedback.sound(player, net.minecraft.sound.SoundEvents.ENTITY_EVOKER_PREPARE_SUMMON, 0.8F, 1.2F);
-        player.sendMessage(Text.literal("Summoned " + spawned + " minion(s)."), true);
+        player.sendMessage(Text.translatable("gems.ability.summoner.slot.summoned", spawned), true);
         return true;
     }
 

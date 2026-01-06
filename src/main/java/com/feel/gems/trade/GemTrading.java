@@ -31,19 +31,19 @@ public final class GemTrading {
         GemPlayerState.initIfNeeded(player);
 
         if (GemsDisables.isGemDisabledFor(player, gemId)) {
-            player.sendMessage(Text.literal("That gem is disabled on this server."), true);
+            player.sendMessage(Text.translatable("gems.trade.gem_disabled"), true);
             return new Result(false, false, false);
         }
 
         GemId activeBefore = GemPlayerState.getActiveGem(player);
         if (gemId == activeBefore) {
-            player.sendMessage(Text.literal("That gem is already active."), true);
+            player.sendMessage(Text.translatable("gems.trade.gem_already_active"), true);
             return new Result(false, false, true);
         }
 
         boolean consumedTrader = consumeTrader(player);
         if (!consumedTrader) {
-            player.sendMessage(Text.literal("You need a Gem Trader to trade."), true);
+            player.sendMessage(Text.translatable("gems.trade.need_gem_trader"), true);
             return new Result(false, false, false);
         }
         EnumSet<GemId> ownedBefore = GemPlayerState.getOwnedGems(player);
@@ -71,13 +71,13 @@ public final class GemTrading {
         GemPlayerState.initIfNeeded(player);
 
         if (GemsDisables.isGemDisabledFor(player, gemId)) {
-            player.sendMessage(Text.literal("That gem is disabled on this server."), true);
+            player.sendMessage(Text.translatable("gems.trade.gem_disabled"), true);
             return new PurchaseResult(false, false, false);
         }
 
         boolean consumedToken = consumePurchaseToken(player);
         if (!consumedToken) {
-            player.sendMessage(Text.literal("You need a Gem Purchase Token to buy a gem."), true);
+            player.sendMessage(Text.translatable("gems.trade.need_purchase_token"), true);
             return new PurchaseResult(false, false, false);
         }
 

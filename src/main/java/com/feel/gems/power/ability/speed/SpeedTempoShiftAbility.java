@@ -38,7 +38,7 @@ public final class SpeedTempoShiftAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int duration = GemsBalance.v().speed().tempoShiftDurationTicks();
         if (duration <= 0) {
-            player.sendMessage(Text.literal("Tempo Shift is disabled."), true);
+            player.sendMessage(Text.translatable("gems.message.ability_disabled_server"), true);
             return false;
         }
 

@@ -39,7 +39,7 @@ public final class AstralCameraAbility implements GemAbility {
         AbilityRuntime.startAstralCamera(player, GemsBalance.v().astra().astralCameraDurationTicks());
         AbilityFeedback.sound(player, SoundEvents.ITEM_SPYGLASS_USE, 0.9F, 1.2F);
         AbilityFeedback.burst(player, ParticleTypes.END_ROD, 18, 0.25D);
-        player.sendMessage(Text.literal("Astral Camera active."), true);
+        player.sendMessage(Text.translatable("gems.ability.astra.camera.active"), true);
         return true;
     }
 }

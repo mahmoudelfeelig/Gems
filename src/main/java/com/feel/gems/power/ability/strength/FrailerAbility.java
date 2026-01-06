@@ -41,11 +41,11 @@ public final class FrailerAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         var target = Targeting.raycastLiving(player, GemsBalance.v().strength().frailerRangeBlocks());
         if (target == null) {
-            player.sendMessage(Text.literal("No target."), true);
+            player.sendMessage(Text.translatable("gems.message.no_target"), true);
             return false;
         }
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
-            player.sendMessage(Text.literal("Target is trusted."), true);
+            player.sendMessage(Text.translatable("gems.message.target_trusted"), true);
             return false;
         }
 
@@ -54,7 +54,7 @@ public final class FrailerAbility implements GemAbility {
         if (player.getEntityWorld() instanceof ServerWorld world) {
             AbilityFeedback.burstAt(world, target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ASH, 14, 0.25D);
         }
-        player.sendMessage(Text.literal("Frailer: weakened " + target.getName().getString()), true);
+        player.sendMessage(Text.translatable("gems.ability.strength.frailer.weakened", target.getName().getString()), true);
         return true;
     }
 }

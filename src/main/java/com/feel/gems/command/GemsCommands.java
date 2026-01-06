@@ -416,31 +416,35 @@ public final class GemsCommands {
 
     private static int trust(ServerPlayerEntity owner, ServerPlayerEntity other) {
         if (owner == other) {
-            owner.sendMessage(Text.literal("You are always trusted."), false);
+            owner.sendMessage(Text.translatable("gems.trust.always_trusted"), false);
             return 1;
         }
         boolean changed = GemTrust.trust(owner, other.getUuid());
-        owner.sendMessage(Text.literal(changed ? "Trusted " + other.getName().getString() : other.getName().getString() + " is already trusted."), false);
+        owner.sendMessage(changed 
+                ? Text.translatable("gems.trust.trusted", other.getName().getString())
+                : Text.translatable("gems.trust.already_trusted", other.getName().getString()), false);
         return 1;
     }
 
     private static int untrust(ServerPlayerEntity owner, ServerPlayerEntity other) {
         if (owner == other) {
-            owner.sendMessage(Text.literal("You cannot untrust yourself."), false);
+            owner.sendMessage(Text.translatable("gems.trust.cannot_untrust_self"), false);
             return 0;
         }
         boolean changed = GemTrust.untrust(owner, other.getUuid());
-        owner.sendMessage(Text.literal(changed ? "Untrusted " + other.getName().getString() : other.getName().getString() + " was not trusted."), false);
+        owner.sendMessage(changed 
+                ? Text.translatable("gems.trust.untrusted", other.getName().getString())
+                : Text.translatable("gems.trust.was_not_trusted", other.getName().getString()), false);
         return 1;
     }
 
     private static int trustList(ServerPlayerEntity owner) {
         var trusted = GemTrust.getTrusted(owner);
         if (trusted.isEmpty()) {
-            owner.sendMessage(Text.literal("Trusted: -"), false);
+            owner.sendMessage(Text.translatable("gems.trust.list_empty"), false);
             return 1;
         }
-        owner.sendMessage(Text.literal("Trusted (" + trusted.size() + "):"), false);
+        owner.sendMessage(Text.translatable("gems.trust.list_header", trusted.size()), false);
         for (var uuid : trusted) {
             owner.sendMessage(Text.literal("- " + uuid), false);
         }
@@ -559,7 +563,7 @@ public final class GemsCommands {
         try {
             gemId = GemId.valueOf(rawGem.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            player.sendMessage(Text.literal("Unknown gem '" + rawGem + "'"), false);
+            player.sendMessage(Text.translatable("gems.trade.unknown_gem", rawGem), false);
             return 0;
         }
 
@@ -567,7 +571,7 @@ public final class GemsCommands {
         if (!result.success()) {
             return 0;
         }
-        player.sendMessage(Text.literal("Traded for " + gemId.name()), false);
+        player.sendMessage(Text.translatable("gems.trade.traded_for", gemId.name()), false);
         return 1;
     }
 

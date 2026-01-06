@@ -42,13 +42,13 @@ public final class HeartLockAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().life().heartLockRangeBlocks());
         if (target == null) {
-            player.sendMessage(Text.literal("No target."), true);
+            player.sendMessage(Text.translatable("gems.message.no_target"), true);
             return false;
         }
         int duration = GemsBalance.v().life().heartLockDurationTicks();
         if (target instanceof ServerPlayerEntity other) {
             if (GemTrust.isTrusted(player, other)) {
-                player.sendMessage(Text.literal("Target is trusted."), true);
+                player.sendMessage(Text.translatable("gems.message.target_trusted"), true);
                 return false;
             }
             AbilityRuntime.startHeartLock(player, other, duration);
@@ -59,7 +59,7 @@ public final class HeartLockAbility implements GemAbility {
         }
         AbilityFeedback.sound(player, SoundEvents.BLOCK_CHAIN_PLACE, 0.8F, 0.9F);
         AbilityFeedback.burstAt(player.getEntityWorld(), target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ENCHANT, 18, 0.25D);
-        player.sendMessage(Text.literal("Heart Lock applied."), true);
+        player.sendMessage(Text.translatable("gems.ability.life.heart_lock.applied"), true);
         return true;
     }
 }

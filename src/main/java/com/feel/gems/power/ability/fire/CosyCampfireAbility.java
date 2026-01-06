@@ -39,7 +39,7 @@ public final class CosyCampfireAbility implements GemAbility {
         AbilityRuntime.startCosyCampfire(player, GemsBalance.v().fire().cosyCampfireDurationTicks());
         AbilityFeedback.sound(player, SoundEvents.BLOCK_CAMPFIRE_CRACKLE, 0.9F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.CAMPFIRE_COSY_SMOKE, 12, 0.25D);
-        player.sendMessage(Text.literal("Cosy Campfire active."), true);
+        player.sendMessage(Text.translatable("gems.ability.fire.cosy_campfire.active"), true);
         return true;
     }
 }

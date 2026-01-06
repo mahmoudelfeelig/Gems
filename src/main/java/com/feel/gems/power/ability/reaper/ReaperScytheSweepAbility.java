@@ -49,7 +49,7 @@ public final class ReaperScytheSweepAbility implements GemAbility {
         float damage = GemsBalance.v().reaper().scytheSweepDamage();
         double knockback = GemsBalance.v().reaper().scytheSweepKnockback();
         if (range <= 0 || arc <= 0) {
-            player.sendMessage(Text.literal("Scythe Sweep is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.scythe_sweep.disabled"), true);
             return false;
         }
 
@@ -87,7 +87,7 @@ public final class ReaperScytheSweepAbility implements GemAbility {
 
         AbilityFeedback.sound(player, SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, 0.8F, 0.7F);
         AbilityFeedback.burstAt(world, origin, ParticleTypes.SWEEP_ATTACK, 1, 0.0D);
-        player.sendMessage(Text.literal("Scythe Sweep hit " + hit + "."), true);
+        player.sendMessage(Text.translatable("gems.ability.reaper.scythe_sweep.hit", hit), true);
         return hit > 0;
     }
 }

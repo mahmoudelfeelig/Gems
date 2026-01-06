@@ -41,7 +41,7 @@ public final class SpeedStormAbility implements GemAbility {
         AbilityRuntime.startSpeedStorm(player, duration, momentum);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 0.9F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.CLOUD, 20, 0.45D);
-        player.sendMessage(Text.literal("Speed Storm active."), true);
+        player.sendMessage(Text.translatable("gems.ability.speed.storm.active"), true);
         return true;
     }
 }

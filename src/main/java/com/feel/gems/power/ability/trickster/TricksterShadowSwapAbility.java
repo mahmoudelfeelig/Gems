@@ -47,7 +47,7 @@ public final class TricksterShadowSwapAbility implements GemAbility {
         // Find target entity
         LivingEntity target = Targeting.raycastLiving(player, MAX_RANGE);
         if (target == null) {
-            player.sendMessage(net.minecraft.text.Text.literal("No target in range!").formatted(net.minecraft.util.Formatting.RED), true);
+            player.sendMessage(net.minecraft.text.Text.translatable("gems.message.no_target_in_range").formatted(net.minecraft.util.Formatting.RED), true);
             return false;
         }
 

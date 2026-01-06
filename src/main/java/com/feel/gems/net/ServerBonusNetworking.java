@@ -40,7 +40,7 @@ public final class ServerBonusNetworking {
         
         int energy = GemPlayerState.getEnergy(player);
         if (energy < 10) {
-            player.sendMessage(Text.literal("You need energy 10/10 to access bonus powers."), true);
+            player.sendMessage(Text.translatable("gems.bonus.need_energy_access"), true);
             return;
         }
         
@@ -102,7 +102,7 @@ public final class ServerBonusNetworking {
         
         int energy = GemPlayerState.getEnergy(player);
         if (energy < 10) {
-            player.sendMessage(Text.literal("You need energy 10/10 to claim bonus powers."), true);
+            player.sendMessage(Text.translatable("gems.bonus.need_energy_claim"), true);
             return;
         }
         
@@ -124,20 +124,20 @@ public final class ServerBonusNetworking {
                 if (success) {
                     GemAbility ability = ModAbilities.get(powerId);
                     String name = ability != null ? ability.name() : powerId.toString();
-                    player.sendMessage(Text.literal("Claimed bonus ability: " + name), false);
+                    player.sendMessage(Text.translatable("gems.bonus.claimed_ability", name), false);
                 } else {
-                    player.sendMessage(Text.literal("Cannot claim that ability (limit reached or taken)."), true);
+                    player.sendMessage(Text.translatable("gems.bonus.cannot_claim_ability"), true);
                 }
             } else {
                 success = claims.claimPassive(playerId, powerId);
                 if (success) {
                     GemPassive passive = ModPassives.get(powerId);
                     String name = passive != null ? passive.name() : powerId.toString();
-                    player.sendMessage(Text.literal("Claimed bonus passive: " + name), false);
+                    player.sendMessage(Text.translatable("gems.bonus.claimed_passive", name), false);
                     // Apply the passive immediately
                     passive.apply(player);
                 } else {
-                    player.sendMessage(Text.literal("Cannot claim that passive (limit reached or taken)."), true);
+                    player.sendMessage(Text.translatable("gems.bonus.cannot_claim_passive"), true);
                 }
             }
         } else {
@@ -148,7 +148,7 @@ public final class ServerBonusNetworking {
                     claims.releaseAbility(playerId, powerId);
                     GemAbility ability = ModAbilities.get(powerId);
                     String name = ability != null ? ability.name() : powerId.toString();
-                    player.sendMessage(Text.literal("Released bonus ability: " + name), false);
+                    player.sendMessage(Text.translatable("gems.bonus.released_ability", name), false);
                 }
             } else {
                 Set<Identifier> current = claims.getPlayerPassives(playerId);
@@ -160,7 +160,7 @@ public final class ServerBonusNetworking {
                     }
                     claims.releasePassive(playerId, powerId);
                     String name = passive != null ? passive.name() : powerId.toString();
-                    player.sendMessage(Text.literal("Released bonus passive: " + name), false);
+                    player.sendMessage(Text.translatable("gems.bonus.released_passive", name), false);
                 }
             }
         }

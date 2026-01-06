@@ -39,7 +39,7 @@ public final class UnboundedAbility implements GemAbility {
         AbilityRuntime.startUnbounded(player, GemsBalance.v().astra().unboundedDurationTicks());
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ENDERMAN_TELEPORT, 0.6F, 1.4F);
         AbilityFeedback.burst(player, ParticleTypes.PORTAL, 14, 0.25D);
-        player.sendMessage(Text.literal("Unbounded active."), true);
+        player.sendMessage(Text.translatable("gems.ability.astra.unbounded.active"), true);
         return true;
     }
 }

@@ -62,7 +62,7 @@ public final class ShadowAnchorAbility implements GemAbility {
                 nbt.remove(KEY_ANCHOR_UNTIL);
                 nbt.remove(KEY_ANCHOR_DIM);
                 nbt.remove(KEY_ANCHOR_POS);
-                player.sendMessage(Text.literal("Anchor cleared."), true);
+                player.sendMessage(Text.translatable("gems.ability.astra.shadow_anchor.cleared"), true);
                 startPostCooldown(player, now);
                 return true;
             }
@@ -74,7 +74,7 @@ public final class ShadowAnchorAbility implements GemAbility {
                     nbt.remove(KEY_ANCHOR_UNTIL);
                     nbt.remove(KEY_ANCHOR_DIM);
                     nbt.remove(KEY_ANCHOR_POS);
-                    player.sendMessage(Text.literal("Anchor was invalid."), true);
+                    player.sendMessage(Text.translatable("gems.ability.astra.shadow_anchor.invalid"), true);
                     startPostCooldown(player, now);
                     return true;
                 }
@@ -86,7 +86,7 @@ public final class ShadowAnchorAbility implements GemAbility {
                 nbt.remove(KEY_ANCHOR_UNTIL);
                 nbt.remove(KEY_ANCHOR_DIM);
                 nbt.remove(KEY_ANCHOR_POS);
-                player.sendMessage(Text.literal("Returned to anchor."), true);
+                player.sendMessage(Text.translatable("gems.ability.astra.shadow_anchor.returned"), true);
                 startPostCooldown(player, now);
                 return true;
             }
@@ -95,7 +95,7 @@ public final class ShadowAnchorAbility implements GemAbility {
         // If an old anchor expired, clear it and apply post-cooldown.
         if (until > 0 && now > until) {
             clearAnchor(nbt);
-            player.sendMessage(Text.literal("Anchor expired."), true);
+            player.sendMessage(Text.translatable("gems.ability.astra.shadow_anchor.expired"), true);
             startPostCooldown(player, now);
             return false;
         }
@@ -107,7 +107,7 @@ public final class ShadowAnchorAbility implements GemAbility {
         writeBlockPos(nbt, KEY_ANCHOR_POS, anchor);
         AbilityFeedback.sound(player, SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 0.7F, 1.3F);
         AbilityFeedback.burst(player, ParticleTypes.PORTAL, 12, 0.2D);
-        player.sendMessage(Text.literal("Anchor set."), true);
+        player.sendMessage(Text.translatable("gems.ability.astra.shadow_anchor.set"), true);
         return true;
     }
 

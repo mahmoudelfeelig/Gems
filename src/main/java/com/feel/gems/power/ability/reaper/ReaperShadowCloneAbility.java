@@ -50,19 +50,19 @@ public final class ReaperShadowCloneAbility implements GemAbility {
         int duration = cfg.shadowCloneDurationTicks();
         int count = cfg.shadowCloneCount();
         if (duration <= 0 || count <= 0) {
-            player.sendMessage(Text.literal("Shadow Clone is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.shadow_clone.disabled"), true);
             return false;
         }
 
         Identifier entityId = Identifier.tryParse(cfg.shadowCloneEntityId());
         if (entityId == null) {
-            player.sendMessage(Text.literal("Shadow Clone entity id is invalid."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.shadow_clone.invalid_id"), true);
             return false;
         }
 
         EntityType<?> type = Registries.ENTITY_TYPE.get(entityId);
         if (type == null) {
-            player.sendMessage(Text.literal("Shadow Clone entity id is missing."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.shadow_clone.missing_id"), true);
             return false;
         }
 
@@ -111,13 +111,13 @@ public final class ReaperShadowCloneAbility implements GemAbility {
         }
 
         if (spawned.isEmpty()) {
-            player.sendMessage(Text.literal("Failed to spawn clones."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.shadow_clone.failed"), true);
             return false;
         }
 
         AbilityRuntime.startReaperShadowClone(player, spawned, duration);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ENDERMAN_TELEPORT, 0.6F, 0.6F);
-        player.sendMessage(Text.literal("Shadow Clone spawned."), true);
+        player.sendMessage(Text.translatable("gems.ability.reaper.shadow_clone.spawned"), true);
         return true;
     }
 }

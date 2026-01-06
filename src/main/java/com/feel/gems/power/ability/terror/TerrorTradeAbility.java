@@ -46,7 +46,7 @@ public final class TerrorTradeAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().terror().terrorTradeRangeBlocks());
         if (target == null) {
-            player.sendMessage(Text.literal("No target."), true);
+            player.sendMessage(Text.translatable("gems.message.no_target"), true);
             return false;
         }
         if (target == player) {
@@ -131,7 +131,7 @@ public final class TerrorTradeAbility implements GemAbility {
         int maxUses = GemsBalance.v().terror().terrorTradeMaxUses();
         int used = com.feel.gems.state.PlayerNbt.getInt(player, KEY_USES, 0);
         if (used >= maxUses) {
-            player.sendMessage(Text.literal("Terror Trade has no uses remaining (" + maxUses + ")."), true);
+            player.sendMessage(Text.translatable("gems.ability.terror.trade.no_uses", maxUses), true);
             return false;
         }
 

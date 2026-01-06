@@ -61,7 +61,7 @@ public final class ReversalMirrorItem extends Item implements LegendaryItem {
         world.playSound(null, player.getX(), player.getY(), player.getZ(), 
                 SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 1.0F, 1.5F);
 
-        player.sendMessage(Text.literal("Reversal Mirror activated!").formatted(Formatting.GOLD), true);
+        player.sendMessage(Text.translatable("gems.item.reversal_mirror.activated").formatted(Formatting.GOLD), true);
         return ActionResult.SUCCESS;
     }
 
@@ -100,8 +100,8 @@ public final class ReversalMirrorItem extends Item implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.literal("Right-click to activate for 5 seconds").formatted(Formatting.GRAY));
-        tooltip.accept(Text.literal("All incoming damage is reflected to attackers").formatted(Formatting.DARK_GRAY));
-        tooltip.accept(Text.literal("60 second cooldown").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.translatable("gems.item.reversal_mirror.tooltip.1").formatted(Formatting.GRAY));
+        tooltip.accept(Text.translatable("gems.item.reversal_mirror.tooltip.2").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.translatable("gems.item.reversal_mirror.tooltip.3").formatted(Formatting.DARK_GRAY));
     }
 }

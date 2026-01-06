@@ -78,7 +78,7 @@ public final class VitalityVortexAbility implements GemAbility {
 
         AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_POWER_SELECT, 0.8F, 1.1F);
         AbilityFeedback.burst(player, particleFor(mode), 20, 0.35D);
-        player.sendMessage(Text.literal("Vitality Vortex: " + mode.label), true);
+        player.sendMessage(Text.translatable("gems.ability.life.vitality_vortex.mode", mode.label), true);
         return true;
     }
 

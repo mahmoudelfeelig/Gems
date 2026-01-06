@@ -50,7 +50,7 @@ public final class SummonerLoadoutScreen extends Screen {
     private int hintY;
 
     public SummonerLoadoutScreen(SummonerLoadoutScreenPayload payload) {
-        super(Text.literal("Summoner Loadout"));
+        super(Text.translatable("gems.screen.summoner_loadout.title"));
         this.maxPoints = payload.maxPoints();
         this.costs = payload.costs() == null ? Map.of() : payload.costs();
         this.initial = List.of(
@@ -86,9 +86,9 @@ public final class SummonerLoadoutScreen extends Screen {
         int totalWidth = (buttonWidth * 3) + (gap * 2);
         int startX = centerX - (totalWidth / 2);
 
-        saveButton = addDrawableChild(ButtonWidget.builder(Text.literal("Save"), btn -> save()).dimensions(startX, bottomY, buttonWidth, buttonHeight).build());
-        resetButton = addDrawableChild(ButtonWidget.builder(Text.literal("Reset"), btn -> reset()).dimensions(startX + buttonWidth + gap, bottomY, buttonWidth, buttonHeight).build());
-        cancelButton = addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), btn -> close()).dimensions(startX + ((buttonWidth + gap) * 2), bottomY, buttonWidth, buttonHeight).build());
+        saveButton = addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.save"), btn -> save()).dimensions(startX, bottomY, buttonWidth, buttonHeight).build());
+        resetButton = addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.reset"), btn -> reset()).dimensions(startX + buttonWidth + gap, bottomY, buttonWidth, buttonHeight).build());
+        cancelButton = addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.cancel"), btn -> close()).dimensions(startX + ((buttonWidth + gap) * 2), bottomY, buttonWidth, buttonHeight).build());
 
     }
 
@@ -116,7 +116,7 @@ public final class SummonerLoadoutScreen extends Screen {
 
         int bottomLine = this.height - 62;
         if (maxPoints > 0) {
-            context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Active points cap: " + maxPoints), centerX, bottomLine, 0xA0A0A0);
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("gems.screen.summoner_loadout.points_cap", maxPoints), centerX, bottomLine, 0xA0A0A0);
             bottomLine += 12;
         }
         // No per-slot cap; only active points limit.
@@ -165,7 +165,7 @@ public final class SummonerLoadoutScreen extends Screen {
         gapX = columns == 1 ? 0 : 24;
         int maxTextWidth = Math.min(this.width - 32, 520);
         hintLines = this.textRenderer.wrapLines(
-                Text.literal("Pick minions for each Summon ability. Slots are presets; the only limit is the active summon point cap. Cooldown starts after recall or a summon dies."),
+                Text.translatable("gems.screen.summoner_loadout.hint"),
                 maxTextWidth
         );
         hintY = 24;
@@ -265,7 +265,7 @@ public final class SummonerLoadoutScreen extends Screen {
                 adder.accept(row.removeButton);
             }
             if (addButton == null) {
-                addButton = ButtonWidget.builder(Text.literal("Add row"), btn -> addRow()).dimensions(baseX, baseY + (MAX_ROWS * ROW_HEIGHT) + 6, columnWidth - 26, 20).build();
+                addButton = ButtonWidget.builder(Text.translatable("gems.screen.summoner_loadout.add_row"), btn -> addRow()).dimensions(baseX, baseY + (MAX_ROWS * ROW_HEIGHT) + 6, columnWidth - 26, 20).build();
             }
             adder.accept(addButton);
             refreshVisibility();
@@ -463,7 +463,7 @@ public final class SummonerLoadoutScreen extends Screen {
 
     private record EntityOption(String id, Text name, int cost, EntityStats stats) {
         static EntityOption none() {
-            return new EntityOption(null, Text.literal("None"), 0, EntityStats.none());
+            return new EntityOption(null, Text.translatable("gems.screen.summoner_loadout.none"), 0, EntityStats.none());
         }
 
         boolean isNone() {
@@ -472,7 +472,7 @@ public final class SummonerLoadoutScreen extends Screen {
 
         Text label() {
             if (isNone()) {
-                return Text.literal("None");
+                return Text.translatable("gems.screen.summoner_loadout.none");
             }
             if (stats != null && stats.hasAny()) {
                 return Text.literal(name.getString() + " (" + cost + " pts, HP " + stats.healthText() + ", ATK " + stats.attackText() + ")");

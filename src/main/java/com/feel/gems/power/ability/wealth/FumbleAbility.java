@@ -62,7 +62,7 @@ public final class FumbleAbility implements GemAbility {
             affected++;
         }
         AbilityFeedback.sound(player, SoundEvents.ENTITY_WITCH_THROW, 0.8F, 1.1F);
-        player.sendMessage(Text.literal("Fumble affected " + affected + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.wealth.fumble.affected", affected), true);
         return true;
     }
 }

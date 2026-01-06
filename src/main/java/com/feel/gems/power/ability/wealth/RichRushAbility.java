@@ -38,7 +38,7 @@ public final class RichRushAbility implements GemAbility {
         AbilityRuntime.startRichRush(player, GemsBalance.v().wealth().richRushDurationTicks());
         AbilityFeedback.sound(player, SoundEvents.ENTITY_PLAYER_LEVELUP, 0.8F, 1.1F);
         AbilityFeedback.burst(player, ParticleTypes.HAPPY_VILLAGER, 14, 0.35D);
-        player.sendMessage(Text.literal("Rich Rush active."), true);
+        player.sendMessage(Text.translatable("gems.ability.wealth.rich_rush.active"), true);
         return true;
     }
 }

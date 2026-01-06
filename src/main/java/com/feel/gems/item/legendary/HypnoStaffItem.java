@@ -88,17 +88,17 @@ public final class HypnoStaffItem extends Item implements LegendaryItem {
             if (heal > 0.0F) {
                 mob.heal(heal);
             }
-            player.sendMessage(Text.literal("Hypnosis refreshed."), true);
+            player.sendMessage(Text.translatable("gems.item.hypno_staff.refreshed"), true);
             player.stopUsingItem();
             resetProgress(player);
             return;
         }
         boolean controlled = HypnoControl.tryControl(player, mob);
         if (controlled) {
-            player.sendMessage(Text.literal("Hypnosis successful."), true);
+            player.sendMessage(Text.translatable("gems.item.hypno_staff.successful"), true);
             player.stopUsingItem();
         } else {
-            player.sendMessage(Text.literal("Hypnosis failed."), true);
+            player.sendMessage(Text.translatable("gems.item.hypno_staff.failed"), true);
         }
         resetProgress(player);
     }
@@ -138,6 +138,6 @@ public final class HypnoStaffItem extends Item implements LegendaryItem {
             bar.append(i < filled ? "=" : " ");
         }
         bar.append("]");
-        player.sendMessage(Text.literal("Hypnosis: " + bar + " " + percent + "%"), true);
+        player.sendMessage(Text.translatable("gems.item.hypno_staff.progress", bar.toString(), percent), true);
     }
 }

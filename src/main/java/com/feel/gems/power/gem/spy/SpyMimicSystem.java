@@ -255,15 +255,15 @@ public final class SpyMimicSystem {
         long now = GemsTime.now(spy);
         Identifier abilityId = lastSeenAbility(spy);
         if (abilityId == null) {
-            spy.sendMessage(Text.literal("No observed ability."), true);
+            spy.sendMessage(Text.translatable("gems.spy.no_observed_ability"), true);
             return false;
         }
         if (GemsDisables.isAbilityDisabled(abilityId)) {
-            spy.sendMessage(Text.literal("That ability is disabled on this server."), true);
+            spy.sendMessage(Text.translatable("gems.message.ability_disabled_server"), true);
             return false;
         }
         if (!canSteal(spy, abilityId, now)) {
-            spy.sendMessage(Text.literal("Not enough observation to steal that ability."), true);
+            spy.sendMessage(Text.translatable("gems.spy.not_enough_observation"), true);
             return false;
         }
 
@@ -271,14 +271,14 @@ public final class SpyMimicSystem {
         int max = GemsBalance.v().spyMimic().maxStolenAbilities();
         NbtList list = nbt.getList(KEY_STOLEN).orElse(new NbtList());
         if (list.size() >= max) {
-            spy.sendMessage(Text.literal("Stolen ability slots are full."), true);
+            spy.sendMessage(Text.translatable("gems.spy.stolen_slots_full"), true);
             return false;
         }
 
         String raw = abilityId.toString();
         for (int i = 0; i < list.size(); i++) {
             if (raw.equals(list.getString(i))) {
-                spy.sendMessage(Text.literal("You already stole that ability."), true);
+                spy.sendMessage(Text.translatable("gems.spy.already_stole"), true);
                 return false;
             }
         }
@@ -310,11 +310,11 @@ public final class SpyMimicSystem {
         if (victim != null) {
             AbilityDisables.disable(victim, abilityId);
             recordStolenFrom(victim, spy.getUuid(), abilityId);
-            victim.sendMessage(Text.literal("One of your abilities was stolen! Kill the thief or wait for them to switch gems to recover it."), false);
+            victim.sendMessage(Text.translatable("gems.spy.ability_was_stolen"), false);
         }
 
         AbilityFeedback.sound(spy, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 0.8F, 1.3F);
-        spy.sendMessage(Text.literal("Stole ability: " + raw), true);
+        spy.sendMessage(Text.translatable("gems.spy.stole_ability", raw), true);
         return true;
     }
 
@@ -345,7 +345,7 @@ public final class SpyMimicSystem {
         nbt.putInt(KEY_STOLEN_SELECTED, next);
         Identifier selected = Identifier.tryParse(list.getString(next, ""));
         if (selected != null) {
-            player.sendMessage(Text.literal("Selected stolen ability: " + selected), true);
+            player.sendMessage(Text.translatable("gems.spy.selected_stolen", selected.toString()), true);
         }
         return true;
     }
@@ -406,7 +406,7 @@ public final class SpyMimicSystem {
 
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, durationTicks, 0, true, false, false));
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ILLUSIONER_PREPARE_MIRROR, 0.8F, 1.1F);
-        player.sendMessage(Text.literal("Mimic Form: " + lastKilled), true);
+        player.sendMessage(Text.translatable("gems.spy.mimic_form", lastKilled), true);
     }
 
     public static boolean startSkinshift(ServerPlayerEntity player, ServerPlayerEntity target, int durationTicks) {
@@ -420,7 +420,7 @@ public final class SpyMimicSystem {
         nbt.putString(KEY_SKINSHIFT_NAME, target.getGameProfile().name());
         syncSkinshift(player, target.getUuid());
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ILLUSIONER_PREPARE_MIRROR, 0.7F, 0.9F);
-        player.sendMessage(Text.literal("Skinshift: " + target.getName().getString()), true);
+        player.sendMessage(Text.translatable("gems.spy.skinshift", target.getName().getString()), true);
         return true;
     }
 
@@ -716,7 +716,7 @@ public final class SpyMimicSystem {
             root.put(KEY_STOLEN_BY, stolenBy);
         }
         if (changed) {
-            victim.sendMessage(Text.literal("Recovered stolen abilities."), true);
+            victim.sendMessage(Text.translatable("gems.spy.recovered_stolen"), true);
         }
     }
 

@@ -45,7 +45,7 @@ public final class FluxSurgeAbility implements GemAbility {
         int charge = FluxCharge.get(player);
         int cost = cfg.fluxSurgeChargeCost();
         if (charge < cost) {
-            player.sendMessage(Text.literal("Not enough Flux charge."), true);
+            player.sendMessage(Text.translatable("gems.ability.flux.not_enough_charge"), true);
             return false;
         }
 

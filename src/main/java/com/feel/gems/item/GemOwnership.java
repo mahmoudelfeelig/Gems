@@ -142,7 +142,7 @@ public final class GemOwnership {
         GemPlayerState.applyMaxHearts(owner);
         ((com.feel.gems.state.GemsPersistentDataHolder) owner).gems$getPersistentData().putBoolean(KEY_SKIP_HEART_DROP, true);
         owner.damage(owner.getEntityWorld(), owner.getDamageSources().magic(), Float.MAX_VALUE);
-        owner.sendMessage(net.minecraft.text.Text.literal("Your gem was activated by another player. You paid the cost."), false);
+        owner.sendMessage(net.minecraft.text.Text.translatable("gems.item.gem.penalty_applied"), false);
     }
 
     public static boolean consumeSkipHeartDrop(ServerPlayerEntity player) {

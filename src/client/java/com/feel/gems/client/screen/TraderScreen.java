@@ -84,7 +84,7 @@ public final class TraderScreen extends HandledScreen<TraderScreenHandler> {
         }
 
         int cancelWidth = gridWidth;
-        addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), btn -> close()).dimensions(this.gridStartX, this.gridStartY + gridHeight + 18, cancelWidth, buttonHeight).build());
+        addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.cancel"), btn -> close()).dimensions(this.gridStartX, this.gridStartY + gridHeight + 18, cancelWidth, buttonHeight).build());
     }
 
     private List<GemId> computeVisibleGems() {

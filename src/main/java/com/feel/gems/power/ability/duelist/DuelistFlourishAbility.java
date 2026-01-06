@@ -27,7 +27,7 @@ public final class DuelistFlourishAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Quick 360° sword sweep that hits all nearby enemies.";
+        return "Quick 360 sword sweep that hits all nearby enemies.";
     }
 
     @Override

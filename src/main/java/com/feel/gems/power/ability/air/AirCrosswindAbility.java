@@ -44,7 +44,7 @@ public final class AirCrosswindAbility implements GemAbility {
         int range = cfg.crosswindRangeBlocks();
         int radius = cfg.crosswindRadiusBlocks();
         if (range <= 0 || radius <= 0) {
-            player.sendMessage(Text.literal("Crosswind is disabled."), true);
+            player.sendMessage(Text.translatable("gems.message.ability_disabled_server"), true);
             return false;
         }
 
@@ -76,7 +76,7 @@ public final class AirCrosswindAbility implements GemAbility {
 
         AbilityFeedback.ring(world, player.getEntityPos().add(0.0D, 0.2D, 0.0D), Math.min(range, 12), ParticleTypes.GUST, 24);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 0.9F, 1.1F);
-        player.sendMessage(Text.literal("Crosswind hit " + hits + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.air.crosswind.hit", hits), true);
         return true;
     }
 }

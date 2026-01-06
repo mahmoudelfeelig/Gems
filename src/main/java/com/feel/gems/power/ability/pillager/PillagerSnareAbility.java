@@ -43,18 +43,18 @@ public final class PillagerSnareAbility implements GemAbility {
         var cfg = GemsBalance.v().pillager();
         LivingEntity target = Targeting.raycastLiving(player, cfg.snareRangeBlocks());
         if (target == null) {
-            player.sendMessage(Text.literal("No target."), true);
+            player.sendMessage(Text.translatable("gems.message.no_target"), true);
             return false;
         }
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
-            player.sendMessage(Text.literal("Target is trusted."), true);
+            player.sendMessage(Text.translatable("gems.message.target_trusted"), true);
             return false;
         }
 
         int duration = cfg.snareDurationTicks();
         int slowAmp = cfg.snareSlownessAmplifier();
         if (duration <= 0) {
-            player.sendMessage(Text.literal("Snare Shot is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.pillager.snare.disabled"), true);
             return false;
         }
         target.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, duration, 0, true, false, false));
@@ -65,7 +65,7 @@ public final class PillagerSnareAbility implements GemAbility {
         AbilityFeedback.burst(player, ParticleTypes.CRIT, 8, 0.25D);
         AbilityFeedback.burstAt(player.getEntityWorld(), target.getEntityPos().add(0.0D, target.getHeight() * 0.6D, 0.0D), ParticleTypes.CRIT, 10, 0.25D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ARROW_SHOOT, 0.9F, 1.2F);
-        player.sendMessage(Text.literal("Snare Shot landed."), true);
+        player.sendMessage(Text.translatable("gems.ability.pillager.snare.landed"), true);
         return true;
     }
 }

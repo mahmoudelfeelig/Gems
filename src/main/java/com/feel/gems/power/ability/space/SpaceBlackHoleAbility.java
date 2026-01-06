@@ -36,12 +36,12 @@ public final class SpaceBlackHoleAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int duration = GemsBalance.v().space().blackHoleDurationTicks();
         if (duration <= 0) {
-            player.sendMessage(Text.literal("Black Hole is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.space.black_hole.disabled"), true);
             return false;
         }
         Vec3d center = player.getEntityPos().add(0.0D, 0.2D, 0.0D);
         SpaceAnomalies.spawnBlackHole(player, center);
-        player.sendMessage(Text.literal("Black Hole spawned."), true);
+        player.sendMessage(Text.translatable("gems.ability.space.black_hole.spawned"), true);
         return true;
     }
 }

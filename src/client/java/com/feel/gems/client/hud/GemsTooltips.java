@@ -42,7 +42,7 @@ public final class GemsTooltips {
         GemId gem = item.gemId();
         GemDefinition def = GemRegistry.definition(gem);
 
-        lines.add(Text.literal("Passives").formatted(Formatting.GRAY));
+        lines.add(Text.translatable("gems.tooltip.passives").formatted(Formatting.GRAY));
         for (Identifier id : def.passives()) {
             GemPassive passive = ModPassives.get(id);
             String name = passive != null ? passive.name() : id.toString();
@@ -50,7 +50,7 @@ public final class GemsTooltips {
             lines.add(Text.literal(" - " + name + (desc.isEmpty() ? "" : ": " + desc)).formatted(Formatting.DARK_GRAY));
         }
 
-        lines.add(Text.literal("Abilities").formatted(Formatting.GRAY));
+        lines.add(Text.translatable("gems.tooltip.abilities").formatted(Formatting.GRAY));
         for (Identifier id : def.abilities()) {
             GemAbility ability = ModAbilities.get(id);
             String name = ability != null ? ability.name() : id.toString();
@@ -61,9 +61,9 @@ public final class GemsTooltips {
         if (gem == GemId.FLUX) {
             String chord = com.feel.gems.client.GemsKeybinds.chordSlotLabel(2);
             if (!chord.isEmpty()) {
-                lines.add(Text.literal(chord + " to charge (consumes 1 item).").formatted(Formatting.AQUA));
+                lines.add(Text.translatable("gems.tooltip.flux.charge_key", chord).formatted(Formatting.AQUA));
             }
-            lines.add(Text.literal("Charge items (per item):").formatted(Formatting.AQUA));
+            lines.add(Text.translatable("gems.tooltip.flux.charge_items").formatted(Formatting.AQUA));
             var flux = GemsBalance.v().flux();
             lines.add(Text.literal(" - Diamond Block: +" + flux.chargeDiamondBlock() + "%").formatted(Formatting.DARK_AQUA));
             lines.add(Text.literal(" - Gold Block: +" + flux.chargeGoldBlock() + "%").formatted(Formatting.DARK_AQUA));

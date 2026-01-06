@@ -52,7 +52,7 @@ public final class ExperienceBladeItem extends Item implements LegendaryItem {
         int currentSharpness = getCurrentSharpness(player);
 
         if (currentSharpness >= 20) {
-            player.sendMessage(Text.literal("Sharpness is already at maximum (XX)!").formatted(Formatting.RED), true);
+            player.sendMessage(Text.translatable("gems.item.experience_blade.max").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
         }
 
@@ -61,7 +61,7 @@ public final class ExperienceBladeItem extends Item implements LegendaryItem {
         int xpLevelsNeeded = nextTier * 10; // 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
 
         if (player.experienceLevel < xpLevelsNeeded) {
-            player.sendMessage(Text.literal("Need " + xpLevelsNeeded + " XP levels for next upgrade (have " + player.experienceLevel + ")").formatted(Formatting.RED), true);
+            player.sendMessage(Text.translatable("gems.item.experience_blade.need_xp", xpLevelsNeeded, player.experienceLevel).formatted(Formatting.RED), true);
             return ActionResult.FAIL;
         }
 
@@ -73,7 +73,7 @@ public final class ExperienceBladeItem extends Item implements LegendaryItem {
         // Apply enchantment to the blade
         applySharpnessToStack(stack, newSharpness, player);
 
-        player.sendMessage(Text.literal("Experience Blade upgraded to Sharpness " + toRoman(newSharpness) + "!").formatted(Formatting.GREEN), true);
+        player.sendMessage(Text.translatable("gems.item.experience_blade.upgraded", toRoman(newSharpness)).formatted(Formatting.GREEN), true);
         return ActionResult.SUCCESS;
     }
 
@@ -132,7 +132,7 @@ public final class ExperienceBladeItem extends Item implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.literal("Right-click to consume XP and upgrade Sharpness").formatted(Formatting.GRAY));
-        tooltip.accept(Text.literal("10 levels -> II, 20 -> IV, ... max XX").formatted(Formatting.DARK_GRAY));
+        tooltip.accept(Text.translatable("gems.item.experience_blade.tooltip.1").formatted(Formatting.GRAY));
+        tooltip.accept(Text.translatable("gems.item.experience_blade.tooltip.2").formatted(Formatting.DARK_GRAY));
     }
 }

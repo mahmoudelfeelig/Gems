@@ -53,7 +53,7 @@ public final class PillagerFangsAbility implements GemAbility {
         } else {
             HitResult hit = player.raycast(range, 1.0F, false);
             if (hit.getType() != HitResult.Type.BLOCK || !(hit instanceof BlockHitResult bhr)) {
-                player.sendMessage(Text.literal("No target."), true);
+                player.sendMessage(Text.translatable("gems.message.no_target"), true);
                 return false;
             }
             BlockPos pos = bhr.getBlockPos();

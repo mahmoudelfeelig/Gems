@@ -35,12 +35,12 @@ public final class ReaperRetributionAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int duration = GemsBalance.v().reaper().retributionDurationTicks();
         if (duration <= 0) {
-            player.sendMessage(Text.literal("Retribution is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.retribution.disabled"), true);
             return false;
         }
         AbilityRuntime.startReaperRetribution(player, duration);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_WITHER_SPAWN, 0.6F, 1.2F);
-        player.sendMessage(Text.literal("Retribution active."), true);
+        player.sendMessage(Text.translatable("gems.ability.reaper.retribution.active"), true);
         return true;
     }
 }

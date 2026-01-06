@@ -25,7 +25,7 @@ public final class ServerSummonerNetworking {
     public static void openEditor(ServerPlayerEntity player) {
         GemPlayerState.initIfNeeded(player);
         if (GemPlayerState.getActiveGem(player) != GemId.SUMMONER) {
-            player.sendMessage(Text.literal("Switch to the Summoner gem before editing its loadout."), true);
+            player.sendMessage(Text.translatable("gems.summoner.switch_to_edit"), true);
             return;
         }
 
@@ -47,7 +47,7 @@ public final class ServerSummonerNetworking {
     private static void handleSave(ServerPlayerEntity player, SummonerLoadoutSavePayload payload) {
         GemPlayerState.initIfNeeded(player);
         if (GemPlayerState.getActiveGem(player) != GemId.SUMMONER) {
-            player.sendMessage(Text.literal("You must be using the Summoner gem to change this."), true);
+            player.sendMessage(Text.translatable("gems.summoner.must_use_summoner"), true);
             return;
         }
 
@@ -61,6 +61,6 @@ public final class ServerSummonerNetworking {
         );
         SummonerLoadouts.Loadout sanitized = SummonerLoadouts.sanitize(requested, cfg);
         SummonerLoadouts.save(player, sanitized);
-        player.sendMessage(Text.literal("Saved Summoner loadout."), true);
+        player.sendMessage(Text.translatable("gems.summoner.loadout_saved"), true);
     }
 }

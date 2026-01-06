@@ -40,17 +40,17 @@ public final class TerrorRigAbility implements GemAbility {
         int range = GemsBalance.v().terror().rigRangeBlocks();
         HitResult hit = player.raycast(range, 1.0F, false);
         if (!(hit instanceof BlockHitResult blockHit)) {
-            player.sendMessage(Text.literal("No block targeted."), true);
+            player.sendMessage(Text.translatable("gems.message.no_block_target"), true);
             return false;
         }
         if (!TerrorRigRuntime.arm(player, blockHit.getBlockPos())) {
-            player.sendMessage(Text.literal("Block cannot be rigged."), true);
+            player.sendMessage(Text.translatable("gems.ability.terror.rig.cannot_rig"), true);
             return false;
         }
 
         AbilityFeedback.burstAt(player.getEntityWorld(), blockHit.getPos(), ParticleTypes.SMOKE, 10, 0.15D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_TNT_PRIMED, 0.7F, 1.2F);
-        player.sendMessage(Text.literal("Block rigged."), true);
+        player.sendMessage(Text.translatable("gems.ability.terror.rig.rigged"), true);
         return true;
     }
 }

@@ -114,9 +114,9 @@ public final class ChaosRotationRuntime {
         String abilityName = newAbility != null ? getAbilityName(newAbility) : "None";
         String passiveName = newPassive != null ? getPassiveName(newPassive) : "None";
         
-        player.sendMessage(Text.literal("Let's go gambling!").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
-        player.sendMessage(Text.literal("  Ability: " + abilityName).formatted(Formatting.AQUA), false);
-        player.sendMessage(Text.literal("  Passive: " + passiveName).formatted(Formatting.GREEN), false);
+        player.sendMessage(Text.translatable("gems.chaos.lets_go_gambling").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), false);
+        player.sendMessage(Text.translatable("gems.chaos.ability_label", abilityName).formatted(Formatting.AQUA), false);
+        player.sendMessage(Text.translatable("gems.chaos.passive_label", passiveName).formatted(Formatting.GREEN), false);
 
         // Sync to client for HUD display
         syncToClient(player);
@@ -206,7 +206,7 @@ public final class ChaosRotationRuntime {
             state = playerStates.get(player.getUuid());
         }
         if (state == null || state.currentAbility == null) {
-            player.sendMessage(Text.literal("Chaos rotation not ready yet.").formatted(Formatting.RED), true);
+            player.sendMessage(Text.translatable("gems.chaos.rotation_not_ready").formatted(Formatting.RED), true);
             return false;
         }
         
@@ -214,7 +214,7 @@ public final class ChaosRotationRuntime {
         if (!state.canUseAbility(currentTick)) {
             int remainingTicks = (int)(ABILITY_COOLDOWN_TICKS - (currentTick - state.lastAbilityUseTick));
             int remainingSeconds = (remainingTicks + 19) / 20;
-            player.sendMessage(Text.literal("Chaos ability on cooldown: " + remainingSeconds + "s").formatted(Formatting.RED), true);
+            player.sendMessage(Text.translatable("gems.chaos.ability_on_cooldown", remainingSeconds).formatted(Formatting.RED), true);
             return false;
         }
         

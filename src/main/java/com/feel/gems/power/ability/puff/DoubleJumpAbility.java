@@ -37,7 +37,7 @@ public final class DoubleJumpAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         if (player.isOnGround()) {
-            player.sendMessage(Text.literal("Jump first."), true);
+            player.sendMessage(Text.translatable("gems.ability.puff.double_jump.jump_first"), true);
             return false;
         }
         Vec3d v = player.getVelocity();

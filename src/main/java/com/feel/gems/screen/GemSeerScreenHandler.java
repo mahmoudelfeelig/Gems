@@ -83,14 +83,14 @@ public final class GemSeerScreenHandler extends ScreenHandler {
 
     private void sendPlayerInfo(ServerPlayerEntity viewer, PlayerInfo info) {
         viewer.sendMessage(Text.empty(), false); // Blank line
-        viewer.sendMessage(Text.literal("=== Gem Seer: " + info.name + " ===")
+        viewer.sendMessage(Text.translatable("gems.screen.gem_seer.header", info.name)
                 .formatted(Formatting.GOLD, Formatting.BOLD), false);
         
-        Text activeText = Text.literal("Active Gem: ").formatted(Formatting.GRAY)
+        Text activeText = Text.translatable("gems.screen.gem_seer.active_gem").formatted(Formatting.GRAY)
                 .append(Text.literal(formatGemName(info.activeGem)).formatted(gemColor(info.activeGem)));
         viewer.sendMessage(activeText, false);
         
-        Text energyText = Text.literal("Energy: ").formatted(Formatting.GRAY)
+        Text energyText = Text.translatable("gems.screen.gem_seer.energy").formatted(Formatting.GRAY)
                 .append(Text.literal("[" + info.energy + "/10]").formatted(energyColor(info.energy)));
         viewer.sendMessage(energyText, false);
         
@@ -102,7 +102,7 @@ public final class GemSeerScreenHandler extends ScreenHandler {
                 owned.append(formatGemName(gem));
                 first = false;
             }
-            viewer.sendMessage(Text.literal("Owned Gems: ").formatted(Formatting.GRAY)
+            viewer.sendMessage(Text.translatable("gems.screen.gem_seer.owned_gems").formatted(Formatting.GRAY)
                     .append(Text.literal(owned.toString()).formatted(Formatting.WHITE)), false);
         }
     }

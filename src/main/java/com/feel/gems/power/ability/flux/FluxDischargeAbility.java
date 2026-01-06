@@ -44,7 +44,7 @@ public final class FluxDischargeAbility implements GemAbility {
         int charge = FluxCharge.get(player);
         int minCharge = cfg.fluxDischargeMinCharge();
         if (charge < minCharge) {
-            player.sendMessage(Text.literal("Not enough Flux charge."), true);
+            player.sendMessage(Text.translatable("gems.ability.flux.not_enough_charge"), true);
             return false;
         }
 
@@ -77,7 +77,7 @@ public final class FluxDischargeAbility implements GemAbility {
 
         AbilityFeedback.burst(player, ParticleTypes.ELECTRIC_SPARK, 24, 0.5D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5F, 1.5F);
-        player.sendMessage(Text.literal("Flux Discharge hit " + hits + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.flux.discharge.hit", hits), true);
         return true;
     }
 }

@@ -78,7 +78,7 @@ public final class PillagerRavageAbility implements GemAbility {
         }
 
         if (!hit) {
-            player.sendMessage(Text.literal("No targets in front."), true);
+            player.sendMessage(Text.translatable("gems.ability.pillager.ravage.no_targets"), true);
             return false;
         }
 

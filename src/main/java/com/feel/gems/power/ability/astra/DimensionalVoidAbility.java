@@ -62,7 +62,7 @@ public final class DimensionalVoidAbility implements GemAbility {
         }
         AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_DEACTIVATE, 0.8F, 0.8F);
         AbilityFeedback.burst(player, ParticleTypes.REVERSE_PORTAL, 18, 0.35D);
-        player.sendMessage(Text.literal("Dimensional Void: suppressed " + affected + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.astra.dimensional_void.suppressed", affected), true);
         return true;
     }
 }

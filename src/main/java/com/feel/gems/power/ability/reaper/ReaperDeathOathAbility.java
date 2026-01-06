@@ -39,20 +39,20 @@ public final class ReaperDeathOathAbility implements GemAbility {
         int range = GemsBalance.v().reaper().deathOathRangeBlocks();
         LivingEntity target = Targeting.raycastLiving(player, range);
         if (target == null) {
-            player.sendMessage(Text.literal("No target."), true);
+            player.sendMessage(Text.translatable("gems.message.no_target"), true);
             return false;
         }
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
-            player.sendMessage(Text.literal("Target is trusted."), true);
+            player.sendMessage(Text.translatable("gems.message.target_trusted"), true);
             return false;
         }
         int duration = GemsBalance.v().reaper().deathOathDurationTicks();
         if (duration <= 0) {
-            player.sendMessage(Text.literal("Death Oath is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.death_oath.disabled"), true);
             return false;
         }
         AbilityRuntime.startReaperDeathOath(player, target.getUuid(), duration);
-        player.sendMessage(Text.literal("Death Oath: " + target.getName().getString()), true);
+        player.sendMessage(Text.translatable("gems.ability.reaper.death_oath.bound", target.getName().getString()), true);
         return true;
     }
 }

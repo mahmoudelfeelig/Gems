@@ -38,7 +38,7 @@ public final class ChadStrengthAbility implements GemAbility {
         AbilityRuntime.startChadStrength(player, GemsBalance.v().strength().chadDurationTicks());
         AbilityFeedback.sound(player, SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, 0.9F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.CRIT, 16, 0.35D);
-        player.sendMessage(Text.literal("Chad Strength active."), true);
+        player.sendMessage(Text.translatable("gems.ability.strength.chad_strength.active"), true);
         return true;
     }
 }

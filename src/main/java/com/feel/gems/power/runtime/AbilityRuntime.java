@@ -919,11 +919,11 @@ public final class AbilityRuntime {
         }
         ServerPlayerEntity target = hunter.getEntityWorld().getServer().getPlayerManager().getPlayer(targetUuid);
         if (target == null) {
-            hunter.sendMessage(Text.literal("Bounty: target offline"), true);
+            hunter.sendMessage(Text.translatable("gems.bounty.target_offline"), true);
             return;
         }
         double dist = Math.sqrt(hunter.squaredDistanceTo(target));
-        hunter.sendMessage(Text.literal("Bounty: " + target.getName().getString() + " (" + (int) dist + "m)"), true);
+        hunter.sendMessage(Text.translatable("gems.bounty.tracking", target.getName().getString(), (int) dist), true);
     }
 
     private static void tickAmplificationCleanup(ServerPlayerEntity player, long now) {
@@ -1045,7 +1045,7 @@ public final class AbilityRuntime {
         float dmg = GemsBalance.v().reaper().deathOathSelfDamagePerSecond();
         nonlethalDrain(player, dmg);
         double dist = player.distanceTo(target);
-        player.sendMessage(Text.literal("Death Oath: " + target.getName().getString() + " (" + (int) dist + "m)"), true);
+        player.sendMessage(Text.translatable("gems.reaper.death_oath_tracking", target.getName().getString(), (int) dist), true);
     }
 
     private static void tickReaperBloodChargeCharging(ServerPlayerEntity player, long now) {
@@ -1056,7 +1056,7 @@ public final class AbilityRuntime {
         }
         if (now >= until) {
             ReaperBloodCharge.clearCharging(player);
-            player.sendMessage(Text.literal("Blood Charge fizzled."), true);
+            player.sendMessage(Text.translatable("gems.reaper.blood_charge_fizzled"), true);
             return;
         }
 

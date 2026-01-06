@@ -45,7 +45,7 @@ public final class SpeedSlipstreamAbility implements GemAbility {
         AbilityRuntime.startSpeedSlipstream(player, dir, duration, momentum);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 0.8F, 1.3F);
         if (!(player.getEntityWorld() instanceof ServerWorld world)) {
-            player.sendMessage(Text.literal("Slipstream active."), true);
+            player.sendMessage(Text.translatable("gems.ability.speed.slipstream.active"), true);
             return true;
         }
         AbilityFeedback.beam(
@@ -55,7 +55,7 @@ public final class SpeedSlipstreamAbility implements GemAbility {
                 ParticleTypes.CLOUD,
                 12
         );
-        player.sendMessage(Text.literal("Slipstream active."), true);
+        player.sendMessage(Text.translatable("gems.ability.speed.slipstream.active"), true);
         return true;
     }
 }

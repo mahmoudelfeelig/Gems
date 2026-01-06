@@ -15,8 +15,8 @@ import java.util.List;
  * Shows a list of all online players to select and view their gem info.
  */
 public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
-    private static final Text TITLE = Text.literal("Gem Seer").formatted(Formatting.GOLD);
-    private static final Text HINT = Text.literal("Select a player to view their gem info");
+    private static final Text TITLE = Text.translatable("gems.screen.gem_seer.title").formatted(Formatting.GOLD);
+    private static final Text HINT = Text.translatable("gems.screen.gem_seer.hint");
     
     private int panelLeft;
     private int panelRight;
@@ -53,7 +53,7 @@ public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
             panelTop = titleY - 10;
             panelBottom = hintY + 30;
             
-            addDrawableChild(ButtonWidget.builder(Text.literal("Close"), btn -> close())
+            addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.close"), btn -> close())
                     .dimensions(this.width / 2 - 50, hintY + 40, 100, buttonHeight)
                     .build());
             return;
@@ -96,7 +96,7 @@ public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
         }
 
         int closeWidth = Math.min(gridWidth, 200);
-        addDrawableChild(ButtonWidget.builder(Text.literal("Close"), btn -> close())
+        addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.close"), btn -> close())
                 .dimensions(centerX - closeWidth / 2, this.gridStartY + gridHeight + 18, closeWidth, buttonHeight)
                 .build());
     }
@@ -132,7 +132,7 @@ public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
         List<GemSeerScreenHandler.PlayerInfo> players = handler.getPlayerInfos();
         if (players.isEmpty()) {
             context.drawCenteredTextWithShadow(this.textRenderer, 
-                    Text.literal("No other players online").formatted(Formatting.GRAY), 
+                    Text.translatable("gems.screen.gem_seer.no_players").formatted(Formatting.GRAY), 
                     centerX, hintY, 0xA0A0A0);
         } else {
             context.drawCenteredTextWithShadow(this.textRenderer, HINT, centerX, hintY, 0xA0A0A0);

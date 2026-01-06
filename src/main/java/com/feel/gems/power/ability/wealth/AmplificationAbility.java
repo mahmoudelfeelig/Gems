@@ -41,7 +41,7 @@ public final class AmplificationAbility implements GemAbility {
         EnchantmentAmplification.apply(player, duration);
         AbilityFeedback.sound(player, SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, 0.9F, 1.2F);
         AbilityFeedback.burst(player, ParticleTypes.ENCHANT, 18, 0.35D);
-        player.sendMessage(Text.literal("Amplification active."), true);
+        player.sendMessage(Text.translatable("gems.ability.wealth.amplification.active"), true);
         return true;
     }
 }

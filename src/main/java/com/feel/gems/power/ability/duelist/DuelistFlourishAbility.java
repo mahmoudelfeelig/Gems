@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.duelist;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -44,6 +45,9 @@ public final class DuelistFlourishAbility implements GemAbility {
         Box box = player.getBoundingBox().expand(radius);
         for (Entity e : world.getOtherEntities(player, box, ent -> ent instanceof LivingEntity living && living.isAlive())) {
             if (e instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
+                continue;
+            }
+            if (e instanceof ServerPlayerEntity other && !VoidImmunity.canBeTargeted(player, other)) {
                 continue;
             }
             ((LivingEntity) e).damage(world, player.getDamageSources().playerAttack(player), damage);

@@ -46,15 +46,34 @@ public final class HunterPounceAbility implements GemAbility {
             return false;
         }
 
-        // Calculate leap trajectory
-        Vec3d toTarget = target.getEntityPos().subtract(player.getEntityPos());
-        double distance = toTarget.length();
-        Vec3d dir = toTarget.normalize();
-
-        // Apply leap velocity
-        double horizontalVel = Math.min(distance / 10.0, 2.5);
-        double verticalVel = Math.min(distance / 15.0, 1.0);
-        player.setVelocity(dir.x * horizontalVel, verticalVel, dir.z * horizontalVel);
+        // Calculate leap trajectory to land ON the target
+        Vec3d playerPos = player.getEntityPos();
+        Vec3d targetPos = target.getEntityPos();
+        Vec3d toTarget = targetPos.subtract(playerPos);
+        double horizontalDist = Math.sqrt(toTarget.x * toTarget.x + toTarget.z * toTarget.z);
+        double verticalDist = toTarget.y;
+        
+        // Physics-based trajectory calculation
+        // We want to arrive at the target in a set time, adjusting for distance
+        double flightTime = Math.min(Math.max(horizontalDist / 15.0, 0.4), 1.2); // 0.4-1.2 seconds based on distance
+        double gravity = 0.08; // Minecraft gravity per tick (roughly)
+        double ticksToArrive = flightTime * 20.0;
+        
+        // Calculate required horizontal velocity to cover distance in flight time
+        double horizontalVel = horizontalDist / ticksToArrive;
+        
+        // Calculate required initial vertical velocity to land at target height
+        // Using: y = v0*t - 0.5*g*t^2, solve for v0: v0 = (y + 0.5*g*t^2) / t
+        double verticalVel = (verticalDist + 0.5 * gravity * ticksToArrive * ticksToArrive) / ticksToArrive;
+        verticalVel = Math.max(verticalVel, 0.3); // Ensure some upward arc
+        verticalVel = Math.min(verticalVel, 2.0); // Cap to prevent crazy launches
+        
+        // Scale horizontal velocity to match
+        horizontalVel = Math.min(horizontalVel * 1.1, 3.0); // Slightly overshoot to ensure arrival
+        
+        // Apply velocity in direction of target
+        Vec3d horizontalDir = new Vec3d(toTarget.x, 0, toTarget.z).normalize();
+        player.setVelocity(horizontalDir.x * horizontalVel, verticalVel, horizontalDir.z * horizontalVel);
         player.velocityDirty = true;
         AbilityFeedback.syncVelocity(player);
 

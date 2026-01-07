@@ -4,6 +4,7 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.net.GemExtraStateSync;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.flux.FluxCharge;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemPowers;
@@ -71,6 +72,11 @@ public final class FluxBeamAbility implements GemAbility {
             player.sendMessage(Text.translatable("gems.ability.flux.beam.repaired", charge), true);
             consumeCharge(player);
             return true;
+        }
+
+        if (target instanceof ServerPlayerEntity victim && !VoidImmunity.canBeTargeted(player, victim)) {
+            player.sendMessage(Text.translatable("gems.message.target_immune"), true);
+            return false;
         }
 
         ServerWorld world = player.getEntityWorld();

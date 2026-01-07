@@ -407,8 +407,8 @@ public final class GemsAbilityGameTests {
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         teleport(caster, world, pos.x, pos.y, pos.z, 90.0F, 0.0F);
-        teleport(ally, world, pos.x - 1.0D, pos.y, pos.z + 1.0D, 90.0F, 0.0F);
-        teleport(enemy, world, pos.x - 2.0D, pos.y, pos.z, 270.0F, 0.0F);
+        teleport(ally, world, pos.x + 1.0D, pos.y, pos.z + 1.0D, 90.0F, 0.0F);
+        teleport(enemy, world, pos.x + 2.0D, pos.y, pos.z, 270.0F, 0.0F);
 
         GemTrust.trust(caster, ally.getUuid());
         final float enemyHealthBefore = enemy.getHealth();

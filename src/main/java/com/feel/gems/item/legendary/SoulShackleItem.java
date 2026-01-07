@@ -2,8 +2,10 @@ package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
 import com.feel.gems.legendary.LegendaryItem;
+import com.feel.gems.power.util.Targeting;
 import com.feel.gems.state.PlayerStateManager;
 import java.util.function.Consumer;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -17,8 +19,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
 import net.minecraft.world.World;
 import java.util.UUID;
 
@@ -55,8 +55,8 @@ public final class SoulShackleItem extends Item implements LegendaryItem {
         }
 
         // Raycast to find target
-        HitResult hit = player.raycast(15, 0.0F, false);
-        if (!(hit instanceof EntityHitResult entityHit) || !(entityHit.getEntity() instanceof ServerPlayerEntity target)) {
+        LivingEntity hitEntity = Targeting.raycastLiving(player, 15);
+        if (!(hitEntity instanceof ServerPlayerEntity target)) {
             player.sendMessage(Text.translatable("gems.message.no_player_target").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
         }

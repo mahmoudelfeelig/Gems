@@ -1,6 +1,7 @@
 package com.feel.gems.power.runtime;
 
 import com.feel.gems.bonus.BonusClaimsState;
+import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
@@ -11,6 +12,7 @@ import com.feel.gems.power.passive.StatusEffectPassive;
 import com.feel.gems.power.registry.ModPassives;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +29,7 @@ import net.minecraft.util.Identifier;
 public final class GemPowers {
     private static final String KEY_APPLIED_PASSIVES = "appliedPassives";
     private static final String KEY_APPLIED_BONUS_PASSIVES = "appliedBonusPassives";
+    private static final String KEY_APPLIED_PRISM_PASSIVES = "appliedPrismPassives";
 
     private GemPowers() {
     }
@@ -39,12 +42,18 @@ public final class GemPowers {
         boolean passivesEnabled = GemPlayerState.arePassivesEnabled(player);
         boolean suppressed = AbilityRestrictions.isSuppressed(player);
 
+        // Prism gem has special handling - uses selected passives instead of definition
+        if (activeGem == GemId.PRISM) {
+            syncPrismPassives(player, energy, passivesEnabled, suppressed);
+            return;
+        }
+
         // Sync gem passives
         List<Identifier> targetPassives = List.of();
         if (energy > 0 && passivesEnabled && !suppressed) {
             List<Identifier> raw = GemRegistry.definition(activeGem).passives();
             if (!raw.isEmpty()) {
-                java.util.ArrayList<Identifier> filtered = new java.util.ArrayList<>(raw.size());
+                ArrayList<Identifier> filtered = new ArrayList<>(raw.size());
                 for (Identifier id : raw) {
                     if (!GemsDisables.isPassiveDisabledFor(player, id)) {
                         filtered.add(id);
@@ -154,6 +163,66 @@ public final class GemPowers {
         writeIdentifierSet(data, KEY_APPLIED_BONUS_PASSIVES, targetBonusPassives);
     }
 
+    /**
+     * Sync Prism gem passives from player's selections.
+     * Prism uses custom selections instead of gem definition passives.
+     */
+    private static void syncPrismPassives(ServerPlayerEntity player, int energy, boolean passivesEnabled, boolean suppressed) {
+        MinecraftServer server = player.getEntityWorld().getServer();
+        if (server == null) return;
+
+        NbtCompound data = persistentRoot(player);
+        Set<Identifier> appliedPrism = readIdentifierSet(data, KEY_APPLIED_PRISM_PASSIVES);
+
+        // If energy <= 0 or passives disabled or suppressed, remove all Prism passives
+        if (energy <= 0 || !passivesEnabled || suppressed) {
+            for (Identifier id : appliedPrism) {
+                GemPassive passive = ModPassives.get(id);
+                if (passive != null) {
+                    passive.remove(player);
+                }
+            }
+            writeIdentifierSet(data, KEY_APPLIED_PRISM_PASSIVES, Set.of());
+            return;
+        }
+
+        // Get player's Prism selections
+        PrismSelectionsState prismState = PrismSelectionsState.get(server);
+        PrismSelectionsState.PrismSelection selection = prismState.getSelection(player.getUuid());
+        List<Identifier> selectedPassives = selection.allPassives();
+
+        // Filter out disabled passives
+        Set<Identifier> targetPrismPassives = new HashSet<>();
+        for (Identifier id : selectedPassives) {
+            if (!GemsDisables.isPassiveDisabledFor(player, id) && 
+                !GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                targetPrismPassives.add(id);
+            }
+        }
+
+        // Remove passives no longer selected
+        for (Identifier id : appliedPrism) {
+            if (!targetPrismPassives.contains(id)) {
+                GemPassive passive = ModPassives.get(id);
+                if (passive != null) {
+                    passive.remove(player);
+                }
+            }
+        }
+
+        // Apply new passives
+        for (Identifier id : targetPrismPassives) {
+            if (!appliedPrism.contains(id)) {
+                GemPassive passive = ModPassives.get(id);
+                if (passive != null) {
+                    passive.apply(player);
+                }
+            }
+        }
+
+        writeIdentifierSet(data, KEY_APPLIED_PRISM_PASSIVES, targetPrismPassives);
+    }
+
     public static void maintain(ServerPlayerEntity player) {
         GemPlayerState.initIfNeeded(player);
         int energy = GemPlayerState.getEnergy(player);
@@ -168,6 +237,13 @@ public final class GemPowers {
         }
 
         GemId activeGem = GemPlayerState.getActiveGem(player);
+        
+        // Prism gem uses selected passives instead of definition
+        if (activeGem == GemId.PRISM) {
+            maintainPrismPassives(player);
+            return;
+        }
+        
         GemDefinition def = GemRegistry.definition(activeGem);
         NbtCompound data = persistentRoot(player);
         if (readIdentifierSet(data, KEY_APPLIED_PASSIVES).isEmpty() && !def.passives().isEmpty()) {
@@ -189,6 +265,32 @@ public final class GemPowers {
         // Maintain bonus passives (at energy 10)
         if (energy >= 10) {
             maintainBonusPassives(player);
+        }
+    }
+
+    /**
+     * Maintain Prism passives - reapply status effects and call maintain on maintained passives.
+     */
+    private static void maintainPrismPassives(ServerPlayerEntity player) {
+        MinecraftServer server = player.getEntityWorld().getServer();
+        if (server == null) return;
+
+        PrismSelectionsState prismState = PrismSelectionsState.get(server);
+        PrismSelectionsState.PrismSelection selection = prismState.getSelection(player.getUuid());
+        List<Identifier> selectedPassives = selection.allPassives();
+
+        for (Identifier passiveId : selectedPassives) {
+            if (GemsDisables.isPassiveDisabledFor(player, passiveId) || 
+                GemsDisables.isBonusPassiveDisabledFor(player, passiveId)) {
+                continue;
+            }
+            GemPassive passive = ModPassives.get(passiveId);
+            if (passive instanceof StatusEffectPassive) {
+                passive.apply(player);
+            }
+            if (passive instanceof GemMaintainedPassive maintained) {
+                maintained.maintain(player);
+            }
         }
     }
 
@@ -229,6 +331,12 @@ public final class GemPowers {
             return false;
         }
         GemId activeGem = GemPlayerState.getActiveGem(player);
+        
+        // Prism gem uses selected passives
+        if (activeGem == GemId.PRISM) {
+            return isPrismPassiveActive(player, passiveId);
+        }
+        
         if (GemRegistry.definition(activeGem).passives().contains(passiveId) && !GemsDisables.isPassiveDisabledFor(player, passiveId)) {
             return true;
         }
@@ -237,6 +345,30 @@ public final class GemPowers {
             return isBonusPassiveActive(player, passiveId);
         }
         return false;
+    }
+
+    /**
+     * Check if a Prism passive is active for a player.
+     */
+    public static boolean isPrismPassiveActive(ServerPlayerEntity player, Identifier passiveId) {
+        if (GemPlayerState.getEnergy(player) <= 0) {
+            return false;
+        }
+        if (!GemPlayerState.arePassivesEnabled(player)) {
+            return false;
+        }
+        if (AbilityRestrictions.isSuppressed(player)) {
+            return false;
+        }
+        MinecraftServer server = player.getEntityWorld().getServer();
+        if (server == null) return false;
+
+        PrismSelectionsState prismState = PrismSelectionsState.get(server);
+        PrismSelectionsState.PrismSelection selection = prismState.getSelection(player.getUuid());
+        List<Identifier> selectedPassives = selection.allPassives();
+        return selectedPassives.contains(passiveId) && 
+               !GemsDisables.isPassiveDisabledFor(player, passiveId) &&
+               !GemsDisables.isBonusPassiveDisabledFor(player, passiveId);
     }
 
     /**
@@ -276,11 +408,32 @@ public final class GemPowers {
             return List.of();
         }
         GemId activeGem = GemPlayerState.getActiveGem(player);
+        
+        // Prism gem uses selected passives
+        if (activeGem == GemId.PRISM) {
+            MinecraftServer server = player.getEntityWorld().getServer();
+            if (server == null) return List.of();
+            PrismSelectionsState prismState = PrismSelectionsState.get(server);
+            PrismSelectionsState.PrismSelection selection = prismState.getSelection(player.getUuid());
+            List<Identifier> selectedPassives = selection.allPassives();
+            if (selectedPassives.isEmpty()) {
+                return List.of();
+            }
+            ArrayList<Identifier> result = new ArrayList<>(selectedPassives.size());
+            for (Identifier id : selectedPassives) {
+                if (!GemsDisables.isPassiveDisabledFor(player, id) && 
+                    !GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                    result.add(id);
+                }
+            }
+            return List.copyOf(result);
+        }
+        
         List<Identifier> allPassives = GemRegistry.definition(activeGem).passives();
         if (allPassives.isEmpty()) {
             return List.of();
         }
-        java.util.ArrayList<Identifier> result = new java.util.ArrayList<>(allPassives.size());
+        ArrayList<Identifier> result = new ArrayList<>(allPassives.size());
         for (Identifier id : allPassives) {
             if (!GemsDisables.isPassiveDisabledFor(player, id)) {
                 result.add(id);

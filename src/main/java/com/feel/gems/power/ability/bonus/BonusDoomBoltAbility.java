@@ -1,7 +1,9 @@
 package com.feel.gems.power.ability.bonus;
 
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -37,18 +39,35 @@ public final class BonusDoomBoltAbility implements GemAbility {
         ServerWorld world = player.getEntityWorld();
         Box area = player.getBoundingBox().expand(10);
         
-        world.getOtherEntities(player, area, e -> e instanceof LivingEntity && !(e instanceof ServerPlayerEntity))
-                .stream()
-                .findFirst()
-                .ifPresent(e -> {
-                    if (e instanceof LivingEntity living) {
-                        living.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 60, 0));
-                        living.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 2));
-                        // Delayed damage via wither effect
-                        living.addStatusEffect(new StatusEffectInstance(StatusEffects.WITHER, 60, 3));
-                        world.spawnParticles(ParticleTypes.WITCH, living.getX(), living.getY() + 1, living.getZ(), 30, 0.5, 1, 0.5, 0.1);
+        // Target nearest enemy (untrusted player or mob)
+        var target = world.getOtherEntities(player, area, e -> {
+                    if (!(e instanceof LivingEntity)) return false;
+                    if (e instanceof ServerPlayerEntity otherPlayer) {
+                        if (GemTrust.isTrusted(player, otherPlayer)) return false;
+                        if (!VoidImmunity.canBeTargeted(player, otherPlayer)) return false;
                     }
-                });
+                    return true; // mobs are always valid targets
+                })
+                .stream()
+                .filter(e -> e instanceof LivingEntity)
+                .map(e -> (LivingEntity) e)
+                .min((a, b) -> Double.compare(
+                        a.squaredDistanceTo(player),
+                        b.squaredDistanceTo(player)));
+        
+        if (target.isEmpty()) {
+            player.sendMessage(net.minecraft.text.Text.translatable("gems.ability.no_target"), true);
+            return false;
+        }
+        
+        LivingEntity living = target.get();
+        living.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 60, 0));
+        living.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 2));
+        // Delayed damage via wither effect
+        living.addStatusEffect(new StatusEffectInstance(StatusEffects.WITHER, 60, 3));
+        world.spawnParticles(ParticleTypes.WITCH, living.getX(), living.getY() + 1, living.getZ(), 30, 0.5, 1, 0.5, 0.1);
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                net.minecraft.sound.SoundEvents.ENTITY_WITHER_SHOOT, net.minecraft.sound.SoundCategory.PLAYERS, 0.8f, 0.6f);
         return true;
     }
 }

@@ -506,7 +506,7 @@ public final class SummonerLoadoutScreen extends Screen {
             }
         }
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings("unchecked") // Safe: checked via isAssignableFrom above
         private static EntityType<? extends net.minecraft.entity.LivingEntity> asLivingType(EntityType<?> type) {
             if (type == null || !net.minecraft.entity.LivingEntity.class.isAssignableFrom(type.getBaseClass())) {
                 return null;

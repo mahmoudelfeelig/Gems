@@ -8,7 +8,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 /**
- * Impact Absorb - Absorb incoming damage.
+ * Impact Absorb - Convert damage taken into temporary absorption hearts.
  */
 public final class BonusImpactAbsorbPassive implements GemPassive {
     @Override
@@ -23,16 +23,16 @@ public final class BonusImpactAbsorbPassive implements GemPassive {
 
     @Override
     public String description() {
-        return "Permanent Resistance I effect for damage absorption.";
+        return "Convert 20% of damage taken into temporary absorption hearts.";
     }
 
     @Override
     public void apply(ServerPlayerEntity player) {
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, Integer.MAX_VALUE, 0, false, false, true));
+        // Marker passive - implemented via event hooks in damage handler
     }
 
     @Override
     public void remove(ServerPlayerEntity player) {
-        player.removeStatusEffect(StatusEffects.RESISTANCE);
+        // Marker passive
     }
 }

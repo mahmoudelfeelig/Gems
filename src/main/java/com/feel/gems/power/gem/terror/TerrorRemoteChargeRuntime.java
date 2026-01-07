@@ -1,5 +1,6 @@
 package com.feel.gems.power.gem.terror;
 
+import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.net.GemCooldownSync;
 import com.feel.gems.power.registry.PowerIds;
@@ -31,7 +32,8 @@ public final class TerrorRemoteChargeRuntime {
         }
         NbtCompound nbt = persistent(player);
         clearExpired(player, nbt);
-        if (isOnCooldown(player, nbt)) {
+        // Skip cooldown check if admin has no-cooldowns enabled
+        if (!GemsAdmin.noCooldowns(player) && isOnCooldown(player, nbt)) {
             return false;
         }
         if (hasActiveCharge(player, nbt)) {
@@ -183,6 +185,10 @@ public final class TerrorRemoteChargeRuntime {
     }
 
     private static void startCooldown(ServerPlayerEntity player, NbtCompound nbt) {
+        // Skip cooldown if admin has no-cooldowns enabled
+        if (GemsAdmin.noCooldowns(player)) {
+            return;
+        }
         int cooldown = GemsBalance.v().terror().remoteChargeCooldownTicks();
         if (cooldown > 0) {
             long until = GemsTime.now(player) + cooldown;

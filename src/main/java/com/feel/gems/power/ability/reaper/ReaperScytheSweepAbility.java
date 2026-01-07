@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.reaper;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -71,6 +72,9 @@ public final class ReaperScytheSweepAbility implements GemAbility {
                 continue;
             }
             if (living instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
+                continue;
+            }
+            if (living instanceof ServerPlayerEntity other && !VoidImmunity.canBeTargeted(player, other)) {
                 continue;
             }
             if (damage > 0.0F) {

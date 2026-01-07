@@ -1,25 +1,25 @@
 package com.feel.gems.power.ability.reaper;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.entity.ModEntities;
+import com.feel.gems.entity.ShadowCloneEntity;
+import com.feel.gems.net.payloads.ShadowCloneSyncPayload;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.AbilityRuntime;
 import java.util.ArrayList;
 import java.util.List;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.registry.Registries;
 
 
 
@@ -54,60 +54,44 @@ public final class ReaperShadowCloneAbility implements GemAbility {
             return false;
         }
 
-        Identifier entityId = Identifier.tryParse(cfg.shadowCloneEntityId());
-        if (entityId == null) {
-            player.sendMessage(Text.translatable("gems.ability.reaper.shadow_clone.invalid_id"), true);
-            return false;
-        }
-
-        EntityType<?> type = Registries.ENTITY_TYPE.get(entityId);
-        if (type == null) {
-            player.sendMessage(Text.translatable("gems.ability.reaper.shadow_clone.missing_id"), true);
-            return false;
-        }
-
         if (!(player.getEntityWorld() instanceof ServerWorld world)) {
             return false;
         }
+        
         List<java.util.UUID> spawned = new ArrayList<>();
         float yaw = player.getYaw();
-        double baseRadius = 1.2D;
+        double baseRadius = 1.5D;
+        
         for (int i = 0; i < count; i++) {
-            Entity entity = type.create(world, SpawnReason.MOB_SUMMONED);
-            if (!(entity instanceof MobEntity mob)) {
+            Entity entity = ModEntities.SHADOW_CLONE.create(world, SpawnReason.MOB_SUMMONED);
+            if (!(entity instanceof ShadowCloneEntity clone)) {
                 continue;
             }
+            
             double angle = (Math.PI * 2.0D) * (i / (double) count);
             double offset = baseRadius + (world.random.nextDouble() * 0.6D);
             double dx = Math.cos(angle) * offset;
             double dz = Math.sin(angle) * offset;
             Vec3d pos = new Vec3d(player.getX() + dx, player.getY(), player.getZ() + dz);
 
-            mob.refreshPositionAndAngles(pos.x, pos.y, pos.z, yaw, 0.0F);
-            mob.initialize(world, world.getLocalDifficulty(BlockPos.ofFloored(pos)), SpawnReason.MOB_SUMMONED, null);
-            mob.setAiDisabled(true);
-            mob.setSilent(true);
-            mob.setInvulnerable(true);
-            mob.setPersistent();
-            mob.setCustomName(player.getDisplayName());
-            mob.setCustomNameVisible(false);
+            clone.refreshPositionAndAngles(pos.x, pos.y, pos.z, yaw + (world.random.nextFloat() - 0.5F) * 30F, 0.0F);
+            clone.setOwner(player);
+            clone.setMaxLifetime(duration); // Set auto-despawn lifetime
 
-            for (EquipmentSlot slot : EquipmentSlot.values()) {
-                if (!slot.isArmorSlot() && slot != EquipmentSlot.MAINHAND && slot != EquipmentSlot.OFFHAND) {
-                    continue;
-                }
-                mob.equipStack(slot, player.getEquippedStack(slot).copy());
-                mob.setEquipmentDropChance(slot, 0.0F);
+            world.spawnEntity(clone);
+            spawned.add(clone.getUuid());
+            
+            // Send sync payload to all nearby players for skin rendering
+            ShadowCloneSyncPayload syncPayload = new ShadowCloneSyncPayload(
+                    clone.getId(),
+                    player.getUuid(),
+                    player.getGameProfile().name()
+            );
+            for (ServerPlayerEntity tracker : PlayerLookup.tracking(clone)) {
+                ServerPlayNetworking.send(tracker, syncPayload);
             }
-
-            float maxHealth = mob.getMaxHealth();
-            float targetHealth = Math.min(maxHealth, cfg.shadowCloneMaxHealth());
-            if (targetHealth > 0.0F) {
-                mob.setHealth(targetHealth);
-            }
-
-            world.spawnEntity(mob);
-            spawned.add(mob.getUuid());
+            // Also send to the caster
+            ServerPlayNetworking.send(player, syncPayload);
         }
 
         if (spawned.isEmpty()) {

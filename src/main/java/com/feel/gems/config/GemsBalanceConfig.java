@@ -753,6 +753,16 @@ public final class GemsBalanceConfig {
         public float packTacticsBonusDamageMultiplier = 1.20F;
         public int packTacticsDurationSeconds = 10;
         public int packTacticsRadiusBlocks = 10;
+
+        // Six-Pack Pain
+        public int sixPackPainCooldownSeconds = 120;
+        public int sixPackPainCloneCount = 6;
+        public int sixPackPainDurationSeconds = 60;
+        public float sixPackPainHealthPerClone = 20.0F; // Total shared = 120 HP
+        public int sixPackPainCloseTargetRangeBlocks = 5;
+        public int sixPackPainWideTargetRangeBlocks = 30;
+        public int sixPackPainBuffDurationTicks = 200; // 10 seconds
+        public int sixPackPainDebuffDurationTicks = 100; // 5 seconds
     }
 
     public static final class Sentinel {

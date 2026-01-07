@@ -1,5 +1,6 @@
 package com.feel.gems.power.ability.terror;
 
+import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.terror.TerrorRemoteChargeRuntime;
@@ -46,7 +47,8 @@ public final class TerrorRemoteChargeAbility implements GemAbility {
             return false;
         }
 
-        if (TerrorRemoteChargeRuntime.isOnCooldown(player)) {
+        // Skip cooldown check if admin no-cooldowns mode is enabled
+        if (!GemsAdmin.noCooldowns(player) && TerrorRemoteChargeRuntime.isOnCooldown(player)) {
             player.sendMessage(Text.translatable("gems.ability.terror.remote_charge.on_cooldown"), true);
             return false;
         }

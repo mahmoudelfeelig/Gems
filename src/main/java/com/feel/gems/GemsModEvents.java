@@ -20,6 +20,8 @@ import com.feel.gems.legendary.SupremeSetRuntime;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.net.ServerDisablesPayload;
 import com.feel.gems.power.ability.pillager.PillagerVindicatorBreakAbility;
+import com.feel.gems.power.ability.hunter.HunterCallThePackRuntime;
+import com.feel.gems.power.bonus.BonusPassiveRuntime;
 import com.feel.gems.power.gem.astra.SoulSystem;
 import com.feel.gems.power.gem.beacon.BeaconAuraRuntime;
 import com.feel.gems.power.gem.beacon.BeaconSupportRuntime;
@@ -62,6 +64,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 
@@ -79,6 +82,9 @@ public final class GemsModEvents {
                 SoulSystem.onKilledMob(player, living);
                 SpyMimicSystem.recordLastKilledMob(player, living);
 
+                // Bonus passives: on kill effects (Bloodthirst, Adrenaline Rush)
+                BonusPassiveRuntime.onKill(player, living);
+
                 if (!(killedEntity instanceof ServerPlayerEntity) && GemPowers.isPassiveActive(player, PowerIds.REAPER_HARVEST)) {
                     int dur = GemsBalance.v().reaper().harvestRegenDurationTicks();
                     int amp = GemsBalance.v().reaper().harvestRegenAmplifier();
@@ -90,6 +96,8 @@ public final class GemsModEvents {
             if (entity instanceof ServerPlayerEntity killer && killedEntity instanceof ServerPlayerEntity victim) {
                 com.feel.gems.legendary.LegendaryWeapons.onPlayerKill(killer, victim);
                 SpyMimicSystem.restoreStolenOnKill(killer, victim);
+                // Track last killer for Nemesis passive
+                BonusPassiveRuntime.setLastKiller(victim, killer.getUuid());
             }
         });
 
@@ -219,6 +227,7 @@ public final class GemsModEvents {
             SummonerSummons.discardAll(player);
             PillagerVolleyRuntime.stop(player);
             HypnoControl.releaseAll(player);
+            HunterCallThePackRuntime.onPlayerDisconnect(player.getUuid(), server);
         });
 
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
@@ -267,8 +276,20 @@ public final class GemsModEvents {
                 GemsStressTest.tick(s);
                 GemOwnership.tickPurgeQueue(s);
                 ChaosSlotRuntime.tick(s);
+                HunterCallThePackRuntime.tick(s);
+                // Sentinel ability runtime ticks
+                for (ServerWorld world : s.getWorlds()) {
+                    long currentTime = world.getTime();
+                    String worldId = world.getRegistryKey().getValue().toString();
+                    com.feel.gems.power.ability.sentinel.SentinelShieldWallRuntime.tick(currentTime, worldId, world);
+                    com.feel.gems.power.ability.sentinel.SentinelLockdownRuntime.tick(currentTime, worldId, world);
+                }
                 for (ServerPlayerEntity player : s.getPlayerManager().getPlayerList()) {
                     TerrorRigRuntime.checkStep(player);
+                    // Trickster mirage particles (every 4 ticks for visual effect without heavy load)
+                    if (player.getEntityWorld().getTime() % 4 == 0) {
+                        com.feel.gems.power.ability.trickster.TricksterMirageRuntime.tickMirageParticles(player);
+                    }
                 }
             });
 
@@ -288,6 +309,14 @@ public final class GemsModEvents {
                     SpyMimicSystem.tickEverySecond(player);
                     BeaconSupportRuntime.tickEverySecond(player);
                     BeaconAuraRuntime.tickEverySecond(player);
+                    // Bonus passives tick handler
+                    if (player.getEntityWorld() instanceof ServerWorld world) {
+                        BonusPassiveRuntime.tickEverySecond(player, world);
+                    }
+                    // Sync bonus abilities state (for HUD cooldown updates)
+                    if (GemPlayerState.getEnergy(player) >= 10) {
+                        GemStateSync.sendBonusAbilitiesSync(player);
+                    }
                 }
             });
 

@@ -362,6 +362,7 @@ Abilities:
 - Net Shot: fire a net that slows and grounds enemies (disables flight/elytra).
 - Crippling Shot: ranged attack that reduces target's movement speed by 50% for 8s.
 - Pack Tactics: nearby trusted allies deal 20% more damage to your marked target for 10s.
+- Six-Pack Pain: summon 6 player clones that share a health pool (120 HP total). They attack untrusted players and hostile mobs. When hit, you get regeneration + a random buff, and the attacker gets debuffed.
 
 ### Sentinel Gem
 

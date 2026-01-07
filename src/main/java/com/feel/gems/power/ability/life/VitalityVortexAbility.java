@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.life;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -72,6 +73,9 @@ public final class VitalityVortexAbility implements GemAbility {
             if (ally) {
                 applyAlly(mode, other, duration);
             } else {
+                if (other instanceof ServerPlayerEntity otherPlayer && !VoidImmunity.canBeTargeted(player, otherPlayer)) {
+                    continue;
+                }
                 applyEnemy(mode, other, duration);
             }
         }

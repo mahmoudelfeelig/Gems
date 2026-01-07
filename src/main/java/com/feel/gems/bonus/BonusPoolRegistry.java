@@ -37,30 +37,30 @@ public final class BonusPoolRegistry {
             PowerIds.BONUS_SANCTUARY,
             // New 30 (with replacements for duplicates)
             PowerIds.BONUS_SPECTRAL_CHAINS,
-            PowerIds.BONUS_VOID_RIFT,
+            PowerIds.BONUS_SOUL_LINK,           // Was: Void Rift (duplicate of Gravity Well)
             PowerIds.BONUS_INFERNO_DASH,
             PowerIds.BONUS_TIDAL_WAVE,
             PowerIds.BONUS_STARFALL,
             PowerIds.BONUS_BLOODLUST,
             PowerIds.BONUS_CRYSTAL_CAGE,
-            PowerIds.BONUS_PHANTASM,
+            PowerIds.BONUS_MIRROR_IMAGE,        // Was: Phantasm (duplicate of Decoy Trap)
             PowerIds.BONUS_SONIC_BOOM,
             PowerIds.BONUS_VAMPIRIC_TOUCH,
-            PowerIds.BONUS_BLINDING_FLASH,
-            PowerIds.BONUS_STORM_CALL,
+            PowerIds.BONUS_SMOKE_SCREEN,        // Was: Blinding Flash (duplicate of Radiant Burst blind)
+            PowerIds.BONUS_THORNS_NOVA,         // Was: Storm Call (duplicate of Chain Lightning)
             PowerIds.BONUS_QUICKSAND,
             PowerIds.BONUS_SEARING_LIGHT,
             PowerIds.BONUS_SPECTRAL_BLADE,      // Was: Shadow Clone (duplicate of Reaper's)
-            PowerIds.BONUS_NETHER_PORTAL,
-            PowerIds.BONUS_ENTANGLE,
+            PowerIds.BONUS_BLINK,               // Was: Nether Portal (duplicate of Shadowstep)
+            PowerIds.BONUS_PURGE,               // Was: Entangle (duplicate of Spectral Chains root)
             PowerIds.BONUS_MIND_SPIKE,
-            PowerIds.BONUS_SEISMIC_SLAM,
+            PowerIds.BONUS_TREMOR,              // Was: Seismic Slam (duplicate of Earthshatter)
             PowerIds.BONUS_ICICLE_BARRAGE,
             PowerIds.BONUS_BANISHMENT,
             PowerIds.BONUS_CORPSE_EXPLOSION,
             PowerIds.BONUS_SOUL_SWAP,
-            PowerIds.BONUS_MARK_OF_DEATH,
-            PowerIds.BONUS_IRON_MAIDEN,
+            PowerIds.BONUS_VULNERABILITY,       // Was: Mark of Death (duplicate of Doom Bolt mark)
+            PowerIds.BONUS_REFLECTION_WARD,     // Was: Iron Maiden (similar to Thorns Aura passive)
             PowerIds.BONUS_WARP_STRIKE,         // Was: Spirit Walk (duplicate of Unbounded)
             PowerIds.BONUS_VORTEX_STRIKE,
             PowerIds.BONUS_PLAGUE_CLOUD,
@@ -118,9 +118,9 @@ public final class BonusPoolRegistry {
             PowerIds.BONUS_BERSERKER_BLOOD,
             PowerIds.BONUS_OPPORTUNIST,
             PowerIds.BONUS_IRONCLAD,
-            PowerIds.BONUS_MIST_FORM,
+            PowerIds.BONUS_SPECTRAL_FORM,       // Was: Mist Form (identical to Dodge Chance)
             PowerIds.BONUS_WAR_CRY,
-            PowerIds.BONUS_SIPHON_SOUL,
+            PowerIds.BONUS_ADRENALINE_RUSH,     // Was: Siphon Soul (too similar to Bloodthirst)
             PowerIds.BONUS_UNBREAKABLE,
             PowerIds.BONUS_FOCUSED_MIND,
             PowerIds.BONUS_SIXTH_SENSE

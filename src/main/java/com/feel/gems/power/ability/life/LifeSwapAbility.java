@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.life;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.util.Targeting;
@@ -51,6 +52,10 @@ public final class LifeSwapAbility implements GemAbility {
         }
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
             player.sendMessage(Text.translatable("gems.message.target_trusted"), true);
+            return false;
+        }
+        if (target instanceof ServerPlayerEntity other && !VoidImmunity.canBeTargeted(player, other)) {
+            player.sendMessage(Text.translatable("gems.message.target_immune"), true);
             return false;
         }
 

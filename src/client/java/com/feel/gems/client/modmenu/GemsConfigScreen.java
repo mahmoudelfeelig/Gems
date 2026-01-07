@@ -33,6 +33,7 @@ public final class GemsConfigScreen extends Screen {
     private GemsClientConfig clientCfg;
     private boolean clientDirty = false;
 
+    private Category category = Category.GENERAL;
     private Section section = Section.VISUAL;
     private boolean dirty = false;
     private final ValidationTracker validation = new ValidationTracker();
@@ -77,6 +78,30 @@ public final class GemsConfigScreen extends Screen {
     private void rebuild() {
         clearChildren();
 
+        // Category tabs at top
+        int tabX = 18;
+        int tabY = 26;
+        int tabW = 80;
+        int tabH = 18;
+        int tabGap = 4;
+
+        for (int i = 0; i < Category.values().length; i++) {
+            Category cat = Category.values()[i];
+            int x = tabX + i * (tabW + tabGap);
+            ButtonWidget tabBtn = addDrawableChild(ButtonWidget.builder(Text.literal(cat.label), btn -> {
+                category = cat;
+                // Switch to first section in this category
+                Section[] catSections = Section.forCategory(cat);
+                if (catSections.length > 0) {
+                    section = catSections[0];
+                }
+                sidebarScrollPx = 0;
+                scrollPx = 0;
+                rebuild();
+            }).dimensions(x, tabY, tabW, tabH).build());
+            tabBtn.active = cat != category;
+        }
+
         int sidebarX = 18;
         int sidebarY = 52;
         int sidebarW = 130;
@@ -85,7 +110,10 @@ public final class GemsConfigScreen extends Screen {
 
         int footerTop = this.height - 80;
         int sidebarViewH = Math.max(0, footerTop - sidebarY - 6);
-        int sidebarContentH = Section.values().length * (sidebarH + sidebarGap) - sidebarGap;
+        
+        // Only show sections for current category
+        Section[] categorySections = Section.forCategory(category);
+        int sidebarContentH = categorySections.length * (sidebarH + sidebarGap) - sidebarGap;
         sidebarMaxScrollPx = Math.max(0, sidebarContentH - sidebarViewH);
         int prevSidebarScroll = sidebarScrollPx;
         sidebarScrollPx = clampInt(sidebarScrollPx, 0, sidebarMaxScrollPx);
@@ -98,8 +126,8 @@ public final class GemsConfigScreen extends Screen {
         this.sidebarW = sidebarW;
         this.sidebarViewH = sidebarViewH;
 
-        for (int i = 0; i < Section.values().length; i++) {
-            Section s = Section.values()[i];
+        for (int i = 0; i < categorySections.length; i++) {
+            Section s = categorySections[i];
             int y = sidebarY + i * (sidebarH + sidebarGap) - sidebarScrollPx;
             ButtonWidget b = addDrawableChild(ButtonWidget.builder(Text.literal(s.label), btn -> {
                 section = s;
@@ -1060,6 +1088,248 @@ public final class GemsConfigScreen extends Screen {
                 y = addIntRow("Air mace fire aspect level", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.airMaceFireAspectLevel, v -> cfg.air.airMaceFireAspectLevel = v, 0, 10);
                 logicalY += ROW_H;
             }
+            case DUELIST -> {
+                // Passives
+                y = addFloatRow("Riposte bonus damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.riposteBonusDamageMultiplier, v -> cfg.duelist.riposteBonusDamageMultiplier = v, 1.0F, 5.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Riposte window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.riposteWindowSeconds, v -> cfg.duelist.riposteWindowSeconds = v, 0, 30);
+                logicalY += ROW_H;
+                y = addFloatRow("Focus bonus damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.focusBonusDamageMultiplier, v -> cfg.duelist.focusBonusDamageMultiplier = v, 1.0F, 5.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Focus radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.focusRadiusBlocks, v -> cfg.duelist.focusRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addFloatRow("Combat Stance speed multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.combatStanceSpeedMultiplier, v -> cfg.duelist.combatStanceSpeedMultiplier = v, 1.0F, 3.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                // Abilities
+                y = addIntRow("Lunge cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.lungeCooldownSeconds, v -> cfg.duelist.lungeCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Lunge distance blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.lungeDistanceBlocks, v -> cfg.duelist.lungeDistanceBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addFloatRow("Lunge damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.lungeDamage, v -> cfg.duelist.lungeDamage = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Parry cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.parryCooldownSeconds, v -> cfg.duelist.parryCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Parry window ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.parryWindowTicks, v -> cfg.duelist.parryWindowTicks = v, 0, 100);
+                logicalY += ROW_H;
+                y = addIntRow("Parry stun seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.parryStunSeconds, v -> cfg.duelist.parryStunSeconds = v, 0, 30);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Flourish cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.flourishCooldownSeconds, v -> cfg.duelist.flourishCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Flourish radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.flourishRadiusBlocks, v -> cfg.duelist.flourishRadiusBlocks = v, 0, 32);
+                logicalY += ROW_H;
+                y = addFloatRow("Flourish damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.flourishDamage, v -> cfg.duelist.flourishDamage = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Mirror Match cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.mirrorMatchCooldownSeconds, v -> cfg.duelist.mirrorMatchCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Mirror Match duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.mirrorMatchDurationSeconds, v -> cfg.duelist.mirrorMatchDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Mirror Match range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.mirrorMatchRangeBlocks, v -> cfg.duelist.mirrorMatchRangeBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Blade Dance cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.bladeDanceCooldownSeconds, v -> cfg.duelist.bladeDanceCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Blade Dance duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.bladeDanceDurationSeconds, v -> cfg.duelist.bladeDanceDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addFloatRow("Blade Dance starting multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.bladeDanceStartingMultiplier, v -> cfg.duelist.bladeDanceStartingMultiplier = v, 0.5F, 3.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Blade Dance increase per hit", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.bladeDanceIncreasePerHit, v -> cfg.duelist.bladeDanceIncreasePerHit = v, 0.0F, 1.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Blade Dance max multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.bladeDanceMaxMultiplier, v -> cfg.duelist.bladeDanceMaxMultiplier = v, 1.0F, 10.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Blade Dance reset seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.bladeDanceResetSeconds, v -> cfg.duelist.bladeDanceResetSeconds = v, 0, 60);
+                logicalY += ROW_H;
+            }
+            case HUNTER -> {
+                // Passives
+                y = addFloatRow("Prey Mark bonus damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.preyMarkBonusDamageMultiplier, v -> cfg.hunter.preyMarkBonusDamageMultiplier = v, 1.0F, 5.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Prey Mark duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.preyMarkDurationSeconds, v -> cfg.hunter.preyMarkDurationSeconds = v, 0, 600);
+                logicalY += ROW_H;
+                y = addIntRow("Tracker's Eye range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.trackersEyeRangeBlocks, v -> cfg.hunter.trackersEyeRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = addIntRow("Trophy Hunter duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.trophyHunterDurationSeconds, v -> cfg.hunter.trophyHunterDurationSeconds = v, 0, 600);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                // Abilities
+                y = addIntRow("Hunting Trap cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.huntingTrapCooldownSeconds, v -> cfg.hunter.huntingTrapCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Hunting Trap root seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.huntingTrapRootSeconds, v -> cfg.hunter.huntingTrapRootSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addFloatRow("Hunting Trap damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.huntingTrapDamage, v -> cfg.hunter.huntingTrapDamage = v, 0.0F, 200.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Hunting Trap lifetime seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.huntingTrapLifetimeSeconds, v -> cfg.hunter.huntingTrapLifetimeSeconds = v, 0, 600);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Pounce cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.pounceCooldownSeconds, v -> cfg.hunter.pounceCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Pounce range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.pounceRangeBlocks, v -> cfg.hunter.pounceRangeBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addFloatRow("Pounce damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.pounceDamage, v -> cfg.hunter.pounceDamage = v, 0.0F, 200.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Net Shot cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.netShotCooldownSeconds, v -> cfg.hunter.netShotCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Net Shot slow seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.netShotSlowSeconds, v -> cfg.hunter.netShotSlowSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Net Shot range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.netShotRangeBlocks, v -> cfg.hunter.netShotRangeBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Crippling cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.cripplingCooldownSeconds, v -> cfg.hunter.cripplingCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addFloatRow("Crippling slow multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.cripplingSlowMultiplier, v -> cfg.hunter.cripplingSlowMultiplier = v, 0.0F, 1.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Crippling duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.cripplingDurationSeconds, v -> cfg.hunter.cripplingDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Crippling range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.cripplingRangeBlocks, v -> cfg.hunter.cripplingRangeBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Pack Tactics cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.packTacticsCooldownSeconds, v -> cfg.hunter.packTacticsCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addFloatRow("Pack Tactics bonus damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.packTacticsBonusDamageMultiplier, v -> cfg.hunter.packTacticsBonusDamageMultiplier = v, 1.0F, 5.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Pack Tactics duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.packTacticsDurationSeconds, v -> cfg.hunter.packTacticsDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Pack Tactics radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.packTacticsRadiusBlocks, v -> cfg.hunter.packTacticsRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Six-Pack Pain cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.sixPackPainCooldownSeconds, v -> cfg.hunter.sixPackPainCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Six-Pack Pain clone count", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.sixPackPainCloneCount, v -> cfg.hunter.sixPackPainCloneCount = v, 1, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Six-Pack Pain duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.sixPackPainDurationSeconds, v -> cfg.hunter.sixPackPainDurationSeconds = v, 0, 600);
+                logicalY += ROW_H;
+                y = addFloatRow("Six-Pack Pain health per clone", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.sixPackPainHealthPerClone, v -> cfg.hunter.sixPackPainHealthPerClone = v, 1.0F, 100.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Six-Pack Pain close target range", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.sixPackPainCloseTargetRangeBlocks, v -> cfg.hunter.sixPackPainCloseTargetRangeBlocks = v, 1, 64);
+                logicalY += ROW_H;
+                y = addIntRow("Six-Pack Pain wide target range", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.sixPackPainWideTargetRangeBlocks, v -> cfg.hunter.sixPackPainWideTargetRangeBlocks = v, 1, 128);
+                logicalY += ROW_H;
+                y = addIntRow("Six-Pack Pain buff duration ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.sixPackPainBuffDurationTicks, v -> cfg.hunter.sixPackPainBuffDurationTicks = v, 0, 6000);
+                logicalY += ROW_H;
+                y = addIntRow("Six-Pack Pain debuff duration ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.sixPackPainDebuffDurationTicks, v -> cfg.hunter.sixPackPainDebuffDurationTicks = v, 0, 6000);
+                logicalY += ROW_H;
+            }
+            case SENTINEL -> {
+                // Passives
+                y = addFloatRow("Guardian Aura damage reduction", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.guardianAuraDamageReduction, v -> cfg.sentinel.guardianAuraDamageReduction = v, 0.0F, 1.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Guardian Aura radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.guardianAuraRadiusBlocks, v -> cfg.sentinel.guardianAuraRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addIntRow("Fortress stand still seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.fortressStandStillSeconds, v -> cfg.sentinel.fortressStandStillSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Fortress resistance amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.fortressResistanceAmplifier, v -> cfg.sentinel.fortressResistanceAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addFloatRow("Retribution Thorns damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.retributionThornsDamageMultiplier, v -> cfg.sentinel.retributionThornsDamageMultiplier = v, 0.0F, 2.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                // Abilities
+                y = addIntRow("Shield Wall cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.shieldWallCooldownSeconds, v -> cfg.sentinel.shieldWallCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Shield Wall duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.shieldWallDurationSeconds, v -> cfg.sentinel.shieldWallDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Shield Wall width blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.shieldWallWidthBlocks, v -> cfg.sentinel.shieldWallWidthBlocks = v, 0, 20);
+                logicalY += ROW_H;
+                y = addIntRow("Shield Wall height blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.shieldWallHeightBlocks, v -> cfg.sentinel.shieldWallHeightBlocks = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Taunt cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.tauntCooldownSeconds, v -> cfg.sentinel.tauntCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Taunt duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.tauntDurationSeconds, v -> cfg.sentinel.tauntDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Taunt radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.tauntRadiusBlocks, v -> cfg.sentinel.tauntRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addFloatRow("Taunt damage reduction", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.tauntDamageReduction, v -> cfg.sentinel.tauntDamageReduction = v, 0.0F, 1.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Intervention cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.interventionCooldownSeconds, v -> cfg.sentinel.interventionCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Intervention range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.interventionRangeBlocks, v -> cfg.sentinel.interventionRangeBlocks = v, 0, 128);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Rally Cry cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.rallyCryCooldownSeconds, v -> cfg.sentinel.rallyCryCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addFloatRow("Rally Cry heal hearts", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.rallyCryHealHearts, v -> cfg.sentinel.rallyCryHealHearts = v, 0.0F, 20.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Rally Cry resistance duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.rallyCryResistanceDurationSeconds, v -> cfg.sentinel.rallyCryResistanceDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Rally Cry radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.rallyCryRadiusBlocks, v -> cfg.sentinel.rallyCryRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Lockdown cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.lockdownCooldownSeconds, v -> cfg.sentinel.lockdownCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Lockdown duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.lockdownDurationSeconds, v -> cfg.sentinel.lockdownDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Lockdown radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.sentinel.lockdownRadiusBlocks, v -> cfg.sentinel.lockdownRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+            }
+            case TRICKSTER -> {
+                // Passives
+                y = addFloatRow("Sleight of Hand chance", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.sleightOfHandChance, v -> cfg.trickster.sleightOfHandChance = v, 0.0F, 1.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Slippery chance", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.slipperyChance, v -> cfg.trickster.slipperyChance = v, 0.0F, 1.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                // Abilities
+                y = addIntRow("Shadow Swap cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.shadowSwapCooldownSeconds, v -> cfg.trickster.shadowSwapCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Shadow Swap clone duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.shadowSwapCloneDurationSeconds, v -> cfg.trickster.shadowSwapCloneDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Mirage cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.mirageCooldownSeconds, v -> cfg.trickster.mirageCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Mirage duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.mirageDurationSeconds, v -> cfg.trickster.mirageDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Mirage clone count", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.mirageCloneCount, v -> cfg.trickster.mirageCloneCount = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Glitch Step cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.glitchStepCooldownSeconds, v -> cfg.trickster.glitchStepCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Glitch Step distance blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.glitchStepDistanceBlocks, v -> cfg.trickster.glitchStepDistanceBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addFloatRow("Glitch Step afterimg damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.glitchStepAfterimgDamage, v -> cfg.trickster.glitchStepAfterimgDamage = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Glitch Step afterimg radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.glitchStepAfterimgRadiusBlocks, v -> cfg.trickster.glitchStepAfterimgRadiusBlocks = v, 0, 32);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Puppet Master cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.puppetMasterCooldownSeconds, v -> cfg.trickster.puppetMasterCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Puppet Master duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.puppetMasterDurationSeconds, v -> cfg.trickster.puppetMasterDurationSeconds = v, 0, 30);
+                logicalY += ROW_H;
+                y = addIntRow("Puppet Master range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.puppetMasterRangeBlocks, v -> cfg.trickster.puppetMasterRangeBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Mind Games cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.mindGamesCooldownSeconds, v -> cfg.trickster.mindGamesCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Mind Games duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.mindGamesDurationSeconds, v -> cfg.trickster.mindGamesDurationSeconds = v, 0, 30);
+                logicalY += ROW_H;
+                y = addIntRow("Mind Games range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.mindGamesRangeBlocks, v -> cfg.trickster.mindGamesRangeBlocks = v, 0, 64);
+                logicalY += ROW_H;
+            }
             case LEGENDARY -> {
                 y = addIntRow("Legendary craft seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.craftSeconds, v -> cfg.legendary.craftSeconds = v, 0, 36000);
                 logicalY += ROW_H;
@@ -1257,6 +1527,10 @@ public final class GemsConfigScreen extends Screen {
             case SPY_MIMIC -> cfg.spyMimic = new GemsBalanceConfig.SpyMimic();
             case BEACON -> cfg.beacon = new GemsBalanceConfig.Beacon();
             case AIR -> cfg.air = new GemsBalanceConfig.Air();
+            case DUELIST -> cfg.duelist = new GemsBalanceConfig.Duelist();
+            case HUNTER -> cfg.hunter = new GemsBalanceConfig.Hunter();
+            case SENTINEL -> cfg.sentinel = new GemsBalanceConfig.Sentinel();
+            case TRICKSTER -> cfg.trickster = new GemsBalanceConfig.Trickster();
             case LEGENDARY -> cfg.legendary = new GemsBalanceConfig.Legendary();
         }
         if (section != Section.CLIENT) {
@@ -1528,33 +1802,62 @@ public final class GemsConfigScreen extends Screen {
         return client.isInSingleplayer();
     }
 
-    private enum Section {
-        CLIENT("Client"),
-        VISUAL("Visual"),
-        SYSTEMS("Systems"),
-        BONUS_POOL("Bonus Pool"),
-        ASTRA("Astra"),
-        FIRE("Fire"),
-        FLUX("Flux"),
-        LIFE("Life"),
-        PUFF("Puff"),
-        SPEED("Speed"),
-        STRENGTH("Strength"),
-        WEALTH("Wealth"),
-        TERROR("Terror"),
-        SUMMONER("Summoner"),
-        SPACE("Space"),
-        REAPER("Reaper"),
-        PILLAGER("Pillager"),
-        SPY_MIMIC("Spy/Mimic"),
-        BEACON("Beacon"),
-        AIR("Air"),
-        LEGENDARY("Legendary");
+    private enum Category {
+        GENERAL("General"),
+        ELEMENTAL("Elemental"),
+        COMBAT("Combat"),
+        MISC("Misc");
 
         private final String label;
 
-        Section(String label) {
+        Category(String label) {
             this.label = label;
+        }
+    }
+
+    private enum Section {
+        // General
+        CLIENT("Client", Category.GENERAL),
+        VISUAL("Visual", Category.GENERAL),
+        SYSTEMS("Systems", Category.GENERAL),
+        BONUS_POOL("Bonus Pool", Category.GENERAL),
+        LEGENDARY("Legendary", Category.GENERAL),
+        // Elemental
+        ASTRA("Astra", Category.ELEMENTAL),
+        FIRE("Fire", Category.ELEMENTAL),
+        FLUX("Flux", Category.ELEMENTAL),
+        LIFE("Life", Category.ELEMENTAL),
+        PUFF("Puff", Category.ELEMENTAL),
+        SPEED("Speed", Category.ELEMENTAL),
+        STRENGTH("Strength", Category.ELEMENTAL),
+        WEALTH("Wealth", Category.ELEMENTAL),
+        SPACE("Space", Category.ELEMENTAL),
+        AIR("Air", Category.ELEMENTAL),
+        // Combat
+        TERROR("Terror", Category.COMBAT),
+        SUMMONER("Summoner", Category.COMBAT),
+        REAPER("Reaper", Category.COMBAT),
+        PILLAGER("Pillager", Category.COMBAT),
+        DUELIST("Duelist", Category.COMBAT),
+        HUNTER("Hunter", Category.COMBAT),
+        SENTINEL("Sentinel", Category.COMBAT),
+        TRICKSTER("Trickster", Category.COMBAT),
+        // Misc
+        SPY_MIMIC("Spy/Mimic", Category.MISC),
+        BEACON("Beacon", Category.MISC);
+
+        private final String label;
+        private final Category category;
+
+        Section(String label, Category category) {
+            this.label = label;
+            this.category = category;
+        }
+
+        static Section[] forCategory(Category cat) {
+            return java.util.Arrays.stream(values())
+                    .filter(s -> s.category == cat)
+                    .toArray(Section[]::new);
         }
     }
 
@@ -1612,6 +1915,18 @@ public final class GemsConfigScreen extends Screen {
         }
         if (cfg.air == null) {
             cfg.air = new GemsBalanceConfig.Air();
+        }
+        if (cfg.duelist == null) {
+            cfg.duelist = new GemsBalanceConfig.Duelist();
+        }
+        if (cfg.hunter == null) {
+            cfg.hunter = new GemsBalanceConfig.Hunter();
+        }
+        if (cfg.sentinel == null) {
+            cfg.sentinel = new GemsBalanceConfig.Sentinel();
+        }
+        if (cfg.trickster == null) {
+            cfg.trickster = new GemsBalanceConfig.Trickster();
         }
         if (cfg.legendary == null) {
             cfg.legendary = new GemsBalanceConfig.Legendary();

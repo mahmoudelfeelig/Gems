@@ -3,6 +3,7 @@ package com.feel.gems.power.ability.spy;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.util.Targeting;
 import net.minecraft.entity.LivingEntity;
@@ -38,6 +39,10 @@ public final class SpySkinshiftAbility implements GemAbility {
         LivingEntity target = Targeting.raycastLiving(player, range);
         if (!(target instanceof ServerPlayerEntity other) || other == player) {
             player.sendMessage(Text.translatable("gems.message.no_player_target"), true);
+            return false;
+        }
+        if (!VoidImmunity.canBeTargeted(player, other)) {
+            player.sendMessage(Text.translatable("gems.message.target_immune"), true);
             return false;
         }
         int duration = GemsBalance.v().spyMimic().skinshiftDurationTicks();

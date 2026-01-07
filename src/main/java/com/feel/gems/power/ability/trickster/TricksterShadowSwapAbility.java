@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.trickster;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.util.Targeting;
@@ -61,6 +62,12 @@ public final class TricksterShadowSwapAbility implements GemAbility {
 
         // Teleport target to player's old position
         if (target instanceof ServerPlayerEntity targetPlayer) {
+            if (!VoidImmunity.canBeTargeted(player, targetPlayer)) {
+                // Teleport player back to original position since swap failed
+                GemsTeleport.teleport(player, world, playerPos.x, playerPos.y, playerPos.z, playerYaw, playerPitch);
+                player.sendMessage(net.minecraft.text.Text.translatable("gems.message.target_immune").formatted(net.minecraft.util.Formatting.RED), true);
+                return false;
+            }
             GemsTeleport.teleport(targetPlayer, world, playerPos.x, playerPos.y, playerPos.z, targetPlayer.getYaw(), targetPlayer.getPitch());
         } else {
             target.teleport(world, playerPos.x, playerPos.y, playerPos.z, java.util.Set.of(), target.getYaw(), target.getPitch(), false);

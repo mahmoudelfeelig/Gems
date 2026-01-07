@@ -164,6 +164,7 @@ public final class ModAbilities {
         register(new HunterNetShotAbility());
         register(new HunterCripplingShotAbility());
         register(new HunterPackTacticsAbility());
+        register(new HunterCallThePackAbility());
 
         // Sentinel
         register(new SentinelShieldWallAbility());
@@ -179,7 +180,7 @@ public final class ModAbilities {
         register(new TricksterPuppetMasterAbility());
         register(new TricksterMindGamesAbility());
 
-        // Bonus Pool Abilities (claimable at energy 10/10)
+        // Bonus Pool Abilities (claimable at energy 10/10) - Original 20
         register(new BonusThunderstrikeAbility());
         register(new BonusFrostbiteAbility());
         register(new BonusEarthshatterAbility());
@@ -200,6 +201,38 @@ public final class ModAbilities {
         register(new BonusLifeTapAbility());
         register(new BonusDoomBoltAbility());
         register(new BonusSanctuaryAbility());
+        
+        // Bonus Pool Abilities - New 30
+        register(new BonusSpectralChainsAbility());
+        register(new BonusSoulLinkAbility());
+        register(new BonusInfernoDashAbility());
+        register(new BonusTidalWaveAbility());
+        register(new BonusStarfallAbility());
+        register(new BonusBloodlustAbility());
+        register(new BonusCrystalCageAbility());
+        register(new BonusMirrorImageAbility());
+        register(new BonusSonicBoomAbility());
+        register(new BonusVampiricTouchAbility());
+        register(new BonusSmokeScreenAbility());
+        register(new BonusThornsNovaAbility());
+        register(new BonusQuicksandAbility());
+        register(new BonusSearingLightAbility());
+        register(new BonusSpectralBladeAbility());
+        register(new BonusBlinkAbility());
+        register(new BonusPurgeAbility());
+        register(new BonusMindSpikeAbility());
+        register(new BonusTremorAbility());
+        register(new BonusIcicleBarrageAbility());
+        register(new BonusBanishmentAbility());
+        register(new BonusCorpseExplosionAbility());
+        register(new BonusSoulSwapAbility());
+        register(new BonusVulnerabilityAbility());
+        register(new BonusReflectionWardAbility());
+        register(new BonusWarpStrikeAbility());
+        register(new BonusVortexStrikeAbility());
+        register(new BonusPlagueCloudAbility());
+        register(new BonusOverchargeAbility());
+        register(new BonusGravityCrushAbility());
     }
 
     private ModAbilities() {

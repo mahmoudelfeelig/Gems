@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.sentinel;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.state.PlayerStateManager;
@@ -55,6 +56,7 @@ public final class SentinelTauntAbility implements GemAbility {
         for (Entity e : world.getOtherEntities(player, box, ent -> ent instanceof ServerPlayerEntity)) {
             ServerPlayerEntity target = (ServerPlayerEntity) e;
             if (GemTrust.isTrusted(player, target)) continue;
+            if (!VoidImmunity.canBeTargeted(player, target)) continue;
 
             // Mark them as taunted by this player
             SentinelTauntRuntime.applyTaunt(target, player.getUuid(), durationTicks);

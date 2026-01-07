@@ -82,7 +82,7 @@ public final class SentinelPassiveRuntime {
         
         if (player.getEntityWorld().getTime() - startTime >= requiredTicks) {
             int amplifier = GemsBalance.v().sentinel().fortressResistanceAmplifier();
-            int duration = 40; // Refresh every 2 seconds
+            int duration = 200; // 10 seconds - persists after movement
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, duration, amplifier, false, false));
         }
     }

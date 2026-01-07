@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.wealth;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.gem.wealth.WealthFumble;
@@ -51,6 +52,9 @@ public final class FumbleAbility implements GemAbility {
         for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player)) {
             if (other instanceof ServerPlayerEntity otherPlayer) {
                 if (GemTrust.isTrusted(player, otherPlayer)) {
+                    continue;
+                }
+                if (!VoidImmunity.canBeTargeted(player, otherPlayer)) {
                     continue;
                 }
                 WealthFumble.apply(otherPlayer, duration);

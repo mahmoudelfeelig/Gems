@@ -406,7 +406,10 @@ public final class SpyMimicSystem {
 
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, durationTicks, 0, true, false, false));
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ILLUSIONER_PREPARE_MIRROR, 0.8F, 1.1F);
-        player.sendMessage(Text.translatable("gems.spy.mimic_form", lastKilled), true);
+        // Format the entity type identifier as a readable name (e.g. "minecraft:cow" -> "Cow")
+        String entityName = lastKilled.getPath().replace('_', ' ');
+        entityName = entityName.substring(0, 1).toUpperCase() + entityName.substring(1);
+        player.sendMessage(Text.translatable("gems.spy.mimic_form", entityName), true);
     }
 
     public static boolean startSkinshift(ServerPlayerEntity player, ServerPlayerEntity target, int durationTicks) {

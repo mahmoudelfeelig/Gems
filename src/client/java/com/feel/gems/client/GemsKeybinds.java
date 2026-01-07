@@ -7,6 +7,7 @@ import com.feel.gems.net.ActivateAbilityPayload;
 import com.feel.gems.net.ActivateBonusAbilityPayload;
 import com.feel.gems.net.BonusSelectionOpenRequestPayload;
 import com.feel.gems.net.FluxChargePayload;
+import com.feel.gems.net.PrismSelectionOpenRequestPayload;
 import com.feel.gems.net.SoulReleasePayload;
 import com.feel.gems.net.SummonerLoadoutOpenRequestPayload;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -48,10 +49,10 @@ public final class GemsKeybinds {
             CUSTOM_KEYS[i] = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.ability_" + (i + 1), GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
         }
         
-        // Bonus ability keybinds (unbound by default, customizable via Controls)
+        // Bonus ability keybinds (C and V by default, customizable via Controls)
         BONUS_ABILITY_KEYS = new KeyBinding[2];
-        BONUS_ABILITY_KEYS[0] = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.bonus_ability_1", GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
-        BONUS_ABILITY_KEYS[1] = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.bonus_ability_2", GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
+        BONUS_ABILITY_KEYS[0] = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.bonus_ability_1", GLFW.GLFW_KEY_C, CATEGORY));
+        BONUS_ABILITY_KEYS[1] = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.bonus_ability_2", GLFW.GLFW_KEY_V, CATEGORY));
         
         // Bonus selection screen keybind (B by default)
         BONUS_SCREEN_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.bonus_screen", GLFW.GLFW_KEY_B, CATEGORY));
@@ -135,6 +136,18 @@ public final class GemsKeybinds {
             sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
             return;
         }
+        
+        // Prism gem uses B key to open Prism selection screen (requires energy 2+)
+        if (ClientGemState.activeGem() == GemId.PRISM) {
+            if (ClientGemState.energy() < 2) {
+                sendActionBar(client, Text.translatable("gems.prism.need_energy_access"));
+                return;
+            }
+            ClientPlayNetworking.send(PrismSelectionOpenRequestPayload.INSTANCE);
+            return;
+        }
+        
+        // All other gems use B key for bonus selection (requires energy 10+)
         if (ClientGemState.energy() < 10) {
             sendActionBar(client, Text.translatable("gems.bonus.need_energy_access"));
             return;
@@ -174,6 +187,29 @@ public final class GemsKeybinds {
 
         GemDefinition def = GemRegistry.definition(ClientGemState.activeGem());
         int abilityCount = def.abilities().size();
+        
+        // Prism: uses selected abilities from ClientPrismState instead of gem definition
+        if (ClientGemState.activeGem() == GemId.PRISM) {
+            int prismAbilityCount = ClientPrismState.getAbilities().size();
+            int abilityIndex = slotNumber - 1;
+            if (abilityIndex < 0 || abilityIndex >= prismAbilityCount) {
+                return;
+            }
+            // Server validates unlocks/cooldowns/suppression.
+            ClientPlayNetworking.send(new ActivateAbilityPayload(abilityIndex));
+            return;
+        }
+
+        // Chaos: has 4 independent slots (0-3), each can be rolled or used
+        if (ClientGemState.activeGem() == GemId.CHAOS) {
+            int slotIndex = slotNumber - 1;
+            if (slotIndex < 0 || slotIndex >= ClientChaosState.SLOT_COUNT) {
+                return;
+            }
+            // Server handles both rolling new abilities and using existing ones
+            ClientPlayNetworking.send(new ActivateAbilityPayload(slotIndex));
+            return;
+        }
 
         // Summoner: open loadout editor on the chord after the last ability slot.
         if (ClientGemState.activeGem() == GemId.SUMMONER && slotNumber == abilityCount + 1) {
@@ -201,16 +237,6 @@ public final class GemsKeybinds {
         if (ClientGemState.activeGem() == GemId.ASTRA && slotNumber == abilityCount + 1) {
             activateSoulRelease(client);
             return;
-        }
-
-        // Bonus abilities: slots 5-6 (if player has energy 10)
-        // These are mapped to bonus ability index 0-1 (claimed abilities)
-        if (slotNumber == 5 || slotNumber == 6) {
-            if (ClientGemState.energy() >= 10) {
-                int bonusSlot = slotNumber - 5; // 0 or 1
-                ClientPlayNetworking.send(new ActivateBonusAbilityPayload(bonusSlot));
-                return;
-            }
         }
 
         int abilityIndex = slotNumber - 1;

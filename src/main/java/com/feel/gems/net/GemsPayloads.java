@@ -1,5 +1,6 @@
 package com.feel.gems.net;
 
+import com.feel.gems.net.payloads.ShadowCloneSyncPayload;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 
 
@@ -25,6 +26,8 @@ public final class GemsPayloads {
         PayloadTypeRegistry.playC2S().register(TrackerCompassSelectPayload.ID, TrackerCompassSelectPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BonusSelectionOpenRequestPayload.ID, BonusSelectionOpenRequestPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BonusSelectionClaimPayload.ID, BonusSelectionClaimPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(PrismSelectionOpenRequestPayload.ID, PrismSelectionOpenRequestPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(PrismSelectionClaimPayload.ID, PrismSelectionClaimPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(StateSyncPayload.ID, StateSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(CooldownSnapshotPayload.ID, CooldownSnapshotPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(AbilityCooldownPayload.ID, AbilityCooldownPayload.CODEC);
@@ -36,6 +39,10 @@ public final class GemsPayloads {
         PayloadTypeRegistry.playS2C().register(ChaosStatePayload.ID, ChaosStatePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ChaosSlotPayload.ID, ChaosSlotPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(BonusSelectionScreenPayload.ID, BonusSelectionScreenPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(BonusAbilitiesSyncPayload.ID, BonusAbilitiesSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(PrismSelectionScreenPayload.ID, PrismSelectionScreenPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(PrismAbilitiesSyncPayload.ID, PrismAbilitiesSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ShadowCloneSyncPayload.ID, ShadowCloneSyncPayload.CODEC);
         registered = true;
     }
 }

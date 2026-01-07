@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.astra;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.AbilityRestrictions;
@@ -52,6 +53,9 @@ public final class DimensionalVoidAbility implements GemAbility {
                 continue;
             }
             if (other instanceof ServerPlayerEntity otherPlayer) {
+                if (!VoidImmunity.canBeTargeted(player, otherPlayer)) {
+                    continue;
+                }
                 AbilityRestrictions.suppress(otherPlayer, duration);
             } else {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 1, true, false, false));

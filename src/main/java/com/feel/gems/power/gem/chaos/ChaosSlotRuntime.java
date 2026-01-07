@@ -99,6 +99,7 @@ public final class ChaosSlotRuntime {
         long currentTick = server.getOverworld().getTime();
         
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            GemPlayerState.initIfNeeded(player);
             if (GemPlayerState.getActiveGem(player) != GemId.CHAOS) {
                 ChaosPlayerState removed = playerStates.remove(player.getUuid());
                 if (removed != null) {

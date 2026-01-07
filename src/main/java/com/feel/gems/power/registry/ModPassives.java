@@ -369,7 +369,7 @@ public final class ModPassives {
                 "Mace strikes add extra knockback and a short slow."
         ));
 
-        // Bonus Pool Passives (claimable at energy 10/10)
+        // Bonus Pool Passives (claimable at energy 10/10) - Original 20
         register(new BonusThornsAuraPassive());
         register(new BonusLifestealPassive());
         register(new BonusDodgeChancePassive());
@@ -390,6 +390,38 @@ public final class ModPassives {
         register(new BonusXpBoostPassive());
         register(new BonusHungerResistPassive());
         register(new BonusPoisonImmunityPassive());
+        
+        // Bonus Pool Passives - New 30
+        register(new BonusSecondWindPassive());
+        register(new BonusEchoStrikePassive());
+        register(new BonusChainBreakerPassive());
+        register(new BonusStoneSkinPassive());
+        register(new BonusArcaneBarrierPassive());
+        register(new BonusPredatorSensePassive());
+        register(new BonusBattleMedicPassive());
+        register(new BonusLastStandPassive());
+        register(new BonusExecutionerPassive());
+        register(new BonusBloodthirstPassive());
+        register(new BonusSteelResolvePassive());
+        register(new BonusElementalHarmonyPassive());
+        register(new BonusTreasureHunterPassive());
+        register(new BonusCounterStrikePassive());
+        register(new BonusBulwarkPassive());
+        register(new BonusQuickRecoveryPassive());
+        register(new BonusOverflowingVitalityPassive());
+        register(new BonusMagneticPullPassive());
+        register(new BonusVengeancePassive());
+        register(new BonusNemesisPassive());
+        register(new BonusHuntersInstinctPassive());
+        register(new BonusBerserkerBloodPassive());
+        register(new BonusOpportunistPassive());
+        register(new BonusIroncladPassive());
+        register(new BonusSpectralFormPassive());
+        register(new BonusWarCryPassive());
+        register(new BonusAdrenalineRushPassive());
+        register(new BonusUnbreakablePassive());
+        register(new BonusFocusedMindPassive());
+        register(new BonusSixthSensePassive());
 
         // Void gem passive
         register(new MarkerPassive(

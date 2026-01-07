@@ -4,6 +4,7 @@ import com.feel.gems.command.GemsCommands;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.config.GemsDisables;
 import com.feel.gems.core.GemRegistry;
+import com.feel.gems.entity.ModEntities;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.GemsPayloads;
 import com.feel.gems.net.ServerAbilityNetworking;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 
 import com.feel.gems.net.ServerBonusNetworking;
+import com.feel.gems.net.ServerPrismNetworking;
 
 public final class GemsMod implements ModInitializer {
     public static final String MOD_ID = "gems";
@@ -30,6 +32,7 @@ public final class GemsMod implements ModInitializer {
         GemRegistry.init();
         GemsBalance.init();
         GemsDisables.init();
+        ModEntities.init();
         GemsPayloads.register();
         ModScreenHandlers.init();
         ModItems.init();
@@ -38,6 +41,7 @@ public final class GemsMod implements ModInitializer {
         ServerLegendaryNetworking.register();
         ServerSummonerNetworking.register();
         ServerBonusNetworking.register();
+        ServerPrismNetworking.register();
         GemsModEvents.register();
         GemsCommands.register();
     }

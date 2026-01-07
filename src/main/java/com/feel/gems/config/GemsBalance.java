@@ -594,6 +594,14 @@ public final class GemsBalance {
         cfg.hunter.packTacticsBonusDamageMultiplier = v.hunter().packTacticsBonusDamageMultiplier();
         cfg.hunter.packTacticsDurationSeconds = ticksToSeconds(v.hunter().packTacticsDurationTicks());
         cfg.hunter.packTacticsRadiusBlocks = v.hunter().packTacticsRadiusBlocks();
+        cfg.hunter.sixPackPainCooldownSeconds = ticksToSeconds(v.hunter().sixPackPainCooldownTicks());
+        cfg.hunter.sixPackPainCloneCount = v.hunter().sixPackPainCloneCount();
+        cfg.hunter.sixPackPainDurationSeconds = ticksToSeconds(v.hunter().sixPackPainDurationTicks());
+        cfg.hunter.sixPackPainHealthPerClone = v.hunter().sixPackPainHealthPerClone();
+        cfg.hunter.sixPackPainCloseTargetRangeBlocks = v.hunter().sixPackPainCloseTargetRangeBlocks();
+        cfg.hunter.sixPackPainWideTargetRangeBlocks = v.hunter().sixPackPainWideTargetRangeBlocks();
+        cfg.hunter.sixPackPainBuffDurationTicks = v.hunter().sixPackPainBuffDurationTicks();
+        cfg.hunter.sixPackPainDebuffDurationTicks = v.hunter().sixPackPainDebuffDurationTicks();
 
         // Sentinel
         cfg.sentinel.guardianAuraDamageReduction = v.sentinel().guardianAuraDamageReduction();
@@ -1921,7 +1929,16 @@ public final class GemsBalance {
             int packTacticsCooldownTicks,
             float packTacticsBonusDamageMultiplier,
             int packTacticsDurationTicks,
-            int packTacticsRadiusBlocks
+            int packTacticsRadiusBlocks,
+            // Six-Pack Pain
+            int sixPackPainCooldownTicks,
+            int sixPackPainCloneCount,
+            int sixPackPainDurationTicks,
+            float sixPackPainHealthPerClone,
+            int sixPackPainCloseTargetRangeBlocks,
+            int sixPackPainWideTargetRangeBlocks,
+            int sixPackPainBuffDurationTicks,
+            int sixPackPainDebuffDurationTicks
     ) {
         static Hunter from(GemsBalanceConfig.Hunter cfg) {
             return new Hunter(
@@ -1946,7 +1963,15 @@ public final class GemsBalance {
                     secClamped(cfg.packTacticsCooldownSeconds, 0, 3600),
                     clampFloat(cfg.packTacticsBonusDamageMultiplier, 1.0F, 5.0F),
                     secClamped(cfg.packTacticsDurationSeconds, 0, 120),
-                    clampInt(cfg.packTacticsRadiusBlocks, 0, 64)
+                    clampInt(cfg.packTacticsRadiusBlocks, 0, 64),
+                    secClamped(cfg.sixPackPainCooldownSeconds, 0, 3600),
+                    clampInt(cfg.sixPackPainCloneCount, 1, 10),
+                    secClamped(cfg.sixPackPainDurationSeconds, 0, 600),
+                    clampFloat(cfg.sixPackPainHealthPerClone, 1.0F, 100.0F),
+                    clampInt(cfg.sixPackPainCloseTargetRangeBlocks, 1, 64),
+                    clampInt(cfg.sixPackPainWideTargetRangeBlocks, 1, 128),
+                    clampInt(cfg.sixPackPainBuffDurationTicks, 0, 6000),
+                    clampInt(cfg.sixPackPainDebuffDurationTicks, 0, 6000)
             );
         }
     }

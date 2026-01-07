@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.speed;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.gem.speed.SpeedMomentum;
@@ -72,6 +73,9 @@ public final class ArcShotAbility implements GemAbility {
         for (var e : world.getOtherEntities(player, box, ent -> ent instanceof LivingEntity living && living.isAlive())) {
             LivingEntity living = (LivingEntity) e;
             if (living instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
+                continue;
+            }
+            if (living instanceof ServerPlayerEntity other && !VoidImmunity.canBeTargeted(player, other)) {
                 continue;
             }
 

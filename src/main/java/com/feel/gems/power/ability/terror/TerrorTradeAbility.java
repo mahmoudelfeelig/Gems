@@ -4,6 +4,7 @@ import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemPowers;
@@ -57,6 +58,10 @@ public final class TerrorTradeAbility implements GemAbility {
 
         if (!(target instanceof ServerPlayerEntity victim)) {
             return activateMobTrade(player, target);
+        }
+        if (!VoidImmunity.canBeTargeted(player, victim)) {
+            player.sendMessage(Text.translatable("gems.message.target_immune"), true);
+            return false;
         }
         boolean casterIsAssassin = AssassinState.isAssassin(player);
         if (casterIsAssassin) {

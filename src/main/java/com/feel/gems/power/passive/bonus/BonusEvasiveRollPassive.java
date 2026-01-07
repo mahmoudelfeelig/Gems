@@ -6,8 +6,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 /**
- * Evasive Roll - Chance to dodge incoming attacks.
- * Implementation via event hook.
+ * Evasive Roll - When hit while sprinting, automatically dodge backward.
+ * Different from Dodge Chance which is passive 10% dodge.
+ * This triggers a visible backward roll animation/motion.
  */
 public final class BonusEvasiveRollPassive implements GemPassive {
     @Override
@@ -22,7 +23,7 @@ public final class BonusEvasiveRollPassive implements GemPassive {
 
     @Override
     public String description() {
-        return "Chance to dodge incoming attacks with an evasive roll.";
+        return "When hit while sprinting, dodge backward and avoid the damage.";
     }
 
     @Override

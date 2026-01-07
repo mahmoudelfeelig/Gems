@@ -2,10 +2,12 @@ package com.feel.gems.client.hud;
 
 import com.feel.gems.GemsMod;
 import com.feel.gems.client.ClientAbilitySelection;
+import com.feel.gems.client.ClientBonusState;
 import com.feel.gems.client.ClientChaosState;
 import com.feel.gems.client.ClientCooldowns;
 import com.feel.gems.client.ClientExtraState;
 import com.feel.gems.client.ClientGemState;
+import com.feel.gems.client.ClientPrismState;
 import com.feel.gems.client.GemsKeybinds;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemEnergyState;
@@ -224,6 +226,71 @@ public final class GemsHud {
                     break;
                 }
             }
+        } else if (gem == GemId.PRISM) {
+            // Prism uses selected abilities from player's choices
+            List<ClientPrismState.PrismAbilityEntry> prismAbilities = ClientPrismState.getAbilities();
+            if (prismAbilities.isEmpty()) {
+                ctx.drawTextWithShadow(tr, "No abilities selected", x, y, opaque(0x777777));
+                y += lineHeight;
+                ctx.drawTextWithShadow(tr, "Press " + GemsKeybinds.modifierLabel() + "+P to open selection", x, y, opaque(0xAAAAAA));
+                y += lineHeight;
+            } else {
+                int prismUnlocked = new GemEnergyState(energy).unlockedAbilityCount(prismAbilities.size());
+                for (int i = 0; i < prismAbilities.size(); i++) {
+                    ClientPrismState.PrismAbilityEntry entry = prismAbilities.get(i);
+                    String name = entry.name();
+                    Identifier id = entry.id();
+                    
+                    boolean isUnlocked = i < prismUnlocked;
+                    int remaining = ClientPrismState.remainingTicks(id);
+                    GemAbility ability = ModAbilities.get(id);
+                    int cooldownCostTicks = ability != null ? Math.max(0, ability.cooldownTicks()) : 0;
+                    
+                    String key = GemsKeybinds.chordSlotLabel(i + 1);
+                    String stateSuffix;
+                    int stateColor;
+                    if (!isUnlocked) {
+                        stateSuffix = " (locked)";
+                        stateColor = opaque(0x777777);
+                    } else if (remaining > 0) {
+                        stateSuffix = " (" + seconds(remaining) + "s)";
+                        stateColor = opaque(0xFFCC33);
+                    } else {
+                        stateSuffix = "";
+                        stateColor = opaque(0xFFFFFF);
+                    }
+                    
+                    boolean selected = selectedSlot == (i + 1);
+                    boolean lastUsed = ClientPrismState.isLastUsed(id);
+                    String prefix = selected ? "> " : (lastUsed && remaining > 0 ? "* " : "");
+                    int lineColor = stateColor;
+                    if (selected && isUnlocked) {
+                        lineColor = remaining > 0 ? opaque(0xFF5555) : opaque(0x55FF55);
+                    } else if (lastUsed && remaining > 0 && isUnlocked) {
+                        lineColor = opaque(0x55FFFF);
+                    }
+                    
+                    String base = prefix + key + " " + name;
+                    int dx = x;
+                    ctx.drawTextWithShadow(tr, base, dx, y, lineColor);
+                    dx += tr.getWidth(base);
+                    
+                    if (cooldownCostTicks > 0) {
+                        String cost = " [" + seconds(cooldownCostTicks) + "s]";
+                        ctx.drawTextWithShadow(tr, cost, dx, y, opaque(0xAA55FF)); // Purple accent for Prism
+                        dx += tr.getWidth(cost);
+                    }
+                    
+                    if (!stateSuffix.isEmpty()) {
+                        int suffixColor = remaining > 0 ? opaque(0xAA55FF) : stateColor;
+                        ctx.drawTextWithShadow(tr, stateSuffix, dx, y, suffixColor);
+                    }
+                    y += lineHeight;
+                    if (y > client.getWindow().getScaledHeight() - lineHeight) {
+                        break;
+                    }
+                }
+            }
         } else {
             for (int i = 0; i < abilities.size(); i++) {
                 Identifier id = abilities.get(i);
@@ -291,6 +358,7 @@ public final class GemsHud {
                         y,
                         selected ? opaque(0x55FF55) : opaque(0x55FFFF)
                 );
+                y += lineHeight;
             }
         }
         if (gem == GemId.SUMMONER) {
@@ -304,6 +372,45 @@ public final class GemsHud {
                         y,
                         selected ? opaque(0x55FF55) : opaque(0x55FFFF)
                 );
+                y += lineHeight;
+            }
+        }
+
+        // Bonus abilities (only shown at energy 10)
+        if (energy >= 10) {
+            List<ClientBonusState.BonusAbilityEntry> bonusAbilities = ClientBonusState.getAbilities();
+            if (!bonusAbilities.isEmpty()) {
+                y += lineHeight / 2; // Small gap
+                ctx.drawTextWithShadow(tr, "--- Bonus ---", x, y, opaque(0xFFD700));
+                y += lineHeight;
+                
+                String[] bonusKeys = {"C", "V"};
+                for (int i = 0; i < bonusAbilities.size() && i < 2; i++) {
+                    ClientBonusState.BonusAbilityEntry entry = bonusAbilities.get(i);
+                    int remaining = ClientBonusState.remainingTicks(entry.id());
+                    boolean lastUsed = ClientBonusState.isLastUsed(entry.id());
+                    
+                    String key = bonusKeys[i];
+                    String prefix = lastUsed && remaining > 0 ? "* " : "";
+                    int lineColor;
+                    String stateSuffix;
+                    
+                    if (remaining > 0) {
+                        stateSuffix = " (" + seconds(remaining) + "s)";
+                        lineColor = lastUsed ? opaque(0x55FFFF) : opaque(0xFFCC33);
+                    } else {
+                        stateSuffix = "";
+                        lineColor = opaque(0xFFD700);
+                    }
+                    
+                    String base = prefix + key + " " + entry.name();
+                    ctx.drawTextWithShadow(tr, base + stateSuffix, x, y, lineColor);
+                    y += lineHeight;
+                    
+                    if (y > client.getWindow().getScaledHeight() - lineHeight) {
+                        break;
+                    }
+                }
             }
         }
     }

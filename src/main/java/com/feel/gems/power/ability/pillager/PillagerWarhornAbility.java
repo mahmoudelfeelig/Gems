@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.pillager;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -64,6 +65,9 @@ public final class PillagerWarhornAbility implements GemAbility {
             }
             if (living instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
                 applyAlly(other, duration, allySpeed, allyResist);
+                continue;
+            }
+            if (living instanceof ServerPlayerEntity other && !VoidImmunity.canBeTargeted(player, other)) {
                 continue;
             }
             applyEnemy(living, duration, enemySlow, enemyWeak);

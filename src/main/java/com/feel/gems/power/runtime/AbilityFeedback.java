@@ -1,6 +1,7 @@
 package com.feel.gems.power.runtime;
 
 import com.feel.gems.config.GemsBalance;
+import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -18,11 +19,19 @@ public final class AbilityFeedback {
     private AbilityFeedback() {
     }
 
+    /**
+     * Sync velocity immediately to the client. Use this after setting player velocity
+     * for abilities that move the player (jumps, dashes, etc.).
+     */
+    public static void syncVelocity(ServerPlayerEntity player) {
+        player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player));
+    }
+
     public static void sound(ServerPlayerEntity player, SoundEvent sound, float volume, float pitch) {
         if (!GemsBalance.v().visual().enableSounds()) {
             return;
         }
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         world.playSound(null, player.getX(), player.getY(), player.getZ(), sound, SoundCategory.PLAYERS, volume, pitch);
     }
 
@@ -50,7 +59,7 @@ public final class AbilityFeedback {
     }
 
     public static void burst(ServerPlayerEntity player, ParticleEffect particle, int count, double spread) {
-        burstAt(player.getServerWorld(), player.getPos().add(0.0D, 1.0D, 0.0D), particle, count, spread);
+        burstAt(player.getEntityWorld(), player.getEntityPos().add(0.0D, 1.0D, 0.0D), particle, count, spread);
     }
 
     public static void burstAt(ServerWorld world, Vec3d pos, ParticleEffect particle, int count, double spread) {

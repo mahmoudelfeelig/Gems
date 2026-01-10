@@ -7,18 +7,10 @@
     "GHG"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:ghast_tear"
-    },
-    "H": {
-      "item": "minecraft:player_head"
-    },
-    "N": {
-      "item": "minecraft:netherite_ingot"
-    },
-    "S": {
-      "item": "minecraft:netherite_sword"
-    }
+    "G": "minecraft:ghast_tear",
+    "H": "minecraft:player_head",
+    "N": "minecraft:netherite_ingot",
+    "S": "minecraft:netherite_sword"
   },
   "result": {
     "count": 1,

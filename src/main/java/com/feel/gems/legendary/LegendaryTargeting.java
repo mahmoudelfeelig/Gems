@@ -1,6 +1,7 @@
 package com.feel.gems.legendary;
 
 import com.feel.gems.util.GemsTime;
+import com.feel.gems.util.GemsNbt;
 import java.util.UUID;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -21,23 +22,23 @@ public final class LegendaryTargeting {
 
     public static void recordHit(ServerPlayerEntity attacker, LivingEntity target) {
         NbtCompound data = ((com.feel.gems.state.GemsPersistentDataHolder) attacker).gems$getPersistentData();
-        data.putUuid(KEY_LAST_TARGET, target.getUuid());
+        GemsNbt.putUuid(data, KEY_LAST_TARGET, target.getUuid());
         data.putLong(KEY_LAST_TARGET_AT, GemsTime.now(attacker));
     }
 
     public static LivingEntity findTarget(ServerPlayerEntity player, int rangeBlocks, int timeoutTicks) {
         NbtCompound data = ((com.feel.gems.state.GemsPersistentDataHolder) player).gems$getPersistentData();
-        if (!data.containsUuid(KEY_LAST_TARGET)) {
+        if (!GemsNbt.containsUuid(data, KEY_LAST_TARGET)) {
             return null;
         }
         long now = GemsTime.now(player);
-        long last = data.getLong(KEY_LAST_TARGET_AT);
+        long last = data.getLong(KEY_LAST_TARGET_AT, 0L);
         if (timeoutTicks > 0 && now - last > timeoutTicks) {
             return null;
         }
-        UUID uuid = data.getUuid(KEY_LAST_TARGET);
-        LivingEntity target = player.getServer() == null ? null : findLiving(player.getServer(), uuid);
-        if (target == null || target.getWorld() != player.getWorld() || !target.isAlive()) {
+        UUID uuid = GemsNbt.getUuid(data, KEY_LAST_TARGET);
+        LivingEntity target = player.getEntityWorld().getServer() == null ? null : findLiving(player.getEntityWorld().getServer(), uuid);
+        if (target == null || target.getEntityWorld() != player.getEntityWorld() || !target.isAlive()) {
             return null;
         }
         double max = rangeBlocks * (double) rangeBlocks;

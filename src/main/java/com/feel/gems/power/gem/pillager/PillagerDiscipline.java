@@ -25,7 +25,7 @@ public final class PillagerDiscipline {
         }
         long now = GemsTime.now(player);
         NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        long next = nbt.getLong(KEY_NEXT);
+        long next = nbt.getLong(KEY_NEXT, 0L);
         if (next > now) {
             return;
         }

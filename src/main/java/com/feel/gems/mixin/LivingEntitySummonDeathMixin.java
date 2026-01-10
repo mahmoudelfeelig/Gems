@@ -30,7 +30,7 @@ public abstract class LivingEntitySummonDeathMixin {
         if (ownerUuid == null) {
             return;
         }
-        if (!(mob.getWorld() instanceof ServerWorld world)) {
+        if (!(mob.getEntityWorld() instanceof ServerWorld world)) {
             return;
         }
         ServerPlayerEntity owner = world.getServer().getPlayerManager().getPlayer(ownerUuid);

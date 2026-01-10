@@ -7,18 +7,10 @@
     "EHE"
   ],
   "key": {
-    "E": {
-      "item": "minecraft:ender_pearl"
-    },
-    "H": {
-      "item": "minecraft:player_head"
-    },
-    "P": {
-      "item": "minecraft:prismarine_crystals"
-    },
-    "C": {
-      "item": "minecraft:compass"
-    }
+    "E": "minecraft:ender_pearl",
+    "H": "minecraft:player_head",
+    "P": "minecraft:prismarine_crystals",
+    "C": "minecraft:compass"
   },
   "result": {
     "count": 1,

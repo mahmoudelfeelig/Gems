@@ -39,11 +39,11 @@ public final class SpeedFrictionlessSteps {
     }
 
     private static boolean isOnFrictionBlock(ServerPlayerEntity player) {
-        BlockState state = player.getWorld().getBlockState(player.getBlockPos());
+        BlockState state = player.getEntityWorld().getBlockState(player.getBlockPos());
         if (isFrictionBlock(state)) {
             return true;
         }
-        BlockState below = player.getWorld().getBlockState(player.getBlockPos().down());
+        BlockState below = player.getEntityWorld().getBlockState(player.getBlockPos().down());
         return isFrictionBlock(below);
     }
 

@@ -1,7 +1,6 @@
 package com.feel.gems.state;
 
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 
@@ -14,12 +13,18 @@ public final class PlayerNbt {
     private PlayerNbt() {
     }
 
+    public static boolean getBoolean(ServerPlayerEntity player, String key, boolean fallback) {
+        NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        return nbt.getBoolean(key).orElse(fallback);
+    }
+
+    public static void putBoolean(ServerPlayerEntity player, String key, boolean value) {
+        ((GemsPersistentDataHolder) player).gems$getPersistentData().putBoolean(key, value);
+    }
+
     public static int getInt(ServerPlayerEntity player, String key, int fallback) {
         NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        if (!nbt.contains(key, NbtElement.INT_TYPE)) {
-            return fallback;
-        }
-        return nbt.getInt(key);
+        return nbt.getInt(key).orElse(fallback);
     }
 
     public static void putInt(ServerPlayerEntity player, String key, int value) {

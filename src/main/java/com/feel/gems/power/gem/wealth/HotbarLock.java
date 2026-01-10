@@ -3,7 +3,6 @@ package com.feel.gems.power.gem.wealth;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.GemsTime;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 
@@ -36,7 +35,7 @@ public final class HotbarLock {
     }
 
     static int lockedSlot(NbtCompound nbt, long now) {
-        long until = nbt.contains(KEY_LOCK_UNTIL, NbtElement.LONG_TYPE) ? nbt.getLong(KEY_LOCK_UNTIL) : 0L;
+        long until = nbt.getLong(KEY_LOCK_UNTIL, 0L);
         if (until <= now) {
             if (until != 0L) {
                 nbt.remove(KEY_LOCK_UNTIL);
@@ -44,10 +43,11 @@ public final class HotbarLock {
             }
             return -1;
         }
-        if (!nbt.contains(KEY_LOCK_SLOT, NbtElement.INT_TYPE)) {
+        int slot = nbt.getInt(KEY_LOCK_SLOT, -1);
+        if (slot < 0) {
             return -1;
         }
-        return clamp(nbt.getInt(KEY_LOCK_SLOT), 0, 8);
+        return clamp(slot, 0, 8);
     }
 
     private static int clamp(int value, int min, int max) {

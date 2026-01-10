@@ -39,7 +39,7 @@ public final class HeartLockRuntime {
         if (!mob.getCommandTags().contains(TAG_HEART_LOCK)) {
             return;
         }
-        if (!(mob.getWorld() instanceof ServerWorld world)) {
+        if (!(mob.getEntityWorld() instanceof ServerWorld world)) {
             return;
         }
         long until = readUntil(mob);
@@ -56,7 +56,7 @@ public final class HeartLockRuntime {
     }
 
     private static void applyModifier(MobEntity mob, float lockedMax) {
-        EntityAttributeInstance maxHealth = mob.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+        EntityAttributeInstance maxHealth = mob.getAttributeInstance(EntityAttributes.MAX_HEALTH);
         if (maxHealth == null) {
             return;
         }
@@ -73,7 +73,7 @@ public final class HeartLockRuntime {
 
     private static void clear(MobEntity mob) {
         clearTags(mob);
-        EntityAttributeInstance maxHealth = mob.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+        EntityAttributeInstance maxHealth = mob.getAttributeInstance(EntityAttributes.MAX_HEALTH);
         if (maxHealth != null) {
             maxHealth.removeModifier(MODIFIER_ID);
         }

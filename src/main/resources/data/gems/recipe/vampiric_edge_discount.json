@@ -7,18 +7,10 @@
     "GFG"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:ghast_tear"
-    },
-    "F": {
-      "item": "minecraft:spider_eye"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "S": {
-      "item": "minecraft:netherite_sword"
-    }
+    "G": "minecraft:ghast_tear",
+    "F": "minecraft:spider_eye",
+    "D": "minecraft:diamond",
+    "S": "minecraft:netherite_sword"
   },
   "result": {
     "count": 1,

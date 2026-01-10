@@ -18,7 +18,7 @@ public abstract class LivingEntityAirKnockbackMixin {
     @ModifyVariable(method = "takeKnockback", at = @At("HEAD"), ordinal = 0, argsOnly = true)
     private double gems$airAerialGuardKnockback(double strength) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        if (entity.getWorld().isClient) {
+        if (entity.getEntityWorld().isClient()) {
             return strength;
         }
         if (!(entity instanceof ServerPlayerEntity player)) {

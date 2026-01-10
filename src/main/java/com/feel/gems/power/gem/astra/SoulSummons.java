@@ -5,6 +5,7 @@ import com.feel.gems.legendary.HypnoControl;
 import com.feel.gems.legendary.LegendaryTargeting;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.util.GemsNbt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -13,21 +14,15 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 
 
 public final class SoulSummons {
     public static final String TAG_SOUL = "gems_soul";
     private static final String TAG_OWNER_PREFIX = "gems_soul_owner:";
     private static final String KEY_SOUL_SUMMONS = "astraSoulSummons";
-    private static final double FOLLOW_START_SQ = 36.0D;
-    private static final double FOLLOW_STOP_SQ = 9.0D;
-    private static final double FOLLOW_SPEED = 1.1D;
 
     private SoulSummons() {
     }
@@ -62,41 +57,47 @@ public final class SoulSummons {
             return;
         }
         NbtCompound root = ((GemsPersistentDataHolder) owner).gems$getPersistentData();
-        NbtList list = root.getList(KEY_SOUL_SUMMONS, NbtElement.INT_ARRAY_TYPE);
-        list.add(NbtHelper.fromUuid(entity.getUuid()));
+        NbtList list = root.getListOrEmpty(KEY_SOUL_SUMMONS);
+        list.add(GemsNbt.fromUuid(entity.getUuid()));
         root.put(KEY_SOUL_SUMMONS, list);
     }
 
     public static List<UUID> ownedSoulUuids(ServerPlayerEntity owner) {
         NbtCompound root = ((GemsPersistentDataHolder) owner).gems$getPersistentData();
-        if (!root.contains(KEY_SOUL_SUMMONS, NbtElement.LIST_TYPE)) {
+        NbtList list = root.getList(KEY_SOUL_SUMMONS).orElse(null);
+        if (list == null) {
             return List.of();
         }
-        NbtList list = root.getList(KEY_SOUL_SUMMONS, NbtElement.INT_ARRAY_TYPE);
         List<UUID> out = new ArrayList<>(list.size());
         for (int i = 0; i < list.size(); i++) {
-            out.add(NbtHelper.toUuid(list.get(i)));
+            UUID uuid = GemsNbt.toUuid(list.get(i));
+            if (uuid != null) {
+                out.add(uuid);
+            }
         }
         return out;
     }
 
     public static int pruneAndCount(ServerPlayerEntity owner) {
-        MinecraftServer server = owner.getServer();
+        MinecraftServer server = owner.getEntityWorld().getServer();
         if (server == null) {
             return 0;
         }
         NbtCompound root = ((GemsPersistentDataHolder) owner).gems$getPersistentData();
-        NbtList list = root.getList(KEY_SOUL_SUMMONS, NbtElement.INT_ARRAY_TYPE);
+        NbtList list = root.getListOrEmpty(KEY_SOUL_SUMMONS);
         if (list.isEmpty()) {
             return 0;
         }
         NbtList next = new NbtList();
         int alive = 0;
         for (int i = 0; i < list.size(); i++) {
-            UUID uuid = NbtHelper.toUuid(list.get(i));
+            UUID uuid = GemsNbt.toUuid(list.get(i));
+            if (uuid == null) {
+                continue;
+            }
             Entity e = SummonerSummons.findEntity(server, uuid);
             if (e != null && e.isAlive() && isSoul(e) && owner.getUuid().equals(ownerUuid(e))) {
-                next.add(NbtHelper.fromUuid(uuid));
+                next.add(GemsNbt.fromUuid(uuid));
                 alive++;
             }
         }
@@ -105,10 +106,15 @@ public final class SoulSummons {
     }
 
     public static void followOwner(ServerPlayerEntity owner) {
-        MinecraftServer server = owner.getServer();
+        MinecraftServer server = owner.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
+        double followStart = GemsBalance.v().systems().controlledFollowStartBlocks();
+        double followStop = GemsBalance.v().systems().controlledFollowStopBlocks();
+        double followSpeed = GemsBalance.v().systems().controlledFollowSpeed();
+        double followStartSq = followStart * followStart;
+        double followStopSq = followStop * followStop;
         int rangeBlocks = GemsBalance.v().summoner().commandRangeBlocks();
         LivingEntity fallbackTarget = LegendaryTargeting.findTarget(owner, rangeBlocks, 0);
         if (fallbackTarget == null) {
@@ -119,27 +125,37 @@ public final class SoulSummons {
             if (!(e instanceof MobEntity mob) || !mob.isAlive() || !isSoul(mob)) {
                 continue;
             }
-            if (mob.getWorld() != owner.getWorld()) {
+            SummonerSummons.refreshNetherMob(mob);
+            if (mob.getEntityWorld() != owner.getEntityWorld()) {
                 continue;
             }
+            LivingEntity desiredTarget = fallbackTarget;
             LivingEntity currentTarget = mob.getTarget();
-            if (currentTarget != null && currentTarget.isAlive()) {
-                continue;
-            }
-            if (currentTarget != null && !currentTarget.isAlive()) {
+            LivingEntity normalizedTarget = normalizeTarget(owner, currentTarget, rangeBlocks);
+            if (currentTarget != null && (normalizedTarget == null || !currentTarget.isAlive())) {
                 mob.setTarget(null);
+                currentTarget = null;
+                normalizedTarget = null;
             }
-            if (mob.getAttacker() != null) {
-                continue;
+            if (normalizedTarget != null) {
+                if (desiredTarget != null && normalizedTarget.getUuid().equals(desiredTarget.getUuid())) {
+                    continue;
+                }
+                if (desiredTarget == null) {
+                    mob.setTarget(null);
+                } else {
+                    mob.setTarget(desiredTarget);
+                    continue;
+                }
             }
-            if (fallbackTarget != null && fallbackTarget.getWorld() == mob.getWorld()) {
-                mob.setTarget(fallbackTarget);
+            if (desiredTarget != null && desiredTarget.getEntityWorld() == mob.getEntityWorld()) {
+                mob.setTarget(desiredTarget);
                 continue;
             }
             double distSq = mob.squaredDistanceTo(owner);
-            if (distSq > FOLLOW_START_SQ) {
-                mob.getNavigation().startMovingTo(owner, FOLLOW_SPEED);
-            } else if (distSq < FOLLOW_STOP_SQ) {
+            if (distSq > followStartSq) {
+                mob.getNavigation().startMovingTo(owner, followSpeed);
+            } else if (distSq < followStopSq) {
                 mob.getNavigation().stop();
             }
         }
@@ -156,7 +172,7 @@ public final class SoulSummons {
         }
         double maxSq = rangeBlocks * (double) rangeBlocks;
         var box = owner.getBoundingBox().expand(rangeBlocks);
-        List<MobEntity> mobs = owner.getWorld().getEntitiesByClass(MobEntity.class, box, mob -> mob.getTarget() == owner);
+        List<MobEntity> mobs = owner.getEntityWorld().getEntitiesByClass(MobEntity.class, box, mob -> mob.getTarget() == owner);
         LivingEntity nearest = null;
         double nearestSq = Double.MAX_VALUE;
         for (MobEntity mob : mobs) {
@@ -175,7 +191,7 @@ public final class SoulSummons {
     }
 
     private static LivingEntity normalizeTarget(ServerPlayerEntity owner, LivingEntity target, int rangeBlocks) {
-        if (target == null || !target.isAlive() || target.getWorld() != owner.getWorld()) {
+        if (target == null || !target.isAlive() || target.getEntityWorld() != owner.getEntityWorld()) {
             return null;
         }
         if (rangeBlocks > 0) {
@@ -201,4 +217,3 @@ public final class SoulSummons {
         return target;
     }
 }
-

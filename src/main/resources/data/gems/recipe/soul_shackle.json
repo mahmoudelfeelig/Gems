@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SNS",
+    "CHC",
+    "SNS"
+  ],
+  "key": {
+    "S": "minecraft:soul_sand",
+    "N": "minecraft:netherite_ingot",
+    "C": "minecraft:iron_bars",
+    "H": "minecraft:player_head"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:soul_shackle"
+  }
+}

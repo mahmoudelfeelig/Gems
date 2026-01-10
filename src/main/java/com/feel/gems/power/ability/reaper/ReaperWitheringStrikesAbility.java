@@ -35,11 +35,11 @@ public final class ReaperWitheringStrikesAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int duration = GemsBalance.v().reaper().witheringStrikesDurationTicks();
         if (duration <= 0) {
-            player.sendMessage(Text.literal("Withering Strikes is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.withering_strikes.disabled"), true);
             return false;
         }
         AbilityRuntime.startReaperWitheringStrikes(player, duration);
-        player.sendMessage(Text.literal("Withering Strikes active."), true);
+        player.sendMessage(Text.translatable("gems.ability.reaper.withering_strikes.active"), true);
         return true;
     }
 }

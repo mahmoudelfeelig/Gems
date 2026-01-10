@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.puff;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -43,11 +44,13 @@ public final class PuffGustAbility implements GemAbility {
         var cfg = GemsBalance.v().puff();
         int radius = cfg.gustRadiusBlocks();
         if (radius <= 0) {
-            player.sendMessage(Text.literal("Gust is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.puff.gust.disabled"), true);
             return false;
         }
 
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         double knockback = cfg.gustKnockback();
         double up = cfg.gustUpVelocityY();
         int slownessDuration = cfg.gustSlownessDurationTicks();
@@ -59,11 +62,14 @@ public final class PuffGustAbility implements GemAbility {
             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
                 continue;
             }
-            Vec3d delta = other.getPos().subtract(player.getPos());
+            if (other instanceof ServerPlayerEntity otherPlayer && !VoidImmunity.canBeTargeted(player, otherPlayer)) {
+                continue;
+            }
+            Vec3d delta = other.getEntityPos().subtract(player.getEntityPos());
             if (delta.lengthSquared() > 1.0E-4D) {
                 Vec3d norm = delta.normalize();
                 other.addVelocity(norm.x * knockback, up, norm.z * knockback);
-                other.velocityModified = true;
+                other.velocityDirty = true;
             }
             if (slownessDuration > 0) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, slownessDuration, slownessAmplifier, true, false, false));
@@ -80,7 +86,7 @@ public final class PuffGustAbility implements GemAbility {
 
         AbilityFeedback.burst(player, ParticleTypes.CLOUD, 30, 0.6D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_PHANTOM_FLAP, 0.8F, 0.9F);
-        player.sendMessage(Text.literal("Gust hit " + hits + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.puff.gust.hit", hits), true);
         return true;
     }
 }

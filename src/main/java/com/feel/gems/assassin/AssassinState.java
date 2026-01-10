@@ -1,8 +1,8 @@
 package com.feel.gems.assassin;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 
@@ -27,56 +27,54 @@ public final class AssassinState {
     private static final String KEY_A_NORMAL_KILLS_VS_NON = "assassinNormalKillsVsNon";
     private static final String KEY_A_FINAL_KILLS_VS_NON = "assassinFinalKillsVsNon";
 
-    public static final int ASSASSIN_MAX_HEARTS = 10;
-
     private AssassinState() {
     }
 
     public static void initIfNeeded(ServerPlayerEntity player) {
         NbtCompound nbt = root(player);
-        if (!nbt.contains(KEY_IS_ASSASSIN, NbtElement.BYTE_TYPE)) {
+        if (nbt.getBoolean(KEY_IS_ASSASSIN).isEmpty()) {
             nbt.putBoolean(KEY_IS_ASSASSIN, false);
         }
-        if (!nbt.contains(KEY_ELIMINATED, NbtElement.BYTE_TYPE)) {
+        if (nbt.getBoolean(KEY_ELIMINATED).isEmpty()) {
             nbt.putBoolean(KEY_ELIMINATED, false);
         }
-        if (!nbt.contains(KEY_ASSASSIN_HEARTS, NbtElement.INT_TYPE)) {
-            nbt.putInt(KEY_ASSASSIN_HEARTS, ASSASSIN_MAX_HEARTS);
+        if (nbt.getInt(KEY_ASSASSIN_HEARTS).isEmpty()) {
+            nbt.putInt(KEY_ASSASSIN_HEARTS, maxHearts());
         }
-        if (!nbt.contains(KEY_TOTAL_NORMAL_KILLS, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_TOTAL_NORMAL_KILLS).isEmpty()) {
             nbt.putInt(KEY_TOTAL_NORMAL_KILLS, 0);
         }
-        if (!nbt.contains(KEY_TOTAL_FINAL_KILLS, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_TOTAL_FINAL_KILLS).isEmpty()) {
             nbt.putInt(KEY_TOTAL_FINAL_KILLS, 0);
         }
-        if (!nbt.contains(KEY_A_NORMAL_KILLS, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_A_NORMAL_KILLS).isEmpty()) {
             nbt.putInt(KEY_A_NORMAL_KILLS, 0);
         }
-        if (!nbt.contains(KEY_A_FINAL_KILLS, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_A_FINAL_KILLS).isEmpty()) {
             nbt.putInt(KEY_A_FINAL_KILLS, 0);
         }
-        if (!nbt.contains(KEY_A_NORMAL_KILLS_VS_NON, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_A_NORMAL_KILLS_VS_NON).isEmpty()) {
             nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
         }
-        if (!nbt.contains(KEY_A_FINAL_KILLS_VS_NON, NbtElement.INT_TYPE)) {
+        if (nbt.getInt(KEY_A_FINAL_KILLS_VS_NON).isEmpty()) {
             nbt.putInt(KEY_A_FINAL_KILLS_VS_NON, 0);
         }
     }
 
     public static boolean isAssassin(ServerPlayerEntity player) {
-        return root(player).getBoolean(KEY_IS_ASSASSIN);
+        return root(player).getBoolean(KEY_IS_ASSASSIN, false);
     }
 
     public static boolean isEliminated(ServerPlayerEntity player) {
-        return root(player).getBoolean(KEY_ELIMINATED);
+        return root(player).getBoolean(KEY_ELIMINATED, false);
     }
 
     public static int getAssassinHearts(ServerPlayerEntity player) {
         if (!isAssassin(player)) {
-            return ASSASSIN_MAX_HEARTS;
+            return maxHearts();
         }
-        int raw = root(player).getInt(KEY_ASSASSIN_HEARTS);
-        return clamp(raw, 0, ASSASSIN_MAX_HEARTS);
+        int raw = root(player).getInt(KEY_ASSASSIN_HEARTS, maxHearts());
+        return clamp(raw, 0, maxHearts());
     }
 
     public static int getAssassinHeartsForAttribute(ServerPlayerEntity player) {
@@ -87,14 +85,28 @@ public final class AssassinState {
     public static void becomeAssassin(ServerPlayerEntity player) {
         initIfNeeded(player);
         NbtCompound nbt = root(player);
-        if (nbt.getBoolean(KEY_IS_ASSASSIN)) {
+        if (nbt.getBoolean(KEY_IS_ASSASSIN, false)) {
             return;
         }
         nbt.putBoolean(KEY_IS_ASSASSIN, true);
         nbt.putBoolean(KEY_ELIMINATED, false);
-        nbt.putInt(KEY_ASSASSIN_HEARTS, ASSASSIN_MAX_HEARTS);
+        nbt.putInt(KEY_ASSASSIN_HEARTS, maxHearts());
 
         // Reset the "after turning" counters.
+        nbt.putInt(KEY_A_NORMAL_KILLS, 0);
+        nbt.putInt(KEY_A_FINAL_KILLS, 0);
+        nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
+        nbt.putInt(KEY_A_FINAL_KILLS_VS_NON, 0);
+    }
+
+    public static void reset(ServerPlayerEntity player) {
+        initIfNeeded(player);
+        NbtCompound nbt = root(player);
+        nbt.putBoolean(KEY_IS_ASSASSIN, false);
+        nbt.putBoolean(KEY_ELIMINATED, false);
+        nbt.putInt(KEY_ASSASSIN_HEARTS, maxHearts());
+        nbt.putInt(KEY_TOTAL_NORMAL_KILLS, 0);
+        nbt.putInt(KEY_TOTAL_FINAL_KILLS, 0);
         nbt.putInt(KEY_A_NORMAL_KILLS, 0);
         nbt.putInt(KEY_A_FINAL_KILLS, 0);
         nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
@@ -108,7 +120,7 @@ public final class AssassinState {
 
     public static int addAssassinHearts(ServerPlayerEntity player, int delta) {
         initIfNeeded(player);
-        int next = clamp(getAssassinHearts(player) + delta, 0, ASSASSIN_MAX_HEARTS);
+        int next = clamp(getAssassinHearts(player) + delta, 0, maxHearts());
         root(player).putInt(KEY_ASSASSIN_HEARTS, next);
         return next;
     }
@@ -118,32 +130,71 @@ public final class AssassinState {
         NbtCompound nbt = root(killer);
 
         if (finalKill) {
-            nbt.putInt(KEY_TOTAL_FINAL_KILLS, nbt.getInt(KEY_TOTAL_FINAL_KILLS) + 1);
+            nbt.putInt(KEY_TOTAL_FINAL_KILLS, nbt.getInt(KEY_TOTAL_FINAL_KILLS, 0) + 1);
         } else {
-            nbt.putInt(KEY_TOTAL_NORMAL_KILLS, nbt.getInt(KEY_TOTAL_NORMAL_KILLS) + 1);
+            nbt.putInt(KEY_TOTAL_NORMAL_KILLS, nbt.getInt(KEY_TOTAL_NORMAL_KILLS, 0) + 1);
         }
 
         if (isAssassin(killer)) {
             if (finalKill) {
-                nbt.putInt(KEY_A_FINAL_KILLS, nbt.getInt(KEY_A_FINAL_KILLS) + 1);
+                nbt.putInt(KEY_A_FINAL_KILLS, nbt.getInt(KEY_A_FINAL_KILLS, 0) + 1);
                 if (!victimWasAssassin) {
-                    nbt.putInt(KEY_A_FINAL_KILLS_VS_NON, nbt.getInt(KEY_A_FINAL_KILLS_VS_NON) + 1);
+                    nbt.putInt(KEY_A_FINAL_KILLS_VS_NON, nbt.getInt(KEY_A_FINAL_KILLS_VS_NON, 0) + 1);
                 }
             } else {
-                nbt.putInt(KEY_A_NORMAL_KILLS, nbt.getInt(KEY_A_NORMAL_KILLS) + 1);
+                nbt.putInt(KEY_A_NORMAL_KILLS, nbt.getInt(KEY_A_NORMAL_KILLS, 0) + 1);
                 if (!victimWasAssassin) {
-                    nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, nbt.getInt(KEY_A_NORMAL_KILLS_VS_NON) + 1);
+                    nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, nbt.getInt(KEY_A_NORMAL_KILLS_VS_NON, 0) + 1);
                 }
             }
         }
     }
 
+    /**
+     * Transfers all "as assassin" points (and the "vs non-assassins" subset) from {@code from} to {@code to}.
+     *
+     * <p>This does not modify the global kill totals; it only moves the Assassin endgame scoring counters.</p>
+     *
+     * @return the number of assassin points transferred (as computed from the moved counters)
+     */
+    public static int transferAssassinPoints(ServerPlayerEntity from, ServerPlayerEntity to) {
+        initIfNeeded(from);
+        initIfNeeded(to);
+        if (!isAssassin(from) || !isAssassin(to)) {
+            return 0;
+        }
+
+        NbtCompound fromNbt = root(from);
+        NbtCompound toNbt = root(to);
+
+        int fromNormal = Math.max(0, fromNbt.getInt(KEY_A_NORMAL_KILLS, 0));
+        int fromFinal = Math.max(0, fromNbt.getInt(KEY_A_FINAL_KILLS, 0));
+        int fromNormalVsNon = Math.max(0, fromNbt.getInt(KEY_A_NORMAL_KILLS_VS_NON, 0));
+        int fromFinalVsNon = Math.max(0, fromNbt.getInt(KEY_A_FINAL_KILLS_VS_NON, 0));
+
+        if (fromNormal == 0 && fromFinal == 0 && fromNormalVsNon == 0 && fromFinalVsNon == 0) {
+            return 0;
+        }
+
+        addNonNegative(toNbt, KEY_A_NORMAL_KILLS, fromNormal);
+        addNonNegative(toNbt, KEY_A_FINAL_KILLS, fromFinal);
+        addNonNegative(toNbt, KEY_A_NORMAL_KILLS_VS_NON, fromNormalVsNon);
+        addNonNegative(toNbt, KEY_A_FINAL_KILLS_VS_NON, fromFinalVsNon);
+
+        fromNbt.putInt(KEY_A_NORMAL_KILLS, 0);
+        fromNbt.putInt(KEY_A_FINAL_KILLS, 0);
+        fromNbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
+        fromNbt.putInt(KEY_A_FINAL_KILLS_VS_NON, 0);
+
+        return points(fromNormal, fromFinal);
+    }
+
     public static int totalNormalKills(ServerPlayerEntity player) {
-        return root(player).getInt(KEY_TOTAL_NORMAL_KILLS);
+        return root(player).getInt(KEY_TOTAL_NORMAL_KILLS, 0);
     }
 
     public static int totalFinalKills(ServerPlayerEntity player) {
-        return root(player).getInt(KEY_TOTAL_FINAL_KILLS);
+        return root(player).getInt(KEY_TOTAL_FINAL_KILLS, 0);
     }
 
     public static int totalPoints(ServerPlayerEntity player) {
@@ -151,11 +202,11 @@ public final class AssassinState {
     }
 
     public static int assassinNormalKills(ServerPlayerEntity player) {
-        return root(player).getInt(KEY_A_NORMAL_KILLS);
+        return root(player).getInt(KEY_A_NORMAL_KILLS, 0);
     }
 
     public static int assassinFinalKills(ServerPlayerEntity player) {
-        return root(player).getInt(KEY_A_FINAL_KILLS);
+        return root(player).getInt(KEY_A_FINAL_KILLS, 0);
     }
 
     public static int assassinPoints(ServerPlayerEntity player) {
@@ -163,11 +214,11 @@ public final class AssassinState {
     }
 
     public static int assassinNormalKillsVsNonAssassins(ServerPlayerEntity player) {
-        return root(player).getInt(KEY_A_NORMAL_KILLS_VS_NON);
+        return root(player).getInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
     }
 
     public static int assassinFinalKillsVsNonAssassins(ServerPlayerEntity player) {
-        return root(player).getInt(KEY_A_FINAL_KILLS_VS_NON);
+        return root(player).getInt(KEY_A_FINAL_KILLS_VS_NON, 0);
     }
 
     public static int assassinPointsVsNonAssassins(ServerPlayerEntity player) {
@@ -178,12 +229,27 @@ public final class AssassinState {
         return Math.max(0, normalKills) + Math.max(0, finalKills) * 3;
     }
 
+    public static int maxHearts() {
+        return GemsBalance.v().systems().assassinMaxHearts();
+    }
+
+    public static int eliminationThreshold() {
+        return GemsBalance.v().systems().assassinEliminationHeartsThreshold();
+    }
+
+    public static boolean isEliminatedByHearts(int hearts) {
+        return hearts <= eliminationThreshold();
+    }
+
     private static NbtCompound root(ServerPlayerEntity player) {
         return ((GemsPersistentDataHolder) player).gems$getPersistentData();
+    }
+
+    private static void addNonNegative(NbtCompound nbt, String key, int delta) {
+        nbt.putInt(key, Math.max(0, nbt.getInt(key, 0) + Math.max(0, delta)));
     }
 
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
     }
 }
-

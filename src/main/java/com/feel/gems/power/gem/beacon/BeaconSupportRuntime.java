@@ -1,6 +1,7 @@
 package com.feel.gems.power.gem.beacon;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemsPersistentDataHolder;
@@ -38,9 +39,14 @@ public final class BeaconSupportRuntime {
         }
 
         int amplifier = Math.max(0, (hearts / 2) - 1);
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
+            if (other != player && VoidImmunity.shouldBlockEffect(player, other)) {
+                continue;
+            }
             if (other == player) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, duration, amplifier, true, true, false));
                 continue;
@@ -68,15 +74,20 @@ public final class BeaconSupportRuntime {
 
         NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         long now = GemsTime.now(player);
-        long next = nbt.getLong(KEY_CORE_NEXT);
+        long next = nbt.getLong(KEY_CORE_NEXT, 0L);
         if (next > now) {
             return;
         }
         nbt.putLong(KEY_CORE_NEXT, now + pulse);
 
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
+            if (other != player && VoidImmunity.shouldBlockEffect(player, other)) {
+                continue;
+            }
             if (GemTrust.isTrusted(player, other) || other == player) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, amp, true, false, false));
             } else {
@@ -95,9 +106,14 @@ public final class BeaconSupportRuntime {
             return;
         }
 
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
+            if (other != player && VoidImmunity.shouldBlockEffect(player, other)) {
+                continue;
+            }
             if (GemTrust.isTrusted(player, other) || other == player) {
                 for (StatusEffectInstance effect : java.util.List.copyOf(other.getStatusEffects())) {
                     if (effect.getEffectType().value().getCategory() != StatusEffectCategory.HARMFUL) {

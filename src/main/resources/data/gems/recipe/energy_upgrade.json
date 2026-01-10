@@ -7,15 +7,9 @@
     "NEN"
   ],
   "key": {
-    "N": {
-      "item": "minecraft:netherite_scrap"
-    },
-    "E": {
-      "item": "minecraft:emerald_block"
-    },
-    "D": {
-      "item": "minecraft:diamond_block"
-    }
+    "N": "minecraft:netherite_scrap",
+    "E": "minecraft:emerald_block",
+    "D": "minecraft:diamond_block"
   },
   "result": {
     "count": 1,

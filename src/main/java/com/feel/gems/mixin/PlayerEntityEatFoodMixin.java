@@ -5,9 +5,7 @@ import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.util.GemsTime;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -20,27 +18,28 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
 
-@Mixin(PlayerEntity.class)
+@Mixin(ItemStack.class)
 public abstract class PlayerEntityEatFoodMixin {
     private static final String KEY_ROT_EATER_UNTIL = "reaperRotEaterUntil";
 
-    @Inject(method = "eatFood", at = @At("TAIL"))
-    private void gems$reaperRotEater(World world, ItemStack stack, FoodComponent component, CallbackInfoReturnable<ItemStack> cir) {
-        if (world.isClient) {
+    @Inject(method = "finishUsing", at = @At("TAIL"))
+    private void gems$reaperRotEater(World world, net.minecraft.entity.LivingEntity user, CallbackInfoReturnable<ItemStack> cir) {
+        if (world == null || world.isClient()) {
             return;
         }
-        PlayerEntity self = (PlayerEntity) (Object) this;
-        if (!(self instanceof ServerPlayerEntity player)) {
+        if (!(user instanceof ServerPlayerEntity player)) {
             return;
         }
         if (!GemPowers.isPassiveActive(player, PowerIds.REAPER_ROT_EATER)) {
             return;
         }
 
-        if (stack.isOf(Items.ROTTEN_FLESH)) {
+        ItemStack self = (ItemStack) (Object) this;
+
+        if (self.isOf(Items.ROTTEN_FLESH)) {
             markRotEater(player);
             player.removeStatusEffect(StatusEffects.HUNGER);
-        } else if (stack.isOf(Items.SPIDER_EYE)) {
+        } else if (self.isOf(Items.SPIDER_EYE)) {
             markRotEater(player);
             player.removeStatusEffect(StatusEffects.POISON);
         }

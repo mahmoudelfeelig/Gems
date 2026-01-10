@@ -7,8 +7,11 @@ import com.feel.gems.power.gem.terror.TerrorFearlessPassive;
 import com.feel.gems.power.passive.AutoEnchantPassive;
 import com.feel.gems.power.passive.MarkerPassive;
 import com.feel.gems.power.passive.StatusEffectPassive;
+import com.feel.gems.power.passive.bonus.*;
+import com.feel.gems.power.passive.duelist.DuelistCombatStancePassive;
 import com.feel.gems.power.passive.flux.FluxCapacitorPassive;
 import com.feel.gems.power.passive.puff.PuffWindbornePassive;
+import com.feel.gems.power.passive.sentinel.SentinelFortressPassive;
 import com.feel.gems.power.passive.strength.StrengthAdrenalinePassive;
 import java.util.Collections;
 import java.util.HashMap;
@@ -289,6 +292,19 @@ public final class ModPassives {
                 "Illager Discipline",
                 "When you drop low, gain a brief burst of Resistance (cooldown)."
         ));
+        register(AutoEnchantPassive.quickCharge(
+                PowerIds.PILLAGER_CROSSBOW_MASTERY,
+                "Crossbow Mastery",
+                "Automatically applies Quick Charge to crossbows.",
+                2
+        ));
+        register(new StatusEffectPassive(
+                PowerIds.PILLAGER_RAIDER_STRIDE,
+                "Raider's Stride",
+                "Permanent minor Speed while the gem is active.",
+                StatusEffects.SPEED,
+                0
+        ));
 
         // Spy/Mimic
         register(new MarkerPassive(
@@ -351,6 +367,134 @@ public final class ModPassives {
                 PowerIds.AIR_WIND_SHEAR,
                 "Wind Shear",
                 "Mace strikes add extra knockback and a short slow."
+        ));
+
+        // Bonus Pool Passives (claimable at energy 10/10) - Original 20
+        register(new BonusThornsAuraPassive());
+        register(new BonusLifestealPassive());
+        register(new BonusDodgeChancePassive());
+        register(new BonusCriticalStrikePassive());
+        register(new BonusManaShieldPassive());
+        register(new BonusRegenerationBoostPassive());
+        register(new BonusDamageReductionPassive());
+        register(new BonusAttackSpeedPassive());
+        register(new BonusReachExtendPassive());
+        register(new BonusImpactAbsorbPassive());
+        register(new BonusAdrenalineSurgePassive());
+        register(new BonusIntimidatePassive());
+        register(new BonusEvasiveRollPassive());
+        register(new BonusCombatMeditatePassive());
+        register(new BonusWeaponMasteryPassive());
+        register(new BonusCullingBladePassive());
+        register(new BonusThickSkinPassive());
+        register(new BonusXpBoostPassive());
+        register(new BonusHungerResistPassive());
+        register(new BonusPoisonImmunityPassive());
+        
+        // Bonus Pool Passives - New 30
+        register(new BonusSecondWindPassive());
+        register(new BonusEchoStrikePassive());
+        register(new BonusChainBreakerPassive());
+        register(new BonusStoneSkinPassive());
+        register(new BonusArcaneBarrierPassive());
+        register(new BonusPredatorSensePassive());
+        register(new BonusBattleMedicPassive());
+        register(new BonusLastStandPassive());
+        register(new BonusExecutionerPassive());
+        register(new BonusBloodthirstPassive());
+        register(new BonusSteelResolvePassive());
+        register(new BonusElementalHarmonyPassive());
+        register(new BonusTreasureHunterPassive());
+        register(new BonusCounterStrikePassive());
+        register(new BonusBulwarkPassive());
+        register(new BonusQuickRecoveryPassive());
+        register(new BonusOverflowingVitalityPassive());
+        register(new BonusMagneticPullPassive());
+        register(new BonusVengeancePassive());
+        register(new BonusNemesisPassive());
+        register(new BonusHuntersInstinctPassive());
+        register(new BonusBerserkerBloodPassive());
+        register(new BonusOpportunistPassive());
+        register(new BonusIroncladPassive());
+        register(new BonusSpectralFormPassive());
+        register(new BonusWarCryPassive());
+        register(new BonusAdrenalineRushPassive());
+        register(new BonusUnbreakablePassive());
+        register(new BonusFocusedMindPassive());
+        register(new BonusSixthSensePassive());
+
+        // Void gem passive
+        register(new MarkerPassive(
+                PowerIds.VOID_IMMUNITY,
+                "Void Immunity",
+                "Immune to all gem abilities and passives from other players."
+        ));
+
+        // Chaos gem passive
+        register(new MarkerPassive(
+                PowerIds.CHAOS_RANDOM_ROTATION,
+                "Chaos Rotation",
+                "Gain a random ability and passive every 5 minutes."
+        ));
+
+        // Duelist gem passives
+        register(new MarkerPassive(
+                PowerIds.DUELIST_RIPOSTE,
+                "Riposte",
+                "After a successful parry, your next melee attack deals bonus damage."
+        ));
+        register(new MarkerPassive(
+                PowerIds.DUELIST_FOCUS,
+                "Duelist's Focus",
+                "Deal 25% more damage in 1v1 combat when no other players are within 15 blocks."
+        ));
+        register(new DuelistCombatStancePassive());
+
+        // Hunter gem passives
+        register(new MarkerPassive(
+                PowerIds.HUNTER_PREY_MARK,
+                "Prey Mark",
+                "Hitting an enemy marks them as prey; deal bonus damage to marked targets."
+        ));
+        register(new MarkerPassive(
+                PowerIds.HUNTER_TRACKERS_EYE,
+                "Tracker's Eye",
+                "Marked enemies are visible through walls within 30 blocks."
+        ));
+        register(new MarkerPassive(
+                PowerIds.HUNTER_TROPHY_HUNTER,
+                "Trophy Hunter",
+                "On player kill, temporarily gain one of their random passives."
+        ));
+
+        // Sentinel gem passives
+        register(new MarkerPassive(
+                PowerIds.SENTINEL_GUARDIAN_AURA,
+                "Guardian Aura",
+                "Nearby trusted allies take 15% less damage."
+        ));
+        register(new SentinelFortressPassive());
+        register(new MarkerPassive(
+                PowerIds.SENTINEL_RETRIBUTION_THORNS,
+                "Retribution Thorns",
+                "Attackers take reflected damage when they hit you."
+        ));
+
+        // Trickster gem passives
+        register(new MarkerPassive(
+                PowerIds.TRICKSTER_SLEIGHT_OF_HAND,
+                "Sleight of Hand",
+                "20% chance to not consume items when using throwables."
+        ));
+        register(new MarkerPassive(
+                PowerIds.TRICKSTER_CHAOS_AGENT,
+                "Chaos Agent",
+                "Your abilities have randomized bonus effects (can be beneficial or detrimental)."
+        ));
+        register(new MarkerPassive(
+                PowerIds.TRICKSTER_SLIPPERY,
+                "Slippery",
+                "25% chance to ignore slowing effects."
         ));
     }
 

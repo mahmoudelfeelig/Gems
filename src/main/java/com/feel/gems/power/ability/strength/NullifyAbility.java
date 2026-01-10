@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.strength;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -38,7 +39,9 @@ public final class NullifyAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         int radius = GemsBalance.v().strength().nullifyRadiusBlocks();
         int affected = 0;
         Box box = new Box(player.getBlockPos()).expand(radius);
@@ -46,13 +49,16 @@ public final class NullifyAbility implements GemAbility {
             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
                 continue;
             }
+            if (other instanceof ServerPlayerEntity otherPlayer && !VoidImmunity.canBeTargeted(player, otherPlayer)) {
+                continue;
+            }
             other.clearStatusEffects();
-            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ENCHANT, 10, 0.25D);
+            AbilityFeedback.burstAt(world, other.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ENCHANT, 10, 0.25D);
             affected++;
         }
         AbilityFeedback.sound(player, SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, 0.8F, 0.8F);
         AbilityFeedback.burst(player, ParticleTypes.ENCHANT, 14, 0.35D);
-        player.sendMessage(Text.literal("Nullified " + affected + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.strength.nullify.affected", affected), true);
         return true;
     }
 }

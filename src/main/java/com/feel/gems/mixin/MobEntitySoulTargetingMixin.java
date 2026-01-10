@@ -3,6 +3,7 @@ package com.feel.gems.mixin;
 import com.feel.gems.legendary.HypnoControl;
 import com.feel.gems.power.gem.astra.SoulSummons;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
+import com.feel.gems.power.runtime.AbilityRestrictions;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.trust.GemTrust;
 import java.util.UUID;
@@ -23,7 +24,7 @@ public abstract class MobEntitySoulTargetingMixin {
     @Inject(method = "setTarget", at = @At("TAIL"))
     private void gems$preventTargetingTrusted(LivingEntity target, CallbackInfo ci) {
         MobEntity self = (MobEntity) (Object) this;
-        if (!(self.getWorld() instanceof ServerWorld world)) {
+        if (!(self.getEntityWorld() instanceof ServerWorld world)) {
             return;
         }
         if (target == null) {
@@ -48,6 +49,12 @@ public abstract class MobEntitySoulTargetingMixin {
         }
         GemPlayerState.initIfNeeded(owner);
         if (GemPlayerState.getEnergy(owner) <= 0) {
+            return;
+        }
+        if (!GemPlayerState.arePassivesEnabled(owner)) {
+            return;
+        }
+        if (AbilityRestrictions.isSuppressed(owner)) {
             return;
         }
 

@@ -39,7 +39,7 @@ public final class LifeCircleAbility implements GemAbility {
         AbilityRuntime.startLifeCircle(player, GemsBalance.v().life().lifeCircleDurationTicks());
         AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_ACTIVATE, 0.8F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.HEART, 16, 0.35D);
-        player.sendMessage(Text.literal("Life Circle active."), true);
+        player.sendMessage(Text.translatable("gems.ability.life.life_circle.active"), true);
         return true;
     }
 }

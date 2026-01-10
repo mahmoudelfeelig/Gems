@@ -4,6 +4,7 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.net.GemExtraStateSync;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.flux.FluxCharge;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -45,7 +46,7 @@ public final class FluxSurgeAbility implements GemAbility {
         int charge = FluxCharge.get(player);
         int cost = cfg.fluxSurgeChargeCost();
         if (charge < cost) {
-            player.sendMessage(Text.literal("Not enough Flux charge."), true);
+            player.sendMessage(Text.translatable("gems.ability.flux.not_enough_charge"), true);
             return false;
         }
 
@@ -63,7 +64,7 @@ public final class FluxSurgeAbility implements GemAbility {
             }
         }
 
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         int radius = cfg.fluxSurgeRadiusBlocks();
         if (radius > 0) {
             double knockback = cfg.fluxSurgeKnockback();
@@ -72,9 +73,12 @@ public final class FluxSurgeAbility implements GemAbility {
                 if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
                     continue;
                 }
-                Vec3d delta = other.getPos().subtract(player.getPos()).normalize();
+                if (other instanceof ServerPlayerEntity otherPlayer && !VoidImmunity.canBeTargeted(player, otherPlayer)) {
+                    continue;
+                }
+                Vec3d delta = other.getEntityPos().subtract(player.getEntityPos()).normalize();
                 other.addVelocity(delta.x * knockback, 0.2D, delta.z * knockback);
-                other.velocityModified = true;
+                other.velocityDirty = true;
             }
         }
 

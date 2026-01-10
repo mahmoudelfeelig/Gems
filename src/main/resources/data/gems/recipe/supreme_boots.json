@@ -7,18 +7,10 @@
     "FHF"
   ],
   "key": {
-    "F": {
-      "item": "minecraft:phantom_membrane"
-    },
-    "H": {
-      "item": "minecraft:rabbit_foot"
-    },
-    "N": {
-      "item": "minecraft:netherite_ingot"
-    },
-    "B": {
-      "item": "minecraft:netherite_boots"
-    }
+    "F": "minecraft:phantom_membrane",
+    "H": "minecraft:rabbit_foot",
+    "N": "minecraft:netherite_ingot",
+    "B": "minecraft:netherite_boots"
   },
   "result": {
     "count": 1,

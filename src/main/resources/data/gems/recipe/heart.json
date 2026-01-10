@@ -7,15 +7,9 @@
     "NIN"
   ],
   "key": {
-    "N": {
-      "item": "minecraft:netherite_scrap"
-    },
-    "I": {
-      "item": "minecraft:iron_block"
-    },
-    "G": {
-      "item": "minecraft:gold_block"
-    }
+    "N": "minecraft:netherite_scrap",
+    "I": "minecraft:iron_block",
+    "G": "minecraft:gold_block"
   },
   "result": {
     "count": 1,

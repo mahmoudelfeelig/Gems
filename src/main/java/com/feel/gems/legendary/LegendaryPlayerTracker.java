@@ -1,24 +1,24 @@
 package com.feel.gems.legendary;
 
 import com.feel.gems.util.GemsTime;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.datafixer.DataFixTypes;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
+import net.minecraft.world.PersistentStateType;
 import net.minecraft.world.World;
 
 
@@ -26,8 +26,8 @@ import net.minecraft.world.World;
 
 public final class LegendaryPlayerTracker {
     private static final String STATE_KEY = "gems_legendary_player_tracker";
-    private static final PersistentState.Type<State> STATE_TYPE =
-            new PersistentState.Type<>(State::new, State::fromNbt, DataFixTypes.SAVED_DATA_MAP_DATA);
+    private static final PersistentStateType<State> STATE_TYPE =
+            new PersistentStateType<>(STATE_KEY, State::new, State.CODEC, DataFixTypes.SAVED_DATA_MAP_DATA);
 
     private static final String KEY_PLAYERS = "players";
     private static final String KEY_UUID = "uuid";
@@ -64,7 +64,7 @@ public final class LegendaryPlayerTracker {
 
     private static State state(MinecraftServer server) {
         PersistentStateManager mgr = server.getOverworld().getPersistentStateManager();
-        return mgr.getOrCreate(STATE_TYPE, STATE_KEY);
+        return mgr.getOrCreate(STATE_TYPE);
     }
 
     public record Snapshot(
@@ -76,21 +76,33 @@ public final class LegendaryPlayerTracker {
             BlockPos respawnPos,
             long lastSeenTick
     ) {
+        static final Codec<Snapshot> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Uuids.CODEC.fieldOf(KEY_UUID).forGetter(Snapshot::uuid),
+                Codec.STRING.fieldOf(KEY_NAME).forGetter(Snapshot::name),
+                Identifier.CODEC.fieldOf(KEY_DIM).forGetter(Snapshot::dimension),
+                BlockPos.CODEC.fieldOf(KEY_POS).forGetter(Snapshot::pos),
+                Identifier.CODEC.fieldOf(KEY_RESPAWN_DIM).forGetter(Snapshot::respawnDimension),
+                BlockPos.CODEC.fieldOf(KEY_RESPAWN_POS).forGetter(Snapshot::respawnPos),
+                Codec.LONG.fieldOf(KEY_LAST_SEEN).forGetter(Snapshot::lastSeenTick)
+        ).apply(instance, Snapshot::new));
+
         static Snapshot fromPlayer(MinecraftServer server, ServerPlayerEntity player, long now) {
-            Identifier dim = player.getServerWorld().getRegistryKey().getValue();
+            Identifier dim = player.getEntityWorld().getRegistryKey().getValue();
             BlockPos pos = player.getBlockPos();
 
-            RegistryKey<World> respawnKey = player.getSpawnPointDimension();
-            BlockPos respawnPos = player.getSpawnPointPosition();
+            var respawn = player.getRespawn();
+            var spawnPoint = respawn == null ? null : respawn.respawnData();
+            RegistryKey<World> respawnKey = spawnPoint == null ? null : spawnPoint.getDimension();
+            BlockPos respawnPos = spawnPoint == null ? null : spawnPoint.getPos();
             if (respawnKey == null || respawnPos == null) {
                 ServerWorld overworld = server.getOverworld();
                 respawnKey = World.OVERWORLD;
-                respawnPos = overworld.getSpawnPos();
+                respawnPos = overworld.getSpawnPoint().getPos();
             }
 
             return new Snapshot(
                     player.getUuid(),
-                    player.getGameProfile().getName(),
+                    player.getGameProfile().name(),
                     dim,
                     pos,
                     respawnKey.getValue(),
@@ -103,63 +115,21 @@ public final class LegendaryPlayerTracker {
     private static final class State extends PersistentState {
         private final Map<UUID, Snapshot> players = new HashMap<>();
 
-        static State fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        static final Codec<State> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Snapshot.CODEC.listOf().optionalFieldOf(KEY_PLAYERS, List.of()).forGetter(state -> List.copyOf(state.players.values()))
+        ).apply(instance, State::fromSnapshots));
+
+        private static State fromSnapshots(List<Snapshot> snapshots) {
             State state = new State();
-            if (!nbt.contains(KEY_PLAYERS, NbtElement.LIST_TYPE)) {
-                return state;
-            }
-            NbtList list = nbt.getList(KEY_PLAYERS, NbtElement.COMPOUND_TYPE);
-            for (int i = 0; i < list.size(); i++) {
-                NbtCompound entry = list.getCompound(i);
-                if (!entry.containsUuid(KEY_UUID)) {
-                    continue;
+            if (snapshots != null) {
+                for (Snapshot snapshot : snapshots) {
+                    if (snapshot == null || snapshot.uuid() == null) {
+                        continue;
+                    }
+                    state.players.put(snapshot.uuid(), snapshot);
                 }
-                UUID uuid = entry.getUuid(KEY_UUID);
-                String name = entry.getString(KEY_NAME);
-                Identifier dim = Identifier.tryParse(entry.getString(KEY_DIM));
-                BlockPos pos = readBlockPos(entry, KEY_POS);
-                Identifier respawnDim = Identifier.tryParse(entry.getString(KEY_RESPAWN_DIM));
-                BlockPos respawnPos = readBlockPos(entry, KEY_RESPAWN_POS);
-                long lastSeen = entry.getLong(KEY_LAST_SEEN);
-                if (dim == null || pos == null || respawnDim == null || respawnPos == null) {
-                    continue;
-                }
-                state.players.put(uuid, new Snapshot(uuid, name, dim, pos, respawnDim, respawnPos, lastSeen));
             }
             return state;
-        }
-
-        @Override
-        public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-            NbtList list = new NbtList();
-            for (Snapshot snapshot : players.values()) {
-                NbtCompound entry = new NbtCompound();
-                entry.putUuid(KEY_UUID, snapshot.uuid());
-                entry.putString(KEY_NAME, snapshot.name());
-                entry.putString(KEY_DIM, snapshot.dimension().toString());
-                writeBlockPos(entry, KEY_POS, snapshot.pos());
-                entry.putString(KEY_RESPAWN_DIM, snapshot.respawnDimension().toString());
-                writeBlockPos(entry, KEY_RESPAWN_POS, snapshot.respawnPos());
-                entry.putLong(KEY_LAST_SEEN, snapshot.lastSeenTick());
-                list.add(entry);
-            }
-            nbt.put(KEY_PLAYERS, list);
-            return nbt;
-        }
-
-        private static BlockPos readBlockPos(NbtCompound nbt, String key) {
-            if (!nbt.contains(key, NbtElement.INT_ARRAY_TYPE)) {
-                return null;
-            }
-            int[] values = nbt.getIntArray(key);
-            if (values.length != 3) {
-                return null;
-            }
-            return new BlockPos(values[0], values[1], values[2]);
-        }
-
-        private static void writeBlockPos(NbtCompound nbt, String key, BlockPos pos) {
-            nbt.put(key, new net.minecraft.nbt.NbtIntArray(new int[]{pos.getX(), pos.getY(), pos.getZ()}));
         }
     }
 }

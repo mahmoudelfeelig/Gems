@@ -1,6 +1,7 @@
 package com.feel.gems.power.ability.spy;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.config.GemsDisables;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.power.registry.PowerIds;
@@ -36,26 +37,29 @@ public final class SpyStolenCastAbility implements GemAbility {
         if (player.isSneaking()) {
             boolean ok = SpyMimicSystem.cycleStolen(player);
             if (!ok) {
-                player.sendMessage(Text.literal("No stolen abilities."), true);
+                player.sendMessage(Text.translatable("gems.ability.spy.stolen_cast.no_stolen"), true);
             }
             return ok;
         }
 
         Identifier id = SpyMimicSystem.selectedStolenAbility(player);
         if (id == null) {
-            player.sendMessage(Text.literal("No stolen abilities."), true);
+            player.sendMessage(Text.translatable("gems.ability.spy.stolen_cast.no_stolen"), true);
+            return false;
+        }
+        if (GemsDisables.isAbilityDisabled(id)) {
+            player.sendMessage(Text.translatable("gems.message.ability_disabled_server"), true);
             return false;
         }
         GemAbility ability = ModAbilities.get(id);
         if (ability == null) {
-            player.sendMessage(Text.literal("Stolen ability not found: " + id), true);
+            player.sendMessage(Text.translatable("gems.ability.spy.stolen_cast.not_found", id.toString()), true);
             return false;
         }
         boolean ok = ability.activate(player);
         if (!ok) {
-            player.sendMessage(Text.literal("Stolen cast failed."), true);
+            player.sendMessage(Text.translatable("gems.ability.spy.stolen_cast.failed"), true);
         }
         return ok;
     }
 }
-

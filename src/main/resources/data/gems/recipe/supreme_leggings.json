@@ -7,18 +7,10 @@
     "SOS"
   ],
   "key": {
-    "S": {
-      "item": "minecraft:sculk_sensor"
-    },
-    "O": {
-      "item": "minecraft:echo_shard"
-    },
-    "N": {
-      "item": "minecraft:netherite_ingot"
-    },
-    "L": {
-      "item": "minecraft:netherite_leggings"
-    }
+    "S": "minecraft:sculk_sensor",
+    "O": "minecraft:echo_shard",
+    "N": "minecraft:netherite_ingot",
+    "L": "minecraft:netherite_leggings"
   },
   "result": {
     "count": 1,

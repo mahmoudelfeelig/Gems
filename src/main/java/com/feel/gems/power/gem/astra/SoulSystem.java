@@ -1,8 +1,10 @@
 package com.feel.gems.power.gem.astra;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemPowers;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.MobBlacklist;
 import java.util.UUID;
@@ -12,7 +14,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -25,7 +26,6 @@ import net.minecraft.util.math.Vec3d;
 
 public final class SoulSystem {
     private static final String KEY_SOUL_TYPE = "soulType";
-    private static final String KEY_SOUL_NBT = "soulNbt";
 
     private SoulSystem() {
     }
@@ -48,75 +48,71 @@ public final class SoulSystem {
         if (typeId == null) {
             return;
         }
-        NbtCompound soulNbt = new NbtCompound();
-        killed.writeNbt(soulNbt);
-        sanitizeSoulNbt(killed, soulNbt);
         NbtCompound root = persistent(player);
         root.putString(KEY_SOUL_TYPE, typeId.toString());
-        root.put(KEY_SOUL_NBT, soulNbt);
         com.feel.gems.net.GemExtraStateSync.send(player);
         AbilityFeedback.burst(player, ParticleTypes.SCULK_SOUL, 8, 0.25D);
 
         if (GemPowers.isPassiveActive(player, PowerIds.SOUL_HEALING)) {
-            player.heal(2.0F);
+            player.heal(GemsBalance.v().astra().soulHealingHearts());
         }
     }
 
     public static boolean hasSoul(ServerPlayerEntity player) {
-        return persistent(player).contains(KEY_SOUL_TYPE, NbtElement.STRING_TYPE);
+        return persistent(player).contains(KEY_SOUL_TYPE);
     }
 
     public static String soulType(ServerPlayerEntity player) {
-        return persistent(player).getString(KEY_SOUL_TYPE);
+        return persistent(player).getString(KEY_SOUL_TYPE, "");
     }
 
     public static boolean release(ServerPlayerEntity player) {
         if (!GemPowers.isPassiveActive(player, PowerIds.SOUL_CAPTURE)) {
-            player.sendMessage(Text.literal("Soul Capture is not active."), true);
+            player.sendMessage(Text.translatable("gems.astra.soul_capture_not_active"), true);
             return false;
         }
         NbtCompound nbt = persistent(player);
-        if (!nbt.contains(KEY_SOUL_TYPE, NbtElement.STRING_TYPE)) {
-            player.sendMessage(Text.literal("No captured soul."), true);
+        if (!nbt.contains(KEY_SOUL_TYPE)) {
+            player.sendMessage(Text.translatable("gems.astra.no_captured_soul"), true);
             return false;
         }
-        Identifier id = Identifier.tryParse(nbt.getString(KEY_SOUL_TYPE));
+        Identifier id = Identifier.tryParse(nbt.getString(KEY_SOUL_TYPE, ""));
         if (id == null) {
             nbt.remove(KEY_SOUL_TYPE);
-            nbt.remove(KEY_SOUL_NBT);
-            player.sendMessage(Text.literal("Captured soul was invalid and was cleared."), true);
+            player.sendMessage(Text.translatable("gems.astra.soul_invalid"), true);
             return false;
         }
         if (MobBlacklist.isBlacklisted(id)) {
             nbt.remove(KEY_SOUL_TYPE);
-            nbt.remove(KEY_SOUL_NBT);
-            player.sendMessage(Text.literal("Captured soul is blacklisted and was cleared."), true);
+            player.sendMessage(Text.translatable("gems.astra.soul_blacklisted"), true);
             return false;
         }
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            nbt.remove(KEY_SOUL_TYPE);
+            player.sendMessage(Text.translatable("gems.astra.cannot_release_soul"), true);
+            return false;
+        }
         EntityType<?> type = Registries.ENTITY_TYPE.get(id);
 
         // Spawn clearly above the ground so summons don't clip into the floor (common with foot-position spawning).
         // (Players reported this feeling "too low" at smaller offsets.)
-        Vec3d pos = player.getPos()
-                .add(player.getRotationVec(1.0F).multiply(2.0D))
-                .add(0.0D, 1.0D, 0.0D);
-        Entity entity = type.create(world);
+        double forward = GemsBalance.v().astra().soulReleaseForwardBlocks();
+        double up = GemsBalance.v().astra().soulReleaseUpBlocks();
+        Vec3d pos = player.getEntityPos()
+                .add(player.getRotationVec(1.0F).multiply(forward))
+                .add(0.0D, up, 0.0D);
+        Entity entity = type.create(world, net.minecraft.entity.SpawnReason.MOB_SUMMONED);
         if (entity == null) {
             nbt.remove(KEY_SOUL_TYPE);
-            nbt.remove(KEY_SOUL_NBT);
-            player.sendMessage(Text.literal("Cannot summon: " + id), true);
+            player.sendMessage(Text.translatable("gems.astra.cannot_summon", id.toString()), true);
             return false;
         }
         if (entity instanceof net.minecraft.entity.mob.MobEntity mob) {
             mob.initialize(world, world.getLocalDifficulty(net.minecraft.util.math.BlockPos.ofFloored(pos)),
                     net.minecraft.entity.SpawnReason.MOB_SUMMONED, null);
         }
-        if (nbt.contains(KEY_SOUL_NBT, NbtElement.COMPOUND_TYPE)) {
-            NbtCompound soulNbt = nbt.getCompound(KEY_SOUL_NBT);
-            if (!soulNbt.isEmpty()) {
-                applySoulNbt(entity, soulNbt);
-            }
+        if (entity instanceof net.minecraft.entity.mob.MobEntity mob) {
+            com.feel.gems.power.gem.summoner.SummonerSummons.tuneControlledMob(mob);
         }
         SoulSummons.mark(entity, player.getUuid());
         SoulSummons.trackSpawn(player, entity);
@@ -132,19 +128,18 @@ public final class SoulSystem {
         }
 
         nbt.remove(KEY_SOUL_TYPE);
-        nbt.remove(KEY_SOUL_NBT);
         com.feel.gems.net.GemExtraStateSync.send(player);
         if (GemPowers.isPassiveActive(player, PowerIds.SOUL_HEALING)) {
-            player.heal(2.0F);
+            player.heal(GemsBalance.v().astra().soulHealingHearts());
         }
         AbilityFeedback.sound(player, SoundEvents.ITEM_TOTEM_USE, 0.8F, 1.4F);
         AbilityFeedback.burstAt(world, pos.add(0.0D, 1.0D, 0.0D), ParticleTypes.SCULK_SOUL, 18, 0.35D);
-        player.sendMessage(Text.literal("Released soul: " + id), true);
+        player.sendMessage(Text.translatable("gems.astra.released_soul", id.toString()), true);
         return true;
     }
 
     private static void addHostileTargeting(HostileEntity mob, UUID ownerUuid) {
-        if (!(mob.getWorld() instanceof ServerWorld world)) {
+        if (!(mob.getEntityWorld() instanceof ServerWorld world)) {
             return;
         }
         ServerPlayerEntity owner = world.getServer().getPlayerManager().getPlayer(ownerUuid);
@@ -154,8 +149,11 @@ public final class SoulSystem {
 
         // Best-effort: make hostile summons target untrusted players, while excluding the owner and trusted players.
         ((com.feel.gems.mixin.accessor.MobEntitySelectorsAccessor) mob).gems$getTargetSelector().add(1,
-                new ActiveTargetGoal<>(mob, ServerPlayerEntity.class, true, candidate -> {
+                new ActiveTargetGoal<>(mob, ServerPlayerEntity.class, true, (candidate, candidateWorld) -> {
                     if (!(candidate instanceof ServerPlayerEntity p)) {
+                        return false;
+                    }
+                    if (!VoidImmunity.canBeTargeted(owner, p)) {
                         return false;
                     }
                     return !com.feel.gems.trust.GemTrust.isTrusted(owner, p);
@@ -167,29 +165,4 @@ public final class SoulSystem {
         return ((GemsPersistentDataHolder) player).gems$getPersistentData();
     }
 
-    private static void sanitizeSoulNbt(LivingEntity entity, NbtCompound nbt) {
-        nbt.remove("UUID");
-        nbt.remove("UUIDMost");
-        nbt.remove("UUIDLeast");
-        nbt.remove("Pos");
-        nbt.remove("Motion");
-        nbt.remove("Rotation");
-        nbt.remove("Passengers");
-        nbt.remove("HurtTime");
-        nbt.remove("DeathTime");
-        nbt.remove("HurtByTimestamp");
-        nbt.putFloat("Health", entity.getMaxHealth());
-    }
-
-    private static void applySoulNbt(Entity entity, NbtCompound soulNbt) {
-        NbtCompound spawnNbt = soulNbt.copy();
-        spawnNbt.remove("UUID");
-        spawnNbt.remove("UUIDMost");
-        spawnNbt.remove("UUIDLeast");
-        spawnNbt.remove("Pos");
-        spawnNbt.remove("Motion");
-        spawnNbt.remove("Rotation");
-        spawnNbt.remove("Passengers");
-        entity.readNbt(spawnNbt);
-    }
 }

@@ -1,57 +1,61 @@
-## Server ops guide (Gems)
+# Gems — Server Owner Guide
 
-### Requirements
-- Minecraft: `1.21.1`
-- Fabric Loader: `>=0.16.11`
-- Fabric API: `>=0.114.0+1.21.1` (required)
+This guide is written for Minecraft server owners and admins (not mod developers).
 
-Optional (recommended for profiling/testing):
+## Requirements
+
+- Minecraft: `1.21.11`
+- Fabric Loader: `>=0.18.4` (required)
+- Fabric API: `>=0.140.2+1.21.11` (required)
+
+Optional:
 - `spark` (profiling)
-- `carpet` (fake players/bots)
 
-### Install
-- Put `gems-<version>.jar` in your server `mods/` folder.
-- Put `fabric-api-<version>.jar` in `mods/` as well.
-- Start the server once to generate configs.
+## Install
 
-### Config
+1. Install Fabric Loader and Fabric API on your server.
+2. Put `gems-<version>.jar` in your server `mods/` folder.
+3. Start the server once to generate configs under `config/gems/`.
+
+## Config files
+
 - Main balance file: `config/gems/balance.json`
-- Reload at runtime (op level 2+): `/gems reloadBalance`
-- Dump effective (clamped) values (op level 2+): `/gems dumpBalance` → writes `config/gems/balance.effective.json`
-- ModMenu config edits are op-only in multiplayer; non-ops see a read-only view.
+  - Reload at runtime (op level 2+): `/gems reloadBalance`
+  - Dump effective (clamped) values (op level 2+): `/gems dumpBalance` (writes `config/gems/balance.effective.json`)
+- Client config: `config/gems/client.json` (per-client, not synced to server)
+  - Players can toggle their own passives and choose keybind mode; see `docs/CONTROLS_AND_HUD.md`.
 
-### Permissions
-- Player commands: `/gems status`, `/gems trust`, `/gems untrust`, `/gems trustlist`, `/gems trade ...`, `/gems track <player>`
-- Operator-only commands require permission level **2+** under `/gems admin ...`
+For config keys, units, and safety clamps, see `balance.md`.
 
-### Admin commands (op 2+)
-- State:
+## Permissions and commands
+
+### Player commands
+
+- `/gems status`
+- `/gems trust`, `/gems untrust`, `/gems trustlist`
+- `/gems trade ...`
+- `/gems track <player>`
+
+### Admin commands (op level 2+)
+
+- `/gems reloadBalance`, `/gems dumpBalance`
+- Player state:
   - `/gems admin status <player>`
   - `/gems admin resync <players>`
   - `/gems admin reset <player>`
   - `/gems admin setGem <player> <gem>`
   - `/gems admin setEnergy <players> <energy>`
   - `/gems admin setHearts <player> <hearts>`
-  - `/gems admin giveItem <player> <heart|energy_upgrade|gem_trader|gem_purchase|tracker_compass|recall_relic|hypno_staff|earthsplitter_pick|supreme_helmet|supreme_chestplate|supreme_leggings|supreme_boots|blood_oath_blade|demolition_blade|hunters_sight_bow|third_strike_blade|vampiric_edge>`
-- Casting (for testing):
+  - `/gems admin giveItem <player> <itemId>`
+- Testing helpers:
   - `/gems admin cast <player> <slot>`
-- Perf/stress (for CI + profiling):
-  - `/gems admin perf reset`
-  - `/gems admin perf snapshot [windowTicks]`
-  - `/gems admin stress start <players> <seconds> <periodTicks> <realistic|force> <cycleGems> <forceEnergy10>`
-  - `/gems admin stress stop <players>`
 
-### Recommended JVM settings
-Keep these consistent with your host resources; a typical baseline:
-- `-Xms4G -Xmx4G` (or higher if you have RAM; keep Xms==Xmx for stable GC)
-- Java 21 (required by the project toolchain)
+## Performance tips
 
-### Automated “ability correctness” tests (optional)
-If you want automated end-to-end checks beyond unit tests, consider adding Fabric GameTest:
-- Spawn a controlled world, give a test player a gem, and assert cooldowns/state changes after ability activation.
-- These tests can run headlessly in CI and catch regressions that unit tests won’t.
+- If your server is large, consider lowering particle/sound load via the global visual knobs in `config/gems/balance.json` (see `balance.md`).
+- Use `spark` to capture CPU profiles during heavy PvP and adjust the most expensive abilities (radii, durations, particle caps).
 
-This repo includes a small GameTest suite under `src/gametest/`:
-- Run locally: `./gradlew gametest`
-- Output report: `build/reports/gametest.xml`
-- Run directory: `run/gametest/` (EULA is auto-accepted for the dev run)
+## Troubleshooting
+
+- Config reload fails: `balance.json` is invalid JSON, or values were clamped; use `/gems dumpBalance` to see the effective values.
+- Clients can’t change keybinds: keybinds are configured in Minecraft options under Controls -> Gems; client config is not synced server-side.

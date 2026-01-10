@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.life;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.util.Targeting;
@@ -40,23 +41,25 @@ public final class HealthDrainAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().life().healthDrainRangeBlocks());
         if (target == null) {
-            player.sendMessage(Text.literal("No target."), true);
+            player.sendMessage(Text.translatable("gems.message.no_target"), true);
             return false;
         }
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
-            player.sendMessage(Text.literal("Target is trusted."), true);
+            player.sendMessage(Text.translatable("gems.message.target_trusted"), true);
+            return false;
+        }
+        if (target instanceof ServerPlayerEntity other && !VoidImmunity.canBeTargeted(player, other)) {
+            player.sendMessage(Text.translatable("gems.message.target_immune"), true);
             return false;
         }
 
         float amount = GemsBalance.v().life().healthDrainAmount();
-        target.damage(player.getDamageSources().magic(), amount);
+        target.damage(player.getEntityWorld(), player.getDamageSources().magic(), amount);
         player.heal(amount);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 0.7F, 1.4F);
         AbilityFeedback.burst(player, ParticleTypes.HEART, 10, 0.25D);
-        if (player.getServerWorld() != null) {
-            AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.DAMAGE_INDICATOR, 12, 0.25D);
-        }
-        player.sendMessage(Text.literal("Drained " + amount + " health."), true);
+        AbilityFeedback.burstAt(player.getEntityWorld(), target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.DAMAGE_INDICATOR, 12, 0.25D);
+        player.sendMessage(Text.translatable("gems.ability.life.health_drain.drained", amount), true);
         return true;
     }
 }

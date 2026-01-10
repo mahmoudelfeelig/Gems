@@ -8,7 +8,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -27,6 +26,7 @@ import net.minecraft.util.Identifier;
 public final class SummonerLoadoutScreen extends Screen {
     private static final int MAX_ROWS = 3;
     private static final int MIN_COLUMN_WIDTH = 190;
+    private static final int ROW_HEIGHT = 44;
 
     private final int maxPoints;
     private final Map<String, Integer> costs;
@@ -50,7 +50,7 @@ public final class SummonerLoadoutScreen extends Screen {
     private int hintY;
 
     public SummonerLoadoutScreen(SummonerLoadoutScreenPayload payload) {
-        super(Text.literal("Summoner Loadout"));
+        super(Text.translatable("gems.screen.summoner_loadout.title"));
         this.maxPoints = payload.maxPoints();
         this.costs = payload.costs() == null ? Map.of() : payload.costs();
         this.initial = List.of(
@@ -86,15 +86,15 @@ public final class SummonerLoadoutScreen extends Screen {
         int totalWidth = (buttonWidth * 3) + (gap * 2);
         int startX = centerX - (totalWidth / 2);
 
-        saveButton = addDrawableChild(ButtonWidget.builder(Text.literal("Save"), btn -> save()).dimensions(startX, bottomY, buttonWidth, buttonHeight).build());
-        resetButton = addDrawableChild(ButtonWidget.builder(Text.literal("Reset"), btn -> reset()).dimensions(startX + buttonWidth + gap, bottomY, buttonWidth, buttonHeight).build());
-        cancelButton = addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), btn -> close()).dimensions(startX + ((buttonWidth + gap) * 2), bottomY, buttonWidth, buttonHeight).build());
+        saveButton = addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.save"), btn -> save()).dimensions(startX, bottomY, buttonWidth, buttonHeight).build());
+        resetButton = addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.reset"), btn -> reset()).dimensions(startX + buttonWidth + gap, bottomY, buttonWidth, buttonHeight).build());
+        cancelButton = addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.cancel"), btn -> close()).dimensions(startX + ((buttonWidth + gap) * 2), bottomY, buttonWidth, buttonHeight).build());
 
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
 
         context.fill(panelLeft, panelTop, panelRight, panelBottom, 0xAA101010);
         context.fill(panelLeft, panelTop, panelRight, panelTop + 1, 0x44FFFFFF);
@@ -114,11 +114,9 @@ public final class SummonerLoadoutScreen extends Screen {
             }
         }
 
-        super.render(context, mouseX, mouseY, delta);
-
         int bottomLine = this.height - 62;
         if (maxPoints > 0) {
-            context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Active points cap: " + maxPoints), centerX, bottomLine, 0xA0A0A0);
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("gems.screen.summoner_loadout.points_cap", maxPoints), centerX, bottomLine, 0xA0A0A0);
             bottomLine += 12;
         }
         // No per-slot cap; only active points limit.
@@ -145,14 +143,14 @@ public final class SummonerLoadoutScreen extends Screen {
         panelLeft = Math.max(8, leftX - 16);
         panelRight = Math.min(this.width - 8, leftX + gridWidth + 16);
         panelTop = 8;
-        panelBottom = Math.min(this.height - 48, startY + (rowsForLayout() * (MAX_ROWS * 28 + 26)) + 12);
+        panelBottom = Math.min(this.height - 48, startY + (rowsForLayout() * slotBlockHeight()) + 12);
 
         for (int i = 0; i < slots.length; i++) {
             SlotEditor slot = slots[i];
             int col = columns == 1 ? 0 : i % 2;
             int row = columns == 1 ? i : i / 2;
             int x = col == 0 ? leftX : rightX;
-            int y = startY + row * ((MAX_ROWS * 28) + 26);
+            int y = startY + row * slotBlockHeight();
             slot.position(x, y);
             slot.addWidgets(widget -> this.addDrawableChild(widget)); // Use lambda for clarity
         }
@@ -167,7 +165,7 @@ public final class SummonerLoadoutScreen extends Screen {
         gapX = columns == 1 ? 0 : 24;
         int maxTextWidth = Math.min(this.width - 32, 520);
         hintLines = this.textRenderer.wrapLines(
-                Text.literal("Pick minions for each Summon ability. Slots are presets; the only limit is the active summon point cap. Cooldown starts after recall or a summon dies."),
+                Text.translatable("gems.screen.summoner_loadout.hint"),
                 maxTextWidth
         );
         hintY = 24;
@@ -186,7 +184,11 @@ public final class SummonerLoadoutScreen extends Screen {
         panelLeft = Math.max(8, leftX - 16);
         panelRight = Math.min(this.width - 8, leftX + gridWidth + 16);
         panelTop = 8;
-        panelBottom = Math.min(this.height - 48, startY + (rowsForLayout() * (MAX_ROWS * 28 + 26)) + 12);
+        panelBottom = Math.min(this.height - 48, startY + (rowsForLayout() * slotBlockHeight()) + 12);
+    }
+
+    private static int slotBlockHeight() {
+        return (MAX_ROWS * ROW_HEIGHT) + 26;
     }
 
     private void save() {
@@ -214,12 +216,13 @@ public final class SummonerLoadoutScreen extends Screen {
             if (id == null) {
                 continue;
             }
-            EntityType<?> type = Registries.ENTITY_TYPE.getOrEmpty(id).orElse(null);
+            EntityType<?> type = Registries.ENTITY_TYPE.getOptionalValue(id).orElse(null);
             if (type == null) {
                 continue;
             }
             Text name = type.getName();
-            opts.add(new EntityOption(id.toString(), name, entry.getValue()));
+            EntityStats stats = EntityStats.from(type);
+            opts.add(new EntityOption(id.toString(), name, entry.getValue(), stats));
         }
         opts.sort(Comparator.comparingInt(EntityOption::cost).thenComparing(o -> o.name.getString()));
         return opts;
@@ -257,11 +260,12 @@ public final class SummonerLoadoutScreen extends Screen {
         void addWidgets(java.util.function.Consumer<net.minecraft.client.gui.widget.ClickableWidget> adder) {
             for (Row row : rows) {
                 adder.accept(row.mobButton);
+                adder.accept(row.searchField);
                 adder.accept(row.countButton);
                 adder.accept(row.removeButton);
             }
             if (addButton == null) {
-                addButton = ButtonWidget.builder(Text.literal("Add row"), btn -> addRow()).dimensions(baseX, baseY + (MAX_ROWS * 28) + 6, columnWidth - 26, 20).build();
+                addButton = ButtonWidget.builder(Text.translatable("gems.screen.summoner_loadout.add_row"), btn -> addRow()).dimensions(baseX, baseY + (MAX_ROWS * ROW_HEIGHT) + 6, columnWidth - 26, 20).build();
             }
             adder.accept(addButton);
             refreshVisibility();
@@ -334,20 +338,20 @@ public final class SummonerLoadoutScreen extends Screen {
         }
 
         private void relayout() {
-            int rowHeight = 28;
             for (int i = 0; i < rows.length; i++) {
-                int y = baseY + 4 + i * rowHeight;
+                int y = baseY + 4 + i * ROW_HEIGHT;
                 Row row = rows[i];
                 row.setPosition(baseX, y);
                 row.setRemoveHandler(() -> removeRow(row));
             }
             if (addButton != null) {
-                addButton.setPosition(baseX, baseY + (MAX_ROWS * rowHeight) + 6);
+                addButton.setPosition(baseX, baseY + (MAX_ROWS * ROW_HEIGHT) + 6);
             }
         }
 
         private final class Row {
             private final CyclingButtonWidget<EntityOption> mobButton;
+            private final net.minecraft.client.gui.widget.TextFieldWidget searchField;
             private final CyclingButtonWidget<Integer> countButton;
             private final ButtonWidget removeButton;
             private Runnable removeAction = () -> {};
@@ -355,21 +359,23 @@ public final class SummonerLoadoutScreen extends Screen {
 
             Row(List<EntityOption> options, int columnWidth) {
                 mobWidth = Math.max(60, columnWidth - 108);
-                this.mobButton = CyclingButtonWidget.builder(EntityOption::label)
+                this.mobButton = CyclingButtonWidget.builder(EntityOption::label, options.get(0))
                         .values(options)
-                        .initially(options.get(0))
                         .build(0, 0, mobWidth, 20, Text.literal("Mob"), (btn, value) -> {
                             refreshVisibility();
                         });
-                this.countButton = CyclingButtonWidget.<Integer>builder(i -> Text.literal("Count: " + i))
+                this.searchField = new net.minecraft.client.gui.widget.TextFieldWidget(SummonerLoadoutScreen.this.textRenderer, 0, 0, mobWidth, 18, Text.literal("Search"));
+                this.searchField.setMaxLength(64);
+                this.searchField.setChangedListener(this::onSearchChanged);
+                this.countButton = CyclingButtonWidget.builder(i -> Text.literal("Count: " + i), 1)
                         .values(countOptions())
-                        .initially(1)
                             .build(0, 0, 70, 20, Text.literal("Count"), (btn, value) -> {});
                 this.removeButton = ButtonWidget.builder(Text.literal("X"), btn -> removeAction.run()).dimensions(0, 0, 22, 20).build();
             }
 
             void setPosition(int x, int y) {
                 mobButton.setPosition(x, y);
+                searchField.setPosition(x, y + 22);
                 countButton.setPosition(x + mobWidth + 6, y);
                 removeButton.setPosition(x + mobWidth + 6 + 76, y);
             }
@@ -382,19 +388,23 @@ public final class SummonerLoadoutScreen extends Screen {
                 EntityOption opt = options.stream().filter(o -> o.id != null && o.id.equals(entry.entityId())).findFirst().orElse(options.get(0));
                 mobButton.setValue(opt);
                 countButton.setValue(Math.max(1, entry.count()));
+                searchField.setText("");
                 show();
             }
 
             void clear() {
                 mobButton.setValue(options.get(0));
                 countButton.setValue(1);
+                searchField.setText("");
                 mobButton.visible = false;
+                searchField.visible = false;
                 countButton.visible = false;
                 removeButton.visible = false;
             }
 
             void show() {
                 mobButton.visible = true;
+                searchField.visible = true;
                 countButton.visible = true;
                 removeButton.visible = true;
             }
@@ -405,6 +415,7 @@ public final class SummonerLoadoutScreen extends Screen {
 
             void setVisible(boolean visible) {
                 mobButton.visible = visible;
+                searchField.visible = visible;
                 countButton.visible = visible;
                 removeButton.visible = visible;
             }
@@ -430,12 +441,29 @@ public final class SummonerLoadoutScreen extends Screen {
                 }
                 return values;
             }
+
+            private void onSearchChanged(String query) {
+                if (query == null || query.isBlank()) {
+                    return;
+                }
+                String needle = query.trim().toLowerCase();
+                for (EntityOption opt : options) {
+                    if (opt == null || opt.isNone()) {
+                        continue;
+                    }
+                    String name = opt.name.getString().toLowerCase();
+                    if (name.contains(needle) || opt.id.toLowerCase().contains(needle)) {
+                        mobButton.setValue(opt);
+                        return;
+                    }
+                }
+            }
         }
     }
 
-    private record EntityOption(String id, Text name, int cost) {
+    private record EntityOption(String id, Text name, int cost, EntityStats stats) {
         static EntityOption none() {
-            return new EntityOption(null, Text.literal("None"), 0);
+            return new EntityOption(null, Text.translatable("gems.screen.summoner_loadout.none"), 0, EntityStats.none());
         }
 
         boolean isNone() {
@@ -444,9 +472,69 @@ public final class SummonerLoadoutScreen extends Screen {
 
         Text label() {
             if (isNone()) {
-                return Text.literal("None");
+                return Text.translatable("gems.screen.summoner_loadout.none");
+            }
+            if (stats != null && stats.hasAny()) {
+                return Text.literal(name.getString() + " (" + cost + " pts, HP " + stats.healthText() + ", ATK " + stats.attackText() + ")");
             }
             return Text.literal(name.getString() + " (" + cost + " pts)");
+        }
+    }
+
+    private record EntityStats(double maxHealth, double attackDamage) {
+        static EntityStats none() {
+            return new EntityStats(-1.0D, -1.0D);
+        }
+
+        static EntityStats from(EntityType<?> type) {
+            try {
+                EntityType<? extends net.minecraft.entity.LivingEntity> livingType = asLivingType(type);
+                if (livingType == null) {
+                    return none();
+                }
+                net.minecraft.entity.attribute.DefaultAttributeContainer defaults = net.minecraft.entity.attribute.DefaultAttributeRegistry.get(livingType);
+                if (defaults == null) {
+                    return none();
+                }
+                double hp = defaults.getBaseValue(net.minecraft.entity.attribute.EntityAttributes.MAX_HEALTH);
+                double atk = defaults.has(net.minecraft.entity.attribute.EntityAttributes.ATTACK_DAMAGE)
+                        ? defaults.getBaseValue(net.minecraft.entity.attribute.EntityAttributes.ATTACK_DAMAGE)
+                        : 0.0D;
+                return new EntityStats(hp, atk);
+            } catch (Throwable t) {
+                return none();
+            }
+        }
+
+        @SuppressWarnings("unchecked") // Safe: checked via isAssignableFrom above
+        private static EntityType<? extends net.minecraft.entity.LivingEntity> asLivingType(EntityType<?> type) {
+            if (type == null || !net.minecraft.entity.LivingEntity.class.isAssignableFrom(type.getBaseClass())) {
+                return null;
+            }
+            return (EntityType<? extends net.minecraft.entity.LivingEntity>) type;
+        }
+
+        boolean hasAny() {
+            return maxHealth >= 0.0D || attackDamage >= 0.0D;
+        }
+
+        String healthText() {
+            return format(maxHealth);
+        }
+
+        String attackText() {
+            return format(attackDamage);
+        }
+
+        private static String format(double v) {
+            if (v < 0.0D) {
+                return "?";
+            }
+            double rounded = Math.rint(v);
+            if (Math.abs(rounded - v) < 0.0001D) {
+                return Long.toString((long) rounded);
+            }
+            return String.format(java.util.Locale.ROOT, "%.1f", v);
         }
     }
 }

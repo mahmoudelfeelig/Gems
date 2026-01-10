@@ -3,9 +3,9 @@ package com.feel.gems.power.ability.spy;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.util.Targeting;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -35,14 +35,18 @@ public final class SpySkinshiftAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         int range = GemsBalance.v().spyMimic().skinshiftRangeBlocks();
-        LivingEntity target = Targeting.raycastLiving(player, range);
-        if (!(target instanceof ServerPlayerEntity other) || other == player) {
-            player.sendMessage(Text.literal("No player targeted."), true);
+        ServerPlayerEntity other = Targeting.raycastPlayer(player, range);
+        if (other == null || other == player) {
+            player.sendMessage(Text.translatable("gems.message.no_player_target"), true);
+            return false;
+        }
+        if (!VoidImmunity.canBeTargeted(player, other)) {
+            player.sendMessage(Text.translatable("gems.message.target_immune"), true);
             return false;
         }
         int duration = GemsBalance.v().spyMimic().skinshiftDurationTicks();
         if (duration <= 0) {
-            player.sendMessage(Text.literal("Skinshift is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.spy.skinshift.disabled"), true);
             return false;
         }
         return SpyMimicSystem.startSkinshift(player, other, duration);

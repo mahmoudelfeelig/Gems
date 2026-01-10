@@ -2,6 +2,7 @@ package com.feel.gems.legendary;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.util.GemsNbt;
 import com.feel.gems.util.GemsTime;
 import com.feel.gems.util.MobBlacklist;
 import java.util.ArrayList;
@@ -11,15 +12,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
-import com.feel.gems.legendary.LegendaryTargeting;
 
 
 
@@ -29,9 +27,7 @@ public final class HypnoControl {
     private static final String TAG_OWNER_PREFIX = "gems_hypno_owner:";
     private static final String TAG_UNTIL_PREFIX = "gems_hypno_until:";
     private static final String KEY_HYPNO_MOBS = "legendaryHypnoMobs";
-    private static final double FOLLOW_START_SQ = 36.0D;
-    private static final double FOLLOW_STOP_SQ = 9.0D;
-    private static final double FOLLOW_SPEED = 1.1D;
+    private static final java.util.Map<UUID, Entity> ENTITY_CACHE = new java.util.HashMap<>();
 
     private HypnoControl() {
     }
@@ -52,6 +48,7 @@ public final class HypnoControl {
         int duration = GemsBalance.v().legendary().hypnoDurationTicks();
         mark(mob, owner.getUuid(), duration > 0 ? now + duration : 0L);
         track(owner, mob);
+        SummonerSummons.tuneControlledMob(mob);
         mob.setTarget(null);
         return true;
     }
@@ -91,12 +88,12 @@ public final class HypnoControl {
     }
 
     public static int pruneAndCount(ServerPlayerEntity owner) {
-        MinecraftServer server = owner.getServer();
+        MinecraftServer server = owner.getEntityWorld().getServer();
         if (server == null) {
             return 0;
         }
         NbtCompound root = ((GemsPersistentDataHolder) owner).gems$getPersistentData();
-        NbtList list = root.getList(KEY_HYPNO_MOBS, NbtElement.INT_ARRAY_TYPE);
+        NbtList list = root.getListOrEmpty(KEY_HYPNO_MOBS);
         if (list.isEmpty()) {
             return 0;
         }
@@ -104,20 +101,26 @@ public final class HypnoControl {
         int alive = 0;
         long now = GemsTime.now(owner);
         for (int i = 0; i < list.size(); i++) {
-            UUID uuid = NbtHelper.toUuid(list.get(i));
-            Entity e = findEntity(server, uuid);
+            UUID uuid = GemsNbt.toUuid(list.get(i));
+            if (uuid == null) {
+                continue;
+            }
+            Entity e = findEntityCached(server, uuid);
             if (!(e instanceof MobEntity mob) || !mob.isAlive() || !isHypno(mob)) {
+                ENTITY_CACHE.remove(uuid);
                 continue;
             }
             if (!owner.getUuid().equals(ownerUuid(mob))) {
+                ENTITY_CACHE.remove(uuid);
                 continue;
             }
             long until = untilTick(mob);
             if (until > 0 && now >= until) {
                 release(mob);
+                ENTITY_CACHE.remove(uuid);
                 continue;
             }
-            next.add(NbtHelper.fromUuid(uuid));
+            next.add(GemsNbt.fromUuid(uuid));
             alive++;
         }
         root.put(KEY_HYPNO_MOBS, next);
@@ -125,55 +128,72 @@ public final class HypnoControl {
     }
 
     public static void releaseAll(ServerPlayerEntity owner) {
-        MinecraftServer server = owner.getServer();
+        MinecraftServer server = owner.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
         for (UUID uuid : ownedMobUuids(owner)) {
-            Entity e = findEntity(server, uuid);
+            Entity e = findEntityCached(server, uuid);
             if (e instanceof MobEntity mob) {
                 release(mob);
             }
+            ENTITY_CACHE.remove(uuid);
         }
         ((GemsPersistentDataHolder) owner).gems$getPersistentData().remove(KEY_HYPNO_MOBS);
     }
 
     public static void followOwner(ServerPlayerEntity owner) {
-        MinecraftServer server = owner.getServer();
+        MinecraftServer server = owner.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
+        double followStart = GemsBalance.v().systems().controlledFollowStartBlocks();
+        double followStop = GemsBalance.v().systems().controlledFollowStopBlocks();
+        double followSpeed = GemsBalance.v().systems().controlledFollowSpeed();
+        double followStartSq = followStart * followStart;
+        double followStopSq = followStop * followStop;
         int rangeBlocks = GemsBalance.v().legendary().hypnoRangeBlocks();
         LivingEntity fallbackTarget = normalizeTarget(owner, LegendaryTargeting.findTarget(owner, rangeBlocks, 0), rangeBlocks);
         if (fallbackTarget == null) {
             fallbackTarget = findOwnerThreat(owner, rangeBlocks);
         }
         for (UUID uuid : ownedMobUuids(owner)) {
-            Entity e = findEntity(server, uuid);
+            Entity e = findEntityCached(server, uuid);
             if (!(e instanceof MobEntity mob) || !mob.isAlive() || !isHypno(mob)) {
+                ENTITY_CACHE.remove(uuid);
                 continue;
             }
-            if (mob.getWorld() != owner.getWorld()) {
+            SummonerSummons.refreshNetherMob(mob);
+            if (mob.getEntityWorld() != owner.getEntityWorld()) {
                 continue;
             }
+            LivingEntity desiredTarget = fallbackTarget;
             LivingEntity currentTarget = mob.getTarget();
-            if (currentTarget != null && currentTarget.isAlive()) {
-                continue;
-            }
-            if (currentTarget != null && !currentTarget.isAlive()) {
+            LivingEntity normalizedTarget = normalizeTarget(owner, currentTarget, rangeBlocks);
+            if (currentTarget != null && (normalizedTarget == null || !currentTarget.isAlive())) {
                 mob.setTarget(null);
+                currentTarget = null;
+                normalizedTarget = null;
             }
-            if (mob.getAttacker() != null) {
-                continue;
+            if (normalizedTarget != null) {
+                if (desiredTarget != null && normalizedTarget.getUuid().equals(desiredTarget.getUuid())) {
+                    continue;
+                }
+                if (desiredTarget == null) {
+                    mob.setTarget(null);
+                } else {
+                    mob.setTarget(desiredTarget);
+                    continue;
+                }
             }
-            if (fallbackTarget != null && fallbackTarget.getWorld() == mob.getWorld()) {
-                mob.setTarget(fallbackTarget);
+            if (desiredTarget != null && desiredTarget.getEntityWorld() == mob.getEntityWorld()) {
+                mob.setTarget(desiredTarget);
                 continue;
             }
             double distSq = mob.squaredDistanceTo(owner);
-            if (distSq > FOLLOW_START_SQ) {
-                mob.getNavigation().startMovingTo(owner, FOLLOW_SPEED);
-            } else if (distSq < FOLLOW_STOP_SQ) {
+            if (distSq > followStartSq) {
+                mob.getNavigation().startMovingTo(owner, followSpeed);
+            } else if (distSq < followStopSq) {
                 mob.getNavigation().stop();
             }
         }
@@ -190,7 +210,7 @@ public final class HypnoControl {
         }
         double maxSq = rangeBlocks * (double) rangeBlocks;
         var box = owner.getBoundingBox().expand(rangeBlocks);
-        List<MobEntity> mobs = owner.getWorld().getEntitiesByClass(MobEntity.class, box, mob -> mob.getTarget() == owner);
+        List<MobEntity> mobs = owner.getEntityWorld().getEntitiesByClass(MobEntity.class, box, mob -> mob.getTarget() == owner);
         LivingEntity nearest = null;
         double nearestSq = Double.MAX_VALUE;
         for (MobEntity mob : mobs) {
@@ -209,7 +229,7 @@ public final class HypnoControl {
     }
 
     private static LivingEntity normalizeTarget(ServerPlayerEntity owner, LivingEntity target, int rangeBlocks) {
-        if (target == null || !target.isAlive() || target.getWorld() != owner.getWorld()) {
+        if (target == null || !target.isAlive() || target.getEntityWorld() != owner.getEntityWorld()) {
             return null;
         }
         if (target instanceof ServerPlayerEntity playerTarget && GemTrust.isTrusted(owner, playerTarget)) {
@@ -235,7 +255,7 @@ public final class HypnoControl {
     }
 
     public static void commandMobs(ServerPlayerEntity owner, LivingEntity target, int rangeBlocks) {
-        MinecraftServer server = owner.getServer();
+        MinecraftServer server = owner.getEntityWorld().getServer();
         if (server == null) {
             return;
         }
@@ -257,11 +277,12 @@ public final class HypnoControl {
         }
         double rangeSq = rangeBlocks * (double) rangeBlocks;
         for (UUID uuid : ownedMobUuids(owner)) {
-            Entity e = findEntity(server, uuid);
+            Entity e = findEntityCached(server, uuid);
             if (!(e instanceof MobEntity mob) || !mob.isAlive() || !isHypno(mob)) {
+                ENTITY_CACHE.remove(uuid);
                 continue;
             }
-            if (mob.getWorld() != target.getWorld()) {
+            if (mob.getEntityWorld() != target.getEntityWorld()) {
                 continue;
             }
             if (mob.squaredDistanceTo(owner) > rangeSq) {
@@ -296,32 +317,42 @@ public final class HypnoControl {
                 mob.removeCommandTag(tag);
             }
         }
+        ENTITY_CACHE.remove(mob.getUuid());
     }
 
     private static void track(ServerPlayerEntity owner, MobEntity mob) {
         NbtCompound root = ((GemsPersistentDataHolder) owner).gems$getPersistentData();
-        NbtList list = root.getList(KEY_HYPNO_MOBS, NbtElement.INT_ARRAY_TYPE);
-        list.add(NbtHelper.fromUuid(mob.getUuid()));
+        NbtList list = root.getListOrEmpty(KEY_HYPNO_MOBS);
+        list.add(GemsNbt.fromUuid(mob.getUuid()));
         root.put(KEY_HYPNO_MOBS, list);
     }
 
     private static List<UUID> ownedMobUuids(ServerPlayerEntity owner) {
         NbtCompound root = ((GemsPersistentDataHolder) owner).gems$getPersistentData();
-        if (!root.contains(KEY_HYPNO_MOBS, NbtElement.LIST_TYPE)) {
+        NbtList list = root.getList(KEY_HYPNO_MOBS).orElse(null);
+        if (list == null) {
             return List.of();
         }
-        NbtList list = root.getList(KEY_HYPNO_MOBS, NbtElement.INT_ARRAY_TYPE);
         List<UUID> out = new ArrayList<>(list.size());
         for (int i = 0; i < list.size(); i++) {
-            out.add(NbtHelper.toUuid(list.get(i)));
+            UUID uuid = GemsNbt.toUuid(list.get(i));
+            if (uuid != null) {
+                out.add(uuid);
+            }
         }
         return out;
     }
 
-    private static Entity findEntity(MinecraftServer server, UUID uuid) {
+    private static Entity findEntityCached(MinecraftServer server, UUID uuid) {
+        Entity cached = ENTITY_CACHE.get(uuid);
+        if (cached != null && !cached.isRemoved() && cached.getEntityWorld().getServer() == server) {
+            return cached;
+        }
+        ENTITY_CACHE.remove(uuid);
         for (ServerWorld world : server.getWorlds()) {
             Entity e = world.getEntity(uuid);
             if (e != null) {
+                ENTITY_CACHE.put(uuid, e);
                 return e;
             }
         }

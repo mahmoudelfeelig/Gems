@@ -56,6 +56,7 @@
       "abilities": [
         "gems:vitality_vortex",
         "gems:health_drain",
+        "gems:life_swap",
         "gems:life_circle",
         "gems:heart_lock"
       ]
@@ -197,13 +198,17 @@
       "passives": [
         "gems:pillager_raiders_training",
         "gems:pillager_shieldbreaker",
-        "gems:pillager_illager_discipline"
+        "gems:pillager_illager_discipline",
+        "gems:pillager_crossbow_mastery",
+        "gems:pillager_raider_stride"
       ],
       "abilities": [
         "gems:pillager_fangs",
         "gems:pillager_ravage",
         "gems:pillager_vindicator_break",
-        "gems:pillager_volley"
+        "gems:pillager_volley",
+        "gems:pillager_warhorn",
+        "gems:pillager_snare"
       ]
     },
     {
@@ -252,6 +257,87 @@
         "gems:air_gale_slam",
         "gems:air_crosswind",
         "gems:air_dash"
+      ]
+    },
+    {
+      "id": "void",
+      "passives": [
+        "gems:void_immunity"
+      ],
+      "abilities": []
+    },
+    {
+      "id": "chaos",
+      "passives": [
+        "gems:chaos_random_rotation"
+      ],
+      "abilities": []
+    },
+    {
+      "id": "prism",
+      "passives": [],
+      "abilities": []
+    },
+    {
+      "id": "duelist",
+      "passives": [
+        "gems:duelist_riposte",
+        "gems:duelist_focus",
+        "gems:duelist_combat_stance"
+      ],
+      "abilities": [
+        "gems:duelist_lunge",
+        "gems:duelist_parry",
+        "gems:duelist_rapid_strike",
+        "gems:duelist_flourish",
+        "gems:duelist_mirror_match",
+        "gems:duelist_blade_dance"
+      ]
+    },
+    {
+      "id": "hunter",
+      "passives": [
+        "gems:hunter_prey_mark",
+        "gems:hunter_trackers_eye",
+        "gems:hunter_trophy_hunter"
+      ],
+      "abilities": [
+        "gems:hunter_hunting_trap",
+        "gems:hunter_pounce",
+        "gems:hunter_net_shot",
+        "gems:hunter_crippling_shot",
+        "gems:hunter_pack_tactics",
+        "gems:hunter_call_the_pack"
+      ]
+    },
+    {
+      "id": "sentinel",
+      "passives": [
+        "gems:sentinel_guardian_aura",
+        "gems:sentinel_fortress",
+        "gems:sentinel_retribution_thorns"
+      ],
+      "abilities": [
+        "gems:sentinel_shield_wall",
+        "gems:sentinel_taunt",
+        "gems:sentinel_intervention",
+        "gems:sentinel_rally_cry",
+        "gems:sentinel_lockdown"
+      ]
+    },
+    {
+      "id": "trickster",
+      "passives": [
+        "gems:trickster_sleight_of_hand",
+        "gems:trickster_chaos_agent",
+        "gems:trickster_slippery"
+      ],
+      "abilities": [
+        "gems:trickster_shadow_swap",
+        "gems:trickster_mirage",
+        "gems:trickster_glitch_step",
+        "gems:trickster_puppet_master",
+        "gems:trickster_mind_games"
       ]
     }
   ]

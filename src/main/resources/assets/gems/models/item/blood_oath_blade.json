@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/handheld",
-  "textures": {
-    "layer0": "gems:item/legendary/weapons/blood_oath_blade"
-  }
-}

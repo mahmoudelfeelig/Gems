@@ -7,18 +7,10 @@
     "BFB"
   ],
   "key": {
-    "B": {
-      "item": "minecraft:blaze_powder"
-    },
-    "F": {
-      "item": "minecraft:magma_cream"
-    },
-    "N": {
-      "item": "minecraft:netherite_ingot"
-    },
-    "C": {
-      "item": "minecraft:netherite_chestplate"
-    }
+    "B": "minecraft:blaze_powder",
+    "F": "minecraft:magma_cream",
+    "N": "minecraft:netherite_ingot",
+    "C": "minecraft:netherite_chestplate"
   },
   "result": {
     "count": 1,

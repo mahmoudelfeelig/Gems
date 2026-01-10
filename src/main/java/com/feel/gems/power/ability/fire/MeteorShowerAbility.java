@@ -30,7 +30,7 @@ public final class MeteorShowerAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Calls multiple meteors that explode on impact around a target zone.";
+        return "Calls multiple meteors that explode on impact along a targeted line.";
     }
 
     @Override
@@ -40,8 +40,8 @@ public final class MeteorShowerAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
-        HitResult hit = player.raycast(60.0D, 1.0F, false);
+        ServerWorld world = player.getEntityWorld();
+        HitResult hit = player.raycast(GemsBalance.v().fire().meteorShowerTargetRangeBlocks(), 1.0F, false);
         BlockPos center = BlockPos.ofFloored(hit.getPos());
         AbilityFeedback.ring(world, new Vec3d(center.getX() + 0.5D, center.getY() + 0.2D, center.getZ() + 0.5D), 3.0D, ParticleTypes.FLAME, 24);
 
@@ -50,16 +50,23 @@ public final class MeteorShowerAbility implements GemAbility {
         int height = GemsBalance.v().fire().meteorShowerHeightBlocks();
         float velocity = GemsBalance.v().fire().meteorShowerVelocity();
         int explosionPower = GemsBalance.v().fire().meteorShowerExplosionPower();
-        double maxOffset = Math.max(0.0D, spread / 2.0D);
+        double lineLength = Math.max(0.0D, spread);
+        double halfLength = lineLength / 2.0D;
+        double step = count > 1 ? lineLength / (count - 1.0D) : 0.0D;
+        Vec3d look = player.getRotationVec(1.0F);
+        Vec3d flat = new Vec3d(look.x, 0.0D, look.z);
+        if (flat.lengthSquared() < 1.0E-4D) {
+            flat = new Vec3d(0.0D, 0.0D, 1.0D);
+        } else {
+            flat = flat.normalize();
+        }
 
         for (int i = 0; i < count; i++) {
-            double a = player.getRandom().nextDouble() * Math.PI * 2.0D;
-            double r = Math.sqrt(player.getRandom().nextDouble()) * maxOffset;
-            double ox = Math.cos(a) * r;
-            double oz = Math.sin(a) * r;
-
-            double impactX = center.getX() + 0.5D + ox;
-            double impactZ = center.getZ() + 0.5D + oz;
+            double offset = -halfLength + (step * i);
+            Vec3d impact = new Vec3d(center.getX() + 0.5D, center.getY() + 0.5D, center.getZ() + 0.5D)
+                    .add(flat.multiply(offset));
+            double impactX = impact.x;
+            double impactZ = impact.z;
             Vec3d spawn = new Vec3d(impactX, center.getY() + height, impactZ);
             Vec3d dir = new Vec3d(0.0D, -1.0D, 0.0D);
 

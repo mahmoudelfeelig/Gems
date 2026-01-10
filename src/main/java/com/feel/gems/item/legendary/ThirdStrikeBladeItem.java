@@ -2,11 +2,11 @@ package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
 import com.feel.gems.legendary.LegendaryItem;
-import java.util.List;
-import net.minecraft.item.SwordItem;
+import java.util.function.Consumer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ToolMaterial;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Item.TooltipContext;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -14,9 +14,9 @@ import net.minecraft.util.Identifier;
 
 
 
-public final class ThirdStrikeBladeItem extends SwordItem implements LegendaryItem {
+public final class ThirdStrikeBladeItem extends Item implements LegendaryItem {
     public ThirdStrikeBladeItem(ToolMaterial material, Settings settings) {
-        super(material, settings);
+        super(settings.sword(material, 3.0F, -2.4F).enchantable(15));
     }
 
     @Override
@@ -25,12 +25,7 @@ public final class ThirdStrikeBladeItem extends SwordItem implements LegendaryIt
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        tooltip.add(Text.translatable("item.gems.third_strike_blade.desc"));
-    }
-
-    @Override
-    public boolean isEnchantable(ItemStack stack) {
-        return true;
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        tooltip.accept(Text.translatable("item.gems.third_strike_blade.desc"));
     }
 }

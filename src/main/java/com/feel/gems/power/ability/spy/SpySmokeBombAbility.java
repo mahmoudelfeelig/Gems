@@ -39,7 +39,9 @@ public final class SpySmokeBombAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         int radius = GemsBalance.v().spyMimic().smokeBombRadiusBlocks();
         int duration = GemsBalance.v().spyMimic().smokeBombDurationTicks();
         if (radius <= 0 || duration <= 0) {

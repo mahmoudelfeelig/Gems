@@ -19,13 +19,18 @@ public abstract class ExplosiveProjectileTrailMixin {
     @Inject(method = "tick", at = @At("TAIL"))
     private void gems$trail(CallbackInfo ci) {
         Entity self = (Entity) (Object) this;
-        if (!(self.getWorld() instanceof ServerWorld world)) {
+        if (!(self.getEntityWorld() instanceof ServerWorld world)) {
             return;
         }
         if (self.getCommandTags().contains("gems_meteor")) {
-            Vec3d pos = self.getPos();
+            Vec3d pos = self.getEntityPos();
             AbilityFeedback.burstAt(world, pos, ParticleTypes.FLAME, 1, 0.05D);
             AbilityFeedback.burstAt(world, pos, ParticleTypes.SMOKE, 1, 0.05D);
+        }
+        if (self.getCommandTags().contains("gems_doom_bolt")) {
+            Vec3d pos = self.getEntityPos();
+            AbilityFeedback.burstAt(world, pos, ParticleTypes.SMOKE, 2, 0.02D);
+            AbilityFeedback.burstAt(world, pos, ParticleTypes.SOUL, 1, 0.02D);
         }
     }
 }

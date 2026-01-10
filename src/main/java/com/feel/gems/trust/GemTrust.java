@@ -8,10 +8,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.network.ServerPlayerEntity;
+import com.feel.gems.util.GemsNbt;
 
 
 
@@ -34,25 +33,24 @@ public final class GemTrust {
 
     public static Set<UUID> getTrusted(PlayerEntity owner) {
         NbtCompound root = root(owner);
-        int version = root.getInt(KEY_TRUST_VERSION);
+        int version = root.getInt(KEY_TRUST_VERSION, 0);
         UUID ownerId = owner.getUuid();
         CacheEntry cached = CACHE.get(ownerId);
         if (cached != null && cached.version == version) {
             return cached.trusted;
         }
 
-        if (!root.contains(KEY_TRUSTED, NbtElement.LIST_TYPE)) {
+        NbtList list = root.getList(KEY_TRUSTED).orElse(null);
+        if (list == null) {
             Set<UUID> empty = Set.of();
             CACHE.put(ownerId, new CacheEntry(version, empty));
             return empty;
         }
-        NbtList list = root.getList(KEY_TRUSTED, NbtElement.INT_ARRAY_TYPE);
         Set<UUID> result = new HashSet<>(list.size());
         for (int i = 0; i < list.size(); i++) {
-            try {
-                result.add(NbtHelper.toUuid(list.get(i)));
-            } catch (IllegalArgumentException ignored) {
-                // ignore malformed entries
+            UUID uuid = GemsNbt.toUuid(list.get(i));
+            if (uuid != null) {
+                result.add(uuid);
             }
         }
         Set<UUID> frozen = Set.copyOf(result);
@@ -81,11 +79,11 @@ public final class GemTrust {
     private static void writeTrusted(PlayerEntity owner, Set<UUID> uuids) {
         NbtList list = new NbtList();
         for (UUID uuid : uuids) {
-            list.add(NbtHelper.fromUuid(uuid));
+            list.add(GemsNbt.fromUuid(uuid));
         }
         NbtCompound root = root(owner);
         root.put(KEY_TRUSTED, list);
-        int nextVersion = root.getInt(KEY_TRUST_VERSION) + 1;
+        int nextVersion = root.getInt(KEY_TRUST_VERSION, 0) + 1;
         root.putInt(KEY_TRUST_VERSION, nextVersion);
         CACHE.put(owner.getUuid(), new CacheEntry(nextVersion, Set.copyOf(uuids)));
     }

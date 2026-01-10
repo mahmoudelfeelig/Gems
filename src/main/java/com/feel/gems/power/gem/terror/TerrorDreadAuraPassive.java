@@ -2,6 +2,7 @@ package com.feel.gems.power.gem.terror;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemMaintainedPassive;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -34,7 +35,9 @@ public final class TerrorDreadAuraPassive implements GemMaintainedPassive {
 
     @Override
     public void maintain(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
         int radius = GemsBalance.v().terror().dreadAuraRadiusBlocks();
         if (radius <= 0) {
             return;
@@ -43,10 +46,13 @@ public final class TerrorDreadAuraPassive implements GemMaintainedPassive {
         int duration = 60;
         int amp = GemsBalance.v().terror().dreadAuraAmplifier();
         for (ServerPlayerEntity other : world.getPlayers(p -> p != player && p.squaredDistanceTo(player) <= radius * (double) radius)) {
+            if (VoidImmunity.shouldBlockEffect(player, other)) {
+                continue;
+            }
             if (GemTrust.isTrusted(player, other)) {
                 continue;
             }
-            other.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, duration, amp, true, false, false));
+            other.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, duration, amp, true, false, false), player);
         }
     }
 
@@ -55,4 +61,3 @@ public final class TerrorDreadAuraPassive implements GemMaintainedPassive {
         // No-op: Darkness expires naturally and should not be forcibly removed from others.
     }
 }
-

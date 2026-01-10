@@ -7,18 +7,10 @@
     "SAS"
   ],
   "key": {
-    "S": {
-      "item": "minecraft:sculk_sensor"
-    },
-    "A": {
-      "item": "minecraft:amethyst_shard"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "L": {
-      "item": "minecraft:netherite_leggings"
-    }
+    "S": "minecraft:sculk_sensor",
+    "A": "minecraft:amethyst_shard",
+    "D": "minecraft:diamond",
+    "L": "minecraft:netherite_leggings"
   },
   "result": {
     "count": 1,

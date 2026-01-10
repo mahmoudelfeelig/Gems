@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "OGO",
+    "DTD",
+    "OGO"
+  ],
+  "key": {
+    "O": "minecraft:obsidian",
+    "G": "minecraft:glass",
+    "D": "minecraft:diamond",
+    "T": "minecraft:totem_of_undying"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:reversal_mirror"
+  }
+}

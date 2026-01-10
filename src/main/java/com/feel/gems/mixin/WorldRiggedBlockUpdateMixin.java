@@ -15,7 +15,7 @@ public abstract class WorldRiggedBlockUpdateMixin {
     @Inject(method = "setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;II)Z", at = @At("HEAD"))
     private void gems$riggedBlockUpdated(BlockPos pos, BlockState state, int flags, int maxUpdateDepth, CallbackInfoReturnable<Boolean> cir) {
         World world = (World) (Object) this;
-        if (world.isClient) {
+        if (world.isClient()) {
             return;
         }
         if (!(world instanceof ServerWorld serverWorld)) {

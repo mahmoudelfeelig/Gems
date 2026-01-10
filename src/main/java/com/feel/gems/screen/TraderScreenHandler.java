@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.Property;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
+import com.feel.gems.state.GemPlayerState;
 
 
 
@@ -57,13 +58,17 @@ public final class TraderScreenHandler extends ScreenHandler {
             if (!result.success()) {
                 return false;
             }
-            serverPlayer.sendMessage(Text.literal("Purchased " + gemId.name()), true);
+            serverPlayer.sendMessage(Text.translatable("gems.trade.purchased", gemId.name()), true);
         } else {
+            if (GemPlayerState.getActiveGem(serverPlayer) == gemId) {
+                serverPlayer.sendMessage(Text.translatable("gems.trade.gem_already_active"), true);
+                return false;
+            }
             GemTrading.Result result = GemTrading.trade(serverPlayer, gemId);
             if (!result.success()) {
                 return false;
             }
-            serverPlayer.sendMessage(Text.literal("Traded for " + gemId.name()), true);
+            serverPlayer.sendMessage(Text.translatable("gems.trade.traded_for", gemId.name()), true);
         }
         serverPlayer.closeHandledScreen();
         return true;

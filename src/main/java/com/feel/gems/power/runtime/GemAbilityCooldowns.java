@@ -2,7 +2,6 @@ package com.feel.gems.power.runtime;
 
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
@@ -15,8 +14,13 @@ public final class GemAbilityCooldowns {
     private GemAbilityCooldowns() {
     }
 
+    public static void clearAll(ServerPlayerEntity player) {
+        NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        root.remove(KEY_COOLDOWNS);
+    }
+
     public static long nextAllowedTick(ServerPlayerEntity player, Identifier abilityId) {
-        return cooldowns(player).getLong(abilityId.toString());
+        return cooldowns(player).getLong(abilityId.toString(), 0L);
     }
 
     public static void setNextAllowedTick(ServerPlayerEntity player, Identifier abilityId, long nextAllowedTick) {
@@ -37,10 +41,12 @@ public final class GemAbilityCooldowns {
 
     private static NbtCompound cooldowns(ServerPlayerEntity player) {
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        if (!root.contains(KEY_COOLDOWNS, NbtElement.COMPOUND_TYPE)) {
-            root.put(KEY_COOLDOWNS, new NbtCompound());
+        NbtCompound existing = root.getCompound(KEY_COOLDOWNS).orElse(null);
+        if (existing == null) {
+            existing = new NbtCompound();
+            root.put(KEY_COOLDOWNS, existing);
         }
-        return root.getCompound(KEY_COOLDOWNS);
+        return existing;
     }
 }
 

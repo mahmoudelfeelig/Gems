@@ -18,11 +18,8 @@ public final class GemsTime {
     }
 
     public static long now(ServerPlayerEntity player) {
-        MinecraftServer server = player.getServer();
-        if (server == null) {
-            return player.getServerWorld().getTime();
-        }
-        return now(server);
+        MinecraftServer server = player.getEntityWorld().getServer();
+        return server == null ? player.getEntityWorld().getTime() : now(server);
     }
 
     public static long now(ServerWorld world) {

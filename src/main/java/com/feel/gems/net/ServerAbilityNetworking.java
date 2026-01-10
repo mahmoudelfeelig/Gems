@@ -1,5 +1,6 @@
 package com.feel.gems.net;
 
+import com.feel.gems.bonus.BonusAbilityRuntime;
 import com.feel.gems.core.GemId;
 import com.feel.gems.power.gem.astra.SoulSystem;
 import com.feel.gems.power.gem.flux.FluxCharge;
@@ -19,6 +20,9 @@ public final class ServerAbilityNetworking {
         ServerPlayNetworking.registerGlobalReceiver(ActivateAbilityPayload.ID, (payload, context) ->
                 context.server().execute(() -> GemAbilities.activateByIndex(context.player(), payload.abilityIndex())));
 
+        ServerPlayNetworking.registerGlobalReceiver(ActivateBonusAbilityPayload.ID, (payload, context) ->
+                context.server().execute(() -> BonusAbilityRuntime.activateBySlot(context.player(), payload.slotIndex())));
+
         ServerPlayNetworking.registerGlobalReceiver(SoulReleasePayload.ID, (payload, context) ->
                 context.server().execute(() -> SoulSystem.release(context.player())));
 
@@ -27,7 +31,7 @@ public final class ServerAbilityNetworking {
                     var player = context.player();
                     GemPlayerState.initIfNeeded(player);
                     if (GemPlayerState.getActiveGem(player) != GemId.FLUX) {
-                        player.sendMessage(Text.literal("Flux Charge: active gem is not Flux."), true);
+                        player.sendMessage(Text.translatable("gems.flux.not_flux_gem"), true);
                         return;
                     }
                     if (FluxCharge.tryConsumeChargeItem(player)) {

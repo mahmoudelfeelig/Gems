@@ -1,17 +1,17 @@
 package com.feel.gems.power.gem.beacon;
 
+import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
-import com.feel.gems.util.GemsTime;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -83,21 +83,28 @@ public final class BeaconAuraRuntime {
 
     public static AuraType activeType(ServerPlayerEntity player) {
         NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        Identifier id = Identifier.tryParse(nbt.getString(KEY_AURA_TYPE));
+        Identifier id = Identifier.tryParse(nbt.getString(KEY_AURA_TYPE, ""));
         return AuraType.fromId(id);
     }
 
     public static void tickEverySecond(ServerPlayerEntity player) {
         GemPlayerState.initIfNeeded(player);
-        if (GemPlayerState.getEnergy(player) <= 0 || GemPlayerState.getActiveGem(player) != GemId.BEACON) {
-            clear(player);
-            return;
-        }
-
         AuraType type = activeType(player);
         if (type == null) {
             clear(player);
             return;
+        }
+
+        if (GemPlayerState.getEnergy(player) <= 0) {
+            clear(player);
+            return;
+        }
+        GemId activeGem = GemPlayerState.getActiveGem(player);
+        if (activeGem != GemId.BEACON) {
+            if (activeGem != GemId.PRISM || !PrismSelectionsState.hasAbility(player, type.id())) {
+                clear(player);
+                return;
+            }
         }
 
         int radius = GemsBalance.v().beacon().auraRadiusBlocks();
@@ -107,9 +114,13 @@ public final class BeaconAuraRuntime {
         }
         int amplifier = amplifierFor(type);
 
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (net.minecraft.entity.LivingEntity other : world.getEntitiesByClass(net.minecraft.entity.LivingEntity.class, box, e -> e.isAlive())) {
+            if (other instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                other.removeStatusEffect(type.effect());
+                continue;
+            }
             boolean trusted = other instanceof ServerPlayerEntity otherPlayer && (GemTrust.isTrusted(player, otherPlayer) || otherPlayer == player);
             if (trusted) {
                 other.addStatusEffect(new StatusEffectInstance(type.effect(), refresh, amplifier, true, false, false));
@@ -144,7 +155,7 @@ public final class BeaconAuraRuntime {
             return;
         }
         int radius = GemsBalance.v().beacon().auraRadiusBlocks();
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (net.minecraft.entity.LivingEntity other : world.getEntitiesByClass(net.minecraft.entity.LivingEntity.class, box, e -> e.isAlive())) {
             other.removeStatusEffect(type.effect());

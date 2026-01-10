@@ -35,11 +35,11 @@ public final class SpaceGravityFieldAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int duration = GemsBalance.v().space().gravityFieldDurationTicks();
         if (duration <= 0) {
-            player.sendMessage(Text.literal("Gravity Field is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.space.gravity_field.disabled"), true);
             return false;
         }
         AbilityRuntime.startSpaceGravityField(player, duration);
-        player.sendMessage(Text.literal("Gravity Field activated."), true);
+        player.sendMessage(Text.translatable("gems.ability.space.gravity_field.activated"), true);
         return true;
     }
 }

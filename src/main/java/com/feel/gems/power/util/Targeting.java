@@ -3,6 +3,7 @@ package com.feel.gems.power.util;
 import java.util.function.Predicate;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.hit.EntityHitResult;
@@ -22,7 +23,7 @@ public final class Targeting {
     }
 
     public static LivingEntity raycastLiving(ServerPlayerEntity player, double maxDistance, double viewRange) {
-        Vec3d start = player.getCameraPosVec(1.0F);
+        Vec3d start = player.getEyePos();
         Vec3d direction = player.getRotationVec(1.0F);
         Vec3d end = start.add(direction.multiply(maxDistance));
 
@@ -35,7 +36,15 @@ public final class Targeting {
 
         double expand = Math.max(0.0D, viewRange);
         Box box = player.getBoundingBox().stretch(direction.multiply(maxDistance)).expand(expand);
-        Predicate<Entity> predicate = entity -> entity instanceof LivingEntity living && living.isAlive() && living != player;
+        Predicate<Entity> predicate = entity -> {
+            if (!(entity instanceof LivingEntity living) || !living.isAlive() || living == player) {
+                return false;
+            }
+            if (living instanceof ServerPlayerEntity targetPlayer) {
+                return VoidImmunity.canBeTargeted(player, targetPlayer);
+            }
+            return true;
+        };
         EntityHitResult entityHit = ProjectileUtil.raycast(player, start, end, box, predicate, maxDistanceSq);
         if (entityHit == null) {
             return null;
@@ -45,5 +54,38 @@ public final class Targeting {
         }
         return living;
     }
-}
 
+    public static ServerPlayerEntity raycastPlayer(ServerPlayerEntity player, double maxDistance) {
+        return raycastPlayer(player, maxDistance, 1.0D);
+    }
+
+    public static ServerPlayerEntity raycastPlayer(ServerPlayerEntity player, double maxDistance, double viewRange) {
+        Vec3d start = player.getEyePos();
+        Vec3d direction = player.getRotationVec(1.0F);
+        Vec3d end = start.add(direction.multiply(maxDistance));
+
+        HitResult blockHit = player.raycast(maxDistance, 1.0F, false);
+        double maxDistanceSq = maxDistance * maxDistance;
+        if (blockHit.getType() != HitResult.Type.MISS) {
+            end = blockHit.getPos();
+            maxDistanceSq = start.squaredDistanceTo(end);
+        }
+
+        double expand = Math.max(0.0D, viewRange);
+        Box box = player.getBoundingBox().stretch(direction.multiply(maxDistance)).expand(expand);
+        Predicate<Entity> predicate = entity -> {
+            if (!(entity instanceof ServerPlayerEntity target) || !target.isAlive() || target == player) {
+                return false;
+            }
+            return VoidImmunity.canBeTargeted(player, target);
+        };
+        EntityHitResult entityHit = ProjectileUtil.raycast(player, start, end, box, predicate, maxDistanceSq);
+        if (entityHit == null) {
+            return null;
+        }
+        if (entityHit.getEntity() instanceof ServerPlayerEntity target) {
+            return target;
+        }
+        return null;
+    }
+}

@@ -1,51 +1,59 @@
 package com.feel.gems.gametest.terror;
 
 import com.feel.gems.core.GemId;
+import com.feel.gems.gametest.util.GemsGameTestUtil;
 import com.feel.gems.power.ability.terror.TerrorTradeAbility;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.PlayerNbt;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import java.util.EnumSet;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
 
 
 
 
 public final class GemsTerrorTradeGameTests {
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    private static void teleport(ServerPlayerEntity player, ServerWorld world, double x, double y, double z, float yaw, float pitch) {
+        player.teleport(world, x, y, z, EnumSet.noneOf(PositionFlag.class), yaw, pitch, false);
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void terrorTradeNormalKillsBothAndTargetLosesTwoHearts(TestContext context) {
         ServerWorld world = context.getWorld();
-        ServerPlayerEntity caster = context.createMockCreativeServerPlayerInWorld();
-        ServerPlayerEntity victim = context.createMockCreativeServerPlayerInWorld();
-        caster.changeGameMode(GameMode.SURVIVAL);
-        victim.changeGameMode(GameMode.SURVIVAL);
-        caster.setInvulnerable(false);
-        victim.setInvulnerable(false);
+        ServerPlayerEntity caster = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity victim = GemsGameTestUtil.createMockCreativeServerPlayer(context);
 
         Vec3d casterPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         // Keep the victim well within the EMPTY_STRUCTURE bounds to avoid barrier occlusion during raycasts.
         Vec3d victimPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 2.5D));
-        caster.teleport(world, casterPos.x, casterPos.y, casterPos.z, 0.0F, 0.0F);
-        victim.teleport(world, victimPos.x, victimPos.y, victimPos.z, 180.0F, 0.0F);
+        teleport(caster, world, casterPos.x, casterPos.y, casterPos.z, 0.0F, 0.0F);
+        teleport(victim, world, victimPos.x, victimPos.y, victimPos.z, 180.0F, 0.0F);
 
-        GemPlayerState.initIfNeeded(caster);
-        GemPlayerState.setActiveGem(caster, GemId.TERROR);
-        GemPlayerState.setMaxHearts(caster, 10);
-        GemPlayerState.applyMaxHearts(caster);
+        context.runAtTick(1L, () -> {
+            GemsGameTestUtil.forceSurvival(caster);
+            GemsGameTestUtil.forceSurvival(victim);
+            teleport(caster, world, casterPos.x, casterPos.y, casterPos.z, 0.0F, 0.0F);
+            teleport(victim, world, victimPos.x, victimPos.y, victimPos.z, 180.0F, 0.0F);
 
-        GemPlayerState.initIfNeeded(victim);
-        GemPlayerState.setMaxHearts(victim, 10);
-        GemPlayerState.applyMaxHearts(victim);
+            GemPlayerState.initIfNeeded(caster);
+            GemPlayerState.setActiveGem(caster, GemId.TERROR);
+            GemPlayerState.setMaxHearts(caster, 10);
+            GemPlayerState.applyMaxHearts(caster);
 
-        // Totems should save the target in all modes in real gameplay.
-        // Note: GameTest mock players only reliably take certain damage sources, so we don't assert totem consumption here.
-        victim.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new ItemStack(Items.TOTEM_OF_UNDYING));
+            GemPlayerState.initIfNeeded(victim);
+            GemPlayerState.setMaxHearts(victim, 10);
+            GemPlayerState.applyMaxHearts(victim);
+
+            // Totems should save the target in all modes in real gameplay.
+            // Note: GameTest mock players only reliably take certain damage sources, so we don't assert totem consumption here.
+            victim.setStackInHand(net.minecraft.util.Hand.OFF_HAND, new ItemStack(Items.TOTEM_OF_UNDYING));
+        });
 
         context.runAtTick(20L, () -> {
             // Re-aim right before activation; GameTest player rotations can be flaky if set too early.
@@ -55,10 +63,13 @@ public final class GemsTerrorTradeGameTests {
             double dy = aimAt.y - caster.getEyeY();
             float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0D);
             float pitch = (float) (-Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz))));
-            caster.teleport(world, caster.getX(), caster.getY(), caster.getZ(), yaw, pitch);
+            teleport(caster, world, caster.getX(), caster.getY(), caster.getZ(), yaw, pitch);
         });
 
         context.runAtTick(22L, () -> {
+            // Force survival right before activation; mock players can get their abilities reset during login.
+            GemsGameTestUtil.forceSurvival(caster);
+            GemsGameTestUtil.forceSurvival(victim);
             boolean ok = new TerrorTradeAbility().activate(caster);
             if (!ok) {
                 context.throwGameTestException("Terror Trade did not activate (raycast target not acquired)");

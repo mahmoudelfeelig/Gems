@@ -38,12 +38,12 @@ public final class PanicRingAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int count = GemsBalance.v().terror().panicRingTntCount();
         if (count <= 0) {
-            player.sendMessage(Text.literal("No TNT configured."), true);
+            player.sendMessage(Text.translatable("gems.ability.terror.panic_ring.no_tnt"), true);
             return false;
         }
 
-        var world = player.getServerWorld();
-        Vec3d center = player.getPos();
+        var world = player.getEntityWorld();
+        Vec3d center = player.getEntityPos();
         double radius = GemsBalance.v().terror().panicRingRadiusBlocks();
         int fuse = GemsBalance.v().terror().panicRingFuseTicks();
 

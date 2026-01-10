@@ -24,7 +24,7 @@ public abstract class WitherEntitySoulTargetingMixin {
         }
 
         WitherEntity self = (WitherEntity) (Object) this;
-        if (!(self.getWorld() instanceof ServerWorld world)) {
+        if (!(self.getEntityWorld() instanceof ServerWorld world)) {
             return entityId;
         }
         boolean soul = SoulSummons.isSoul(self);

@@ -7,18 +7,10 @@
     "ODO"
   ],
   "key": {
-    "O": {
-      "item": "minecraft:obsidian"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "N": {
-      "item": "minecraft:netherite_scrap"
-    },
-    "P": {
-      "item": "minecraft:netherite_pickaxe"
-    }
+    "O": "minecraft:obsidian",
+    "D": "minecraft:diamond",
+    "N": "minecraft:netherite_scrap",
+    "P": "minecraft:netherite_pickaxe"
   },
   "result": {
     "count": 1,

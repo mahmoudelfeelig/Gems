@@ -24,7 +24,7 @@ public abstract class PlayerEntityRotEaterTickMixin {
             return;
         }
         NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        long until = data.getLong(KEY_ROT_EATER_UNTIL);
+        long until = data.getLong(KEY_ROT_EATER_UNTIL, 0L);
         if (until <= 0L) {
             return;
         }

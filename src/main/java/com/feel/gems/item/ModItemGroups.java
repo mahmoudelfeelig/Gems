@@ -1,6 +1,7 @@
 package com.feel.gems.item;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.core.GemId;
 import com.feel.gems.item.legendary.SupremeArmorItem;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.item.ItemGroup;
@@ -36,42 +37,50 @@ public final class ModItemGroups {
                         .displayName(Text.translatable("itemGroup.gems"))
                         .icon(() -> new ItemStack(ModItems.CREATIVE_TAB_ICON))
                         .entries((displayContext, entries) -> {
-                            entries.add(ModItems.ASTRA_GEM);
-                            entries.add(ModItems.FIRE_GEM);
-                            entries.add(ModItems.FLUX_GEM);
-                            entries.add(ModItems.LIFE_GEM);
-                            entries.add(ModItems.PUFF_GEM);
-                            entries.add(ModItems.SPEED_GEM);
-                            entries.add(ModItems.STRENGTH_GEM);
-                            entries.add(ModItems.WEALTH_GEM);
-                            entries.add(ModItems.TERROR_GEM);
-                            entries.add(ModItems.SUMMONER_GEM);
-                            entries.add(ModItems.SPACE_GEM);
-                    entries.add(ModItems.REAPER_GEM);
-                    entries.add(ModItems.PILLAGER_GEM);
-                    entries.add(ModItems.SPY_MIMIC_GEM);
-                    entries.add(ModItems.BEACON_GEM);
-                    entries.add(ModItems.AIR_GEM);
-
-                            entries.add(ModItems.ENERGY_UPGRADE);
+                            RegistryWrapper.WrapperLookup lookup = displayContext.lookup();
+                            
+                            // === GEMS (first) ===
+                            for (GemId gemId : GemId.values()) {
+                                entries.add(ModItems.gemItem(gemId));
+                            }
+                            
+                            // === NORMAL ITEMS ===
                             entries.add(ModItems.HEART);
+                            entries.add(ModItems.ENERGY_UPGRADE);
                             entries.add(ModItems.GEM_TRADER);
                             entries.add(ModItems.GEM_PURCHASE);
-
+                            entries.add(ModItems.TEST_DUMMY_SPAWN_EGG);
+                            
+                            // === LEGENDARY ITEMS ===
+                            // Utility
                             entries.add(ModItems.TRACKER_COMPASS);
                             entries.add(ModItems.RECALL_RELIC);
+                            entries.add(ModItems.GEM_SEER);
                             entries.add(ModItems.HYPNO_STAFF);
                             entries.add(ModItems.EARTHSPLITTER_PICK);
-                            RegistryWrapper.WrapperLookup lookup = displayContext.lookup();
+                            
+                            // Armor (with trims)
                             entries.add(trimmedSupreme(ModItems.SUPREME_HELMET, lookup));
                             entries.add(trimmedSupreme(ModItems.SUPREME_CHESTPLATE, lookup));
                             entries.add(trimmedSupreme(ModItems.SUPREME_LEGGINGS, lookup));
                             entries.add(trimmedSupreme(ModItems.SUPREME_BOOTS, lookup));
+                            
+                            // Weapons
                             entries.add(ModItems.BLOOD_OATH_BLADE);
                             entries.add(ModItems.DEMOLITION_BLADE);
-                            entries.add(ModItems.HUNTERS_SIGHT_BOW);
                             entries.add(ModItems.THIRD_STRIKE_BLADE);
                             entries.add(ModItems.VAMPIRIC_EDGE);
+                            entries.add(ModItems.EXPERIENCE_BLADE);
+                            entries.add(ModItems.DUELISTS_RAPIER);
+                            entries.add(ModItems.HUNTERS_SIGHT_BOW);
+                            
+                            // PvP Items
+                            entries.add(ModItems.REVERSAL_MIRROR);
+                            entries.add(ModItems.HUNTERS_TROPHY_NECKLACE);
+                            entries.add(ModItems.GLADIATORS_MARK);
+                            entries.add(ModItems.SOUL_SHACKLE);
+                            entries.add(ModItems.CHALLENGERS_GAUNTLET);
+                            entries.add(ModItems.CHRONO_CHARM);
                         })
                         .build()
         );

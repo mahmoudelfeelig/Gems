@@ -2,6 +2,7 @@ package com.feel.gems.power.gem.air;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.runtime.AbilityFeedback;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTime;
@@ -27,7 +28,7 @@ public final class AirGaleSlamRuntime {
 
     public static boolean consumeIfActive(ServerPlayerEntity player) {
         var nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        long until = nbt.getLong(KEY_GALE_SLAM_UNTIL);
+        long until = nbt.getLong(KEY_GALE_SLAM_UNTIL, 0L);
         if (until <= 0) {
             return false;
         }
@@ -44,20 +45,25 @@ public final class AirGaleSlamRuntime {
             return;
         }
 
-        ServerWorld world = player.getServerWorld();
-        Vec3d center = (target != null) ? target.getPos() : player.getPos();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
+        Vec3d center = (target != null) ? target.getEntityPos() : player.getEntityPos();
         Box box = new Box(center, center).expand(radius);
 
         for (Entity entity : world.getOtherEntities(player, box, e -> e instanceof LivingEntity living && living.isAlive())) {
             if (entity instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
                 continue;
             }
+            if (entity instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                continue;
+            }
             LivingEntity living = (LivingEntity) entity;
-            living.damage(player.getDamageSources().playerAttack(player), bonusDamage);
+            living.damage(world, player.getDamageSources().playerAttack(player), bonusDamage);
             if (knockback > 0.0D) {
-                Vec3d away = living.getPos().subtract(center).normalize();
+                Vec3d away = living.getEntityPos().subtract(center).normalize();
                 living.addVelocity(away.x * knockback, 0.2D, away.z * knockback);
-                living.velocityModified = true;
+                living.velocityDirty = true;
             }
         }
 
@@ -65,4 +71,3 @@ public final class AirGaleSlamRuntime {
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 1.0F, 1.0F);
     }
 }
-

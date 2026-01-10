@@ -35,12 +35,12 @@ public final class SpaceWhiteHoleAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int duration = GemsBalance.v().space().whiteHoleDurationTicks();
         if (duration <= 0) {
-            player.sendMessage(Text.literal("White Hole is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.space.white_hole.disabled"), true);
             return false;
         }
-        Vec3d center = player.getPos().add(0.0D, 0.2D, 0.0D);
+        Vec3d center = player.getEntityPos().add(0.0D, 0.2D, 0.0D);
         SpaceAnomalies.spawnWhiteHole(player, center);
-        player.sendMessage(Text.literal("White Hole spawned."), true);
+        player.sendMessage(Text.translatable("gems.ability.space.white_hole.spawned"), true);
         return true;
     }
 }

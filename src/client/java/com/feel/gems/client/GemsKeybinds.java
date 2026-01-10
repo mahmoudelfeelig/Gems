@@ -4,7 +4,11 @@ import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.ActivateAbilityPayload;
+import com.feel.gems.net.ActivateBonusAbilityPayload;
+import com.feel.gems.net.BonusSelectionOpenRequestPayload;
 import com.feel.gems.net.FluxChargePayload;
+import com.feel.gems.net.PrismSelectionOpenRequestPayload;
+import com.feel.gems.net.SpyObservedOpenRequestPayload;
 import com.feel.gems.net.SoulReleasePayload;
 import com.feel.gems.net.SummonerLoadoutOpenRequestPayload;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -12,19 +16,22 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 
 
 
 public final class GemsKeybinds {
-    private static final String CATEGORY = "category.gems";
+    private static final KeyBinding.Category CATEGORY = KeyBinding.Category.create(Identifier.of("gems", "controls"));
 
     private static boolean registered = false;
     private static KeyBinding MODIFIER;
     private static KeyBinding[] CUSTOM_KEYS;
+    private static KeyBinding[] BONUS_ABILITY_KEYS;
+    private static KeyBinding BONUS_SCREEN_KEY;
+    private static KeyBinding SPY_OBSERVED_SCREEN_KEY;
 
     private GemsKeybinds() {
     }
@@ -35,25 +42,25 @@ public final class GemsKeybinds {
         }
         registered = true;
 
-        GemsClientConfig cfg = GemsClientConfigManager.config();
-        MODIFIER = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.gems.modifier",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_LEFT_ALT,
-                CATEGORY
-        ));
+        MODIFIER = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.modifier", GLFW.GLFW_KEY_LEFT_ALT, CATEGORY));
 
-        if (cfg.controlMode == GemsClientConfig.ControlMode.CUSTOM) {
-            CUSTOM_KEYS = new KeyBinding[9];
-            for (int i = 0; i < CUSTOM_KEYS.length; i++) {
-                CUSTOM_KEYS[i] = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                        "key.gems.ability_" + (i + 1),
-                        InputUtil.Type.KEYSYM,
-                        GLFW.GLFW_KEY_UNKNOWN,
-                        CATEGORY
-                ));
-            }
+        // Always register the custom keybinds so they appear in the Controls menu even if the user
+        // starts in chord mode and switches later via config.
+        CUSTOM_KEYS = new KeyBinding[9];
+        for (int i = 0; i < CUSTOM_KEYS.length; i++) {
+            CUSTOM_KEYS[i] = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.ability_" + (i + 1), GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
         }
+        
+        // Bonus ability keybinds (C and V by default, customizable via Controls)
+        BONUS_ABILITY_KEYS = new KeyBinding[2];
+        BONUS_ABILITY_KEYS[0] = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.bonus_ability_1", GLFW.GLFW_KEY_C, CATEGORY));
+        BONUS_ABILITY_KEYS[1] = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.bonus_ability_2", GLFW.GLFW_KEY_V, CATEGORY));
+        
+        // Bonus selection screen keybind (B by default)
+        BONUS_SCREEN_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.bonus_screen", GLFW.GLFW_KEY_B, CATEGORY));
+
+        // Spy observed abilities screen keybind (O by default)
+        SPY_OBSERVED_SCREEN_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.spy_observed_screen", GLFW.GLFW_KEY_O, CATEGORY));
     }
 
     public static boolean isModifierDown() {
@@ -65,6 +72,24 @@ public final class GemsKeybinds {
             return "";
         }
         return MODIFIER.getBoundKeyLocalizedText().getString();
+    }
+
+    public static String bonusScreenLabel() {
+        if (BONUS_SCREEN_KEY == null) {
+            return "";
+        }
+        return BONUS_SCREEN_KEY.getBoundKeyLocalizedText().getString();
+    }
+
+    public static String bonusAbilityLabel(int bonusSlotIndex) {
+        if (BONUS_ABILITY_KEYS == null || bonusSlotIndex < 0 || bonusSlotIndex >= BONUS_ABILITY_KEYS.length) {
+            return "";
+        }
+        KeyBinding key = BONUS_ABILITY_KEYS[bonusSlotIndex];
+        if (key == null) {
+            return "";
+        }
+        return key.getBoundKeyLocalizedText().getString();
     }
 
     public static String chordSlotLabel(int slotNumber) {
@@ -83,6 +108,29 @@ public final class GemsKeybinds {
     }
 
     public static void tick(MinecraftClient client) {
+        // Check bonus screen key (works regardless of control mode)
+        if (BONUS_SCREEN_KEY != null && client.currentScreen == null) {
+            while (BONUS_SCREEN_KEY.wasPressed()) {
+                openBonusScreen(client);
+            }
+        }
+
+        // Spy observed abilities screen key
+        if (SPY_OBSERVED_SCREEN_KEY != null && client.currentScreen == null) {
+            while (SPY_OBSERVED_SCREEN_KEY.wasPressed()) {
+                openSpyObservedScreen(client);
+            }
+        }
+        
+        // Check bonus ability keybinds (work regardless of control mode)
+        if (BONUS_ABILITY_KEYS != null && client.currentScreen == null) {
+            for (int i = 0; i < BONUS_ABILITY_KEYS.length; i++) {
+                while (BONUS_ABILITY_KEYS[i].wasPressed()) {
+                    activateBonusAbility(client, i);
+                }
+            }
+        }
+        
         if (!useCustomControls() || CUSTOM_KEYS == null || client.currentScreen != null) {
             return;
         }
@@ -91,6 +139,67 @@ public final class GemsKeybinds {
                 activateSlotChord(client, i + 1);
             }
         }
+    }
+    
+    private static void activateBonusAbility(MinecraftClient client, int slotIndex) {
+        if (client.getNetworkHandler() == null) {
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
+            return;
+        }
+        if (!ClientGemState.isInitialized()) {
+            sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
+            return;
+        }
+        if (ClientGemState.energy() < 10) {
+            sendActionBar(client, Text.translatable("gems.bonus.need_energy_use"));
+            return;
+        }
+        ClientPlayNetworking.send(new ActivateBonusAbilityPayload(slotIndex));
+    }
+    
+    private static void openBonusScreen(MinecraftClient client) {
+        if (client.getNetworkHandler() == null) {
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
+            return;
+        }
+        if (!ClientGemState.isInitialized()) {
+            sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
+            return;
+        }
+        
+        // Prism gem uses B key to open Prism selection screen (requires energy 10)
+        if (ClientGemState.activeGem() == GemId.PRISM) {
+            if (ClientGemState.energy() < 10) {
+                sendActionBar(client, Text.translatable("gems.prism.need_energy_access"));
+                return;
+            }
+            ClientPlayNetworking.send(PrismSelectionOpenRequestPayload.INSTANCE);
+            return;
+        }
+        
+        // All other gems use B key for bonus selection (requires energy 10+)
+        if (ClientGemState.energy() < 10) {
+            sendActionBar(client, Text.translatable("gems.bonus.need_energy_access"));
+            return;
+        }
+        ClientPlayNetworking.send(BonusSelectionOpenRequestPayload.INSTANCE);
+    }
+
+    private static void openSpyObservedScreen(MinecraftClient client) {
+        if (client.getNetworkHandler() == null) {
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
+            return;
+        }
+        if (!ClientGemState.isInitialized()) {
+            sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
+            return;
+        }
+        GemId gem = ClientGemState.activeGem();
+        if (gem != GemId.SPY_MIMIC && gem != GemId.PRISM) {
+            sendActionBar(client, Text.translatable("gems.spy.observed.not_spy"));
+            return;
+        }
+        ClientPlayNetworking.send(SpyObservedOpenRequestPayload.INSTANCE);
     }
 
     public static boolean useChordControls() {
@@ -114,17 +223,40 @@ public final class GemsKeybinds {
 
     public static void activateSlotChord(MinecraftClient client, int slotNumber) {
         if (client.getNetworkHandler() == null) {
-            sendActionBar(client, Text.literal("Not connected."));
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
             return;
         }
         if (!ClientGemState.isInitialized()) {
-            sendActionBar(client, Text.literal("Gem state not synced yet."));
+            sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
             return;
         }
         ClientAbilitySelection.record(ClientGemState.activeGem(), slotNumber);
 
         GemDefinition def = GemRegistry.definition(ClientGemState.activeGem());
         int abilityCount = def.abilities().size();
+        
+        // Prism: uses selected abilities from ClientPrismState instead of gem definition
+        if (ClientGemState.activeGem() == GemId.PRISM) {
+            int prismAbilityCount = ClientPrismState.getAbilities().size();
+            int abilityIndex = slotNumber - 1;
+            if (abilityIndex < 0 || abilityIndex >= prismAbilityCount) {
+                return;
+            }
+            // Server validates unlocks/cooldowns/suppression.
+            ClientPlayNetworking.send(new ActivateAbilityPayload(abilityIndex));
+            return;
+        }
+
+        // Chaos: has 4 independent slots (0-3), each can be rolled or used
+        if (ClientGemState.activeGem() == GemId.CHAOS) {
+            int slotIndex = slotNumber - 1;
+            if (slotIndex < 0 || slotIndex >= ClientChaosState.SLOT_COUNT) {
+                return;
+            }
+            // Server handles both rolling new abilities and using existing ones
+            ClientPlayNetworking.send(new ActivateAbilityPayload(slotIndex));
+            return;
+        }
 
         // Summoner: open loadout editor on the chord after the last ability slot.
         if (ClientGemState.activeGem() == GemId.SUMMONER && slotNumber == abilityCount + 1) {
@@ -165,11 +297,11 @@ public final class GemsKeybinds {
 
     private static void activateSoulRelease(MinecraftClient client) {
         if (client.getNetworkHandler() == null) {
-            sendActionBar(client, Text.literal("Not connected."));
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
             return;
         }
         if (!ClientGemState.isInitialized()) {
-            sendActionBar(client, Text.literal("Gem state not synced yet."));
+            sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
             return;
         }
         ClientAbilitySelection.record(ClientGemState.activeGem(), GemRegistry.definition(ClientGemState.activeGem()).abilities().size() + 1);

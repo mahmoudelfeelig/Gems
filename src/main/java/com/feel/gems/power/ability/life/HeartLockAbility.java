@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.life;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.AbilityRuntime;
@@ -42,13 +43,17 @@ public final class HeartLockAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().life().heartLockRangeBlocks());
         if (target == null) {
-            player.sendMessage(Text.literal("No target."), true);
+            player.sendMessage(Text.translatable("gems.message.no_target"), true);
             return false;
         }
         int duration = GemsBalance.v().life().heartLockDurationTicks();
         if (target instanceof ServerPlayerEntity other) {
             if (GemTrust.isTrusted(player, other)) {
-                player.sendMessage(Text.literal("Target is trusted."), true);
+                player.sendMessage(Text.translatable("gems.message.target_trusted"), true);
+                return false;
+            }
+            if (!VoidImmunity.canBeTargeted(player, other)) {
+                player.sendMessage(Text.translatable("gems.message.target_immune"), true);
                 return false;
             }
             AbilityRuntime.startHeartLock(player, other, duration);
@@ -58,8 +63,8 @@ public final class HeartLockAbility implements GemAbility {
             }
         }
         AbilityFeedback.sound(player, SoundEvents.BLOCK_CHAIN_PLACE, 0.8F, 0.9F);
-        AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ENCHANT, 18, 0.25D);
-        player.sendMessage(Text.literal("Heart Lock applied."), true);
+        AbilityFeedback.burstAt(player.getEntityWorld(), target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ENCHANT, 18, 0.25D);
+        player.sendMessage(Text.translatable("gems.ability.life.heart_lock.applied"), true);
         return true;
     }
 }

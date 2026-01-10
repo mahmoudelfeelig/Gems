@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.wealth;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.util.Targeting;
@@ -12,6 +13,7 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -42,23 +44,29 @@ public final class HotbarLockAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().wealth().hotbarLockRangeBlocks());
         if (target == null) {
-            player.sendMessage(Text.literal("No target."), true);
+            player.sendMessage(Text.translatable("gems.message.no_target"), true);
             return false;
         }
         int duration = GemsBalance.v().wealth().hotbarLockDurationTicks();
         if (target instanceof ServerPlayerEntity other) {
             if (GemTrust.isTrusted(player, other)) {
-                player.sendMessage(Text.literal("Target is trusted."), true);
+                player.sendMessage(Text.translatable("gems.message.target_trusted"), true);
                 return false;
             }
-            HotbarLock.lock(other, other.getInventory().selectedSlot, duration);
+            if (!VoidImmunity.canBeTargeted(player, other)) {
+                player.sendMessage(Text.translatable("gems.message.target_immune"), true);
+                return false;
+            }
+            HotbarLock.lock(other, other.getInventory().getSelectedSlot(), duration);
         } else {
             target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 0, true, false, false));
             target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
         }
         AbilityFeedback.sound(player, SoundEvents.BLOCK_CHAIN_PLACE, 0.8F, 1.1F);
-        AbilityFeedback.burstAt(player.getServerWorld(), target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.CRIT, 12, 0.2D);
-        player.sendMessage(Text.literal("Hotbar locked."), true);
+        if (player.getEntityWorld() instanceof ServerWorld world) {
+            AbilityFeedback.burstAt(world, target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.CRIT, 12, 0.2D);
+        }
+        player.sendMessage(Text.translatable("gems.ability.wealth.hotbar_lock.activated"), true);
         return true;
     }
 }

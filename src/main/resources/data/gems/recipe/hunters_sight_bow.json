@@ -7,18 +7,10 @@
     "PEP"
   ],
   "key": {
-    "P": {
-      "item": "minecraft:phantom_membrane"
-    },
-    "E": {
-      "item": "minecraft:ender_eye"
-    },
-    "S": {
-      "item": "minecraft:spyglass"
-    },
-    "B": {
-      "item": "minecraft:bow"
-    }
+    "P": "minecraft:phantom_membrane",
+    "E": "minecraft:ender_eye",
+    "S": "minecraft:spyglass",
+    "B": "minecraft:bow"
   },
   "result": {
     "count": 1,

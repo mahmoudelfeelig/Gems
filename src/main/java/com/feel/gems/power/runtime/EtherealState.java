@@ -1,0 +1,59 @@
+package com.feel.gems.power.runtime;
+
+import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.util.GemsTime;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
+
+/**
+ * Tracks the ethereal (damage immune) state for players.
+ * When ethereal, players are immune to all damage but cannot attack.
+ */
+public final class EtherealState {
+    private static final String KEY_ETHEREAL_UNTIL = "etherealUntil";
+
+    private EtherealState() {
+    }
+
+    /**
+     * Set the player as ethereal for the given duration in ticks.
+     */
+    public static void setEthereal(ServerPlayerEntity player, int durationTicks) {
+        if (durationTicks <= 0) {
+            clearEthereal(player);
+            return;
+        }
+        NbtCompound nbt = persistent(player);
+        long until = GemsTime.now(player) + durationTicks;
+        nbt.putLong(KEY_ETHEREAL_UNTIL, until);
+    }
+
+    /**
+     * Clear the ethereal state.
+     */
+    public static void clearEthereal(ServerPlayerEntity player) {
+        NbtCompound nbt = persistent(player);
+        nbt.remove(KEY_ETHEREAL_UNTIL);
+    }
+
+    /**
+     * Check if the player is currently ethereal (immune to damage).
+     */
+    public static boolean isEthereal(ServerPlayerEntity player) {
+        NbtCompound nbt = persistent(player);
+        long until = nbt.getLong(KEY_ETHEREAL_UNTIL, 0L);
+        if (until <= 0) {
+            return false;
+        }
+        long now = GemsTime.now(player);
+        if (now >= until) {
+            nbt.remove(KEY_ETHEREAL_UNTIL);
+            return false;
+        }
+        return true;
+    }
+
+    private static NbtCompound persistent(ServerPlayerEntity player) {
+        return ((GemsPersistentDataHolder) player).gems$getPersistentData();
+    }
+}

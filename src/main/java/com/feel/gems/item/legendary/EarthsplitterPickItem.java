@@ -3,8 +3,9 @@ package com.feel.gems.item.legendary;
 import com.feel.gems.GemsMod;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
-import java.util.List;
+import java.util.function.Consumer;
 import net.minecraft.block.BlockState;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.enchantment.Enchantment;
@@ -12,18 +13,18 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Item.TooltipContext;
-import net.minecraft.item.PickaxeItem;
 import net.minecraft.item.ToolMaterial;
 import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
@@ -32,7 +33,7 @@ import net.minecraft.text.Text;
 
 
 
-public final class EarthsplitterPickItem extends PickaxeItem implements LegendaryItem {
+public final class EarthsplitterPickItem extends Item implements LegendaryItem {
     private static final TagKey<net.minecraft.block.Block> BLACKLIST = TagKey.of(
             RegistryKeys.BLOCK,
             Identifier.of(GemsMod.MOD_ID, "earthsplitter_blacklist")
@@ -41,7 +42,7 @@ public final class EarthsplitterPickItem extends PickaxeItem implements Legendar
     private static final String KEY_TUNNEL = "legendaryEarthsplitterTunnel";
 
     public EarthsplitterPickItem(ToolMaterial material, Settings settings) {
-        super(material, settings);
+        super(settings.pickaxe(material, 1.0F, -2.8F).enchantable(15));
     }
 
     @Override
@@ -52,7 +53,7 @@ public final class EarthsplitterPickItem extends PickaxeItem implements Legendar
     @Override
     public boolean postMine(ItemStack stack, World world, BlockState state, BlockPos pos, LivingEntity miner) {
         boolean result = super.postMine(stack, world, state, pos, miner);
-        if (world.isClient) {
+        if (world.isClient()) {
             return result;
         }
         if (!(miner instanceof ServerPlayerEntity player)) {
@@ -79,25 +80,22 @@ public final class EarthsplitterPickItem extends PickaxeItem implements Legendar
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, net.minecraft.entity.player.PlayerEntity user, net.minecraft.util.Hand hand) {
+    public ActionResult use(World world, net.minecraft.entity.player.PlayerEntity user, net.minecraft.util.Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
-        if (world.isClient) {
-            return TypedActionResult.success(stack);
+        if (world.isClient()) {
+            return ActionResult.SUCCESS;
         }
         boolean tunnel = !isTunnelMode(stack);
         setTunnelMode(stack, tunnel);
         if (user instanceof ServerPlayerEntity player) {
             String mode = tunnel ? "Tunnel 9x3x1" : "Cube 3x3x3";
-            player.sendMessage(Text.literal("Earthsplitter mode: " + mode), true);
+            player.sendMessage(Text.translatable("gems.item.earthsplitter_pick.mode", mode), true);
         }
-        return TypedActionResult.success(stack);
+        return ActionResult.SUCCESS;
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        if (world.isClient) {
-            return;
-        }
+    public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, EquipmentSlot slot) {
         if (!(entity instanceof ServerPlayerEntity player)) {
             return;
         }
@@ -112,19 +110,12 @@ public final class EarthsplitterPickItem extends PickaxeItem implements Legendar
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        tooltip.add(Text.translatable("item.gems.earthsplitter_pick.desc"));
-    }
-
-    @Override
-    public boolean isEnchantable(ItemStack stack) {
-        return true;
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        tooltip.accept(Text.translatable("item.gems.earthsplitter_pick.desc"));
     }
 
     private static RegistryEntry<Enchantment> resolveSilkTouch(ServerPlayerEntity player) {
-        var registry = player.getServerWorld().getRegistryManager().get(RegistryKeys.ENCHANTMENT);
-        var entry = registry.getEntry(Enchantments.SILK_TOUCH);
-        return entry.orElse(null);
+        return player.getEntityWorld().getRegistryManager().getOptionalEntry(Enchantments.SILK_TOUCH).orElse(null);
     }
 
     private static boolean isRecursiveBreak(ItemStack stack) {
@@ -132,7 +123,7 @@ public final class EarthsplitterPickItem extends PickaxeItem implements Legendar
         if (data == null) {
             return false;
         }
-        return data.getNbt().getBoolean(KEY_MINING);
+        return data.copyNbt().getBoolean(KEY_MINING, false);
     }
 
     private static void markRecursiveBreak(ItemStack stack, boolean value) {
@@ -150,7 +141,7 @@ public final class EarthsplitterPickItem extends PickaxeItem implements Legendar
         if (data == null) {
             return false;
         }
-        return data.getNbt().getBoolean(KEY_TUNNEL);
+        return data.copyNbt().getBoolean(KEY_TUNNEL, false);
     }
 
     private static void setTunnelMode(ItemStack stack, boolean value) {
@@ -233,11 +224,11 @@ public final class EarthsplitterPickItem extends PickaxeItem implements Legendar
     }
 
     private static boolean canBreak(ServerPlayerEntity player, ItemStack stack, BlockPos.Mutable pos) {
-        BlockState target = player.getWorld().getBlockState(pos);
+        BlockState target = player.getEntityWorld().getBlockState(pos);
         if (target.isAir() || target.isIn(BLACKLIST)) {
             return false;
         }
-        if (target.getHardness(player.getWorld(), pos) < 0.0F) {
+        if (target.getHardness(player.getEntityWorld(), pos) < 0.0F) {
             return false;
         }
         if (target.isToolRequired() && !stack.isSuitableFor(target)) {

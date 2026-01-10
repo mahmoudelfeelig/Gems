@@ -9,7 +9,9 @@
     "fabric-gametest": [
       "com.feel.gems.gametest.ability.GemsAbilityGameTests",
       "com.feel.gems.gametest.air.GemsAirMaceGameTests",
+      "com.feel.gems.gametest.bonus.GemsBonusGameTests",
       "com.feel.gems.gametest.core.GemsCoreGameTests",
+      "com.feel.gems.gametest.gems.GemsSpecialGemsGameTests",
       "com.feel.gems.gametest.item.GemsHeartAndAssassinGameTests",
       "com.feel.gems.gametest.item.GemsItemGameTests",
       "com.feel.gems.gametest.power.GemsFluxGameTests",

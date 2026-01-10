@@ -26,7 +26,7 @@ public final class PocketsAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Opens a 9-slot extra inventory.";
+        return "Opens an extra inventory.";
     }
 
     @Override
@@ -40,7 +40,7 @@ public final class PocketsAbility implements GemAbility {
         NamedScreenHandlerFactory factory = new NamedScreenHandlerFactory() {
             @Override
             public Text getDisplayName() {
-                return Text.literal("Pockets");
+                return Text.translatable("gems.ability.wealth.pockets.title");
             }
 
             @Override

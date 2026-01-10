@@ -7,18 +7,10 @@
     "AGA"
   ],
   "key": {
-    "A": {
-      "item": "minecraft:amethyst_shard"
-    },
-    "G": {
-      "item": "minecraft:gold_ingot"
-    },
-    "P": {
-      "item": "minecraft:prismarine_shard"
-    },
-    "H": {
-      "item": "minecraft:netherite_helmet"
-    }
+    "A": "minecraft:amethyst_shard",
+    "G": "minecraft:gold_ingot",
+    "P": "minecraft:prismarine_shard",
+    "H": "minecraft:netherite_helmet"
   },
   "result": {
     "count": 1,

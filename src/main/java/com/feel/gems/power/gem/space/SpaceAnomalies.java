@@ -1,6 +1,7 @@
 package com.feel.gems.power.gem.space;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTime;
@@ -12,6 +13,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.particle.TintedParticleEffect;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -19,13 +21,14 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
 
 
 /**
  * Lightweight runtime for Space gem "anomalies" that require per-tick physics (black/white holes and delayed orbital strikes).
  *
- * <p>Important: keep this performant — it should early-exit when no anomalies exist and keep radii clamped by config.</p>
+ * <p>Important: keep this performant, it should early-exit when no anomalies exist and keep radii clamped by config.</p>
  */
 public final class SpaceAnomalies {
     private static final List<Anomaly> ACTIVE = new ArrayList<>();
@@ -36,7 +39,9 @@ public final class SpaceAnomalies {
     }
 
     public static void spawnBlackHole(ServerPlayerEntity caster, Vec3d pos) {
-        ServerWorld world = caster.getServerWorld();
+        if (!(caster.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
         long now = GemsTime.now(world);
         ACTIVE.add(Anomaly.blackHole(caster.getUuid(), world.getRegistryKey(), pos, now));
 
@@ -48,7 +53,9 @@ public final class SpaceAnomalies {
     }
 
     public static void spawnWhiteHole(ServerPlayerEntity caster, Vec3d pos) {
-        ServerWorld world = caster.getServerWorld();
+        if (!(caster.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
         long now = GemsTime.now(world);
         ACTIVE.add(Anomaly.whiteHole(caster.getUuid(), world.getRegistryKey(), pos, now));
 
@@ -61,7 +68,9 @@ public final class SpaceAnomalies {
     }
 
     public static void scheduleOrbitalLaser(ServerPlayerEntity caster, BlockPos target, boolean miningMode) {
-        ServerWorld world = caster.getServerWorld();
+        if (!(caster.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
         long now = GemsTime.now(world);
         ACTIVE.add(Anomaly.laser(caster.getUuid(), world.getRegistryKey(), target, miningMode, now));
         Vec3d center = Vec3d.ofCenter(target);
@@ -129,10 +138,11 @@ public final class SpaceAnomalies {
         BlockPos target = a.laserTarget;
         Vec3d center = Vec3d.ofCenter(target);
 
-        double fromY = world.getTopY() + 24.0D;
+        int topY = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, target.getX(), target.getZ());
+        double fromY = topY + 24.0D;
         Vec3d from = new Vec3d(center.x, fromY, center.z);
         AbilityFeedback.beam(world, from, center, ParticleTypes.END_ROD, 64);
-        AbilityFeedback.burstAt(world, center, ParticleTypes.FLASH, 1, 0.0D);
+        AbilityFeedback.burstAt(world, center, TintedParticleEffect.create(ParticleTypes.FLASH, 0xFFFFFF), 1, 0.0D);
         AbilityFeedback.burstAt(world, center, ParticleTypes.ELECTRIC_SPARK, 22, 0.45D);
         AbilityFeedback.burstAt(world, center, ParticleTypes.SMOKE, 16, 0.55D);
         AbilityFeedback.ring(world, center.add(0.0D, 0.2D, 0.0D), 3.5D, ParticleTypes.END_ROD, 36);
@@ -166,7 +176,10 @@ public final class SpaceAnomalies {
             if (living instanceof ServerPlayerEntity other && GemTrust.isTrusted(caster, other)) {
                 continue;
             }
-            living.damage(caster.getDamageSources().magic(), damage);
+            if (living instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(caster, otherPlayer)) {
+                continue;
+            }
+            living.damage(world, caster.getDamageSources().magic(), damage);
         }
         AbilityFeedback.burstAt(world, center, ParticleTypes.ELECTRIC_SPARK, 18, 0.4D);
     }
@@ -248,16 +261,19 @@ public final class SpaceAnomalies {
             if (living instanceof ServerPlayerEntity other && GemTrust.isTrusted(caster, other)) {
                 continue;
             }
-            Vec3d delta = (a.kind == Kind.BLACK_HOLE) ? center.subtract(living.getPos()) : living.getPos().subtract(center);
+            if (living instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(caster, otherPlayer)) {
+                continue;
+            }
+            Vec3d delta = (a.kind == Kind.BLACK_HOLE) ? center.subtract(living.getEntityPos()) : living.getEntityPos().subtract(center);
             double dist = Math.max(0.5D, delta.length());
             Vec3d push = delta.normalize().multiply(strength / dist);
             living.setVelocity(living.getVelocity().add(push));
-            living.velocityModified = true;
+            living.velocityDirty = true;
 
             // Bounded per-tick VFX to hint the direction of force without spamming on large mobs clusters.
             if ((now % HOLE_VFX_TICK_STRIDE) == 0 && vfxTargets < 6) {
                 var trail = (a.kind == Kind.BLACK_HOLE) ? ParticleTypes.REVERSE_PORTAL : ParticleTypes.CLOUD;
-                AbilityFeedback.burstAt(world, living.getPos().add(0.0D, living.getHeight() * 0.6D, 0.0D), trail, 1, 0.08D);
+                AbilityFeedback.burstAt(world, living.getEntityPos().add(0.0D, living.getHeight() * 0.6D, 0.0D), trail, 1, 0.08D);
                 vfxTargets++;
             }
         }
@@ -273,7 +289,10 @@ public final class SpaceAnomalies {
                     if (living instanceof ServerPlayerEntity other && GemTrust.isTrusted(caster, other)) {
                         continue;
                     }
-                    living.damage(caster.getDamageSources().magic(), dmg);
+                    if (living instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(caster, otherPlayer)) {
+                        continue;
+                    }
+                    living.damage(world, caster.getDamageSources().magic(), dmg);
                 }
             }
         }

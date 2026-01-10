@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "combat",
+  "pattern": [
+    "ENE",
+    "DSB",
+    "ENE"
+  ],
+  "key": {
+    "E": "minecraft:experience_bottle",
+    "N": "minecraft:diamond",
+    "D": "minecraft:diamond",
+    "B": "minecraft:bookshelf",
+    "S": "minecraft:netherite_sword"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:experience_blade"
+  }
+}

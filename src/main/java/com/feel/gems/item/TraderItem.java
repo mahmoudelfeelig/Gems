@@ -3,11 +3,10 @@ package com.feel.gems.item;
 import com.feel.gems.screen.TraderScreenHandler;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 
 
@@ -19,13 +18,12 @@ public final class TraderItem extends Item {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        ItemStack stack = user.getStackInHand(hand);
-        if (world.isClient) {
-            return TypedActionResult.pass(stack);
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
+        if (world.isClient()) {
+            return ActionResult.SUCCESS;
         }
         if (!(user instanceof ServerPlayerEntity player)) {
-            return TypedActionResult.pass(stack);
+            return ActionResult.PASS;
         }
 
         player.openHandledScreen(new net.minecraft.screen.NamedScreenHandlerFactory() {
@@ -39,6 +37,6 @@ public final class TraderItem extends Item {
                 return new TraderScreenHandler(syncId, inv);
             }
         });
-        return TypedActionResult.success(stack);
+        return ActionResult.SUCCESS;
     }
 }

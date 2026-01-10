@@ -1,8 +1,10 @@
 # Compiled class file
 *.class
 
-# Log file
+# Logs
 *.log
+/logs
+
 
 # BlueJ files
 *.ctxt
@@ -28,7 +30,10 @@ replay_pid*
 /.gradle
 /.gradle-user-home
 /.gradle-home
+/.gradle-user
 /build
+/build-win
+/build-wsl
 /run
 /out
 /.idea
@@ -36,6 +41,7 @@ replay_pid*
 *.iml
 *.ipr
 *.iws
+/bin
 
 # Virtual environments
 .env/
@@ -48,4 +54,4 @@ CurseForge/
 experiments/
 
 # Assets
-/assets/
+/assets

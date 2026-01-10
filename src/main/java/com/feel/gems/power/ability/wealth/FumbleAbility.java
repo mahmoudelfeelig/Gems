@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.wealth;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.gem.wealth.WealthFumble;
@@ -41,7 +42,9 @@ public final class FumbleAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         int radius = GemsBalance.v().wealth().fumbleRadiusBlocks();
         int affected = 0;
         int duration = GemsBalance.v().wealth().fumbleDurationTicks();
@@ -51,16 +54,19 @@ public final class FumbleAbility implements GemAbility {
                 if (GemTrust.isTrusted(player, otherPlayer)) {
                     continue;
                 }
+                if (!VoidImmunity.canBeTargeted(player, otherPlayer)) {
+                    continue;
+                }
                 WealthFumble.apply(otherPlayer, duration);
             } else {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 0, true, false, false));
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
             }
-            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SMOKE, 10, 0.25D);
+            AbilityFeedback.burstAt(world, other.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SMOKE, 10, 0.25D);
             affected++;
         }
         AbilityFeedback.sound(player, SoundEvents.ENTITY_WITCH_THROW, 0.8F, 1.1F);
-        player.sendMessage(Text.literal("Fumble affected " + affected + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.wealth.fumble.affected", affected), true);
         return true;
     }
 }

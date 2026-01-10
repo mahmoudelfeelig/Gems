@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.astra;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -41,7 +42,7 @@ public final class SpookAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         int duration = GemsBalance.v().astra().spookDurationTicks();
         int radius = GemsBalance.v().astra().spookRadiusBlocks();
         int affected = 0;
@@ -50,13 +51,16 @@ public final class SpookAbility implements GemAbility {
             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) {
                 continue;
             }
+            if (other instanceof ServerPlayerEntity otherPlayer && !VoidImmunity.canBeTargeted(player, otherPlayer)) {
+                continue;
+            }
             other.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, duration, 0, true, false, false));
             other.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, duration, 0, true, false, false));
-            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SMOKE, 12, 0.25D);
+            AbilityFeedback.burstAt(world, other.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SMOKE, 12, 0.25D);
             affected++;
         }
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ENDERMAN_STARE, 0.8F, 0.8F);
-        player.sendMessage(Text.literal("Spooked " + affected + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.astra.spook.affected", affected), true);
         return true;
     }
 }

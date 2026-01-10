@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.astra;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.AbilityRestrictions;
@@ -42,7 +43,7 @@ public final class DimensionalVoidAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         int duration = GemsBalance.v().astra().dimensionalVoidDurationTicks();
         int radius = GemsBalance.v().astra().dimensionalVoidRadiusBlocks();
         int affected = 0;
@@ -52,17 +53,20 @@ public final class DimensionalVoidAbility implements GemAbility {
                 continue;
             }
             if (other instanceof ServerPlayerEntity otherPlayer) {
+                if (!VoidImmunity.canBeTargeted(player, otherPlayer)) {
+                    continue;
+                }
                 AbilityRestrictions.suppress(otherPlayer, duration);
             } else {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 1, true, false, false));
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));
             }
-            AbilityFeedback.burstAt(world, other.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.REVERSE_PORTAL, 10, 0.25D);
+            AbilityFeedback.burstAt(world, other.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.REVERSE_PORTAL, 10, 0.25D);
             affected++;
         }
         AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_DEACTIVATE, 0.8F, 0.8F);
         AbilityFeedback.burst(player, ParticleTypes.REVERSE_PORTAL, 18, 0.35D);
-        player.sendMessage(Text.literal("Dimensional Void: suppressed " + affected + " targets."), true);
+        player.sendMessage(Text.translatable("gems.ability.astra.dimensional_void.suppressed", affected), true);
         return true;
     }
 }

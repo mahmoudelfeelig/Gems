@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.speed;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.gem.speed.SpeedMomentum;
@@ -12,6 +13,7 @@ import java.util.List;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -46,7 +48,9 @@ public final class ArcShotAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         double maxDistance = GemsBalance.v().speed().arcShotRangeBlocks();
         float momentum = SpeedMomentum.multiplier(player);
         double radius = SpeedMomentum.scaleDouble(GemsBalance.v().speed().arcShotRadiusBlocks(), momentum);
@@ -71,8 +75,11 @@ public final class ArcShotAbility implements GemAbility {
             if (living instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
                 continue;
             }
+            if (living instanceof ServerPlayerEntity other && !VoidImmunity.canBeTargeted(player, other)) {
+                continue;
+            }
 
-            Vec3d pos = living.getPos();
+            Vec3d pos = living.getEntityPos();
             double t = pos.subtract(start).dotProduct(dir);
             if (t < 0.0D || t > length) {
                 continue;
@@ -87,7 +94,7 @@ public final class ArcShotAbility implements GemAbility {
 
         hits.sort(Comparator.comparingDouble(h -> h.t));
         if (hits.isEmpty()) {
-            player.sendMessage(Text.literal("No targets."), true);
+            player.sendMessage(Text.translatable("gems.message.no_targets"), true);
             return false;
         }
 
@@ -95,14 +102,14 @@ public final class ArcShotAbility implements GemAbility {
         AbilityFeedback.burstAt(world, start, ParticleTypes.ELECTRIC_SPARK, 18, 0.2D);
         for (Hit hit : hits) {
             LivingEntity target = hit.target;
-            spawnLightning(world, target.getPos());
-            target.damage(player.getDamageSources().lightningBolt(), damage);
-            AbilityFeedback.beam(world, start, target.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ELECTRIC_SPARK, 12);
+            spawnLightning(world, target.getEntityPos());
+            target.damage(world, player.getDamageSources().lightningBolt(), damage);
+            AbilityFeedback.beam(world, start, target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ELECTRIC_SPARK, 12);
 
-            Vec3d away = target.getPos().subtract(player.getPos()).normalize();
+            Vec3d away = target.getEntityPos().subtract(player.getEntityPos()).normalize();
             double kb = 0.8D * momentum;
             target.addVelocity(away.x * kb, 0.4D * momentum, away.z * kb);
-            target.velocityModified = true;
+            target.velocityDirty = true;
 
             count++;
             if (count >= maxTargets) {
@@ -115,7 +122,7 @@ public final class ArcShotAbility implements GemAbility {
     }
 
     private static void spawnLightning(ServerWorld world, Vec3d pos) {
-        LightningEntity bolt = EntityType.LIGHTNING_BOLT.create(world);
+        LightningEntity bolt = EntityType.LIGHTNING_BOLT.create(world, SpawnReason.TRIGGERED);
         if (bolt == null) {
             return;
         }

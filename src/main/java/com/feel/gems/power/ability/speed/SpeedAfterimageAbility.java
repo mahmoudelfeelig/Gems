@@ -41,7 +41,7 @@ public final class SpeedAfterimageAbility implements GemAbility {
         AbilityRuntime.startSpeedAfterimage(player, duration);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ENDERMAN_TELEPORT, 0.7F, 1.5F);
         AbilityFeedback.burst(player, ParticleTypes.CLOUD, 14, 0.35D);
-        player.sendMessage(Text.literal("Afterimage active."), true);
+        player.sendMessage(Text.translatable("gems.ability.speed.afterimage.active"), true);
         return true;
     }
 }

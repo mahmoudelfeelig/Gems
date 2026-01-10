@@ -5,7 +5,11 @@
   "refmap": "client-gems-refmap.json",
   "client": [
     "KeyboardHotbarAbilityMixin",
-    "AbstractClientPlayerEntitySkinMixin"
+    "KeyboardInputTricksterMixin",
+    "accessor.InputAccessor",
+    "AbstractClientPlayerEntitySkinMixin",
+    "AbstractClientPlayerEntityNameMixin",
+    "PlayerListEntrySkinshiftNameMixin"
   ],
   "injectors": {
     "defaultRequire": 1

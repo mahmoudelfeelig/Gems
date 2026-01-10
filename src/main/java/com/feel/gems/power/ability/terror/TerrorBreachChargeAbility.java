@@ -41,13 +41,13 @@ public final class TerrorBreachChargeAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         int range = GemsBalance.v().terror().breachChargeRangeBlocks();
         if (range <= 0) {
-            player.sendMessage(Text.literal("Breach Charge is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.terror.breach_charge.disabled"), true);
             return false;
         }
         Vec3d spawnPos = null;
         LivingEntity target = Targeting.raycastLiving(player, range);
         if (target != null) {
-            spawnPos = target.getPos().add(0.0D, 0.2D, 0.0D);
+            spawnPos = target.getEntityPos().add(0.0D, 0.2D, 0.0D);
         } else {
             HitResult hit = player.raycast(range, 1.0F, false);
             if (hit instanceof BlockHitResult blockHit) {
@@ -55,16 +55,17 @@ public final class TerrorBreachChargeAbility implements GemAbility {
             }
         }
         if (spawnPos == null) {
-            player.sendMessage(Text.literal("No target for breach charge."), true);
+            player.sendMessage(Text.translatable("gems.ability.terror.breach_charge.no_target"), true);
             return false;
         }
 
         float power = GemsBalance.v().terror().breachChargeExplosionPower();
-        player.getWorld().createExplosion(player, spawnPos.x, spawnPos.y, spawnPos.z, power, net.minecraft.world.World.ExplosionSourceType.MOB);
+        var world = player.getEntityWorld();
+        world.createExplosion(player, spawnPos.x, spawnPos.y, spawnPos.z, power, net.minecraft.world.World.ExplosionSourceType.MOB);
 
-        AbilityFeedback.burstAt(player.getServerWorld(), spawnPos, ParticleTypes.SMOKE, 12, 0.2D);
-        AbilityFeedback.burstAt(player.getServerWorld(), spawnPos, ParticleTypes.SOUL_FIRE_FLAME, 14, 0.15D);
-        AbilityFeedback.burstAt(player.getServerWorld(), spawnPos, ParticleTypes.LARGE_SMOKE, 8, 0.18D);
+        AbilityFeedback.burstAt(world, spawnPos, ParticleTypes.SMOKE, 12, 0.2D);
+        AbilityFeedback.burstAt(world, spawnPos, ParticleTypes.SOUL_FIRE_FLAME, 14, 0.15D);
+        AbilityFeedback.burstAt(world, spawnPos, ParticleTypes.LARGE_SMOKE, 8, 0.18D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_WITHER_SHOOT, 0.9F, 1.0F);
         return true;
     }

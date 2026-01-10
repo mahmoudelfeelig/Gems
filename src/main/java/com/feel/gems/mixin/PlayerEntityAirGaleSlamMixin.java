@@ -33,9 +33,9 @@ public abstract class PlayerEntityAirGaleSlamMixin {
                 && AirMacePassive.isHoldingMace(player)) {
             double knockback = GemsBalance.v().air().windShearKnockback();
             if (knockback > 0.0D) {
-                Vec3d away = living.getPos().subtract(player.getPos()).normalize();
+                Vec3d away = living.getEntityPos().subtract(player.getEntityPos()).normalize();
                 living.addVelocity(away.x * knockback, 0.1D, away.z * knockback);
-                living.velocityModified = true;
+                living.velocityDirty = true;
             }
             int slowDuration = GemsBalance.v().air().windShearSlownessDurationTicks();
             if (slowDuration > 0) {

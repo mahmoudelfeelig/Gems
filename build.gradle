@@ -1,10 +1,17 @@
 plugins {
-    id "fabric-loom" version "1.11-SNAPSHOT"
+    id "fabric-loom" version "${loom_version}"
     id "maven-publish"
 }
 
 version = project.mod_version
 group = project.maven_group
+
+// This repo is commonly built from both Windows and WSL. Sharing the same build directory between OSes
+// can lead to Loom-generated argfiles containing the wrong path separator (':' vs ';'), which breaks
+// run tasks with errors like "Could not find or load main class net.fabricmc.devlaunchinjector.Main".
+def osName = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT)
+def buildVariant = osName.contains("windows") ? "win" : "wsl"
+buildDir = file("build-${buildVariant}")
 
 base {
     archivesName = project.archives_base_name
@@ -38,6 +45,12 @@ configurations.configureEach {
 
 loom {
     splitEnvironmentSourceSets()
+
+    mixin {
+        useLegacyMixinAp = true
+        add sourceSets.main, "gems-refmap.json"
+        add sourceSets.client, "client-gems-refmap.json"
+    }
 }
 
 sourceSets {
@@ -67,15 +80,16 @@ dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings "net.fabricmc:yarn:${yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
-    add("modClientImplementation", "net.fabricmc.fabric-api:fabric-api:${fabric_version}")
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    add("modClientImplementation", "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
 
     testImplementation platform("org.junit:junit-bom:5.10.2")
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 
     // Optional: Mod Menu config screen integration (client-only).
-    modCompileOnly "com.terraformersmc:modmenu:${modmenu_version}"
+    modClientCompileOnly "com.terraformersmc:modmenu:${modmenu_version}"
 }
 
 test {
@@ -94,15 +108,16 @@ tasks.withType(JavaCompile).configureEach {
 
     def lintEnabled = project.hasProperty("lint") || gradle.startParameter.taskNames.contains("lint")
     if (lintEnabled) {
-        it.options.compilerArgs.addAll([
-                "-Xlint:all",
-                "-Werror",
-                "-Xlint:-deprecation",
-                "-Xlint:-removal",
-                "-Xlint:-processing",
-                "-Xlint:-serial"
-        ])
-    }
+	        it.options.compilerArgs.addAll([
+	                "-Xlint:all",
+	                "-Werror",
+	                "-Xlint:-deprecation",
+	                "-Xlint:-classfile",
+	                "-Xlint:-removal",
+	                "-Xlint:-processing",
+	                "-Xlint:-serial"
+	        ])
+	    }
 
     if (project.hasProperty("lintDeprecation")) {
         it.options.compilerArgs.addAll(["-Xlint:deprecation"])
@@ -122,31 +137,52 @@ tasks.register("gametest") {
 }
 
 tasks.register("prepareGametestRunDir") {
+    def runDir = layout.projectDirectory.dir("run/gametest")
+
+    outputs.dir(runDir)
+
     doLast {
-        file("run/gametest").mkdirs()
-        file("run/gametest/eula.txt").text = "eula=true\n"
-        if (!file("run/gametest/server.properties").exists()) {
-            file("run/gametest/server.properties").text = "online-mode=false\n"
+        def dirFile = runDir.asFile
+        dirFile.mkdirs()
+
+        def eulaFile = runDir.file("eula.txt").asFile
+        eulaFile.text = "eula=true\n"
+
+        def serverPropertiesFile = runDir.file("server.properties").asFile
+        if (!serverPropertiesFile.exists()) {
+            serverPropertiesFile.text = "online-mode=false\n"
         }
     }
 }
 
 tasks.named("runGametestServer").configure {
+    def loomArgFilesDir = layout.buildDirectory.dir("loom-cache/argFiles").get().asFile
+
     dependsOn("prepareGametestRunDir")
+
+    doFirst {
+        // Loom uses an @argfile under build/loom-cache/argFiles; after `clean` the parent dir may not exist on Windows.
+        loomArgFilesDir.mkdirs()
+    }
 }
 
 processResources {
-    inputs.property "version", project.version
+    // Gradle 9 incremental snapshotting can be flaky on some Windows/WSL/mounted filesystems.
+    doNotTrackState("Avoid incremental state tracking issues on mounted filesystems.")
+
+    def modVersion = project.version
+    inputs.property "version", modVersion
     filesMatching("fabric.mod.json") {
-        expand "version": project.version
+        expand "version": modVersion
     }
 }
 
 jar {
     def licenseFile = file("LICENSE")
     if (licenseFile.exists()) {
+        def archivesName = project.base.archivesName.get()
         from(licenseFile) {
-            rename { "${it}_${base.archivesName.get()}" }
+            rename { "${it}_${archivesName}" }
         }
     }
 }

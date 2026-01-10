@@ -4,6 +4,7 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.net.GemExtraStateSync;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.flux.FluxCharge;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemPowers;
@@ -11,10 +12,11 @@ import com.feel.gems.power.util.Targeting;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.particle.TintedParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -47,7 +49,7 @@ public final class FluxBeamAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         LivingEntity target = Targeting.raycastLiving(player, GemsBalance.v().flux().fluxBeamRangeBlocks());
         if (target == null) {
-            player.sendMessage(Text.literal("No target."), true);
+            player.sendMessage(Text.translatable("gems.message.no_target"), true);
             return false;
         }
 
@@ -66,32 +68,38 @@ public final class FluxBeamAbility implements GemAbility {
 
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other) && GemPowers.isPassiveActive(player, PowerIds.FLUX_ALLY_INVERSION)) {
             repairArmor(other, durabilityDamage);
-            beamFx(player, other.getPos().add(0.0D, 1.0D, 0.0D), true);
-            player.sendMessage(Text.literal("Flux Beam: repaired ally armor (" + charge + "%)"), true);
+            beamFx(player, other.getEntityPos().add(0.0D, 1.0D, 0.0D), true);
+            player.sendMessage(Text.translatable("gems.ability.flux.beam.repaired", charge), true);
             consumeCharge(player);
             return true;
         }
 
+        if (target instanceof ServerPlayerEntity victim && !VoidImmunity.canBeTargeted(player, victim)) {
+            player.sendMessage(Text.translatable("gems.message.target_immune"), true);
+            return false;
+        }
+
+        ServerWorld world = player.getEntityWorld();
         DamageSource source = player.getDamageSources().magic();
-        target.damage(source, damage);
+        target.damage(world, source, damage);
         if (target instanceof ServerPlayerEntity victim) {
             damageArmor(victim, durabilityDamage);
         }
-        beamFx(player, target.getPos().add(0.0D, 1.0D, 0.0D), false);
-        player.sendMessage(Text.literal("Flux Beam: " + charge + "%"), true);
+        beamFx(player, target.getEntityPos().add(0.0D, 1.0D, 0.0D), false);
+        player.sendMessage(Text.translatable("gems.ability.flux.beam.fired", charge), true);
         consumeCharge(player);
         return true;
     }
 
     private static void beamFx(ServerPlayerEntity player, Vec3d hitPos, boolean healing) {
-        var world = player.getServerWorld();
+        var world = player.getEntityWorld();
         Vec3d from = player.getEyePos();
         var core = healing ? ParticleTypes.HAPPY_VILLAGER : ParticleTypes.ELECTRIC_SPARK;
         var trail = healing ? ParticleTypes.END_ROD : ParticleTypes.END_ROD;
         AbilityFeedback.beam(world, from, hitPos, core, 28);
         AbilityFeedback.beam(world, from, hitPos, trail, 18);
         AbilityFeedback.burstAt(world, hitPos, core, 18, 0.35D);
-        AbilityFeedback.burstAt(world, hitPos, ParticleTypes.FLASH, 1, 0.0D);
+        AbilityFeedback.burstAt(world, hitPos, TintedParticleEffect.create(ParticleTypes.FLASH, 0xFFFFFF), 1, 0.0D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_GUARDIAN_ATTACK, 0.9F, healing ? 1.6F : 1.1F);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 0.25F, healing ? 1.8F : 1.4F);
     }
@@ -107,7 +115,14 @@ public final class FluxBeamAbility implements GemAbility {
         if (amount <= 0) {
             return;
         }
-        for (ItemStack armor : player.getInventory().armor) {
+        net.minecraft.entity.EquipmentSlot[] slots = {
+                net.minecraft.entity.EquipmentSlot.HEAD,
+                net.minecraft.entity.EquipmentSlot.CHEST,
+                net.minecraft.entity.EquipmentSlot.LEGS,
+                net.minecraft.entity.EquipmentSlot.FEET
+        };
+        for (var slot : slots) {
+            ItemStack armor = player.getEquippedStack(slot);
             if (armor.isEmpty() || !armor.isDamageable()) {
                 continue;
             }
@@ -119,7 +134,14 @@ public final class FluxBeamAbility implements GemAbility {
         if (amount <= 0) {
             return;
         }
-        for (ItemStack armor : player.getInventory().armor) {
+        net.minecraft.entity.EquipmentSlot[] slots = {
+                net.minecraft.entity.EquipmentSlot.HEAD,
+                net.minecraft.entity.EquipmentSlot.CHEST,
+                net.minecraft.entity.EquipmentSlot.LEGS,
+                net.minecraft.entity.EquipmentSlot.FEET
+        };
+        for (var slot : slots) {
+            ItemStack armor = player.getEquippedStack(slot);
             if (armor.isEmpty() || !armor.isDamageable() || !armor.isDamaged()) {
                 continue;
             }

@@ -3,7 +3,6 @@ package com.feel.gems.power.gem.wealth;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.GemsTime;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 
@@ -34,10 +33,10 @@ public final class WealthFumble {
     }
 
     static long until(NbtCompound nbt, long now) {
-        if (!nbt.contains(KEY_UNTIL, NbtElement.LONG_TYPE)) {
+        long until = nbt.getLong(KEY_UNTIL, 0L);
+        if (until <= 0) {
             return 0L;
         }
-        long until = nbt.getLong(KEY_UNTIL);
         if (until <= now) {
             nbt.remove(KEY_UNTIL);
             return 0L;

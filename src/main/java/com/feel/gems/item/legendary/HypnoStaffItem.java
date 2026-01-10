@@ -6,22 +6,21 @@ import com.feel.gems.legendary.HypnoControl;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.power.util.Targeting;
 import com.feel.gems.state.GemsPersistentDataHolder;
-import java.util.List;
+import com.feel.gems.util.GemsNbt;
 import java.util.UUID;
+import java.util.function.Consumer;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Item.TooltipContext;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 
 
@@ -46,15 +45,14 @@ public final class HypnoStaffItem extends Item implements LegendaryItem {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, net.minecraft.entity.player.PlayerEntity user, Hand hand) {
-        ItemStack stack = user.getStackInHand(hand);
+    public ActionResult use(World world, net.minecraft.entity.player.PlayerEntity user, Hand hand) {
         user.setCurrentHand(hand);
-        return TypedActionResult.consume(stack);
+        return ActionResult.CONSUME;
     }
 
     @Override
     public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
-        if (world.isClient) {
+        if (world.isClient()) {
             return;
         }
         if (!(user instanceof ServerPlayerEntity player)) {
@@ -70,14 +68,14 @@ public final class HypnoStaffItem extends Item implements LegendaryItem {
         }
 
         NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        UUID current = data.contains(KEY_TARGET, NbtElement.INT_ARRAY_TYPE) ? NbtHelper.toUuid(data.get(KEY_TARGET)) : null;
+        UUID current = GemsNbt.getUuid(data, KEY_TARGET);
         if (current == null || !current.equals(mob.getUuid())) {
-            data.put(KEY_TARGET, NbtHelper.fromUuid(mob.getUuid()));
+            GemsNbt.putUuid(data, KEY_TARGET, mob.getUuid());
             data.putInt(KEY_PROGRESS, 1);
             return;
         }
 
-        int progress = data.getInt(KEY_PROGRESS) + 1;
+        int progress = data.getInt(KEY_PROGRESS, 0) + 1;
         data.putInt(KEY_PROGRESS, progress);
 
         int holdTicks = cfg.hypnoHoldTicks();
@@ -90,34 +88,35 @@ public final class HypnoStaffItem extends Item implements LegendaryItem {
             if (heal > 0.0F) {
                 mob.heal(heal);
             }
-            player.sendMessage(Text.literal("Hypnosis refreshed."), true);
+            player.sendMessage(Text.translatable("gems.item.hypno_staff.refreshed"), true);
             player.stopUsingItem();
             resetProgress(player);
             return;
         }
         boolean controlled = HypnoControl.tryControl(player, mob);
         if (controlled) {
-            player.sendMessage(Text.literal("Hypnosis successful."), true);
+            player.sendMessage(Text.translatable("gems.item.hypno_staff.successful"), true);
             player.stopUsingItem();
         } else {
-            player.sendMessage(Text.literal("Hypnosis failed."), true);
+            player.sendMessage(Text.translatable("gems.item.hypno_staff.failed"), true);
         }
         resetProgress(player);
     }
 
     @Override
-    public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
-        if (world.isClient) {
-            return;
+    public boolean onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
+        if (world.isClient()) {
+            return false;
         }
         if (user instanceof ServerPlayerEntity player) {
             resetProgress(player);
         }
+        return false;
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        tooltip.add(Text.translatable("item.gems.hypno_staff.desc"));
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        tooltip.accept(Text.translatable("item.gems.hypno_staff.desc"));
     }
 
     private static void resetProgress(ServerPlayerEntity player) {
@@ -139,6 +138,6 @@ public final class HypnoStaffItem extends Item implements LegendaryItem {
             bar.append(i < filled ? "=" : " ");
         }
         bar.append("]");
-        player.sendMessage(Text.literal("Hypnosis: " + bar + " " + percent + "%"), true);
+        player.sendMessage(Text.translatable("gems.item.hypno_staff.progress", bar.toString(), percent), true);
     }
 }

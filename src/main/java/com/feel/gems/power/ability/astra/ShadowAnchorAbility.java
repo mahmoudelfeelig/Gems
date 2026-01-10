@@ -6,16 +6,19 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.bonus.BonusPassiveRuntime;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemAbilityCooldowns;
+import com.feel.gems.legendary.LegendaryCooldowns;
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.util.GemsTeleport;
 import com.feel.gems.util.GemsTime;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -53,71 +56,66 @@ public final class ShadowAnchorAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
         long now = GemsTime.now(player);
+        ServerWorld world = player.getEntityWorld();
 
-        if (nbt.contains(KEY_ANCHOR_UNTIL, NbtElement.LONG_TYPE) && now <= nbt.getLong(KEY_ANCHOR_UNTIL)) {
+        long until = nbt.getLong(KEY_ANCHOR_UNTIL, 0L);
+        if (until > 0L && now <= until) {
             if (player.isSneaking()) {
                 nbt.remove(KEY_ANCHOR_UNTIL);
                 nbt.remove(KEY_ANCHOR_DIM);
                 nbt.remove(KEY_ANCHOR_POS);
-                player.sendMessage(Text.literal("Anchor cleared."), true);
+                player.sendMessage(Text.translatable("gems.ability.astra.shadow_anchor.cleared"), true);
                 startPostCooldown(player, now);
                 return true;
             }
 
-            String dim = nbt.getString(KEY_ANCHOR_DIM);
-            if (dim.equals(player.getWorld().getRegistryKey().getValue().toString())
-                    && nbt.contains(KEY_ANCHOR_POS)) {
-                BlockPos pos = net.minecraft.nbt.NbtHelper.toBlockPos(nbt, KEY_ANCHOR_POS).orElse(null);
+            String dim = nbt.getString(KEY_ANCHOR_DIM, "");
+            if (dim.equals(world.getRegistryKey().getValue().toString())) {
+                BlockPos pos = readBlockPos(nbt, KEY_ANCHOR_POS);
                 if (pos == null) {
                     nbt.remove(KEY_ANCHOR_UNTIL);
                     nbt.remove(KEY_ANCHOR_DIM);
                     nbt.remove(KEY_ANCHOR_POS);
-                    player.sendMessage(Text.literal("Anchor was invalid."), true);
+                    player.sendMessage(Text.translatable("gems.ability.astra.shadow_anchor.invalid"), true);
                     startPostCooldown(player, now);
                     return true;
                 }
-                Vec3d from = player.getPos();
-                player.teleport(player.getServerWorld(), pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, player.getYaw(), player.getPitch());
+                Vec3d from = player.getEntityPos();
+                GemsTeleport.teleport(player, world, pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, player.getYaw(), player.getPitch());
                 AbilityFeedback.sound(player, SoundEvents.ENTITY_ENDERMAN_TELEPORT, 0.9F, 1.1F);
-                AbilityFeedback.burstAt(player.getServerWorld(), from.add(0.0D, 1.0D, 0.0D), ParticleTypes.PORTAL, 20, 0.4D);
+                AbilityFeedback.burstAt(world, from.add(0.0D, 1.0D, 0.0D), ParticleTypes.PORTAL, 20, 0.4D);
                 AbilityFeedback.burst(player, ParticleTypes.PORTAL, 20, 0.4D);
                 nbt.remove(KEY_ANCHOR_UNTIL);
                 nbt.remove(KEY_ANCHOR_DIM);
                 nbt.remove(KEY_ANCHOR_POS);
-                player.sendMessage(Text.literal("Returned to anchor."), true);
+                player.sendMessage(Text.translatable("gems.ability.astra.shadow_anchor.returned"), true);
                 startPostCooldown(player, now);
                 return true;
             }
         }
 
         // If an old anchor expired, clear it and apply post-cooldown.
-        if (nbt.contains(KEY_ANCHOR_UNTIL, NbtElement.LONG_TYPE)) {
-            long until = nbt.getLong(KEY_ANCHOR_UNTIL);
-            if (until > 0 && now > until) {
-                clearAnchor(nbt);
-                player.sendMessage(Text.literal("Anchor expired."), true);
-                startPostCooldown(player, now);
-                return false;
-            }
+        if (until > 0 && now > until) {
+            clearAnchor(nbt);
+            player.sendMessage(Text.translatable("gems.ability.astra.shadow_anchor.expired"), true);
+            startPostCooldown(player, now);
+            return false;
         }
 
-        Vec3d current = player.getPos();
+        Vec3d current = player.getEntityPos();
         BlockPos anchor = BlockPos.ofFloored(current);
         nbt.putLong(KEY_ANCHOR_UNTIL, now + GemsBalance.v().astra().shadowAnchorWindowTicks());
-        nbt.putString(KEY_ANCHOR_DIM, player.getWorld().getRegistryKey().getValue().toString());
-        nbt.put(KEY_ANCHOR_POS, net.minecraft.nbt.NbtHelper.fromBlockPos(anchor));
+        nbt.putString(KEY_ANCHOR_DIM, world.getRegistryKey().getValue().toString());
+        writeBlockPos(nbt, KEY_ANCHOR_POS, anchor);
         AbilityFeedback.sound(player, SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 0.7F, 1.3F);
         AbilityFeedback.burst(player, ParticleTypes.PORTAL, 12, 0.2D);
-        player.sendMessage(Text.literal("Anchor set."), true);
+        player.sendMessage(Text.translatable("gems.ability.astra.shadow_anchor.set"), true);
         return true;
     }
 
     public static void tick(ServerPlayerEntity player, long now) {
         NbtCompound nbt = persistent(player);
-        if (!nbt.contains(KEY_ANCHOR_UNTIL, NbtElement.LONG_TYPE)) {
-            return;
-        }
-        long until = nbt.getLong(KEY_ANCHOR_UNTIL);
+        long until = nbt.getLong(KEY_ANCHOR_UNTIL, 0L);
         if (until <= 0 || now <= until) {
             return;
         }
@@ -130,6 +128,7 @@ public final class ShadowAnchorAbility implements GemAbility {
         if (cooldown <= 0) {
             return;
         }
+        cooldown = applyCooldownModifiers(player, cooldown);
         GemAbilityCooldowns.setNextAllowedTick(player, PowerIds.SHADOW_ANCHOR, now + cooldown);
 
         // Best-effort client HUD sync.
@@ -140,6 +139,15 @@ public final class ShadowAnchorAbility implements GemAbility {
         }
     }
 
+    private static int applyCooldownModifiers(ServerPlayerEntity player, int baseTicks) {
+        if (baseTicks <= 0) {
+            return 0;
+        }
+        float mult = BonusPassiveRuntime.getCooldownMultiplier(player) * LegendaryCooldowns.getCooldownMultiplier(player);
+        int adjusted = (int) Math.ceil(baseTicks * mult);
+        return Math.max(1, adjusted);
+    }
+
     private static void clearAnchor(NbtCompound nbt) {
         nbt.remove(KEY_ANCHOR_UNTIL);
         nbt.remove(KEY_ANCHOR_DIM);
@@ -148,5 +156,21 @@ public final class ShadowAnchorAbility implements GemAbility {
 
     private static NbtCompound persistent(ServerPlayerEntity player) {
         return ((GemsPersistentDataHolder) player).gems$getPersistentData();
+    }
+
+    private static void writeBlockPos(NbtCompound nbt, String key, BlockPos pos) {
+        if (pos == null) {
+            nbt.remove(key);
+            return;
+        }
+        nbt.putIntArray(key, new int[]{pos.getX(), pos.getY(), pos.getZ()});
+    }
+
+    private static BlockPos readBlockPos(NbtCompound nbt, String key) {
+        int[] values = nbt.getIntArray(key).orElse(null);
+        if (values == null || values.length < 3) {
+            return null;
+        }
+        return new BlockPos(values[0], values[1], values[2]);
     }
 }

@@ -22,7 +22,9 @@ public final class TerrorRigRuntime {
     }
 
     public static boolean arm(ServerPlayerEntity player, BlockPos pos) {
-        ServerWorld world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         if (world.getBlockState(pos).isAir()) {
             return false;
         }
@@ -38,22 +40,28 @@ public final class TerrorRigRuntime {
     }
 
     public static boolean tryTriggerUse(ServerPlayerEntity player, BlockPos pos) {
-        TrapKey key = new TrapKey(player.getServerWorld().getRegistryKey().getValue(), pos.toImmutable());
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
+        TrapKey key = new TrapKey(world.getRegistryKey().getValue(), pos.toImmutable());
         RiggedTrap trap = ACTIVE.get(key);
         if (trap == null) {
             return false;
         }
-        trigger(player.getServerWorld(), pos, trap);
+        trigger(world, pos, key, trap);
         return true;
     }
 
     public static boolean tryTriggerBreak(ServerPlayerEntity player, BlockPos pos) {
-        TrapKey key = new TrapKey(player.getServerWorld().getRegistryKey().getValue(), pos.toImmutable());
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
+        TrapKey key = new TrapKey(world.getRegistryKey().getValue(), pos.toImmutable());
         RiggedTrap trap = ACTIVE.get(key);
         if (trap == null) {
             return false;
         }
-        trigger(player.getServerWorld(), pos, trap);
+        trigger(world, pos, key, trap);
         return true;
     }
 
@@ -69,7 +77,7 @@ public final class TerrorRigRuntime {
         if (trap == null) {
             return false;
         }
-        trigger(world, pos, trap);
+        trigger(world, pos, key, trap);
         return true;
     }
 
@@ -82,13 +90,19 @@ public final class TerrorRigRuntime {
     }
 
     public static void checkStep(ServerPlayerEntity player) {
+        if (ACTIVE.isEmpty()) {
+            return;
+        }
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
         BlockPos below = player.getBlockPos().down();
-        TrapKey key = new TrapKey(player.getServerWorld().getRegistryKey().getValue(), below.toImmutable());
+        TrapKey key = new TrapKey(world.getRegistryKey().getValue(), below);
         RiggedTrap trap = ACTIVE.get(key);
         if (trap == null) {
             return;
         }
-        trigger(player.getServerWorld(), below, trap);
+        trigger(world, below, key, trap);
     }
 
     public static void tick(MinecraftServer server) {
@@ -106,10 +120,11 @@ public final class TerrorRigRuntime {
         }
     }
 
-    private static void trigger(ServerWorld world, BlockPos pos, RiggedTrap trap) {
-        ACTIVE.remove(new TrapKey(world.getRegistryKey().getValue(), pos.toImmutable()));
+    private static void trigger(ServerWorld world, BlockPos pos, TrapKey key, RiggedTrap trap) {
+        ACTIVE.remove(key);
         int fuse = GemsBalance.v().terror().rigFuseTicks();
-        for (int i = 0; i < 5; i++) {
+        int tntCount = GemsBalance.v().terror().rigTntCount();
+        for (int i = 0; i < tntCount; i++) {
             TntEntity tnt = new TntEntity(world, pos.getX() + 0.5D, pos.getY() + 0.1D, pos.getZ() + 0.5D, null);
             tnt.setFuse(fuse);
             world.spawnEntity(tnt);

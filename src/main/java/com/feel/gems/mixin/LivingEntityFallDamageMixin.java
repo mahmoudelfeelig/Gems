@@ -19,9 +19,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityFallDamageMixin {
     @Inject(method = "handleFallDamage", at = @At("HEAD"), cancellable = true)
-    private void gems$handleFallDamage(float fallDistance, float damageMultiplier, DamageSource source, CallbackInfoReturnable<Boolean> cir) {
+    private void gems$handleFallDamage(double fallDistance, float damageMultiplier, DamageSource source, CallbackInfoReturnable<Boolean> cir) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        if (entity.getWorld().isClient) {
+        if (entity.getEntityWorld().isClient()) {
             return;
         }
         if (!(entity instanceof ServerPlayerEntity player)) {
@@ -33,10 +33,10 @@ public abstract class LivingEntityFallDamageMixin {
         }
     }
 
-    @ModifyVariable(method = "handleFallDamage", at = @At("HEAD"), ordinal = 1, argsOnly = true)
+    @ModifyVariable(method = "handleFallDamage", at = @At("HEAD"), ordinal = 0, argsOnly = true)
     private float gems$airAerialGuardFallDamage(float damageMultiplier) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        if (entity.getWorld().isClient) {
+        if (entity.getEntityWorld().isClient()) {
             return damageMultiplier;
         }
         if (!(entity instanceof ServerPlayerEntity player)) {

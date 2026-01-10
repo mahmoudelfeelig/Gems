@@ -2,7 +2,6 @@ package com.feel.gems.mixin;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.runtime.AbilityRuntime;
-import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -34,6 +33,6 @@ public abstract class PlayerEntityChadStrengthMixin {
         if (hit % every != 0) {
             return;
         }
-        living.damage(attacker.getDamageSources().playerAttack(attacker), GemsBalance.v().strength().chadBonusDamage());
+        living.damage(attacker.getEntityWorld(), attacker.getDamageSources().playerAttack(attacker), GemsBalance.v().strength().chadBonusDamage());
     }
 }

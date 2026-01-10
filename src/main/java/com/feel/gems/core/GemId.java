@@ -22,5 +22,12 @@ public enum GemId {
     PILLAGER,
     SPY_MIMIC,
     BEACON,
-    AIR
+    AIR,
+    VOID,
+    CHAOS,
+    PRISM,
+    DUELIST,
+    HUNTER,
+    SENTINEL,
+    TRICKSTER
 }

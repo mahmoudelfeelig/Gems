@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.reaper;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -9,6 +10,7 @@ import java.util.List;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -40,17 +42,19 @@ public final class ReaperScytheSweepAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        var world = player.getServerWorld();
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         int range = GemsBalance.v().reaper().scytheSweepRangeBlocks();
         int arc = GemsBalance.v().reaper().scytheSweepArcDegrees();
         float damage = GemsBalance.v().reaper().scytheSweepDamage();
         double knockback = GemsBalance.v().reaper().scytheSweepKnockback();
         if (range <= 0 || arc <= 0) {
-            player.sendMessage(Text.literal("Scythe Sweep is disabled."), true);
+            player.sendMessage(Text.translatable("gems.ability.reaper.scythe_sweep.disabled"), true);
             return false;
         }
 
-        Vec3d origin = player.getPos().add(0.0D, 1.0D, 0.0D);
+        Vec3d origin = player.getEntityPos().add(0.0D, 1.0D, 0.0D);
         Vec3d look = player.getRotationVec(1.0F).normalize();
         double cos = Math.cos(Math.toRadians(arc / 2.0D));
 
@@ -58,7 +62,7 @@ public final class ReaperScytheSweepAbility implements GemAbility {
         List<LivingEntity> candidates = world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player);
         int hit = 0;
         for (LivingEntity living : candidates) {
-            Vec3d to = living.getPos().add(0.0D, living.getHeight() * 0.5D, 0.0D).subtract(origin);
+            Vec3d to = living.getEntityPos().add(0.0D, living.getHeight() * 0.5D, 0.0D).subtract(origin);
             double dist = to.length();
             if (dist <= 0.001D || dist > range) {
                 continue;
@@ -70,21 +74,24 @@ public final class ReaperScytheSweepAbility implements GemAbility {
             if (living instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
                 continue;
             }
+            if (living instanceof ServerPlayerEntity other && !VoidImmunity.canBeTargeted(player, other)) {
+                continue;
+            }
             if (damage > 0.0F) {
-                living.damage(player.getDamageSources().playerAttack(player), damage);
+                living.damage(world, player.getDamageSources().playerAttack(player), damage);
             }
             if (knockback > 0.0D) {
                 Vec3d kb = dir.multiply(knockback);
                 living.setVelocity(living.getVelocity().add(kb.x, 0.15D, kb.z));
-                living.velocityModified = true;
+                living.velocityDirty = true;
             }
-            AbilityFeedback.burstAt(world, living.getPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SOUL, 3, 0.12D);
+            AbilityFeedback.burstAt(world, living.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.SOUL, 3, 0.12D);
             hit++;
         }
 
         AbilityFeedback.sound(player, SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, 0.8F, 0.7F);
         AbilityFeedback.burstAt(world, origin, ParticleTypes.SWEEP_ATTACK, 1, 0.0D);
-        player.sendMessage(Text.literal("Scythe Sweep hit " + hit + "."), true);
+        player.sendMessage(Text.translatable("gems.ability.reaper.scythe_sweep.hit", hit), true);
         return hit > 0;
     }
 }

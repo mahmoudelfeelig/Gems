@@ -1,15 +1,17 @@
 # Gems
 a Minecraft mod that adds gems with unique powers for each holder.
 
-- Specs: see `checklist.md` and `gameplay.md` for the source-of-truth feature list.
-- Server setup/ops: see `server-ops.md`.
-- Player docs: `gameplay.md` (what each gem does) and `balance.md` (balancing knobs + clamps).
+- Docs index: `docs/README.md`
+- Player guide: `gameplay.md`
+- Developer mechanics reference (source-of-truth): `checklist.md`
+- Server owner guide: `server-ops.md`
+- Balance/config reference: `balance.md`
 - Balancing: edit `config/gems/balance.json` (generated on first run) and run `/gems reloadBalance` (op level 2+) to apply.
-- Upgrading Minecraft/Fabric: see `upgrade.md`.
 
 ## Server install
 
-- Build a jar with `./gradlew build` and copy `build/libs/*.jar` into your server’s `mods/` folder (with Fabric Loader + Fabric API installed).
+- Download the mod jar and place it in your server’s `mods/` folder (with Fabric Loader + Fabric API installed).
+- If you’re building from source: `./gradlew build` and use `build/libs/*.jar`.
 
 ## In-game config UI
 

@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.life;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -62,7 +63,7 @@ public final class VitalityVortexAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getEntityWorld();
         VortexMode mode = detectMode(world, player);
         int duration = GemsBalance.v().life().vitalityVortexDurationTicks();
         int radius = GemsBalance.v().life().vitalityVortexRadiusBlocks();
@@ -72,13 +73,16 @@ public final class VitalityVortexAbility implements GemAbility {
             if (ally) {
                 applyAlly(mode, other, duration);
             } else {
+                if (other instanceof ServerPlayerEntity otherPlayer && !VoidImmunity.canBeTargeted(player, otherPlayer)) {
+                    continue;
+                }
                 applyEnemy(mode, other, duration);
             }
         }
 
         AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_POWER_SELECT, 0.8F, 1.1F);
         AbilityFeedback.burst(player, particleFor(mode), 20, 0.35D);
-        player.sendMessage(Text.literal("Vitality Vortex: " + mode.label), true);
+        player.sendMessage(Text.translatable("gems.ability.life.vitality_vortex.mode", mode.label), true);
         return true;
     }
 

@@ -44,6 +44,12 @@ public final class GemsClientConfigManager {
         return loadOrCreate();
     }
 
+    public static void save(GemsClientConfig cfg) {
+        Path path = configPath();
+        cached = cfg;
+        write(path, cfg);
+    }
+
     private static Path configPath() {
         return FabricLoader.getInstance().getConfigDir().resolve(DIR).resolve(FILE);
     }

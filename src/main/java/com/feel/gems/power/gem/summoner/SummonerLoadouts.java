@@ -107,16 +107,19 @@ public final class SummonerLoadouts {
 
     public static Loadout load(ServerPlayerEntity player) {
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        if (!root.contains(KEY_LOADOUT, NbtElement.COMPOUND_TYPE)) {
+        if (!root.contains(KEY_LOADOUT)) {
             return null;
         }
-        NbtCompound in = root.getCompound(KEY_LOADOUT);
+        NbtCompound in = root.getCompound(KEY_LOADOUT).orElse(null);
+        if (in == null) {
+            return null;
+        }
         return new Loadout(
-                fromNbtList(in.getList("slot1", NbtElement.COMPOUND_TYPE)),
-                fromNbtList(in.getList("slot2", NbtElement.COMPOUND_TYPE)),
-                fromNbtList(in.getList("slot3", NbtElement.COMPOUND_TYPE)),
-                fromNbtList(in.getList("slot4", NbtElement.COMPOUND_TYPE)),
-                fromNbtList(in.getList("slot5", NbtElement.COMPOUND_TYPE))
+                fromNbtList(in.getList("slot1").orElse(null)),
+                fromNbtList(in.getList("slot2").orElse(null)),
+                fromNbtList(in.getList("slot3").orElse(null)),
+                fromNbtList(in.getList("slot4").orElse(null)),
+                fromNbtList(in.getList("slot5").orElse(null))
         );
     }
 
@@ -201,8 +204,8 @@ public final class SummonerLoadouts {
             if (!(element instanceof NbtCompound tag)) {
                 continue;
             }
-            String id = tag.getString("id");
-            int count = tag.getInt("count");
+            String id = tag.getString("id", "");
+            int count = tag.getInt("count", 0);
             if (id == null || id.isBlank() || count <= 0) {
                 continue;
             }

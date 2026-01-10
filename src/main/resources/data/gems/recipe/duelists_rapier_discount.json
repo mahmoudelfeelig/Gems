@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "combat",
+  "pattern": [
+    "GDG",
+    "FSF",
+    "GDG"
+  ],
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "D": "minecraft:diamond",
+    "F": "minecraft:feather",
+    "S": "minecraft:netherite_sword"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:duelists_rapier"
+  }
+}

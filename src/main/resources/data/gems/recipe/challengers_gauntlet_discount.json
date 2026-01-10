@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IDI",
+    "LGL",
+    "IDI"
+  ],
+  "key": {
+    "I": "minecraft:iron_block",
+    "D": "minecraft:diamond",
+    "L": "minecraft:leather",
+    "G": "minecraft:golden_apple"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:challengers_gauntlet"
+  }
+}

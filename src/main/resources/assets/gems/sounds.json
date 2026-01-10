@@ -1,0 +1,10 @@
+{
+  "metal_pipe": {
+    "sounds": [
+      {
+        "name": "gems:metal_pipe",
+        "stream": false
+      }
+    ]
+  }
+}

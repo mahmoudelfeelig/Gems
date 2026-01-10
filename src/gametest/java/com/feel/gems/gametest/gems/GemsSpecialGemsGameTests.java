@@ -5,10 +5,14 @@ import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.gametest.util.GemsGameTestUtil;
+import com.feel.gems.power.gem.beacon.BeaconSupportRuntime;
+import com.feel.gems.power.gem.terror.TerrorDreadAuraPassive;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -73,6 +77,117 @@ public final class GemsSpecialGemsGameTests {
                 context.throwGameTestException("Energy should be 5, got " + energy);
             }
 
+            context.complete();
+        });
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
+    public void voidImmunityBlocksBeaconRallyEffects(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity beacon = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity voidPlayer = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        beacon.changeGameMode(GameMode.SURVIVAL);
+        voidPlayer.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d beaconPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        Vec3d voidPos = context.getAbsolute(new Vec3d(1.5D, 2.0D, 0.5D));
+        teleport(beacon, world, beaconPos.x, beaconPos.y, beaconPos.z, 0.0F, 0.0F);
+        teleport(voidPlayer, world, voidPos.x, voidPos.y, voidPos.z, 0.0F, 0.0F);
+
+        context.runAtTick(5L, () -> {
+            GemPlayerState.initIfNeeded(beacon);
+            GemPlayerState.setActiveGem(beacon, GemId.BEACON);
+            GemPlayerState.setEnergy(beacon, 5);
+            GemPowers.sync(beacon);
+
+            GemPlayerState.initIfNeeded(voidPlayer);
+            GemPlayerState.setActiveGem(voidPlayer, GemId.VOID);
+            GemPlayerState.setEnergy(voidPlayer, 5);
+            GemPowers.sync(voidPlayer);
+
+            BeaconSupportRuntime.applyRally(beacon);
+        });
+
+        context.runAtTick(20L, () -> {
+            if (voidPlayer.hasStatusEffect(StatusEffects.WEAKNESS) || voidPlayer.hasStatusEffect(StatusEffects.ABSORPTION)) {
+                context.throwGameTestException("Void player should not be affected by Beacon Rally status effects");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
+    public void voidImmunityBlocksHeatHazeZone(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity fire = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity voidPlayer = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        fire.changeGameMode(GameMode.SURVIVAL);
+        voidPlayer.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d firePos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        Vec3d voidPos = context.getAbsolute(new Vec3d(1.5D, 2.0D, 0.5D));
+        teleport(fire, world, firePos.x, firePos.y, firePos.z, 0.0F, 0.0F);
+        teleport(voidPlayer, world, voidPos.x, voidPos.y, voidPos.z, 0.0F, 0.0F);
+
+        context.runAtTick(5L, () -> {
+            GemPlayerState.initIfNeeded(fire);
+            GemPlayerState.setActiveGem(fire, GemId.FIRE);
+            GemPlayerState.setEnergy(fire, 5);
+            GemPowers.sync(fire);
+
+            GemPlayerState.initIfNeeded(voidPlayer);
+            GemPlayerState.setActiveGem(voidPlayer, GemId.VOID);
+            GemPlayerState.setEnergy(voidPlayer, 5);
+            GemPowers.sync(voidPlayer);
+
+            AbilityRuntime.startHeatHazeZone(fire, 200);
+            AbilityRuntime.tickEverySecond(fire);
+        });
+
+        context.runAtTick(20L, () -> {
+            if (voidPlayer.hasStatusEffect(StatusEffects.MINING_FATIGUE)
+                    || voidPlayer.hasStatusEffect(StatusEffects.WEAKNESS)
+                    || voidPlayer.hasStatusEffect(StatusEffects.FIRE_RESISTANCE)) {
+                context.throwGameTestException("Void player should not be affected by Heat Haze Zone status effects");
+                return;
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
+    public void voidImmunityBlocksTerrorDreadAura(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity terror = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity voidPlayer = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        terror.changeGameMode(GameMode.SURVIVAL);
+        voidPlayer.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d terrorPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        Vec3d voidPos = context.getAbsolute(new Vec3d(1.5D, 2.0D, 0.5D));
+        teleport(terror, world, terrorPos.x, terrorPos.y, terrorPos.z, 0.0F, 0.0F);
+        teleport(voidPlayer, world, voidPos.x, voidPos.y, voidPos.z, 0.0F, 0.0F);
+
+        context.runAtTick(5L, () -> {
+            GemPlayerState.initIfNeeded(voidPlayer);
+            GemPlayerState.setActiveGem(voidPlayer, GemId.VOID);
+            GemPlayerState.setEnergy(voidPlayer, 5);
+            GemPowers.sync(voidPlayer);
+
+            GemPlayerState.initIfNeeded(terror);
+            GemPlayerState.setActiveGem(terror, GemId.TERROR);
+            GemPlayerState.setEnergy(terror, 5);
+            GemPowers.sync(terror);
+
+            new TerrorDreadAuraPassive().maintain(terror);
+        });
+
+        context.runAtTick(20L, () -> {
+            if (voidPlayer.hasStatusEffect(StatusEffects.DARKNESS)) {
+                context.throwGameTestException("Void player should not be affected by Terror Dread Aura");
+                return;
+            }
             context.complete();
         });
     }

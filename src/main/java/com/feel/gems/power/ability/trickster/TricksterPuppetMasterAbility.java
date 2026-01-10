@@ -62,26 +62,29 @@ public final class TricksterPuppetMasterAbility implements GemAbility {
 
         // Handle mob targets - make them attack their allies
         if (target instanceof MobEntity mob) {
-            // Find nearby allies of the mob to target
             Box searchBox = mob.getBoundingBox().expand(16);
-            List<LivingEntity> nearbyAllies = world.getEntitiesByClass(
-                LivingEntity.class,
-                searchBox,
-                e -> e != mob && e != player && e.isAlive() && isSameTeam(mob, e)
+
+            // Prefer targeting other mobs so the effect looks like "turning on allies".
+            List<MobEntity> nearbyMobs = world.getEntitiesByClass(
+                    MobEntity.class,
+                    searchBox,
+                    e -> e != mob && e.isAlive()
             );
 
-            if (!nearbyAllies.isEmpty()) {
-                // Pick a random ally to target
-                LivingEntity newTarget = nearbyAllies.get(world.getRandom().nextInt(nearbyAllies.size()));
+            if (!nearbyMobs.isEmpty()) {
+                MobEntity newTarget = nearbyMobs.get(world.getRandom().nextInt(nearbyMobs.size()));
                 mob.setTarget(newTarget);
-                
-                // Store puppeted state in mob's persistent data
-                TricksterPuppetRuntime.setPuppetedMob(mob, player.getUuid(), durationTicks);
             } else {
-                // No allies found, just confuse the mob (clear its target)
-                mob.setTarget(null);
-                TricksterPuppetRuntime.setPuppetedMob(mob, player.getUuid(), durationTicks);
+                // Fallback: pick any other living entity so the ability still does something in a solo encounter.
+                List<LivingEntity> nearbyLiving = world.getEntitiesByClass(
+                        LivingEntity.class,
+                        searchBox,
+                        e -> e != mob && e != player && e.isAlive()
+                );
+                mob.setTarget(nearbyLiving.isEmpty() ? null : nearbyLiving.get(world.getRandom().nextInt(nearbyLiving.size())));
             }
+
+            TricksterPuppetRuntime.setPuppetedMob(mob, player.getUuid(), durationTicks);
 
             AbilityFeedback.burstAt(world, mob.getEntityPos().add(0, 2, 0), ParticleTypes.ENCHANT, 25, 0.8D);
             AbilityFeedback.sound(player, SoundEvents.ENTITY_VEX_CHARGE, 1.0F, 0.6F);
@@ -108,25 +111,6 @@ public final class TricksterPuppetMasterAbility implements GemAbility {
         }
 
         AbilityFeedback.sound(player, SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), 1.0F, 0.5F);
-        return false;
-    }
-
-    /**
-     * Check if two entities are on the same "team" (both mobs of similar type or both hostile to players).
-     */
-    private static boolean isSameTeam(MobEntity mob, LivingEntity other) {
-        // Don't target players
-        if (other instanceof ServerPlayerEntity) {
-            return false;
-        }
-        // Same entity type is always same team
-        if (mob.getType() == other.getType()) {
-            return true;
-        }
-        // Both hostile mobs are considered allies
-        if (other instanceof MobEntity otherMob) {
-            return true; // All mobs can be turned against each other
-        }
         return false;
     }
 

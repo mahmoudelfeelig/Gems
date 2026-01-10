@@ -4,6 +4,7 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemPowers;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.MobBlacklist;
 import java.util.UUID;
@@ -150,6 +151,9 @@ public final class SoulSystem {
         ((com.feel.gems.mixin.accessor.MobEntitySelectorsAccessor) mob).gems$getTargetSelector().add(1,
                 new ActiveTargetGoal<>(mob, ServerPlayerEntity.class, true, (candidate, candidateWorld) -> {
                     if (!(candidate instanceof ServerPlayerEntity p)) {
+                        return false;
+                    }
+                    if (!VoidImmunity.canBeTargeted(owner, p)) {
                         return false;
                     }
                     return !com.feel.gems.trust.GemTrust.isTrusted(owner, p);

@@ -7,10 +7,12 @@ import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
+import com.feel.gems.legendary.LegendaryCooldowns;
 import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.chaos.ChaosSlotRuntime;
 import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.bonus.BonusPassiveRuntime;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.util.GemsTime;
@@ -42,14 +44,19 @@ public final class GemAbilities {
 
         GemId gemId = GemPlayerState.getActiveGem(player);
         int energy = GemPlayerState.getEnergy(player);
-        if (energy <= 1) {
+        if (energy <= 0) {
             player.sendMessage(Text.translatable("gems.ability.no_abilities_unlocked"), true);
             return;
         }
 
-        // Chaos gem uses 4 independent ability slots (0-3)
+        // Chaos gem uses 4 independent ability slots (0-3) and is unlocked by its passive at level 1.
         if (gemId == GemId.CHAOS && abilityIndex >= 0 && abilityIndex < ChaosSlotRuntime.SLOT_COUNT) {
             ChaosSlotRuntime.activateSlot(player, abilityIndex);
+            return;
+        }
+
+        if (energy <= 1) {
+            player.sendMessage(Text.translatable("gems.ability.no_abilities_unlocked"), true);
             return;
         }
 
@@ -105,6 +112,7 @@ public final class GemAbilities {
         SpyMimicSystem.onAbilityUsed(player.getEntityWorld().getServer(), player, abilityId);
 
         int cooldown = Math.max(0, ability.cooldownTicks());
+        cooldown = applyCooldownModifiers(player, cooldown);
         if (cooldown > 0 && !noCooldowns) {
             GemAbilityCooldowns.setNextAllowedTick(player, abilityId, now + cooldown);
             ServerPlayNetworking.send(player, new AbilityCooldownPayload(gemId.ordinal(), abilityIndex, cooldown));
@@ -183,9 +191,19 @@ public final class GemAbilities {
         SpyMimicSystem.onAbilityUsed(server, player, abilityId);
 
         int cooldown = Math.max(0, ability.cooldownTicks());
+        cooldown = applyCooldownModifiers(player, cooldown);
         if (cooldown > 0 && !noCooldowns) {
             GemAbilityCooldowns.setNextAllowedTick(player, abilityId, now + cooldown);
             ServerPlayNetworking.send(player, new AbilityCooldownPayload(GemId.PRISM.ordinal(), abilityIndex, cooldown));
         }
+    }
+
+    private static int applyCooldownModifiers(ServerPlayerEntity player, int baseTicks) {
+        if (baseTicks <= 0) {
+            return 0;
+        }
+        float mult = BonusPassiveRuntime.getCooldownMultiplier(player) * LegendaryCooldowns.getCooldownMultiplier(player);
+        int adjusted = (int) Math.ceil(baseTicks * mult);
+        return Math.max(1, adjusted);
     }
 }

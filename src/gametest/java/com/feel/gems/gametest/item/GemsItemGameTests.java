@@ -4,10 +4,13 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.gametest.util.GemsGameTestUtil;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.ModItems;
+import com.feel.gems.legendary.LegendaryDuels;
 import com.feel.gems.state.GemPlayerState;
+import java.util.EnumSet;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -16,12 +19,67 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 
 
 
 
 public final class GemsItemGameTests {
+    private static void teleport(ServerPlayerEntity player, ServerWorld world, double x, double y, double z, float yaw, float pitch) {
+        player.teleport(world, x, y, z, EnumSet.noneOf(PositionFlag.class), yaw, pitch, false);
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
+    public void challengersGauntletStartsAndCancelsDuel(TestContext context) {
+        ServerWorld world = context.getWorld();
+        var server = world.getServer();
+        if (server == null) {
+            context.throwGameTestException("No server instance");
+            return;
+        }
+
+        ServerPlayerEntity challenger = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity target = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        challenger.changeGameMode(GameMode.SURVIVAL);
+        target.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d pos1 = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        Vec3d pos2 = context.getAbsolute(new Vec3d(1.5D, 2.0D, 0.5D));
+        teleport(challenger, world, pos1.x, pos1.y, pos1.z, 0.0F, 0.0F);
+        teleport(target, world, pos2.x, pos2.y, pos2.z, 0.0F, 0.0F);
+
+        var beforeWorld = challenger.getEntityWorld();
+        var beforePos = challenger.getBlockPos();
+
+        context.runAtTick(5L, () -> {
+            boolean ok = LegendaryDuels.startGauntletDuel(challenger, target);
+            if (!ok) {
+                context.throwGameTestException("Expected gauntlet duel to start");
+            }
+        });
+
+        context.runAtTick(20L, () -> {
+            if (!LegendaryDuels.isInGauntletDuel(server, challenger.getUuid())) {
+                context.throwGameTestException("Expected challenger to be in a gauntlet duel");
+                return;
+            }
+            if (challenger.getEntityWorld() == beforeWorld && challenger.getBlockPos().equals(beforePos)) {
+                context.throwGameTestException("Expected challenger to be teleported into an arena");
+                return;
+            }
+            LegendaryDuels.onDisconnect(server, challenger);
+        });
+
+        context.runAtTick(40L, () -> {
+            if (LegendaryDuels.isInGauntletDuel(server, challenger.getUuid())) {
+                context.throwGameTestException("Expected gauntlet duel to be cleared after cancel");
+                return;
+            }
+            context.complete();
+        });
+    }
+
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void recipesAreRegistered(TestContext context) {
         ServerWorld world = context.getWorld();
@@ -181,4 +239,3 @@ public final class GemsItemGameTests {
     }
 
 }
-

@@ -1,7 +1,9 @@
 package com.feel.gems.power.ability.bonus;
 
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -55,6 +57,14 @@ public final class BonusVortexStrikeAbility implements GemAbility {
         }
 
         for (LivingEntity entity : entities) {
+            if (entity instanceof ServerPlayerEntity otherPlayer) {
+                if (VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                    continue;
+                }
+                if (GemTrust.isTrusted(player, otherPlayer)) {
+                    continue;
+                }
+            }
             // Pull toward player
             Vec3d pullDir = player.getEntityPos().subtract(entity.getEntityPos()).normalize().multiply(PULL_STRENGTH);
             entity.setVelocity(entity.getVelocity().add(pullDir.x, 0.1, pullDir.z));

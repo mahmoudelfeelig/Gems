@@ -3,6 +3,7 @@ package com.feel.gems.client;
 import com.feel.gems.bonus.BonusAbilityRuntime;
 import com.feel.gems.client.screen.BonusSelectionScreen;
 import com.feel.gems.client.screen.PrismSelectionScreen;
+import com.feel.gems.client.screen.SpyObservedSelectionScreen;
 import com.feel.gems.client.screen.SummonerLoadoutScreen;
 import com.feel.gems.client.screen.TrackerCompassScreen;
 import com.feel.gems.core.GemId;
@@ -15,11 +16,13 @@ import com.feel.gems.net.CooldownSnapshotPayload;
 import com.feel.gems.net.ExtraStatePayload;
 import com.feel.gems.net.PrismAbilitiesSyncPayload;
 import com.feel.gems.net.PrismSelectionScreenPayload;
+import com.feel.gems.net.SpyObservedScreenPayload;
 import com.feel.gems.net.ServerDisablesPayload;
 import com.feel.gems.net.StateSyncPayload;
 import com.feel.gems.net.SummonerLoadoutScreenPayload;
 import com.feel.gems.net.TrackerCompassScreenPayload;
 import com.feel.gems.net.SpySkinshiftPayload;
+import com.feel.gems.net.TricksterControlPayload;
 import com.feel.gems.net.payloads.ShadowCloneSyncPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -43,6 +46,7 @@ public final class ClientNetworking {
             ClientDisables.reset();
             ClientBonusState.reset();
             ClientShadowCloneState.reset();
+            ClientTricksterState.reset();
         }));
 
         ClientPlayNetworking.registerGlobalReceiver(StateSyncPayload.ID, (payload, context) ->
@@ -66,11 +70,12 @@ public final class ClientNetworking {
                         int bonusSlot = abilityIndex - BonusAbilityRuntime.BONUS_ABILITY_INDEX_OFFSET;
                         ClientBonusState.setCooldown(bonusSlot, payload.cooldownTicks());
                     } else {
-                        ClientCooldowns.setCooldown(
-                                safeGemId(payload.activeGemOrdinal()),
-                                abilityIndex,
-                                payload.cooldownTicks()
-                        );
+                        GemId gem = safeGemId(payload.activeGemOrdinal());
+                        if (gem == GemId.PRISM) {
+                            ClientPrismState.setCooldown(abilityIndex, payload.cooldownTicks());
+                        } else {
+                            ClientCooldowns.setCooldown(gem, abilityIndex, payload.cooldownTicks());
+                        }
                     }
                 }));
 
@@ -98,6 +103,9 @@ public final class ClientNetworking {
                 }));
         ClientPlayNetworking.registerGlobalReceiver(SpySkinshiftPayload.ID, (payload, context) ->
                 context.client().execute(() -> ClientDisguiseState.update(payload.player(), payload.target()))
+        );
+        ClientPlayNetworking.registerGlobalReceiver(TricksterControlPayload.ID, (payload, context) ->
+                context.client().execute(() -> ClientTricksterState.update(payload.puppeted(), payload.mindGames()))
         );
 
         ClientPlayNetworking.registerGlobalReceiver(ServerDisablesPayload.ID, (payload, context) ->
@@ -144,6 +152,15 @@ public final class ClientNetworking {
                     MinecraftClient client = context.client();
                     if (client != null) {
                         client.setScreen(new PrismSelectionScreen(payload));
+                    }
+                }));
+
+        // Spy observed abilities screen
+        ClientPlayNetworking.registerGlobalReceiver(SpyObservedScreenPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    MinecraftClient client = context.client();
+                    if (client != null) {
+                        client.setScreen(new SpyObservedSelectionScreen(payload));
                     }
                 }));
     }

@@ -1,7 +1,6 @@
 package com.feel.gems.gametest.terror;
 
 import com.feel.gems.core.GemId;
-import com.feel.gems.event.GemsPlayerDeath;
 import com.feel.gems.gametest.util.GemsGameTestUtil;
 import com.feel.gems.power.ability.terror.TerrorTradeAbility;
 import com.feel.gems.state.GemPlayerState;
@@ -76,10 +75,6 @@ public final class GemsTerrorTradeGameTests {
                 context.throwGameTestException("Terror Trade did not activate (raycast target not acquired)");
             }
         });
-
-        // The GameTest mock player is not guaranteed to run vanilla death logic, so explicitly apply the mod's
-        // death-side effects to the caster (the ability is defined as a self-sacrifice).
-        context.runAtTick(24L, () -> GemsPlayerDeath.onDeathTail(caster, caster.getDamageSources().outOfWorld()));
 
         context.runAtTick(60L, () -> {
             // Target pays 2 hearts instead of the normal 1-heart drop on death.

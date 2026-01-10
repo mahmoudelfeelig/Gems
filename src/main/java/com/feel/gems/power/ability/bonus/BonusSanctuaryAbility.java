@@ -1,6 +1,7 @@
 package com.feel.gems.power.ability.bonus;
 
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.Entity;
@@ -44,6 +45,9 @@ public final class BonusSanctuaryAbility implements GemAbility {
         
         world.getOtherEntities(player, area).forEach(e -> {
             if (e instanceof ServerPlayerEntity otherPlayer) {
+                if (VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                    return;
+                }
                 // Trusted players = allies, untrusted = enemies
                 if (GemTrust.isTrusted(player, otherPlayer)) {
                     otherPlayer.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 100, 1));

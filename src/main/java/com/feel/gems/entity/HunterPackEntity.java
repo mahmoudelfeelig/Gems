@@ -172,7 +172,7 @@ public class HunterPackEntity extends PathAwareEntity {
         // Distribute remaining health evenly
         float healthPerMember = newTotalHealth / packMembers.size();
         for (HunterPackEntity member : packMembers) {
-            member.setHealth(Math.max(1, healthPerMember));
+            member.setHealth(Math.max(0.0F, healthPerMember));
         }
         
         // Play hurt animation on this one

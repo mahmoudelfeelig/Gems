@@ -231,6 +231,8 @@ public final class ServerPrismNetworking {
             }
         }
 
+        GemStateSync.sendPrismAbilitiesSync(player);
+
         // Refresh the screen
         openEditor(player);
     }

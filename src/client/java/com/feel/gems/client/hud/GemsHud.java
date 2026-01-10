@@ -232,7 +232,7 @@ public final class GemsHud {
             if (prismAbilities.isEmpty()) {
                 ctx.drawTextWithShadow(tr, "No abilities selected", x, y, opaque(0x777777));
                 y += lineHeight;
-                ctx.drawTextWithShadow(tr, "Press " + GemsKeybinds.modifierLabel() + "+P to open selection", x, y, opaque(0xAAAAAA));
+                ctx.drawTextWithShadow(tr, "Press " + GemsKeybinds.bonusScreenLabel() + " to open selection", x, y, opaque(0xAAAAAA));
                 y += lineHeight;
             } else {
                 int prismUnlocked = new GemEnergyState(energy).unlockedAbilityCount(prismAbilities.size());
@@ -383,14 +383,12 @@ public final class GemsHud {
                 y += lineHeight / 2; // Small gap
                 ctx.drawTextWithShadow(tr, "--- Bonus ---", x, y, opaque(0xFFD700));
                 y += lineHeight;
-                
-                String[] bonusKeys = {"C", "V"};
                 for (int i = 0; i < bonusAbilities.size() && i < 2; i++) {
                     ClientBonusState.BonusAbilityEntry entry = bonusAbilities.get(i);
                     int remaining = ClientBonusState.remainingTicks(entry.id());
                     boolean lastUsed = ClientBonusState.isLastUsed(entry.id());
-                    
-                    String key = bonusKeys[i];
+
+                    String key = GemsKeybinds.bonusAbilityLabel(i);
                     String prefix = lastUsed && remaining > 0 ? "* " : "";
                     int lineColor;
                     String stateSuffix;

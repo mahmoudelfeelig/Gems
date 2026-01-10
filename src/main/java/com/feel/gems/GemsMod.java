@@ -10,8 +10,10 @@ import com.feel.gems.net.GemsPayloads;
 import com.feel.gems.net.ServerAbilityNetworking;
 import com.feel.gems.net.ServerClientConfigNetworking;
 import com.feel.gems.net.ServerLegendaryNetworking;
+import com.feel.gems.net.ServerSpyObservedNetworking;
 import com.feel.gems.net.ServerSummonerNetworking;
 import com.feel.gems.screen.ModScreenHandlers;
+import com.feel.gems.sound.ModSounds;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,7 @@ public final class GemsMod implements ModInitializer {
         GemRegistry.init();
         GemsBalance.init();
         GemsDisables.init();
+        ModSounds.init();
         ModEntities.init();
         GemsPayloads.register();
         ModScreenHandlers.init();
@@ -42,6 +45,7 @@ public final class GemsMod implements ModInitializer {
         ServerSummonerNetworking.register();
         ServerBonusNetworking.register();
         ServerPrismNetworking.register();
+        ServerSpyObservedNetworking.register();
         GemsModEvents.register();
         GemsCommands.register();
     }

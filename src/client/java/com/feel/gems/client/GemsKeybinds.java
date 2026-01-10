@@ -8,6 +8,7 @@ import com.feel.gems.net.ActivateBonusAbilityPayload;
 import com.feel.gems.net.BonusSelectionOpenRequestPayload;
 import com.feel.gems.net.FluxChargePayload;
 import com.feel.gems.net.PrismSelectionOpenRequestPayload;
+import com.feel.gems.net.SpyObservedOpenRequestPayload;
 import com.feel.gems.net.SoulReleasePayload;
 import com.feel.gems.net.SummonerLoadoutOpenRequestPayload;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -30,6 +31,7 @@ public final class GemsKeybinds {
     private static KeyBinding[] CUSTOM_KEYS;
     private static KeyBinding[] BONUS_ABILITY_KEYS;
     private static KeyBinding BONUS_SCREEN_KEY;
+    private static KeyBinding SPY_OBSERVED_SCREEN_KEY;
 
     private GemsKeybinds() {
     }
@@ -56,6 +58,9 @@ public final class GemsKeybinds {
         
         // Bonus selection screen keybind (B by default)
         BONUS_SCREEN_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.bonus_screen", GLFW.GLFW_KEY_B, CATEGORY));
+
+        // Spy observed abilities screen keybind (O by default)
+        SPY_OBSERVED_SCREEN_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.spy_observed_screen", GLFW.GLFW_KEY_O, CATEGORY));
     }
 
     public static boolean isModifierDown() {
@@ -67,6 +72,24 @@ public final class GemsKeybinds {
             return "";
         }
         return MODIFIER.getBoundKeyLocalizedText().getString();
+    }
+
+    public static String bonusScreenLabel() {
+        if (BONUS_SCREEN_KEY == null) {
+            return "";
+        }
+        return BONUS_SCREEN_KEY.getBoundKeyLocalizedText().getString();
+    }
+
+    public static String bonusAbilityLabel(int bonusSlotIndex) {
+        if (BONUS_ABILITY_KEYS == null || bonusSlotIndex < 0 || bonusSlotIndex >= BONUS_ABILITY_KEYS.length) {
+            return "";
+        }
+        KeyBinding key = BONUS_ABILITY_KEYS[bonusSlotIndex];
+        if (key == null) {
+            return "";
+        }
+        return key.getBoundKeyLocalizedText().getString();
     }
 
     public static String chordSlotLabel(int slotNumber) {
@@ -89,6 +112,13 @@ public final class GemsKeybinds {
         if (BONUS_SCREEN_KEY != null && client.currentScreen == null) {
             while (BONUS_SCREEN_KEY.wasPressed()) {
                 openBonusScreen(client);
+            }
+        }
+
+        // Spy observed abilities screen key
+        if (SPY_OBSERVED_SCREEN_KEY != null && client.currentScreen == null) {
+            while (SPY_OBSERVED_SCREEN_KEY.wasPressed()) {
+                openSpyObservedScreen(client);
             }
         }
         
@@ -137,9 +167,9 @@ public final class GemsKeybinds {
             return;
         }
         
-        // Prism gem uses B key to open Prism selection screen (requires energy 2+)
+        // Prism gem uses B key to open Prism selection screen (requires energy 10)
         if (ClientGemState.activeGem() == GemId.PRISM) {
-            if (ClientGemState.energy() < 2) {
+            if (ClientGemState.energy() < 10) {
                 sendActionBar(client, Text.translatable("gems.prism.need_energy_access"));
                 return;
             }
@@ -153,6 +183,23 @@ public final class GemsKeybinds {
             return;
         }
         ClientPlayNetworking.send(BonusSelectionOpenRequestPayload.INSTANCE);
+    }
+
+    private static void openSpyObservedScreen(MinecraftClient client) {
+        if (client.getNetworkHandler() == null) {
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
+            return;
+        }
+        if (!ClientGemState.isInitialized()) {
+            sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
+            return;
+        }
+        GemId gem = ClientGemState.activeGem();
+        if (gem != GemId.SPY_MIMIC && gem != GemId.PRISM) {
+            sendActionBar(client, Text.translatable("gems.spy.observed.not_spy"));
+            return;
+        }
+        ClientPlayNetworking.send(SpyObservedOpenRequestPayload.INSTANCE);
     }
 
     public static boolean useChordControls() {

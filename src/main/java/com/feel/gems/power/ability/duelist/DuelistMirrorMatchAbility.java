@@ -5,24 +5,17 @@ import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
+import com.feel.gems.power.util.Targeting;
 import com.feel.gems.state.PlayerStateManager;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Vec3d;
 
 public final class DuelistMirrorMatchAbility implements GemAbility {
     public static final String DUEL_PARTNER_KEY = "duelist_mirror_match_partner";
     public static final String DUEL_END_TIME_KEY = "duelist_mirror_match_end";
-    public static final String DUEL_ORIGIN_X_KEY = "duelist_mirror_match_origin_x";
-    public static final String DUEL_ORIGIN_Y_KEY = "duelist_mirror_match_origin_y";
-    public static final String DUEL_ORIGIN_Z_KEY = "duelist_mirror_match_origin_z";
-    public static final String DISGUISE_SKIN_KEY = "duelist_mirror_disguise_skin";
-    public static final String DISGUISE_NAME_KEY = "duelist_mirror_disguise_name";
 
     @Override
     public Identifier id() {
@@ -36,7 +29,7 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Force a target into a 1v1 duel; copies your skin and name onto them.";
+        return "Swap skins and names with a targeted player for a short duration.";
     }
 
     @Override
@@ -50,8 +43,8 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
         int range = GemsBalance.v().duelist().mirrorMatchRangeBlocks();
 
         // Raycast to find target
-        HitResult hit = player.raycast(range, 0.0F, false);
-        if (!(hit instanceof EntityHitResult entityHit) || !(entityHit.getEntity() instanceof ServerPlayerEntity target)) {
+        ServerPlayerEntity target = Targeting.raycastPlayer(player, range);
+        if (target == null) {
             AbilityFeedback.sound(player, SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), 1.0F, 0.5F);
             return false;
         }
@@ -64,27 +57,15 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
         int durationTicks = GemsBalance.v().duelist().mirrorMatchDurationTicks();
         long endTime = world.getTime() + durationTicks;
 
-        // Store duel state for both players
-        Vec3d playerOrigin = player.getEntityPos();
-        Vec3d targetOrigin = target.getEntityPos();
-
-        // Player state
+        // Store mirror state for both players
         PlayerStateManager.setPersistent(player, DUEL_PARTNER_KEY, target.getUuidAsString());
         PlayerStateManager.setPersistent(player, DUEL_END_TIME_KEY, String.valueOf(endTime));
-        PlayerStateManager.setPersistent(player, DUEL_ORIGIN_X_KEY, String.valueOf(playerOrigin.x));
-        PlayerStateManager.setPersistent(player, DUEL_ORIGIN_Y_KEY, String.valueOf(playerOrigin.y));
-        PlayerStateManager.setPersistent(player, DUEL_ORIGIN_Z_KEY, String.valueOf(playerOrigin.z));
 
-        // Target state (they get disguised as the caster)
+        // Target state
         PlayerStateManager.setPersistent(target, DUEL_PARTNER_KEY, player.getUuidAsString());
         PlayerStateManager.setPersistent(target, DUEL_END_TIME_KEY, String.valueOf(endTime));
-        PlayerStateManager.setPersistent(target, DUEL_ORIGIN_X_KEY, String.valueOf(targetOrigin.x));
-        PlayerStateManager.setPersistent(target, DUEL_ORIGIN_Y_KEY, String.valueOf(targetOrigin.y));
-        PlayerStateManager.setPersistent(target, DUEL_ORIGIN_Z_KEY, String.valueOf(targetOrigin.z));
 
-        // Store disguise info on target (they look like the caster)
-        PlayerStateManager.setPersistent(target, DISGUISE_SKIN_KEY, player.getUuidAsString());
-        PlayerStateManager.setPersistent(target, DISGUISE_NAME_KEY, player.getName().getString());
+        DuelistMirrorMatchRuntime.start(player, target);
 
         // Visual effects
         AbilityFeedback.burstAt(world, player.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ENCHANT, 30, 1.0D);
@@ -111,10 +92,5 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
     public static void clearDuel(ServerPlayerEntity player) {
         PlayerStateManager.clearPersistent(player, DUEL_PARTNER_KEY);
         PlayerStateManager.clearPersistent(player, DUEL_END_TIME_KEY);
-        PlayerStateManager.clearPersistent(player, DUEL_ORIGIN_X_KEY);
-        PlayerStateManager.clearPersistent(player, DUEL_ORIGIN_Y_KEY);
-        PlayerStateManager.clearPersistent(player, DUEL_ORIGIN_Z_KEY);
-        PlayerStateManager.clearPersistent(player, DISGUISE_SKIN_KEY);
-        PlayerStateManager.clearPersistent(player, DISGUISE_NAME_KEY);
     }
 }

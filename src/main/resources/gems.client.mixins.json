@@ -5,6 +5,8 @@
   "refmap": "client-gems-refmap.json",
   "client": [
     "KeyboardHotbarAbilityMixin",
+    "KeyboardInputTricksterMixin",
+    "accessor.InputAccessor",
     "AbstractClientPlayerEntitySkinMixin",
     "AbstractClientPlayerEntityNameMixin",
     "PlayerListEntrySkinshiftNameMixin"

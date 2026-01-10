@@ -2,10 +2,12 @@ package com.feel.gems.power.gem.summoner;
 
 import com.feel.gems.GemsMod;
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.legendary.LegendaryCooldowns;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.GemsTime;
 import com.feel.gems.net.GemCooldownSync;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.bonus.BonusPassiveRuntime;
 import com.feel.gems.power.runtime.GemAbilityCooldowns;
 import com.feel.gems.legendary.HypnoControl;
 import com.feel.gems.legendary.LegendaryTargeting;
@@ -429,6 +431,7 @@ public final class SummonerSummons {
         if (cooldownTicks <= 0) {
             return;
         }
+        cooldownTicks = applyCooldownModifiers(owner, cooldownTicks);
         long now = GemsTime.now(owner);
         long until = now + cooldownTicks;
         if (GemAbilityCooldowns.nextAllowedTick(owner, PowerIds.SUMMON_SLOT_1) > now) {
@@ -440,6 +443,15 @@ public final class SummonerSummons {
         GemAbilityCooldowns.setNextAllowedTick(owner, PowerIds.SUMMON_SLOT_4, until);
         GemAbilityCooldowns.setNextAllowedTick(owner, PowerIds.SUMMON_SLOT_5, until);
         GemCooldownSync.send(owner);
+    }
+
+    private static int applyCooldownModifiers(ServerPlayerEntity player, int baseTicks) {
+        if (baseTicks <= 0) {
+            return 0;
+        }
+        float mult = BonusPassiveRuntime.getCooldownMultiplier(player) * LegendaryCooldowns.getCooldownMultiplier(player);
+        int adjusted = (int) Math.ceil(baseTicks * mult);
+        return Math.max(1, adjusted);
     }
 
     public static int costForEntity(java.util.Map<String, Integer> costs, EntityType<?> type) {

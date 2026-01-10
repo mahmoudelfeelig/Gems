@@ -55,9 +55,12 @@ public final class TricksterMirageAbility implements GemAbility {
             double offsetZ = Math.sin(angle) * 2.0;
             Vec3d clonePos = center.add(offsetX, 0, offsetZ);
 
-            AbilityFeedback.burstAt(world, clonePos.add(0, 1, 0), ParticleTypes.LARGE_SMOKE, 15, 0.4D);
+            AbilityFeedback.burstAt(world, clonePos.add(0, 1, 0), ParticleTypes.LARGE_SMOKE, 18, 0.5D);
+            AbilityFeedback.burstAt(world, clonePos.add(0, 1.2, 0), ParticleTypes.ENCHANT, 10, 0.6D);
+            AbilityFeedback.burstAt(world, clonePos.add(0, 0.8, 0), ParticleTypes.END_ROD, 8, 0.4D);
         }
 
+        AbilityFeedback.burstAt(world, center.add(0, 1.0, 0), ParticleTypes.PORTAL, 25, 0.8D);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ILLUSIONER_CAST_SPELL, 1.0F, 1.0F);
         return true;
     }

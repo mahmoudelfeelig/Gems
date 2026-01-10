@@ -1,6 +1,7 @@
 package com.feel.gems.power.gem.sentinel;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.PlayerStateManager;
@@ -12,6 +13,9 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Sentinel passive runtime implementations.
@@ -20,14 +24,27 @@ public final class SentinelPassiveRuntime {
     private static final String FORTRESS_POS_KEY = "sentinel_fortress_pos";
     private static final String FORTRESS_START_KEY = "sentinel_fortress_start";
 
+    private static final Map<UUID, GuardianAuraCacheEntry> GUARDIAN_AURA_CACHE = new HashMap<>();
+
     private SentinelPassiveRuntime() {}
 
     // ========== Guardian Aura ==========
     // Nearby trusted allies take 15% less damage.
 
     public static boolean isProtectedByGuardianAura(ServerPlayerEntity victim) {
+        if (VoidImmunity.hasImmunity(victim)) {
+            return false;
+        }
         if (!(victim.getEntityWorld() instanceof ServerWorld world)) {
             return false;
+        }
+        long tick = world.getTime();
+        GuardianAuraCacheEntry cached = GUARDIAN_AURA_CACHE.get(victim.getUuid());
+        if (cached != null && cached.tick == tick) {
+            return cached.protectedByAura;
+        }
+        if (GUARDIAN_AURA_CACHE.size() > 512) {
+            GUARDIAN_AURA_CACHE.clear();
         }
         int range = GemsBalance.v().sentinel().guardianAuraRadiusBlocks();
         Box searchBox = victim.getBoundingBox().expand(range);
@@ -40,9 +57,11 @@ public final class SentinelPassiveRuntime {
 
         for (ServerPlayerEntity sentinel : nearbyPlayers) {
             if (GemTrust.isTrusted(sentinel, victim)) {
+                GUARDIAN_AURA_CACHE.put(victim.getUuid(), new GuardianAuraCacheEntry(tick, true));
                 return true;
             }
         }
+        GUARDIAN_AURA_CACHE.put(victim.getUuid(), new GuardianAuraCacheEntry(tick, false));
         return false;
     }
 
@@ -102,4 +121,6 @@ public final class SentinelPassiveRuntime {
     public static boolean hasRetributionThorns(ServerPlayerEntity player) {
         return GemPowers.isPassiveActive(player, PowerIds.SENTINEL_RETRIBUTION_THORNS);
     }
+
+    private record GuardianAuraCacheEntry(long tick, boolean protectedByAura) {}
 }

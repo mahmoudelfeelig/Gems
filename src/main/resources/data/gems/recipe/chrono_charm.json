@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CEC",
+    "ENE",
+    "CEC"
+  ],
+  "key": {
+    "C": "minecraft:clock",
+    "E": "minecraft:echo_shard",
+    "N": "minecraft:netherite_ingot"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:chrono_charm"
+  }
+}

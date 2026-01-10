@@ -288,6 +288,7 @@
       "abilities": [
         "gems:duelist_lunge",
         "gems:duelist_parry",
+        "gems:duelist_rapid_strike",
         "gems:duelist_flourish",
         "gems:duelist_mirror_match",
         "gems:duelist_blade_dance"

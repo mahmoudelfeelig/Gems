@@ -1,5 +1,6 @@
 package com.feel.gems.power.runtime;
 
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.GemsTime;
 import net.minecraft.nbt.NbtCompound;
@@ -29,12 +30,18 @@ public final class AbilityRestrictions {
         if (durationTicks <= 0) {
             return;
         }
+        if (VoidImmunity.hasImmunity(player)) {
+            return;
+        }
         persistent(player).putLong(KEY_SUPPRESSED_UNTIL, GemsTime.now(player) + durationTicks);
         GemPowers.sync(player);
     }
 
     public static void stun(ServerPlayerEntity player, int durationTicks) {
         if (durationTicks <= 0) {
+            return;
+        }
+        if (VoidImmunity.hasImmunity(player)) {
             return;
         }
         persistent(player).putLong(KEY_STUNNED_UNTIL, GemsTime.now(player) + durationTicks);

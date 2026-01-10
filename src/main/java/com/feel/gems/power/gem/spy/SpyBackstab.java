@@ -5,6 +5,7 @@ import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.trust.GemTrust;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -19,6 +20,9 @@ public final class SpyBackstab {
 
     public static void apply(ServerPlayerEntity attacker, LivingEntity target) {
         if (!GemPowers.isPassiveActive(attacker, PowerIds.SPY_BACKSTEP)) {
+            return;
+        }
+        if (target instanceof ServerPlayerEntity other && VoidImmunity.shouldBlockEffect(attacker, other)) {
             return;
         }
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(attacker, other)) {

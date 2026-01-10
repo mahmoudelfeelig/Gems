@@ -25,6 +25,8 @@ public final class VoidImmunity {
         if (player == null) {
             return false;
         }
+        // Defensive: some call sites (and GameTests) may query immunity before player state is initialized.
+        GemPlayerState.initIfNeeded(player);
         GemId activeGem = GemPlayerState.getActiveGem(player);
         if (activeGem != GemId.VOID) {
             return false;
@@ -48,7 +50,7 @@ public final class VoidImmunity {
         if (sourcePlayer == null) {
             return false; // Environmental effects aren't blocked
         }
-        if (sourcePlayer.equals(targetPlayer)) {
+        if (sourcePlayer == targetPlayer) {
             return false; // Self-targeting abilities aren't blocked
         }
         return hasImmunity(targetPlayer);

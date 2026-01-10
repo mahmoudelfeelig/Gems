@@ -558,6 +558,8 @@ public final class GemsBalance {
         cfg.duelist.parryCooldownSeconds = ticksToSeconds(v.duelist().parryCooldownTicks());
         cfg.duelist.parryWindowTicks = v.duelist().parryWindowTicks();
         cfg.duelist.parryStunSeconds = ticksToSeconds(v.duelist().parryStunTicks());
+        cfg.duelist.rapidStrikeCooldownSeconds = ticksToSeconds(v.duelist().rapidStrikeCooldownTicks());
+        cfg.duelist.rapidStrikeDurationSeconds = ticksToSeconds(v.duelist().rapidStrikeDurationTicks());
         cfg.duelist.flourishCooldownSeconds = ticksToSeconds(v.duelist().flourishCooldownTicks());
         cfg.duelist.flourishRadiusBlocks = v.duelist().flourishRadiusBlocks();
         cfg.duelist.flourishDamage = v.duelist().flourishDamage();
@@ -1863,6 +1865,8 @@ public final class GemsBalance {
             int parryCooldownTicks,
             int parryWindowTicks,
             int parryStunTicks,
+            int rapidStrikeCooldownTicks,
+            int rapidStrikeDurationTicks,
             int flourishCooldownTicks,
             int flourishRadiusBlocks,
             float flourishDamage,
@@ -1889,6 +1893,8 @@ public final class GemsBalance {
                     secClamped(cfg.parryCooldownSeconds, 0, 3600),
                     clampInt(cfg.parryWindowTicks, 1, 100),
                     secClamped(cfg.parryStunSeconds, 0, 60),
+                    secClamped(cfg.rapidStrikeCooldownSeconds, 0, 3600),
+                    secClamped(cfg.rapidStrikeDurationSeconds, 0, 60),
                     secClamped(cfg.flourishCooldownSeconds, 0, 3600),
                     clampInt(cfg.flourishRadiusBlocks, 0, 32),
                     clampFloat(cfg.flourishDamage, 0.0F, 200.0F),

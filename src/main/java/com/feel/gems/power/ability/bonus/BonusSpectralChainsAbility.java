@@ -1,7 +1,9 @@
 package com.feel.gems.power.ability.bonus;
 
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -55,6 +57,14 @@ public final class BonusSpectralChainsAbility implements GemAbility {
         }
 
         for (LivingEntity entity : entities) {
+            if (entity instanceof ServerPlayerEntity otherPlayer) {
+                if (VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                    continue;
+                }
+                if (GemTrust.isTrusted(player, otherPlayer)) {
+                    continue;
+                }
+            }
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, ROOT_DURATION, 127, false, false, true));
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, ROOT_DURATION, 128, false, false, false));
             

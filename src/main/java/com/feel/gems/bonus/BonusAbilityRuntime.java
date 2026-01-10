@@ -1,9 +1,12 @@
 package com.feel.gems.bonus;
 
 import com.feel.gems.admin.GemsAdmin;
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.config.GemsDisables;
+import com.feel.gems.legendary.LegendaryCooldowns;
 import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.bonus.BonusPassiveRuntime;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.power.runtime.AbilityDisables;
 import com.feel.gems.power.runtime.AbilityRestrictions;
@@ -106,6 +109,7 @@ public final class BonusAbilityRuntime {
         }
 
         int cooldown = Math.max(0, ability.cooldownTicks());
+        cooldown = applyCooldownModifiers(player, cooldown);
         if (cooldown > 0 && !noCooldowns) {
             GemAbilityCooldowns.setNextAllowedTick(player, abilityId, now + cooldown);
             // Use offset index for bonus abilities to distinguish from gem abilities
@@ -118,5 +122,16 @@ public final class BonusAbilityRuntime {
             return 0;
         }
         return (int) Math.max(1, (ticks + 19) / 20);
+    }
+
+    private static int applyCooldownModifiers(ServerPlayerEntity player, int baseTicks) {
+        if (baseTicks <= 0) {
+            return 0;
+        }
+        float mult = GemsBalance.v().bonusPool().bonusAbilityCooldownMultiplier();
+        mult *= BonusPassiveRuntime.getCooldownMultiplier(player);
+        mult *= LegendaryCooldowns.getCooldownMultiplier(player);
+        int adjusted = (int) Math.ceil(baseTicks * mult);
+        return Math.max(1, adjusted);
     }
 }

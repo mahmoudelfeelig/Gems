@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.sentinel;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -49,6 +50,7 @@ public final class SentinelRallyCryAbility implements GemAbility {
         for (Entity e : world.getOtherEntities(player, box, ent -> ent instanceof ServerPlayerEntity)) {
             ServerPlayerEntity ally = (ServerPlayerEntity) e;
             if (!GemTrust.isTrusted(player, ally)) continue;
+            if (VoidImmunity.shouldBlockEffect(player, ally)) continue;
 
             ally.heal(healAmount);
             ally.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, resistanceTicks, 0, false, true));

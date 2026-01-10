@@ -27,6 +27,7 @@ public final class PlayerStateManager {
     public static void setPersistent(ServerPlayerEntity player, String key, String value) {
         NbtCompound root = getOrCreateRoot(player);
         root.putString(key, value);
+        persistRoot(player, root);
     }
 
     public static String getPersistent(ServerPlayerEntity player, String key) {
@@ -40,6 +41,7 @@ public final class PlayerStateManager {
     public static void clearPersistent(ServerPlayerEntity player, String key) {
         NbtCompound root = getOrCreateRoot(player);
         root.remove(key);
+        persistRoot(player, root);
     }
 
     public static boolean hasPersistent(ServerPlayerEntity player, String key) {
@@ -48,10 +50,16 @@ public final class PlayerStateManager {
 
     private static NbtCompound getOrCreateRoot(ServerPlayerEntity player) {
         NbtCompound playerData = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-        if (!playerData.contains(GEMS_STATE_KEY)) {
-            playerData.put(GEMS_STATE_KEY, new NbtCompound());
+        NbtCompound root = playerData.getCompound(GEMS_STATE_KEY).orElse(null);
+        if (root == null) {
+            root = new NbtCompound();
+            playerData.put(GEMS_STATE_KEY, root);
         }
-        return playerData.getCompound(GEMS_STATE_KEY).orElse(new NbtCompound());
+        return root;
+    }
+
+    private static void persistRoot(ServerPlayerEntity player, NbtCompound root) {
+        ((GemsPersistentDataHolder) player).gems$getPersistentData().put(GEMS_STATE_KEY, root);
     }
 
     // ======================= TEMPORARY STATE =======================

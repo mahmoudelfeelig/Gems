@@ -16,6 +16,7 @@ import com.feel.gems.legendary.HypnoControl;
 import com.feel.gems.legendary.LegendaryCrafting;
 import com.feel.gems.legendary.LegendaryPlayerTracker;
 import com.feel.gems.legendary.LegendaryTargeting;
+import com.feel.gems.legendary.LegendaryDuels;
 import com.feel.gems.legendary.SupremeSetRuntime;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.net.ServerDisablesPayload;
@@ -208,6 +209,7 @@ public final class GemsModEvents {
             sendDisables(player);
             SpyMimicSystem.syncSkinshifts(player);
             SpyMimicSystem.syncSkinshiftSelf(player);
+            com.feel.gems.power.ability.trickster.TricksterControlSync.sync(player);
             unlockStartingRecipes(server, player);
             AssassinTeams.sync(server, player);
             LegendaryCrafting.deliverPending(player);
@@ -228,6 +230,7 @@ public final class GemsModEvents {
             PillagerVolleyRuntime.stop(player);
             HypnoControl.releaseAll(player);
             HunterCallThePackRuntime.onPlayerDisconnect(player.getUuid(), server);
+            LegendaryDuels.onDisconnect(server, player);
         });
 
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
@@ -257,6 +260,7 @@ public final class GemsModEvents {
                 newPlayer.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
                 newPlayer.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.eliminated").formatted(net.minecraft.util.Formatting.RED), false);
             }
+            LegendaryDuels.onPlayerCopyFrom(oldPlayer, newPlayer, alive);
         });
 
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> AutoSmeltCache.clear());
@@ -269,6 +273,7 @@ public final class GemsModEvents {
 
             // Every tick: lightweight runtimes + maintenance queues.
             GemsTickScheduler.scheduleRepeating(server, 0, 1, s -> {
+                com.feel.gems.state.PlayerStateManager.tickAll();
                 BreezyBashTracker.tick(s);
                 SpaceAnomalies.tick(s);
                 PillagerVolleyRuntime.tick(s);
@@ -277,15 +282,20 @@ public final class GemsModEvents {
                 GemOwnership.tickPurgeQueue(s);
                 ChaosSlotRuntime.tick(s);
                 HunterCallThePackRuntime.tick(s);
-                // Sentinel ability runtime ticks
-                for (ServerWorld world : s.getWorlds()) {
-                    long currentTime = world.getTime();
-                    String worldId = world.getRegistryKey().getValue().toString();
-                    com.feel.gems.power.ability.sentinel.SentinelShieldWallRuntime.tick(currentTime, worldId, world);
-                    com.feel.gems.power.ability.sentinel.SentinelLockdownRuntime.tick(currentTime, worldId, world);
+                // Sentinel ability runtime ticks (skip world scans if nothing is active)
+                if (com.feel.gems.power.ability.sentinel.SentinelShieldWallRuntime.hasAnyWalls()
+                        || com.feel.gems.power.ability.sentinel.SentinelLockdownRuntime.hasAnyZones()) {
+                    for (ServerWorld world : s.getWorlds()) {
+                        long currentTime = world.getTime();
+                        String worldId = world.getRegistryKey().getValue().toString();
+                        com.feel.gems.power.ability.sentinel.SentinelShieldWallRuntime.tick(currentTime, worldId, world);
+                        com.feel.gems.power.ability.sentinel.SentinelLockdownRuntime.tick(currentTime, worldId, world);
+                    }
                 }
                 for (ServerPlayerEntity player : s.getPlayerManager().getPlayerList()) {
                     TerrorRigRuntime.checkStep(player);
+                    com.feel.gems.power.ability.duelist.DuelistMirrorMatchRuntime.tick(player);
+                    com.feel.gems.power.ability.trickster.TricksterPuppetRuntime.tickPuppetedPlayer(player);
                     // Trickster mirage particles (every 4 ticks for visual effect without heavy load)
                     if (player.getEntityWorld().getTime() % 4 == 0) {
                         com.feel.gems.power.ability.trickster.TricksterMirageRuntime.tickMirageParticles(player);
@@ -298,6 +308,7 @@ public final class GemsModEvents {
                 LegendaryCrafting.tick(s);
                 LegendaryPlayerTracker.tick(s);
                 TerrorRigRuntime.tick(s);
+                LegendaryDuels.tickEverySecond(s);
 
                 for (ServerPlayerEntity player : s.getPlayerManager().getPlayerList()) {
                     GemPlayerState.initIfNeeded(player);
@@ -307,6 +318,7 @@ public final class GemsModEvents {
                     AbilityRuntime.tickEverySecond(player);
                     PillagerDiscipline.tick(player);
                     SpyMimicSystem.tickEverySecond(player);
+                    com.feel.gems.power.ability.trickster.TricksterControlSync.sync(player);
                     BeaconSupportRuntime.tickEverySecond(player);
                     BeaconAuraRuntime.tickEverySecond(player);
                     // Bonus passives tick handler

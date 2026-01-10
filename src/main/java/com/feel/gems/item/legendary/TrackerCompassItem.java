@@ -53,6 +53,13 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
     }
 
     @Override
+    public Text getName(ItemStack stack) {
+        // `CompassItem` swaps the display name to "Lodestone Compass" when `LODESTONE_TRACKER` is set.
+        // Tracker Compass uses that component for pointing, but should always keep its own name.
+        return Text.translatable("item.gems.tracker_compass");
+    }
+
+    @Override
     public String legendaryId() {
         return Identifier.of(GemsMod.MOD_ID, "tracker_compass").toString();
     }
@@ -101,12 +108,24 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
         BlockPos pos = readBlockPos(nbt, KEY_TARGET_POS);
         if (pos != null) {
             String dim = nbt.getString(KEY_TARGET_DIM, "");
-            tooltip.accept(Text.translatable("gems.item.tracker_compass.tooltip.last_seen", pos.getX(), pos.getY(), pos.getZ(), dim));
+            tooltip.accept(Text.translatable(
+                    "gems.item.tracker_compass.tooltip.last_seen",
+                    String.valueOf(pos.getX()),
+                    String.valueOf(pos.getY()),
+                    String.valueOf(pos.getZ()),
+                    dim
+            ));
         }
         BlockPos respawn = readBlockPos(nbt, KEY_TARGET_RESPAWN_POS);
         if (respawn != null) {
             String dim = nbt.getString(KEY_TARGET_RESPAWN_DIM, "");
-            tooltip.accept(Text.translatable("gems.item.tracker_compass.tooltip.respawn", respawn.getX(), respawn.getY(), respawn.getZ(), dim));
+            tooltip.accept(Text.translatable(
+                    "gems.item.tracker_compass.tooltip.respawn",
+                    String.valueOf(respawn.getX()),
+                    String.valueOf(respawn.getY()),
+                    String.valueOf(respawn.getZ()),
+                    dim
+            ));
         }
     }
 
@@ -213,8 +232,20 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
         }
         BlockPos pos = snapshot.pos();
         BlockPos respawn = snapshot.respawnPos();
-        player.sendMessage(Text.translatable("gems.item.tracker_compass.current_pos", pos.getX(), pos.getY(), pos.getZ(), snapshot.dimension()), true);
-        player.sendMessage(Text.translatable("gems.item.tracker_compass.respawn_pos", respawn.getX(), respawn.getY(), respawn.getZ(), snapshot.respawnDimension()), true);
+        player.sendMessage(Text.translatable(
+                "gems.item.tracker_compass.current_pos",
+                String.valueOf(pos.getX()),
+                String.valueOf(pos.getY()),
+                String.valueOf(pos.getZ()),
+                snapshot.dimension().toString()
+        ), true);
+        player.sendMessage(Text.translatable(
+                "gems.item.tracker_compass.respawn_pos",
+                String.valueOf(respawn.getX()),
+                String.valueOf(respawn.getY()),
+                String.valueOf(respawn.getZ()),
+                snapshot.respawnDimension().toString()
+        ), true);
     }
 
     private static void updateTrackingData(ItemStack stack, MinecraftServer server, UUID target, long now) {

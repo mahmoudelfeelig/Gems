@@ -2,10 +2,9 @@ package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
 import com.feel.gems.legendary.LegendaryItem;
+import com.feel.gems.legendary.LegendaryDuels;
 import com.feel.gems.power.util.Targeting;
-import com.feel.gems.state.PlayerStateManager;
 import java.util.function.Consumer;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -28,11 +27,9 @@ import net.minecraft.world.World;
  * Both players are teleported to a small arena, winner gets energy; loser loses energy.
  * 
  * Note: This item creates a temporary 1v1 duel scenario - the actual arena implementation
- * would need additional infrastructure.
+ * is handled server-side by {@link LegendaryDuels}.
  */
 public final class ChallengersGauntletItem extends Item implements LegendaryItem {
-    private static final String CHALLENGE_TARGET_KEY = "challengers_gauntlet_target";
-    private static final String CHALLENGE_PENDING_KEY = "challengers_gauntlet_pending";
     private static final int COOLDOWN_TICKS = 300 * 20; // 5 minutes
 
     public ChallengersGauntletItem(Settings settings) {
@@ -58,8 +55,8 @@ public final class ChallengersGauntletItem extends Item implements LegendaryItem
         }
 
         // Raycast to find target
-        LivingEntity hitEntity = Targeting.raycastLiving(player, 10);
-        if (!(hitEntity instanceof ServerPlayerEntity target)) {
+        ServerPlayerEntity target = Targeting.raycastPlayer(player, 10);
+        if (target == null) {
             player.sendMessage(Text.translatable("gems.message.no_player_target").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
         }
@@ -68,9 +65,10 @@ public final class ChallengersGauntletItem extends Item implements LegendaryItem
             return ActionResult.FAIL;
         }
 
-        // Issue challenge
-        PlayerStateManager.setPersistent(player, CHALLENGE_TARGET_KEY, target.getUuidAsString());
-        PlayerStateManager.setPersistent(target, CHALLENGE_PENDING_KEY, player.getUuidAsString());
+        if (!LegendaryDuels.startGauntletDuel(player, target)) {
+            player.sendMessage(Text.translatable("gems.item.challengers_gauntlet.unavailable").formatted(Formatting.RED), true);
+            return ActionResult.FAIL;
+        }
 
         player.getItemCooldownManager().set(stack, COOLDOWN_TICKS);
 
@@ -89,14 +87,11 @@ public final class ChallengersGauntletItem extends Item implements LegendaryItem
         target.sendMessage(Text.translatable("gems.item.challengers_gauntlet.duel_begin").formatted(Formatting.YELLOW), false);
 
         // Note: Actual arena teleportation would be implemented in a separate system
-        // This just marks the challenge - a tick handler would handle the actual duel logic
-
         return ActionResult.SUCCESS;
     }
 
     public static void clearChallenge(ServerPlayerEntity player) {
-        PlayerStateManager.clearPersistent(player, CHALLENGE_TARGET_KEY);
-        PlayerStateManager.clearPersistent(player, CHALLENGE_PENDING_KEY);
+        // No-op: duel state is stored server-wide, not on the player.
     }
 
     @Override

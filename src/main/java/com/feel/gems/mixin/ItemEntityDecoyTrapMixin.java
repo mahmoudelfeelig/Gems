@@ -2,8 +2,11 @@ package com.feel.gems.mixin;
 
 import com.feel.gems.power.ability.bonus.BonusDecoyTrapAbility;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.Box;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -34,6 +37,26 @@ public abstract class ItemEntityDecoyTrapMixin {
         if (BonusDecoyTrapAbility.triggerTrap(self, serverPlayer)) {
             // The trap exploded - cancel the normal pickup
             ci.cancel();
+        }
+    }
+
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void gems$checkMobPickupTrap(CallbackInfo ci) {
+        ItemEntity self = (ItemEntity) (Object) this;
+        if (!(self.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
+        if (this.pickupDelay > 0) {
+            return;
+        }
+        if (BonusDecoyTrapAbility.getTrapOwner(self) == null) {
+            return;
+        }
+        Box box = self.getBoundingBox().expand(0.35);
+        for (LivingEntity living : world.getEntitiesByClass(LivingEntity.class, box, e -> !(e instanceof PlayerEntity))) {
+            if (BonusDecoyTrapAbility.triggerTrap(self, living)) {
+                break;
+            }
         }
     }
 }

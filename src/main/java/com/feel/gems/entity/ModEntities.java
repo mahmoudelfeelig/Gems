@@ -17,6 +17,7 @@ public final class ModEntities {
     
     private static final Identifier SHADOW_CLONE_ID = Identifier.of(GemsMod.MOD_ID, "shadow_clone");
     private static final Identifier HUNTER_PACK_ID = Identifier.of(GemsMod.MOD_ID, "hunter_pack");
+    private static final Identifier TEST_DUMMY_ID = Identifier.of(GemsMod.MOD_ID, "test_dummy");
     
     public static final EntityType<ShadowCloneEntity> SHADOW_CLONE = Registry.register(
             Registries.ENTITY_TYPE,
@@ -39,6 +40,17 @@ public final class ModEntities {
                     .trackingTickInterval(1)
                     .build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, HUNTER_PACK_ID))
     );
+
+    public static final EntityType<TestDummyEntity> TEST_DUMMY = Registry.register(
+            Registries.ENTITY_TYPE,
+            TEST_DUMMY_ID,
+            EntityType.Builder.create(TestDummyEntity::new, SpawnGroup.MISC)
+                    .dimensions(0.6F, 1.8F)
+                    .eyeHeight(1.62F)
+                    .maxTrackingRange(64)
+                    .trackingTickInterval(1)
+                    .build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, TEST_DUMMY_ID))
+    );
     
     private ModEntities() {}
     
@@ -46,6 +58,7 @@ public final class ModEntities {
         // Register entity attributes
         FabricDefaultAttributeRegistry.register(SHADOW_CLONE, ShadowCloneEntity.createAttributes());
         FabricDefaultAttributeRegistry.register(HUNTER_PACK, HunterPackEntity.createAttributes());
+        FabricDefaultAttributeRegistry.register(TEST_DUMMY, TestDummyEntity.createAttributes());
         GemsMod.LOGGER.info("Registered Gems entities");
     }
 }

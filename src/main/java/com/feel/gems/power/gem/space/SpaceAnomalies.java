@@ -1,6 +1,7 @@
 package com.feel.gems.power.gem.space;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTime;
@@ -175,6 +176,9 @@ public final class SpaceAnomalies {
             if (living instanceof ServerPlayerEntity other && GemTrust.isTrusted(caster, other)) {
                 continue;
             }
+            if (living instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(caster, otherPlayer)) {
+                continue;
+            }
             living.damage(world, caster.getDamageSources().magic(), damage);
         }
         AbilityFeedback.burstAt(world, center, ParticleTypes.ELECTRIC_SPARK, 18, 0.4D);
@@ -257,6 +261,9 @@ public final class SpaceAnomalies {
             if (living instanceof ServerPlayerEntity other && GemTrust.isTrusted(caster, other)) {
                 continue;
             }
+            if (living instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(caster, otherPlayer)) {
+                continue;
+            }
             Vec3d delta = (a.kind == Kind.BLACK_HOLE) ? center.subtract(living.getEntityPos()) : living.getEntityPos().subtract(center);
             double dist = Math.max(0.5D, delta.length());
             Vec3d push = delta.normalize().multiply(strength / dist);
@@ -280,6 +287,9 @@ public final class SpaceAnomalies {
                         continue;
                     }
                     if (living instanceof ServerPlayerEntity other && GemTrust.isTrusted(caster, other)) {
+                        continue;
+                    }
+                    if (living instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(caster, otherPlayer)) {
                         continue;
                     }
                     living.damage(world, caster.getDamageSources().magic(), dmg);

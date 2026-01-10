@@ -26,6 +26,7 @@ public final class TricksterPuppetRuntime {
         long endTime = target.getEntityWorld().getTime() + durationTicks;
         PlayerStateManager.setPersistent(target, PUPPETED_BY_KEY, puppeteerId.toString());
         PlayerStateManager.setPersistent(target, PUPPETED_END_KEY, String.valueOf(endTime));
+        TricksterControlSync.sync(target);
     }
 
     public static UUID getPuppeteer(ServerPlayerEntity player) {
@@ -55,6 +56,30 @@ public final class TricksterPuppetRuntime {
     public static void clearPuppeted(ServerPlayerEntity player) {
         PlayerStateManager.clearPersistent(player, PUPPETED_BY_KEY);
         PlayerStateManager.clearPersistent(player, PUPPETED_END_KEY);
+        TricksterControlSync.sync(player);
+    }
+
+    public static void tickPuppetedPlayer(ServerPlayerEntity target) {
+        UUID puppeteerId = getPuppeteer(target);
+        if (puppeteerId == null) {
+            return;
+        }
+        ServerWorld world = target.getEntityWorld();
+        if (world == null || world.getServer() == null) {
+            return;
+        }
+        ServerPlayerEntity puppeteer = world.getServer().getPlayerManager().getPlayer(puppeteerId);
+        if (puppeteer == null) {
+            clearPuppeted(target);
+            return;
+        }
+
+        // Mirror the puppeteer's movement and facing.
+        target.setVelocity(puppeteer.getVelocity());
+        target.velocityDirty = true;
+        target.setYaw(puppeteer.getYaw());
+        target.setPitch(puppeteer.getPitch());
+        target.setHeadYaw(puppeteer.getHeadYaw());
     }
 
     // ========== Mob Puppeting ==========
@@ -115,20 +140,34 @@ public final class TricksterPuppetRuntime {
             return;
         }
 
-        // If the mob has no target or target is dead, find a new ally to attack
+        // Prefer targeting other mobs so the effect is visible and persists against vanilla AI retargeting.
         LivingEntity currentTarget = mob.getTarget();
-        if (currentTarget == null || !currentTarget.isAlive()) {
-            Box searchBox = mob.getBoundingBox().expand(16);
-            List<LivingEntity> nearbyAllies = world.getEntitiesByClass(
+        boolean needsNewTarget = currentTarget == null || !currentTarget.isAlive() || !(currentTarget instanceof MobEntity);
+        if (!needsNewTarget) {
+            return;
+        }
+
+        Box searchBox = mob.getBoundingBox().expand(16);
+        List<MobEntity> nearbyMobs = world.getEntitiesByClass(
+                MobEntity.class,
+                searchBox,
+                e -> e != mob && e.isAlive()
+        );
+
+        if (!nearbyMobs.isEmpty()) {
+            MobEntity newTarget = nearbyMobs.get(world.getRandom().nextInt(nearbyMobs.size()));
+            mob.setTarget(newTarget);
+            return;
+        }
+
+        // Fallback: if there are no other mobs around, pick any living entity so the effect still does something.
+        List<LivingEntity> nearbyLiving = world.getEntitiesByClass(
                 LivingEntity.class,
                 searchBox,
-                e -> e != mob && e.isAlive() && !(e instanceof ServerPlayerEntity) && e instanceof MobEntity
-            );
-
-            if (!nearbyAllies.isEmpty()) {
-                LivingEntity newTarget = nearbyAllies.get(world.getRandom().nextInt(nearbyAllies.size()));
-                mob.setTarget(newTarget);
-            }
+                e -> e != mob && e.isAlive()
+        );
+        if (!nearbyLiving.isEmpty()) {
+            mob.setTarget(nearbyLiving.get(world.getRandom().nextInt(nearbyLiving.size())));
         }
     }
 
@@ -139,8 +178,11 @@ public final class TricksterPuppetRuntime {
 
     private static void clearPuppetedMobTags(MobEntity mob) {
         mob.removeCommandTag(TAG_PUPPETED);
-        // Remove any puppeted_by and puppeted_until tags
-        mob.getCommandTags().removeIf(tag -> 
-            tag.startsWith(TAG_PUPPETED_BY_PREFIX) || tag.startsWith(TAG_PUPPETED_UNTIL_PREFIX));
+        // Remove any puppeted_by and puppeted_until tags (avoid mutating the tag set directly).
+        for (String tag : List.copyOf(mob.getCommandTags())) {
+            if (tag.startsWith(TAG_PUPPETED_BY_PREFIX) || tag.startsWith(TAG_PUPPETED_UNTIL_PREFIX)) {
+                mob.removeCommandTag(tag);
+            }
+        }
     }
 }

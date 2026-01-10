@@ -1,6 +1,7 @@
 package com.feel.gems.power.ability.bonus;
 
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.ItemEntity;
@@ -108,25 +109,36 @@ public final class BonusDecoyTrapAbility implements GemAbility {
      * @return true if this was a trap and exploded
      */
     public static boolean triggerTrap(ItemEntity item, ServerPlayerEntity picker) {
+        return triggerTrap(item, (net.minecraft.entity.LivingEntity) picker);
+    }
+
+    public static boolean triggerTrap(ItemEntity item, net.minecraft.entity.LivingEntity picker) {
         UUID ownerUuid = TRAP_ITEMS.remove(item.getUuid());
         if (ownerUuid == null) {
             return false;
         }
         
-        // Don't explode for the owner or trusted players
-        if (picker.getUuid().equals(ownerUuid)) {
-            return false;
-        }
-        MinecraftServer server = picker.getEntityWorld().getServer();
-        if (server != null) {
-            ServerPlayerEntity owner = server.getPlayerManager().getPlayer(ownerUuid);
-            if (owner != null && GemTrust.isTrusted(owner, picker)) {
+        if (picker instanceof ServerPlayerEntity player) {
+            // Don't explode for the owner or trusted players
+            if (player.getUuid().equals(ownerUuid)) {
                 return false;
+            }
+            if (VoidImmunity.hasImmunity(player)) {
+                return false;
+            }
+            MinecraftServer server = player.getEntityWorld().getServer();
+            if (server != null) {
+                ServerPlayerEntity owner = server.getPlayerManager().getPlayer(ownerUuid);
+                if (owner != null && GemTrust.isTrusted(owner, player)) {
+                    return false;
+                }
             }
         }
         
         // Explode!
-        ServerWorld world = picker.getEntityWorld();
+        if (!(picker.getEntityWorld() instanceof ServerWorld world)) {
+            return false;
+        }
         double x = item.getX();
         double y = item.getY();
         double z = item.getZ();

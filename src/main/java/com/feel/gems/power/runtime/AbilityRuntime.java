@@ -1,21 +1,26 @@
 package com.feel.gems.power.runtime;
 
+import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.GemCooldownSync;
 import com.feel.gems.power.ability.astra.ShadowAnchorAbility;
 import com.feel.gems.power.ability.fire.FireballAbility;
+import com.feel.gems.power.ability.sentinel.SentinelInterventionRuntime;
 import com.feel.gems.power.gem.reaper.ReaperBloodCharge;
 import com.feel.gems.power.gem.speed.SpeedMomentum;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.gem.wealth.EnchantmentAmplification;
+import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsNbt;
 import com.feel.gems.util.GemsTeleport;
 import com.feel.gems.util.GemsTime;
+import java.util.List;
 import java.util.UUID;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -86,6 +91,9 @@ public final class AbilityRuntime {
 
     private static final String KEY_AMPLIFICATION_UNTIL = "amplificationUntil";
 
+    private static final String KEY_DUELIST_RAPID_UNTIL = "duelistRapidUntil";
+    private static final Identifier MOD_DUELIST_RAPID_ATTACK_SPEED = Identifier.of("gems", "duelist_rapid_attack_speed");
+
     // Reaper runtime state
     private static final String KEY_REAPER_WITHERING_UNTIL = "reaperWitheringUntil";
     private static final String KEY_REAPER_OATH_UNTIL = "reaperDeathOathUntil";
@@ -125,6 +133,7 @@ public final class AbilityRuntime {
         tickReaperBloodChargeCharging(player, now);
         tickReaperShadowClone(player, now);
         tickReaperRetribution(player, now);
+        tickDuelistRapidStrike(player, now);
     }
 
     public static void startCosyCampfire(ServerPlayerEntity player, int durationTicks) {
@@ -179,6 +188,24 @@ public final class AbilityRuntime {
             return;
         }
         persistent(player).putLong(KEY_SPEED_TEMPO_UNTIL, GemsTime.now(player) + durationTicks);
+    }
+
+    public static void startDuelistRapidStrike(ServerPlayerEntity player, int durationTicks) {
+        if (durationTicks <= 0) {
+            clearDuelistRapidStrike(player);
+            return;
+        }
+        NbtCompound nbt = persistent(player);
+        nbt.putLong(KEY_DUELIST_RAPID_UNTIL, GemsTime.now(player) + durationTicks);
+        EntityAttributeInstance attackSpeed = player.getAttributeInstance(EntityAttributes.ATTACK_SPEED);
+        if (attackSpeed != null) {
+            attackSpeed.removeModifier(MOD_DUELIST_RAPID_ATTACK_SPEED);
+            attackSpeed.addPersistentModifier(new EntityAttributeModifier(
+                    MOD_DUELIST_RAPID_ATTACK_SPEED,
+                    100.0F,
+                    EntityAttributeModifier.Operation.ADD_VALUE
+            ));
+        }
     }
 
     public static void breakSpeedAfterimage(ServerPlayerEntity player) {
@@ -438,6 +465,9 @@ public final class AbilityRuntime {
             if (!(other instanceof ServerPlayerEntity otherPlayer) || !GemTrust.isTrusted(player, otherPlayer)) {
                 continue;
             }
+            if (VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                continue;
+            }
             other.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 40, amp, true, false, false));
             AbilityFeedback.burstAt(world, other.getEntityPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.HEART, 1, 0.1D);
         }
@@ -457,6 +487,9 @@ public final class AbilityRuntime {
         Vec3d origin = player.getEntityPos();
         AbilityFeedback.ring(world, origin.add(0.0D, 0.2D, 0.0D), Math.min(7.0D, radius), net.minecraft.particle.ParticleTypes.FLAME, 24);
         for (LivingEntity other : livingInRadius(world, origin, radius)) {
+            if (other instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                continue;
+            }
             boolean ally = other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer);
             if (ally) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, duration, 0, true, false, false));
@@ -492,6 +525,9 @@ public final class AbilityRuntime {
         Vec3d origin = player.getEntityPos();
         AbilityFeedback.ring(world, origin.add(0.0D, 0.2D, 0.0D), Math.min(7.0D, radius), net.minecraft.particle.ParticleTypes.CLOUD, 24);
         for (LivingEntity other : livingInRadius(world, origin, radius)) {
+            if (other instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                continue;
+            }
             boolean ally = other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer);
             if (ally) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 40, allySpeed, true, false, false));
@@ -555,6 +591,9 @@ public final class AbilityRuntime {
         double knockback = GemsBalance.v().speed().slipstreamEnemyKnockback() * scale;
 
         for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive())) {
+            if (other instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                continue;
+            }
             Vec3d pos = other.getEntityPos();
             double t = pos.subtract(origin).dotProduct(dir);
             if (t < 0.0D || t > length) {
@@ -599,9 +638,16 @@ public final class AbilityRuntime {
             nbt.remove(KEY_SPEED_TEMPO_UNTIL);
             return;
         }
-        if (GemPlayerState.getEnergy(player) <= 0 || GemPlayerState.getActiveGem(player) != GemId.SPEED) {
+        if (GemPlayerState.getEnergy(player) <= 0) {
             nbt.remove(KEY_SPEED_TEMPO_UNTIL);
             return;
+        }
+        GemId activeGem = GemPlayerState.getActiveGem(player);
+        if (activeGem != GemId.SPEED) {
+            if (activeGem != GemId.PRISM || !PrismSelectionsState.hasAbility(player, PowerIds.SPEED_TEMPO_SHIFT)) {
+                nbt.remove(KEY_SPEED_TEMPO_UNTIL);
+                return;
+            }
         }
 
         int radius = GemsBalance.v().speed().tempoShiftRadiusBlocks();
@@ -619,6 +665,9 @@ public final class AbilityRuntime {
             if (other.squaredDistanceTo(player) > radiusSq) {
                 continue;
             }
+            if (other != player && VoidImmunity.shouldBlockEffect(player, other)) {
+                continue;
+            }
             boolean trusted = other == player || GemTrust.isTrusted(player, other);
             int delta = trusted ? -allyDelta : enemyDelta;
             if (delta == 0) {
@@ -627,6 +676,26 @@ public final class AbilityRuntime {
             if (shiftCooldowns(other, delta, now)) {
                 GemCooldownSync.send(other);
             }
+        }
+    }
+
+    private static void tickDuelistRapidStrike(ServerPlayerEntity player, long now) {
+        NbtCompound nbt = persistent(player);
+        long until = nbt.getLong(KEY_DUELIST_RAPID_UNTIL, 0L);
+        if (until <= 0) {
+            return;
+        }
+        if (now >= until) {
+            clearDuelistRapidStrike(player);
+        }
+    }
+
+    private static void clearDuelistRapidStrike(ServerPlayerEntity player) {
+        NbtCompound nbt = persistent(player);
+        nbt.remove(KEY_DUELIST_RAPID_UNTIL);
+        EntityAttributeInstance attackSpeed = player.getAttributeInstance(EntityAttributes.ATTACK_SPEED);
+        if (attackSpeed != null) {
+            attackSpeed.removeModifier(MOD_DUELIST_RAPID_ATTACK_SPEED);
         }
     }
 
@@ -643,9 +712,19 @@ public final class AbilityRuntime {
     }
 
     private static boolean shiftCooldowns(ServerPlayerEntity player, int deltaTicks, long now) {
-        var def = GemRegistry.definition(GemPlayerState.getActiveGem(player));
+        GemId activeGem = GemPlayerState.getActiveGem(player);
+        List<Identifier> abilities;
+        if (activeGem == GemId.PRISM) {
+            var server = player.getEntityWorld().getServer();
+            if (server == null) {
+                return false;
+            }
+            abilities = PrismSelectionsState.get(server).getSelection(player.getUuid()).allAbilities();
+        } else {
+            abilities = GemRegistry.definition(activeGem).abilities();
+        }
         boolean changed = false;
-        for (Identifier id : def.abilities()) {
+        for (Identifier id : abilities) {
             long next = GemAbilityCooldowns.nextAllowedTick(player, id);
             if (next <= now) {
                 continue;
@@ -709,6 +788,10 @@ public final class AbilityRuntime {
 
         // Update all players once per second: apply inside radius, remove if they left.
         for (ServerPlayerEntity other : world.getPlayers()) {
+            if (other != caster && VoidImmunity.shouldBlockEffect(caster, other)) {
+                applyGravityMultiplier(other, modifierId, 1.0F);
+                continue;
+            }
             double distSq = other.squaredDistanceTo(caster);
             if (distSq > radiusSq) {
                 applyGravityMultiplier(other, modifierId, 1.0F);
@@ -767,6 +850,11 @@ public final class AbilityRuntime {
         double deltaHealth = GemsBalance.v().life().lifeCircleMaxHealthDelta();
         AbilityFeedback.ring(world, caster.getEntityPos().add(0.0D, 0.2D, 0.0D), Math.min(7.0D, radius), net.minecraft.particle.ParticleTypes.HEART, 24);
         for (ServerPlayerEntity other : world.getPlayers()) {
+            if (other != caster && VoidImmunity.shouldBlockEffect(caster, other)) {
+                removeMaxHealthModifier(other, bonusId);
+                removeMaxHealthModifier(other, penaltyId);
+                continue;
+            }
             double distSq = other.squaredDistanceTo(caster);
             boolean inRange = distSq <= radius * (double) radius;
             if (!inRange) {
@@ -1246,6 +1334,8 @@ public final class AbilityRuntime {
         ReaperBloodCharge.clearCharging(caster);
         ((GemsPersistentDataHolder) caster).gems$getPersistentData().remove(ReaperBloodCharge.KEY_BUFF_UNTIL);
         ((GemsPersistentDataHolder) caster).gems$getPersistentData().remove(ReaperBloodCharge.KEY_BUFF_MULT);
+        clearDuelistRapidStrike(caster);
+        SentinelInterventionRuntime.cleanup(server, caster);
     }
 
     private static GameMode parseGameMode(String name) {

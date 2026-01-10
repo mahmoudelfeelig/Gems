@@ -1,19 +1,24 @@
 package com.feel.gems.power.ability.bonus;
 
 import com.feel.gems.power.api.GemAbility;
-import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
-import com.feel.gems.trust.GemTrust;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
+import com.feel.gems.power.util.RangeLimitedProjectile;
+import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.projectile.ExplosiveProjectileEntity;
+import net.minecraft.entity.projectile.WitherSkullEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
 
 public final class BonusDoomBoltAbility implements GemAbility {
+    private static final int COOLDOWN_TICKS = 800; // 40 seconds
+    private static final float DAMAGE = 12.0F;
+    private static final float VELOCITY = 0.5F;
+    private static final double MAX_RANGE_BLOCKS = 30.0D;
+
     @Override
     public Identifier id() {
         return PowerIds.BONUS_DOOM_BOLT;
@@ -26,48 +31,45 @@ public final class BonusDoomBoltAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Mark an enemy for death, dealing massive damage after a delay.";
+        return "Launch a slow but devastating dark projectile.";
     }
 
     @Override
     public int cooldownTicks() {
-        return 800; // 40 seconds
+        return COOLDOWN_TICKS;
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getEntityWorld();
-        Box area = player.getBoundingBox().expand(10);
-        
-        // Target nearest enemy (untrusted player or mob)
-        var target = world.getOtherEntities(player, area, e -> {
-                    if (!(e instanceof LivingEntity)) return false;
-                    if (e instanceof ServerPlayerEntity otherPlayer) {
-                        if (GemTrust.isTrusted(player, otherPlayer)) return false;
-                        if (!VoidImmunity.canBeTargeted(player, otherPlayer)) return false;
-                    }
-                    return true; // mobs are always valid targets
-                })
-                .stream()
-                .filter(e -> e instanceof LivingEntity)
-                .map(e -> (LivingEntity) e)
-                .min((a, b) -> Double.compare(
-                        a.squaredDistanceTo(player),
-                        b.squaredDistanceTo(player)));
-        
-        if (target.isEmpty()) {
-            player.sendMessage(net.minecraft.text.Text.translatable("gems.ability.no_target"), true);
+        Vec3d direction = player.getRotationVec(1.0F).normalize();
+        Vec3d spawn = player.getEyePos().add(direction.multiply(0.6D));
+
+        WitherSkullEntity bolt = EntityType.WITHER_SKULL.create(world, SpawnReason.MOB_SUMMONED);
+        if (bolt == null) {
             return false;
         }
-        
-        LivingEntity living = target.get();
-        living.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 60, 0));
-        living.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 2));
-        // Delayed damage via wither effect
-        living.addStatusEffect(new StatusEffectInstance(StatusEffects.WITHER, 60, 3));
-        world.spawnParticles(ParticleTypes.WITCH, living.getX(), living.getY() + 1, living.getZ(), 30, 0.5, 1, 0.5, 0.1);
+        bolt.setOwner(player);
+        bolt.refreshPositionAndAngles(spawn.x, spawn.y, spawn.z, player.getYaw(), player.getPitch());
+        bolt.setVelocity(direction.x, direction.y, direction.z, VELOCITY, 0.0F);
+        bolt.addCommandTag("gems_doom_bolt");
+
+        if (bolt instanceof ExplosiveProjectileEntity explosive) {
+            if (explosive instanceof RangeLimitedProjectile limited) {
+                limited.gems$setRangeLimit(spawn, MAX_RANGE_BLOCKS);
+            }
+        }
+
+        world.spawnEntity(bolt);
+
+        world.spawnParticles(ParticleTypes.SMOKE, spawn.x, spawn.y, spawn.z, 12, 0.3, 0.3, 0.3, 0.02);
+        world.spawnParticles(ParticleTypes.SOUL, spawn.x, spawn.y, spawn.z, 6, 0.2, 0.2, 0.2, 0.01);
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
                 net.minecraft.sound.SoundEvents.ENTITY_WITHER_SHOOT, net.minecraft.sound.SoundCategory.PLAYERS, 0.8f, 0.6f);
         return true;
+    }
+
+    public static float doomBoltDamage() {
+        return DAMAGE;
     }
 }

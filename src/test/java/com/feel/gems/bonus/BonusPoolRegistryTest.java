@@ -1,6 +1,9 @@
 package com.feel.gems.bonus;
 
+import com.feel.gems.power.registry.ModAbilities;
+import com.feel.gems.power.registry.ModPassives;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.testutil.MinecraftBootstrap;
 import net.minecraft.util.Identifier;
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +13,17 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests for BonusPoolRegistry which defines claimable bonus abilities and passives.
  */
 public class BonusPoolRegistryTest {
+
+    @Test
+    void bonusPoolPowersAreRegistered() {
+        MinecraftBootstrap.ensure();
+        for (Identifier id : BonusPoolRegistry.BONUS_ABILITIES) {
+            assertNotNull(ModAbilities.get(id), "Missing bonus ability implementation for " + id);
+        }
+        for (Identifier id : BonusPoolRegistry.BONUS_PASSIVES) {
+            assertNotNull(ModPassives.get(id), "Missing bonus passive implementation for " + id);
+        }
+    }
 
     @Test
     void bonusAbilitiesListHasCorrectCount() {

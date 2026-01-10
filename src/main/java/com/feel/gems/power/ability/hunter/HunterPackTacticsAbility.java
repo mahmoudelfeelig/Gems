@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.hunter;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.gem.hunter.HunterPreyMarkRuntime;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -55,6 +56,7 @@ public final class HunterPackTacticsAbility implements GemAbility {
         for (Entity e : world.getOtherEntities(player, box, ent -> ent instanceof ServerPlayerEntity)) {
             ServerPlayerEntity ally = (ServerPlayerEntity) e;
             if (!GemTrust.isTrusted(player, ally)) continue;
+            if (VoidImmunity.shouldBlockEffect(player, ally)) continue;
 
             // Grant pack tactics buff to ally against the marked target
             HunterPackTacticsRuntime.grantBuff(ally, markedTarget.getUuid(), durationTicks);

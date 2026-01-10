@@ -30,6 +30,7 @@ public final class ReversalMirrorItem extends Item implements LegendaryItem {
     private static final String ACTIVE_END_KEY = "reversal_mirror_end";
     private static final int DURATION_TICKS = 5 * 20;
     private static final int COOLDOWN_TICKS = 60 * 20;
+    private static final ThreadLocal<Boolean> REFLECTING = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     public ReversalMirrorItem(Settings settings) {
         super(settings);
@@ -87,15 +88,35 @@ public final class ReversalMirrorItem extends Item implements LegendaryItem {
      * Reflects the damage back to the attacker.
      */
     public static void reflectDamage(ServerPlayerEntity victim, Entity attacker, float amount, ServerWorld world) {
-        if (!isActive(victim)) return;
-        if (attacker == null || !(attacker instanceof LivingEntity living)) return;
+        tryReflectDamage(victim, attacker, amount, world);
+    }
 
-        // Reflect the damage
-        living.damage(world, world.getDamageSources().magic(), amount);
+    /**
+     * Attempts to reflect damage back to the attacker.
+     *
+     * @return true when damage was reflected
+     */
+    public static boolean tryReflectDamage(ServerPlayerEntity victim, Entity attacker, float amount, ServerWorld world) {
+        if (!isActive(victim)) return false;
+        if (amount <= 0.0F) return false;
+        if (attacker == null || !(attacker instanceof LivingEntity living)) return false;
+        if (living == victim) return false;
 
-        // Visual feedback
+        // Prevent infinite reflection loops (e.g. two players both have mirrors active).
+        if (REFLECTING.get()) {
+            return false;
+        }
+
+        REFLECTING.set(Boolean.TRUE);
+        try {
+            living.damage(world, victim.getDamageSources().thorns(victim), amount);
+        } finally {
+            REFLECTING.set(Boolean.FALSE);
+        }
+
         world.playSound(null, victim.getX(), victim.getY(), victim.getZ(),
                 SoundEvents.ITEM_SHIELD_BLOCK, SoundCategory.PLAYERS, 1.0F, 1.2F);
+        return true;
     }
 
     @Override

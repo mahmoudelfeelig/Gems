@@ -2,9 +2,12 @@ package com.feel.gems.screen;
 
 import com.feel.gems.core.GemId;
 import com.feel.gems.state.GemPlayerState;
+import java.util.Collections;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -30,29 +33,72 @@ public final class GemSeerScreenHandler extends ScreenHandler {
             List<GemId> ownedGems
     ) {}
 
-    public GemSeerScreenHandler(int syncId, PlayerInventory playerInventory) {
-        super(ModScreenHandlers.GEM_SEER, syncId);
-        
-        if (playerInventory.player instanceof ServerPlayerEntity serverPlayer) {
-            MinecraftServer server = serverPlayer.getEntityWorld().getServer();
-            if (server != null) {
-                for (ServerPlayerEntity target : server.getPlayerManager().getPlayerList()) {
-                    if (target.equals(serverPlayer)) {
-                        continue; // Skip self
-                    }
-                    GemId activeGem = GemPlayerState.getActiveGem(target);
-                    int energy = GemPlayerState.getEnergy(target);
-                    List<GemId> ownedGems = new ArrayList<>(GemPlayerState.getOwnedGems(target));
-                    
-                    playerInfos.add(new PlayerInfo(
-                            target.getUuid(),
-                            target.getName().getString(),
-                            activeGem,
-                            energy,
-                            ownedGems
-                    ));
+    public record OpeningData(List<PlayerInfo> playerInfos) {
+        public static final PacketCodec<RegistryByteBuf, OpeningData> PACKET_CODEC = PacketCodec.ofStatic(
+                OpeningData::write,
+                OpeningData::read
+        );
+
+        private static void write(RegistryByteBuf buf, OpeningData data) {
+            List<PlayerInfo> players = data.playerInfos == null ? List.of() : data.playerInfos;
+            buf.writeVarInt(players.size());
+            for (PlayerInfo info : players) {
+                buf.writeUuid(info.uuid());
+                buf.writeString(info.name(), 128);
+                buf.writeString(info.activeGem().name(), 32);
+                buf.writeVarInt(info.energy());
+                List<GemId> owned = info.ownedGems() == null ? List.of() : info.ownedGems();
+                buf.writeVarInt(owned.size());
+                for (GemId gem : owned) {
+                    buf.writeString(gem.name(), 32);
                 }
             }
+        }
+
+        private static OpeningData read(RegistryByteBuf buf) {
+            int size = buf.readVarInt();
+            if (size <= 0) {
+                return new OpeningData(List.of());
+            }
+            List<PlayerInfo> players = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                UUID uuid = buf.readUuid();
+                String name = buf.readString(128);
+                GemId activeGem = safeGemId(buf.readString(32), GemId.PUFF);
+                int energy = buf.readVarInt();
+
+                int ownedSize = buf.readVarInt();
+                if (ownedSize < 0) ownedSize = 0;
+                if (ownedSize > 64) ownedSize = 64;
+                List<GemId> owned = new ArrayList<>(ownedSize);
+                for (int j = 0; j < ownedSize; j++) {
+                    owned.add(safeGemId(buf.readString(32), GemId.PUFF));
+                }
+                players.add(new PlayerInfo(uuid, name, activeGem, energy, owned));
+            }
+            return new OpeningData(players);
+        }
+
+        private static GemId safeGemId(String raw, GemId fallback) {
+            if (raw == null || raw.isEmpty()) {
+                return fallback;
+            }
+            try {
+                return GemId.valueOf(raw);
+            } catch (IllegalArgumentException e) {
+                return fallback;
+            }
+        }
+    }
+
+    public GemSeerScreenHandler(int syncId, PlayerInventory playerInventory) {
+        super(ModScreenHandlers.GEM_SEER, syncId);
+    }
+
+    public GemSeerScreenHandler(int syncId, PlayerInventory playerInventory, OpeningData data) {
+        super(ModScreenHandlers.GEM_SEER, syncId);
+        if (data != null && data.playerInfos != null) {
+            playerInfos.addAll(data.playerInfos);
         }
     }
 
@@ -162,5 +208,27 @@ public final class GemSeerScreenHandler extends ScreenHandler {
         if (energy >= 7) return Formatting.YELLOW;
         if (energy >= 4) return Formatting.WHITE;
         return Formatting.GRAY;
+    }
+
+    public static OpeningData buildOpeningData(ServerPlayerEntity viewer) {
+        if (viewer == null) {
+            return new OpeningData(List.of());
+        }
+        MinecraftServer server = viewer.getEntityWorld().getServer();
+        if (server == null) {
+            return new OpeningData(List.of());
+        }
+
+        List<PlayerInfo> infos = new ArrayList<>();
+        for (ServerPlayerEntity target : server.getPlayerManager().getPlayerList()) {
+            if (target.equals(viewer)) {
+                continue;
+            }
+            GemId activeGem = GemPlayerState.getActiveGem(target);
+            int energy = GemPlayerState.getEnergy(target);
+            List<GemId> ownedGems = new ArrayList<>(GemPlayerState.getOwnedGems(target));
+            infos.add(new PlayerInfo(target.getUuid(), target.getName().getString(), activeGem, energy, ownedGems));
+        }
+        return new OpeningData(Collections.unmodifiableList(infos));
     }
 }

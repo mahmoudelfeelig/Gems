@@ -527,7 +527,7 @@ public final class GemsBalanceConfig {
         public int bloodChargeBuffDurationSeconds = 8;
 
         public int shadowCloneCooldownSeconds = 90;
-        public int shadowCloneDurationSeconds = 12;
+        public int shadowCloneDurationSeconds = 10;
         public float shadowCloneMaxHealth = 20.0F;
         public int shadowCloneCount = 10;
         public String shadowCloneEntityId = "minecraft:zombie";
@@ -707,6 +707,9 @@ public final class GemsBalanceConfig {
         public int parryWindowTicks = 10;
         public int parryStunSeconds = 2;
 
+        public int rapidStrikeCooldownSeconds = 45;
+        public int rapidStrikeDurationSeconds = 5;
+
         public int flourishCooldownSeconds = 15;
         public int flourishRadiusBlocks = 3;
         public float flourishDamage = 5.0F;
@@ -757,7 +760,7 @@ public final class GemsBalanceConfig {
         // Six-Pack Pain
         public int sixPackPainCooldownSeconds = 120;
         public int sixPackPainCloneCount = 6;
-        public int sixPackPainDurationSeconds = 60;
+        public int sixPackPainDurationSeconds = 10;
         public float sixPackPainHealthPerClone = 20.0F; // Total shared = 120 HP
         public int sixPackPainCloseTargetRangeBlocks = 5;
         public int sixPackPainWideTargetRangeBlocks = 30;

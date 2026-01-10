@@ -2,6 +2,8 @@ package com.feel.gems.power.gem.terror;
 
 import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.legendary.LegendaryCooldowns;
+import com.feel.gems.power.bonus.BonusPassiveRuntime;
 import com.feel.gems.net.GemCooldownSync;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.GemAbilityCooldowns;
@@ -191,11 +193,21 @@ public final class TerrorRemoteChargeRuntime {
         }
         int cooldown = GemsBalance.v().terror().remoteChargeCooldownTicks();
         if (cooldown > 0) {
+            cooldown = applyCooldownModifiers(player, cooldown);
             long until = GemsTime.now(player) + cooldown;
             nbt.putLong(KEY_COOLDOWN_UNTIL, until);
             GemAbilityCooldowns.setNextAllowedTick(player, PowerIds.TERROR_REMOTE_CHARGE, until);
             GemCooldownSync.send(player);
         }
+    }
+
+    private static int applyCooldownModifiers(ServerPlayerEntity player, int baseTicks) {
+        if (baseTicks <= 0) {
+            return 0;
+        }
+        float mult = BonusPassiveRuntime.getCooldownMultiplier(player) * LegendaryCooldowns.getCooldownMultiplier(player);
+        int adjusted = (int) Math.ceil(baseTicks * mult);
+        return Math.max(1, adjusted);
     }
 
     private static BlockPos readChargePos(NbtCompound nbt) {

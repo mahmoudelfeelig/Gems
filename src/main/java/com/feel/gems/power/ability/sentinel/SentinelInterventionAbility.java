@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.sentinel;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -51,6 +52,7 @@ public final class SentinelInterventionAbility implements GemAbility {
         for (Entity e : world.getOtherEntities(player, box, ent -> ent instanceof ServerPlayerEntity)) {
             ServerPlayerEntity ally = (ServerPlayerEntity) e;
             if (!GemTrust.isTrusted(player, ally)) continue;
+            if (VoidImmunity.shouldBlockEffect(player, ally)) continue;
 
             double dist = ally.squaredDistanceTo(player);
             if (dist < closestDist) {
@@ -69,7 +71,7 @@ public final class SentinelInterventionAbility implements GemAbility {
         player.velocityDirty = true;
 
         // Set up damage absorption for ally
-        SentinelInterventionRuntime.setProtecting(player, target.getUuid());
+        SentinelInterventionRuntime.setProtecting(player, target);
 
         AbilityFeedback.burstAt(world, player.getEntityPos().add(0, 1, 0), ParticleTypes.ENCHANT, 30, 1.0D);
         AbilityFeedback.burstAt(world, target.getEntityPos().add(0, 1, 0), ParticleTypes.ENCHANT, 30, 1.0D);

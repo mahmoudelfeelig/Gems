@@ -91,26 +91,25 @@ public final class TricksterMirageRuntime {
         long time = world.getTime();
 
         for (Vec3d pos : positions) {
-            // Spawn enchant particles around each mirage clone (illusory shimmer effect)
-            // Offset to chest height for better visibility
+            // Spawn stronger shimmer around each mirage clone.
             Vec3d particlePos = pos.add(0, 1.0, 0);
 
-            // Rotating particle effect based on time for dynamic visual
-            double angle = (time * 0.1) % (2 * Math.PI);
-            double offsetX = Math.cos(angle) * 0.5;
-            double offsetZ = Math.sin(angle) * 0.5;
+            double angle = (time * 0.15) % (2 * Math.PI);
+            double ringRadius = 0.9;
+            double offsetX = Math.cos(angle) * ringRadius;
+            double offsetZ = Math.sin(angle) * ringRadius;
 
-            // Primary enchant particles - mystical shimmer
-            AbilityFeedback.burstAt(world, particlePos.add(offsetX, 0, offsetZ), ParticleTypes.ENCHANT, 2, 0.3D);
+            AbilityFeedback.burstAt(world, particlePos.add(offsetX, 0.1, offsetZ), ParticleTypes.ENCHANT, 4, 0.45D);
+            AbilityFeedback.burstAt(world, particlePos.add(-offsetX, 0.6, -offsetZ), ParticleTypes.END_ROD, 3, 0.35D);
 
-            // Secondary portal particles every few ticks for extra effect
-            if (time % 5 == 0) {
-                AbilityFeedback.burstAt(world, particlePos, ParticleTypes.PORTAL, 3, 0.4D);
+            if (time % 8 == 0) {
+                AbilityFeedback.burstAt(world, particlePos, ParticleTypes.PORTAL, 6, 0.6D);
             }
-
-            // Occasional witch particles for magical deception feel
-            if (time % 10 == 0) {
-                AbilityFeedback.burstAt(world, particlePos.add(0, 0.5, 0), ParticleTypes.WITCH, 1, 0.2D);
+            if (time % 12 == 0) {
+                AbilityFeedback.burstAt(world, particlePos.add(0, 0.6, 0), ParticleTypes.WITCH, 2, 0.3D);
+            }
+            if (time % 16 == 0) {
+                AbilityFeedback.burstAt(world, particlePos.add(0, -0.2, 0), ParticleTypes.SOUL, 2, 0.2D);
             }
         }
     }

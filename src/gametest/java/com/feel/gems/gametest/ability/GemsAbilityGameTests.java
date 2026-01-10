@@ -7,6 +7,8 @@ import com.feel.gems.power.ability.air.AirDashAbility;
 import com.feel.gems.power.ability.air.AirCrosswindAbility;
 import com.feel.gems.power.ability.air.AirWindJumpAbility;
 import com.feel.gems.power.ability.beacon.BeaconAuraAbility;
+import com.feel.gems.power.ability.hunter.HunterPackTacticsAbility;
+import com.feel.gems.power.ability.hunter.HunterPackTacticsRuntime;
 import com.feel.gems.power.ability.pillager.PillagerFangsAbility;
 import com.feel.gems.power.ability.pillager.PillagerVolleyAbility;
 import com.feel.gems.power.ability.spy.SpyMimicFormAbility;
@@ -14,7 +16,9 @@ import com.feel.gems.power.ability.spy.SpyStealAbility;
 import com.feel.gems.power.ability.summoner.SummonRecallAbility;
 import com.feel.gems.power.ability.summoner.SummonSlotAbility;
 import com.feel.gems.power.ability.terror.PanicRingAbility;
+import com.feel.gems.power.ability.sentinel.SentinelInterventionAbility;
 import com.feel.gems.power.gem.beacon.BeaconAuraRuntime;
+import com.feel.gems.power.gem.hunter.HunterPreyMarkRuntime;
 import com.feel.gems.power.gem.pillager.PillagerDiscipline;
 import com.feel.gems.power.gem.pillager.PillagerVolleyRuntime;
 import com.feel.gems.power.gem.spy.SpyMimicSystem;
@@ -751,6 +755,118 @@ public final class GemsAbilityGameTests {
         }
 
         context.complete();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
+    public void hunterPackTacticsIncreasesDamage(TestContext context) {
+        ServerWorld world = context.getWorld();
+
+        ServerPlayerEntity hunter = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity ally = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity victim = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        GemsGameTestUtil.forceSurvival(hunter);
+        GemsGameTestUtil.forceSurvival(ally);
+        GemsGameTestUtil.forceSurvival(victim);
+
+        Vec3d base = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        teleport(hunter, world, base.x, base.y, base.z, 0.0F, 0.0F);
+        teleport(ally, world, base.x + 1.0D, base.y, base.z, 0.0F, 0.0F);
+        teleport(victim, world, base.x + 2.0D, base.y, base.z, 0.0F, 0.0F);
+
+        context.runAtTick(5L, () -> {
+            GemPlayerState.initIfNeeded(hunter);
+            GemPlayerState.setActiveGem(hunter, GemId.HUNTER);
+            GemPlayerState.setEnergy(hunter, 5);
+            GemPowers.sync(hunter);
+
+            // Keep the ally "neutral" so other passives don't interfere.
+            GemPlayerState.initIfNeeded(ally);
+            GemPlayerState.setActiveGem(ally, GemId.FIRE);
+            GemPlayerState.setEnergy(ally, 0);
+            GemPowers.sync(ally);
+
+            GemPlayerState.initIfNeeded(victim);
+            GemPlayerState.setActiveGem(victim, GemId.FIRE);
+            GemPlayerState.setEnergy(victim, 0);
+            GemPowers.sync(victim);
+
+            GemTrust.trust(hunter, ally.getUuid());
+            HunterPreyMarkRuntime.applyMark(hunter, victim);
+
+            boolean ok = new HunterPackTacticsAbility().activate(hunter);
+            if (!ok) {
+                context.throwGameTestException("Pack Tactics did not activate");
+                return;
+            }
+
+            float before = victim.getHealth();
+            float baseDamage = 4.0F;
+            victim.damage(world, ally.getDamageSources().playerAttack(ally), baseDamage);
+            float dealt = before - victim.getHealth();
+            float expectedMin = baseDamage * HunterPackTacticsRuntime.getDamageMultiplier() - 0.01F;
+            if (dealt < expectedMin) {
+                context.throwGameTestException("Expected Pack Tactics to increase damage; dealt=" + dealt + " expected>=" + expectedMin);
+            }
+            context.complete();
+        });
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
+    public void sentinelInterventionRedirectsDamage(TestContext context) {
+        ServerWorld world = context.getWorld();
+
+        ServerPlayerEntity sentinel = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity ally = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity attacker = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        GemsGameTestUtil.forceSurvival(sentinel);
+        GemsGameTestUtil.forceSurvival(ally);
+        GemsGameTestUtil.forceSurvival(attacker);
+
+        Vec3d base = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        teleport(sentinel, world, base.x, base.y, base.z, 0.0F, 0.0F);
+        teleport(ally, world, base.x + 1.0D, base.y, base.z, 0.0F, 0.0F);
+        teleport(attacker, world, base.x + 2.0D, base.y, base.z, 0.0F, 0.0F);
+
+        context.runAtTick(5L, () -> {
+            GemPlayerState.initIfNeeded(sentinel);
+            GemPlayerState.setActiveGem(sentinel, GemId.SENTINEL);
+            GemPlayerState.setEnergy(sentinel, 5);
+            GemPowers.sync(sentinel);
+
+            GemPlayerState.initIfNeeded(ally);
+            GemPlayerState.setActiveGem(ally, GemId.FIRE);
+            GemPlayerState.setEnergy(ally, 0);
+            GemPowers.sync(ally);
+
+            GemTrust.trust(sentinel, ally.getUuid());
+
+            boolean ok = new SentinelInterventionAbility().activate(sentinel);
+            if (!ok) {
+                context.throwGameTestException("Intervention did not activate");
+                return;
+            }
+
+            float allyBefore = ally.getHealth();
+            float sentinelBefore = sentinel.getHealth();
+            ally.damage(world, attacker.getDamageSources().playerAttack(attacker), 4.0F);
+            if (ally.getHealth() != allyBefore) {
+                context.throwGameTestException("Expected ally to take no damage while protected");
+                return;
+            }
+            if (sentinel.getHealth() >= sentinelBefore) {
+                context.throwGameTestException("Expected sentinel to absorb redirected damage");
+                return;
+            }
+
+            // Protection is single-use.
+            ally.damage(world, attacker.getDamageSources().playerAttack(attacker), 4.0F);
+            if (ally.getHealth() >= allyBefore) {
+                context.throwGameTestException("Expected ally to take damage after protection is consumed");
+                return;
+            }
+
+            context.complete();
+        });
     }
 
 }

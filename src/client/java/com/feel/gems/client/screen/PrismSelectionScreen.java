@@ -71,16 +71,24 @@ public final class PrismSelectionScreen extends Screen {
         tabButtons = new ButtonWidget[4];
         int tabX = centerX - (TAB_WIDTH * 4 + 12) / 2;
 
-        String[] tabLabels = {"Gem Abilities", "Bonus Abilities", "Gem Passives", "Bonus Passives"};
         for (int i = 0; i < 4; i++) {
             final int tabIdx = i;
-            String label = tabLabels[i];
-            if (i == 0) label += " (" + selectedGemAbilities.size() + "/" + maxGemAbilities + ")";
-            else if (i == 1) label += " (" + selectedBonusAbilities.size() + "/" + maxBonusAbilities + ")";
-            else if (i == 2) label += " (" + selectedGemPassives.size() + "/" + maxGemPassives + ")";
-            else label += " (" + selectedBonusPassives.size() + "/" + maxBonusPassives + ")";
+            Text label = switch (i) {
+                case 0 -> Text.translatable("gems.screen.prism_selection.tab_gem_abilities");
+                case 1 -> Text.translatable("gems.screen.prism_selection.tab_bonus_abilities");
+                case 2 -> Text.translatable("gems.screen.prism_selection.tab_gem_passives");
+                case 3 -> Text.translatable("gems.screen.prism_selection.tab_bonus_passives");
+                default -> Text.empty();
+            };
+            String suffix = switch (i) {
+                case 0 -> " (" + selectedGemAbilities.size() + "/" + maxGemAbilities + ")";
+                case 1 -> " (" + selectedBonusAbilities.size() + "/" + maxBonusAbilities + ")";
+                case 2 -> " (" + selectedGemPassives.size() + "/" + maxGemPassives + ")";
+                case 3 -> " (" + selectedBonusPassives.size() + "/" + maxBonusPassives + ")";
+                default -> "";
+            };
 
-            tabButtons[i] = ButtonWidget.builder(Text.literal(label), b -> switchTab(tabIdx))
+            tabButtons[i] = ButtonWidget.builder(label.copy().append(suffix), b -> switchTab(tabIdx))
                     .dimensions(tabX + i * (TAB_WIDTH + 4), startY, TAB_WIDTH, TAB_HEIGHT)
                     .build();
             addDrawableChild(tabButtons[i]);
@@ -123,21 +131,21 @@ public final class PrismSelectionScreen extends Screen {
             entryY += entryHeight + 4;
         }
 
-        // Pagination
-        int pageY = height - 40;
+        // Pagination (keep clear of the Done button)
+        int pageY = height - 50;
         if (page > 0) {
-            addDrawableChild(ButtonWidget.builder(Text.literal("<< Prev"), b -> changePage(-1))
+            addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.prev"), b -> changePage(-1))
                     .dimensions(centerX - 110, pageY, 100, 20)
                     .build());
         }
         if (page < totalPages - 1) {
-            addDrawableChild(ButtonWidget.builder(Text.literal("Next >>"), b -> changePage(1))
+            addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.next"), b -> changePage(1))
                     .dimensions(centerX + 10, pageY, 100, 20)
                     .build());
         }
 
         // Close button
-        addDrawableChild(ButtonWidget.builder(Text.literal("Close"), b -> close())
+        addDrawableChild(ButtonWidget.builder(Text.translatable("gui.done"), b -> close())
                 .dimensions(centerX - 50, height - 25, 100, 20)
                 .build());
     }
@@ -216,7 +224,7 @@ public final class PrismSelectionScreen extends Screen {
         int totalPages = Math.max(1, (entries.size() + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE);
         context.drawCenteredTextWithShadow(textRenderer,
                 Text.literal("Page " + (page + 1) + "/" + totalPages),
-                width / 2, height - 55, 0xAAAAAA);
+                width / 2, height - 65, 0xAAAAAA);
 
         // Hover tooltip
         int centerX = width / 2;

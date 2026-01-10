@@ -1,6 +1,7 @@
 package com.feel.gems.power.ability.bonus;
 
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -66,6 +67,9 @@ public final class BonusSmokeScreenAbility implements GemAbility {
         List<ServerPlayerEntity> allies = world.getEntitiesByClass(ServerPlayerEntity.class, box,
                 p -> p != player && !p.isCreative());
         for (ServerPlayerEntity ally : allies) {
+            if (VoidImmunity.shouldBlockEffect(player, ally)) {
+                continue;
+            }
             ally.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, DURATION / 2, 0, false, false, true));
         }
 

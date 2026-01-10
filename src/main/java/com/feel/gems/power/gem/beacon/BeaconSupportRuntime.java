@@ -1,6 +1,7 @@
 package com.feel.gems.power.gem.beacon;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemsPersistentDataHolder;
@@ -43,6 +44,9 @@ public final class BeaconSupportRuntime {
         }
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
+            if (other != player && VoidImmunity.shouldBlockEffect(player, other)) {
+                continue;
+            }
             if (other == player) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, duration, amplifier, true, true, false));
                 continue;
@@ -81,6 +85,9 @@ public final class BeaconSupportRuntime {
         }
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
+            if (other != player && VoidImmunity.shouldBlockEffect(player, other)) {
+                continue;
+            }
             if (GemTrust.isTrusted(player, other) || other == player) {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, duration, amp, true, false, false));
             } else {
@@ -104,6 +111,9 @@ public final class BeaconSupportRuntime {
         }
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (ServerPlayerEntity other : world.getEntitiesByClass(ServerPlayerEntity.class, box, p -> true)) {
+            if (other != player && VoidImmunity.shouldBlockEffect(player, other)) {
+                continue;
+            }
             if (GemTrust.isTrusted(player, other) || other == player) {
                 for (StatusEffectInstance effect : java.util.List.copyOf(other.getStatusEffects())) {
                     if (effect.getEffectType().value().getCategory() != StatusEffectCategory.HARMFUL) {

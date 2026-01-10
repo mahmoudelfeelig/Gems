@@ -1,7 +1,9 @@
 package com.feel.gems.power.ability.bonus;
 
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -42,8 +44,16 @@ public final class BonusRadiantBurstAbility implements GemAbility {
         world.getOtherEntities(player, area, e -> e instanceof LivingEntity)
                 .forEach(e -> {
                     if (e instanceof ServerPlayerEntity other) {
-                        // Heal allies (non-hostile)
-                        other.heal(6.0f);
+                        if (VoidImmunity.shouldBlockEffect(player, other)) {
+                            return;
+                        }
+                        // Heal allies, blind enemies.
+                        if (GemTrust.isTrusted(player, other)) {
+                            other.heal(6.0f);
+                        } else {
+                            other.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 100, 0));
+                            other.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 200, 0));
+                        }
                     } else if (e instanceof LivingEntity living) {
                         // Blind enemies
                         living.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 100, 0));

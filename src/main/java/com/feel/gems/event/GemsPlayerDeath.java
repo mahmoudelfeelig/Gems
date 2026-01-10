@@ -7,12 +7,14 @@ import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.GemOwnership;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.item.legendary.HuntersTrophyNecklaceItem;
+import com.feel.gems.legendary.LegendaryDuels;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.gem.hunter.HunterTrophyHunterRuntime;
 import com.feel.gems.power.gem.spy.SpyMimicSystem;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.power.gem.terror.TerrorBloodPrice;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.ability.sentinel.SentinelInterventionRuntime;
 import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
@@ -81,6 +83,10 @@ public final class GemsPlayerDeath {
                 var cfg = com.feel.gems.config.GemsBalance.v().systems();
                 int loss = cfg.assassinVsAssassinVictimHeartsLoss();
                 int gain = cfg.assassinVsAssassinKillerHeartsGain();
+
+                // Assassin-vs-Assassin: killer takes the victim's accumulated assassin points.
+                AssassinState.transferAssassinPoints(victim, killer);
+
                 int after = AssassinState.addAssassinHearts(victim, -loss);
                 if (gain > 0) {
                     AssassinState.addAssassinHearts(killer, gain);
@@ -117,6 +123,11 @@ public final class GemsPlayerDeath {
         GemItemGlint.sync(victim);
         GemStateSync.send(victim);
         AssassinTeams.sync(victim.getEntityWorld().getServer(), victim);
+
+        // Challenger's Gauntlet duels: return participants, transfer drops, and clean up arenas.
+        LegendaryDuels.onDuelParticipantDeathTail(victim, source);
+
+        // Sentinel intervention should not persist through death.
+        SentinelInterventionRuntime.cleanup(victim.getEntityWorld().getServer(), victim);
     }
 }
-

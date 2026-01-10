@@ -2,6 +2,7 @@ package com.feel.gems.client;
 
 import com.feel.gems.client.entity.HunterPackEntityRenderer;
 import com.feel.gems.client.entity.ShadowCloneEntityRenderer;
+import com.feel.gems.client.entity.TestDummyEntityRenderer;
 import com.feel.gems.entity.ModEntities;
 import com.feel.gems.net.ClientPassiveTogglePayload;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -29,6 +30,7 @@ public final class GemsClientMod implements ClientModInitializer {
         // Register entity renderers
         EntityRendererRegistry.register(ModEntities.SHADOW_CLONE, ShadowCloneEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.HUNTER_PACK, HunterPackEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.TEST_DUMMY, TestDummyEntityRenderer::new);
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             GemsClientConfig cfg = GemsClientConfigManager.config();

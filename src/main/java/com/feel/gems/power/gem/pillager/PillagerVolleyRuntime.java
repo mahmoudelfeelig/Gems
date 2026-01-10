@@ -1,7 +1,9 @@
 package com.feel.gems.power.gem.pillager;
 
+import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
+import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
@@ -65,12 +67,19 @@ public final class PillagerVolleyRuntime {
                 continue;
             }
             GemPlayerState.initIfNeeded(player);
-            if (GemPlayerState.getEnergy(player) <= 1 || GemPlayerState.getActiveGem(player) != GemId.PILLAGER) {
+            if (GemPlayerState.getEnergy(player) <= 1) {
                 stop(player, false);
                 it.remove();
                 continue;
             }
-
+            GemId activeGem = GemPlayerState.getActiveGem(player);
+            if (activeGem != GemId.PILLAGER) {
+                if (activeGem != GemId.PRISM || !PrismSelectionsState.hasAbility(player, PowerIds.PILLAGER_VOLLEY)) {
+                    stop(player, false);
+                    it.remove();
+                    continue;
+                }
+            }
             NbtCompound nbt = persistent(player);
             long now = GemsTime.now(player);
             long until = nbt.getLong(KEY_UNTIL, 0L);
@@ -122,4 +131,3 @@ public final class PillagerVolleyRuntime {
         return ((GemsPersistentDataHolder) player).gems$getPersistentData();
     }
 }
-

@@ -23,6 +23,7 @@ public final class TricksterMindGamesRuntime {
     public static void applyMindGames(ServerPlayerEntity player, int durationTicks) {
         long endTime = player.getEntityWorld().getTime() + durationTicks;
         PlayerStateManager.setPersistent(player, MIND_GAMES_END_KEY, String.valueOf(endTime));
+        TricksterControlSync.sync(player);
     }
 
     public static boolean hasReversedControls(ServerPlayerEntity player) {
@@ -40,6 +41,7 @@ public final class TricksterMindGamesRuntime {
 
     public static void clearMindGames(ServerPlayerEntity player) {
         PlayerStateManager.clearPersistent(player, MIND_GAMES_END_KEY);
+        TricksterControlSync.sync(player);
     }
 
     // ========== Mob Mind Games ==========
@@ -100,20 +102,23 @@ public final class TricksterMindGamesRuntime {
             return;
         }
 
-        // Every few ticks, potentially change target to a random entity
-        if (world.getTime() % 20 == 0) { // Check every second
-            Box searchBox = mob.getBoundingBox().expand(16);
-            List<LivingEntity> nearbyEntities = world.getEntitiesByClass(
+        // Switch targets frequently enough to be noticeable (mobs often retarget immediately).
+        LivingEntity currentTarget = mob.getTarget();
+        boolean shouldReroll = currentTarget == null || !currentTarget.isAlive() || world.getRandom().nextFloat() < 0.35f;
+        if (!shouldReroll) {
+            return;
+        }
+
+        Box searchBox = mob.getBoundingBox().expand(16);
+        List<LivingEntity> nearbyEntities = world.getEntitiesByClass(
                 LivingEntity.class,
                 searchBox,
                 e -> e != mob && e.isAlive()
-            );
+        );
 
-            if (!nearbyEntities.isEmpty() && world.getRandom().nextFloat() < 0.5f) {
-                // 50% chance to switch to a random target
-                LivingEntity randomTarget = nearbyEntities.get(world.getRandom().nextInt(nearbyEntities.size()));
-                mob.setTarget(randomTarget);
-            }
+        if (!nearbyEntities.isEmpty()) {
+            LivingEntity randomTarget = nearbyEntities.get(world.getRandom().nextInt(nearbyEntities.size()));
+            mob.setTarget(randomTarget);
         }
     }
 
@@ -123,6 +128,10 @@ public final class TricksterMindGamesRuntime {
 
     private static void clearConfusedMobTags(MobEntity mob) {
         mob.removeCommandTag(TAG_CONFUSED);
-        mob.getCommandTags().removeIf(tag -> tag.startsWith(TAG_CONFUSED_UNTIL_PREFIX));
+        for (String tag : java.util.List.copyOf(mob.getCommandTags())) {
+            if (tag.startsWith(TAG_CONFUSED_UNTIL_PREFIX)) {
+                mob.removeCommandTag(tag);
+            }
+        }
     }
 }

@@ -14,6 +14,7 @@ import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.PersistentStateType;
 import net.minecraft.world.World;
 import java.util.*;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 /**
  * Tracks Prism gem ability/passive selections per player.
@@ -94,6 +95,35 @@ public final class PrismSelectionsState extends PersistentState {
 
     public PrismSelection getSelection(UUID playerUuid) {
         return selections.getOrDefault(playerUuid, PrismSelection.empty());
+    }
+
+    public static boolean hasAbility(ServerPlayerEntity player, Identifier abilityId) {
+        if (player == null || abilityId == null) {
+            return false;
+        }
+        MinecraftServer server = player.getEntityWorld().getServer();
+        if (server == null) {
+            return false;
+        }
+        PrismSelection selection = get(server).getSelection(player.getUuid());
+        return selection.allAbilities().contains(abilityId);
+    }
+
+    public static boolean hasAnyAbility(ServerPlayerEntity player, Collection<Identifier> abilityIds) {
+        if (player == null || abilityIds == null || abilityIds.isEmpty()) {
+            return false;
+        }
+        MinecraftServer server = player.getEntityWorld().getServer();
+        if (server == null) {
+            return false;
+        }
+        PrismSelection selection = get(server).getSelection(player.getUuid());
+        for (Identifier id : abilityIds) {
+            if (selection.allAbilities().contains(id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

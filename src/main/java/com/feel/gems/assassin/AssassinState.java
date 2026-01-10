@@ -150,6 +150,45 @@ public final class AssassinState {
         }
     }
 
+    /**
+     * Transfers all "as assassin" points (and the "vs non-assassins" subset) from {@code from} to {@code to}.
+     *
+     * <p>This does not modify the global kill totals; it only moves the Assassin endgame scoring counters.</p>
+     *
+     * @return the number of assassin points transferred (as computed from the moved counters)
+     */
+    public static int transferAssassinPoints(ServerPlayerEntity from, ServerPlayerEntity to) {
+        initIfNeeded(from);
+        initIfNeeded(to);
+        if (!isAssassin(from) || !isAssassin(to)) {
+            return 0;
+        }
+
+        NbtCompound fromNbt = root(from);
+        NbtCompound toNbt = root(to);
+
+        int fromNormal = Math.max(0, fromNbt.getInt(KEY_A_NORMAL_KILLS, 0));
+        int fromFinal = Math.max(0, fromNbt.getInt(KEY_A_FINAL_KILLS, 0));
+        int fromNormalVsNon = Math.max(0, fromNbt.getInt(KEY_A_NORMAL_KILLS_VS_NON, 0));
+        int fromFinalVsNon = Math.max(0, fromNbt.getInt(KEY_A_FINAL_KILLS_VS_NON, 0));
+
+        if (fromNormal == 0 && fromFinal == 0 && fromNormalVsNon == 0 && fromFinalVsNon == 0) {
+            return 0;
+        }
+
+        addNonNegative(toNbt, KEY_A_NORMAL_KILLS, fromNormal);
+        addNonNegative(toNbt, KEY_A_FINAL_KILLS, fromFinal);
+        addNonNegative(toNbt, KEY_A_NORMAL_KILLS_VS_NON, fromNormalVsNon);
+        addNonNegative(toNbt, KEY_A_FINAL_KILLS_VS_NON, fromFinalVsNon);
+
+        fromNbt.putInt(KEY_A_NORMAL_KILLS, 0);
+        fromNbt.putInt(KEY_A_FINAL_KILLS, 0);
+        fromNbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
+        fromNbt.putInt(KEY_A_FINAL_KILLS_VS_NON, 0);
+
+        return points(fromNormal, fromFinal);
+    }
+
     public static int totalNormalKills(ServerPlayerEntity player) {
         return root(player).getInt(KEY_TOTAL_NORMAL_KILLS, 0);
     }
@@ -206,8 +245,11 @@ public final class AssassinState {
         return ((GemsPersistentDataHolder) player).gems$getPersistentData();
     }
 
+    private static void addNonNegative(NbtCompound nbt, String key, int delta) {
+        nbt.putInt(key, Math.max(0, nbt.getInt(key, 0) + Math.max(0, delta)));
+    }
+
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
     }
 }
-

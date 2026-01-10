@@ -6,9 +6,11 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.bonus.BonusPassiveRuntime;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemAbilityCooldowns;
+import com.feel.gems.legendary.LegendaryCooldowns;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.GemsTeleport;
 import com.feel.gems.util.GemsTime;
@@ -126,6 +128,7 @@ public final class ShadowAnchorAbility implements GemAbility {
         if (cooldown <= 0) {
             return;
         }
+        cooldown = applyCooldownModifiers(player, cooldown);
         GemAbilityCooldowns.setNextAllowedTick(player, PowerIds.SHADOW_ANCHOR, now + cooldown);
 
         // Best-effort client HUD sync.
@@ -134,6 +137,15 @@ public final class ShadowAnchorAbility implements GemAbility {
         if (index >= 0) {
             ServerPlayNetworking.send(player, new AbilityCooldownPayload(GemId.ASTRA.ordinal(), index, cooldown));
         }
+    }
+
+    private static int applyCooldownModifiers(ServerPlayerEntity player, int baseTicks) {
+        if (baseTicks <= 0) {
+            return 0;
+        }
+        float mult = BonusPassiveRuntime.getCooldownMultiplier(player) * LegendaryCooldowns.getCooldownMultiplier(player);
+        int adjusted = (int) Math.ceil(baseTicks * mult);
+        return Math.max(1, adjusted);
     }
 
     private static void clearAnchor(NbtCompound nbt) {

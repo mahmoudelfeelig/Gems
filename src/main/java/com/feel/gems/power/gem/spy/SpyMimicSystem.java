@@ -1,5 +1,6 @@
 package com.feel.gems.power.gem.spy;
 
+import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.config.GemsDisables;
 import com.feel.gems.core.GemId;
@@ -10,6 +11,7 @@ import com.feel.gems.power.runtime.AbilityDisables;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
@@ -49,6 +51,7 @@ public final class SpyMimicSystem {
     private static final String KEY_LAST_SEEN_CASTER = "spyLastSeenCaster";
     private static final String KEY_LAST_SEEN_CASTER_ENTITY_ID = "spyLastSeenCasterEntityId";
     private static final String KEY_OBSERVED = "spyObserved";
+    private static final String KEY_OBSERVED_SELECTED = "spyObservedSelected";
 
     private static final String KEY_STOLEN = "spyStolen";
     private static final String KEY_STOLEN_SELECTED = "spyStolenSelected";
@@ -67,6 +70,17 @@ public final class SpyMimicSystem {
     private static final Identifier MOD_MIMIC_MAX_HEALTH = Identifier.of("gems", "spy_mimic_max_health");
     private static final Identifier MOD_MIMIC_SPEED = Identifier.of("gems", "spy_mimic_speed");
 
+    private static final Set<Identifier> SPY_ABILITIES = Set.of(
+            PowerIds.SPY_MIMIC_FORM,
+            PowerIds.SPY_ECHO,
+            PowerIds.SPY_STEAL,
+            PowerIds.SPY_SMOKE_BOMB,
+            PowerIds.SPY_STOLEN_CAST,
+            PowerIds.SPY_SKINSHIFT
+    );
+
+    public record ObservedAbility(Identifier id, int count, long lastSeen) {}
+
     // Cache of online players currently eligible for Spy/Mimic logic to avoid scanning everyone on each observed ability use.
     private static final Set<UUID> ACTIVE_SPIES = new HashSet<>();
 
@@ -84,6 +98,7 @@ public final class SpyMimicSystem {
         nbt.remove(KEY_LAST_SEEN_CASTER);
         nbt.remove(KEY_LAST_SEEN_CASTER_ENTITY_ID);
         nbt.remove(KEY_OBSERVED);
+        nbt.remove(KEY_OBSERVED_SELECTED);
     }
 
     public static int deaths(ServerPlayerEntity player) {
@@ -227,6 +242,79 @@ public final class SpyMimicSystem {
         return observed.getCompound(key).map(rec -> rec.getInt("count", 0)).orElse(0);
     }
 
+    public static ObservedAbility observedAbility(ServerPlayerEntity player, Identifier abilityId) {
+        if (abilityId == null) {
+            return null;
+        }
+        NbtCompound observed = persistent(player).getCompound(KEY_OBSERVED).orElse(null);
+        if (observed == null) {
+            return null;
+        }
+        NbtCompound rec = observed.getCompound(abilityId.toString()).orElse(null);
+        if (rec == null) {
+            return null;
+        }
+        int count = rec.getInt("count", 0);
+        long last = rec.getLong("last", 0L);
+        return new ObservedAbility(abilityId, count, last);
+    }
+
+    public static java.util.List<ObservedAbility> observedAbilities(ServerPlayerEntity player) {
+        NbtCompound observed = persistent(player).getCompound(KEY_OBSERVED).orElse(null);
+        if (observed == null || observed.getKeys().isEmpty()) {
+            return java.util.List.of();
+        }
+        java.util.List<ObservedAbility> list = new java.util.ArrayList<>();
+        for (String key : observed.getKeys()) {
+            Identifier id = Identifier.tryParse(key);
+            if (id == null) {
+                continue;
+            }
+            NbtCompound rec = observed.getCompound(key).orElse(null);
+            if (rec == null) {
+                continue;
+            }
+            int count = rec.getInt("count", 0);
+            long last = rec.getLong("last", 0L);
+            list.add(new ObservedAbility(id, count, last));
+        }
+        return list;
+    }
+
+    public static Identifier selectedObservedAbility(ServerPlayerEntity player) {
+        String raw = persistent(player).getString(KEY_OBSERVED_SELECTED, "");
+        if (raw.isEmpty()) {
+            return null;
+        }
+        return Identifier.tryParse(raw);
+    }
+
+    public static boolean selectObservedAbility(ServerPlayerEntity player, Identifier abilityId) {
+        if (abilityId == null) {
+            return false;
+        }
+        NbtCompound observed = persistent(player).getCompound(KEY_OBSERVED).orElse(null);
+        if (observed == null || !observed.contains(abilityId.toString())) {
+            return false;
+        }
+        persistent(player).putString(KEY_OBSERVED_SELECTED, abilityId.toString());
+        return true;
+    }
+
+    public static boolean isEchoableAbility(Identifier abilityId) {
+        if (abilityId == null) {
+            return false;
+        }
+        if (abilityId.equals(PowerIds.SPY_ECHO) || abilityId.equals(PowerIds.SPY_STEAL) || abilityId.equals(PowerIds.SPY_STOLEN_CAST)) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isSpyAbility(Identifier abilityId) {
+        return abilityId != null && SPY_ABILITIES.contains(abilityId);
+    }
+
     public static boolean canSteal(ServerPlayerEntity player, Identifier abilityId, long now) {
         int required = GemsBalance.v().spyMimic().stealRequiredWitnessCount();
         int window = GemsBalance.v().spyMimic().observeWindowTicks();
@@ -253,7 +341,10 @@ public final class SpyMimicSystem {
 
     public static boolean stealLastSeen(ServerPlayerEntity spy) {
         long now = GemsTime.now(spy);
-        Identifier abilityId = lastSeenAbility(spy);
+        Identifier abilityId = selectedObservedAbility(spy);
+        if (abilityId == null) {
+            abilityId = lastSeenAbility(spy);
+        }
         if (abilityId == null) {
             spy.sendMessage(Text.translatable("gems.spy.no_observed_ability"), true);
             return false;
@@ -354,6 +445,7 @@ public final class SpyMimicSystem {
         NbtCompound nbt = persistent(player);
         nbt.remove(KEY_STOLEN);
         nbt.remove(KEY_STOLEN_SELECTED);
+        nbt.remove(KEY_OBSERVED_SELECTED);
         clearMimicForm(player);
         clearSkinshift(player);
         ACTIVE_SPIES.remove(player.getUuid());
@@ -435,9 +527,27 @@ public final class SpyMimicSystem {
         tickSkinshift(player, now);
     }
 
-    private static void trackActiveSpy(ServerPlayerEntity player) {
+    private static boolean isSpyActiveInternal(ServerPlayerEntity player) {
         GemPlayerState.initIfNeeded(player);
-        boolean active = GemPlayerState.getEnergy(player) > 0 && GemPlayerState.getActiveGem(player) == GemId.SPY_MIMIC;
+        if (GemPlayerState.getEnergy(player) <= 0) {
+            return false;
+        }
+        GemId activeGem = GemPlayerState.getActiveGem(player);
+        if (activeGem == GemId.SPY_MIMIC) {
+            return true;
+        }
+        if (activeGem == GemId.PRISM) {
+            return PrismSelectionsState.hasAnyAbility(player, SPY_ABILITIES);
+        }
+        return false;
+    }
+
+    public static boolean isSpyActive(ServerPlayerEntity player) {
+        return isSpyActiveInternal(player);
+    }
+
+    private static void trackActiveSpy(ServerPlayerEntity player) {
+        boolean active = isSpyActiveInternal(player);
         UUID id = player.getUuid();
         if (active) {
             ACTIVE_SPIES.add(id);
@@ -454,8 +564,7 @@ public final class SpyMimicSystem {
     }
 
     private static boolean observeIfEligible(ServerPlayerEntity spy, ServerPlayerEntity caster, Identifier abilityId, long now, double rangeSq, int windowTicks) {
-        GemPlayerState.initIfNeeded(spy);
-        if (GemPlayerState.getEnergy(spy) <= 0 || GemPlayerState.getActiveGem(spy) != GemId.SPY_MIMIC) {
+        if (!isSpyActiveInternal(spy)) {
             return false;
         }
         if (spy.getEntityWorld() != caster.getEntityWorld()) {
@@ -545,7 +654,7 @@ public final class SpyMimicSystem {
         if (until <= 0) {
             return;
         }
-        if (now >= until || GemPlayerState.getEnergy(player) <= 0 || GemPlayerState.getActiveGem(player) != GemId.SPY_MIMIC) {
+        if (now >= until || !isSpyActiveInternal(player)) {
             clearSkinshift(player);
         }
     }
@@ -589,6 +698,9 @@ public final class SpyMimicSystem {
     }
 
     public static boolean canAffect(ServerPlayerEntity caster, ServerPlayerEntity target) {
+        if (VoidImmunity.shouldBlockEffect(caster, target)) {
+            return false;
+        }
         return !GemTrust.isTrusted(caster, target);
     }
 

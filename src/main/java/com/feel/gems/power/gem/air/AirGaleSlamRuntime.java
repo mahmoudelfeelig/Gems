@@ -2,6 +2,7 @@ package com.feel.gems.power.gem.air;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.runtime.AbilityFeedback;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTime;
@@ -54,6 +55,9 @@ public final class AirGaleSlamRuntime {
             if (entity instanceof ServerPlayerEntity other && GemTrust.isTrusted(player, other)) {
                 continue;
             }
+            if (entity instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                continue;
+            }
             LivingEntity living = (LivingEntity) entity;
             living.damage(world, player.getDamageSources().playerAttack(player), bonusDamage);
             if (knockback > 0.0D) {
@@ -67,4 +71,3 @@ public final class AirGaleSlamRuntime {
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 1.0F, 1.0F);
     }
 }
-

@@ -1,7 +1,9 @@
 package com.feel.gems.power.ability.bonus;
 
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -54,6 +56,14 @@ public final class BonusThornsNovaAbility implements GemAbility {
         }
 
         for (LivingEntity entity : entities) {
+            if (entity instanceof ServerPlayerEntity otherPlayer) {
+                if (VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                    continue;
+                }
+                if (GemTrust.isTrusted(player, otherPlayer)) {
+                    continue;
+                }
+            }
             entity.damage(world, world.getDamageSources().thorns(player), DAMAGE);
             
             // Knockback

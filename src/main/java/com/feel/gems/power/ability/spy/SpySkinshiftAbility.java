@@ -6,7 +6,6 @@ import com.feel.gems.power.gem.spy.SpyMimicSystem;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.util.Targeting;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -36,8 +35,8 @@ public final class SpySkinshiftAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         int range = GemsBalance.v().spyMimic().skinshiftRangeBlocks();
-        LivingEntity target = Targeting.raycastLiving(player, range);
-        if (!(target instanceof ServerPlayerEntity other) || other == player) {
+        ServerPlayerEntity other = Targeting.raycastPlayer(player, range);
+        if (other == null || other == player) {
             player.sendMessage(Text.translatable("gems.message.no_player_target"), true);
             return false;
         }

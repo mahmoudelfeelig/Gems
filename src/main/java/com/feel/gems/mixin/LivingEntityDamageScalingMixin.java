@@ -2,7 +2,10 @@ package com.feel.gems.mixin;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.item.legendary.DuelistsRapierItem;
+import com.feel.gems.item.legendary.ReversalMirrorItem;
+import com.feel.gems.power.ability.hunter.HunterPackTacticsRuntime;
 import com.feel.gems.power.ability.duelist.DuelistParryAbility;
+import com.feel.gems.power.ability.sentinel.SentinelInterventionRuntime;
 import com.feel.gems.power.bonus.BonusPassiveRuntime;
 import com.feel.gems.power.gem.duelist.DuelistPassiveRuntime;
 import com.feel.gems.power.gem.flux.FluxCharge;
@@ -23,6 +26,8 @@ import java.util.UUID;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.registry.tag.EntityTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -54,14 +59,23 @@ public abstract class LivingEntityDamageScalingMixin {
         if (self instanceof ServerPlayerEntity victim && DuelistParryAbility.isParrying(victim)) {
             Entity attackerEntity = source.getAttacker();
             // Only block melee attacks (not projectiles, magic, etc.)
-            if (attackerEntity instanceof ServerPlayerEntity attackerPlayer && !source.isIn(DamageTypeTags.IS_PROJECTILE)) {
+            if (attackerEntity instanceof LivingEntity attackerLiving && !source.isIn(DamageTypeTags.IS_PROJECTILE)) {
                 DuelistParryAbility.consumeParry(victim);
-                // Stun the attacker
                 int stunTicks = GemsBalance.v().duelist().parryStunTicks();
-                AbilityRestrictions.stun(attackerPlayer, stunTicks);
+                if (attackerLiving instanceof ServerPlayerEntity attackerPlayer) {
+                    // Stun the attacker (players only)
+                    AbilityRestrictions.stun(attackerPlayer, stunTicks);
+                } else {
+                    // Briefly punish mobs so the parry window meaningfully matters in PvE too.
+                    attackerLiving.takeKnockback(0.6F, victim.getX() - attackerLiving.getX(), victim.getZ() - attackerLiving.getZ());
+                    attackerLiving.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, stunTicks, 1, false, true));
+                    attackerLiving.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, stunTicks, 0, false, true));
+                }
                 // Visual/audio feedback
                 AbilityFeedback.sound(victim, SoundEvents.ITEM_SHIELD_BLOCK, 1.0F, 1.0F);
-                AbilityFeedback.sound(attackerPlayer, SoundEvents.ENTITY_PLAYER_ATTACK_NODAMAGE, 1.0F, 0.8F);
+                if (attackerLiving instanceof ServerPlayerEntity attackerPlayer) {
+                    AbilityFeedback.sound(attackerPlayer, SoundEvents.ENTITY_PLAYER_ATTACK_NODAMAGE, 1.0F, 0.8F);
+                }
                 // Trigger Riposte window for the victim
                 DuelistPassiveRuntime.triggerRiposte(victim);
                 return 0.0F;
@@ -76,6 +90,22 @@ public abstract class LivingEntityDamageScalingMixin {
                 DuelistsRapierItem.onSuccessfulParry(victim);
                 // Visual/audio feedback
                 AbilityFeedback.sound(victim, SoundEvents.ITEM_SHIELD_BLOCK, 1.0F, 1.2F);
+                return 0.0F;
+            }
+        }
+
+        // Sentinel: Intervention - redirect the next hit from the ally to the sentinel.
+        if (self instanceof ServerPlayerEntity ally) {
+            ServerPlayerEntity protector = SentinelInterventionRuntime.getProtector(ally);
+            if (protector != null && protector.isAlive()) {
+                SentinelInterventionRuntime.consumeProtection(protector);
+                if (protector.getEntityWorld() instanceof ServerWorld protectorWorld) {
+                    protector.damage(protectorWorld, source, amount);
+                } else {
+                    protector.damage(world, source, amount);
+                }
+                AbilityFeedback.sound(ally, SoundEvents.ITEM_SHIELD_BLOCK, 0.9F, 1.0F);
+                AbilityFeedback.sound(protector, SoundEvents.ITEM_SHIELD_BLOCK, 0.9F, 0.9F);
                 return 0.0F;
             }
         }
@@ -120,6 +150,13 @@ public abstract class LivingEntityDamageScalingMixin {
                 if (self instanceof ServerPlayerEntity victim) {
                     if (HunterPreyMarkRuntime.isMarked(playerAttacker, victim)) {
                         scaled *= HunterPreyMarkRuntime.getDamageMultiplier();
+                    }
+                }
+
+                // Hunter: Pack Tactics - allies deal bonus damage to marked target
+                if (self instanceof ServerPlayerEntity victim) {
+                    if (HunterPackTacticsRuntime.hasBuffAgainst(playerAttacker, victim.getUuid())) {
+                        scaled *= HunterPackTacticsRuntime.getDamageMultiplier();
                     }
                 }
 
@@ -179,6 +216,9 @@ public abstract class LivingEntityDamageScalingMixin {
             // Bonus Passives: defense damage modifiers
             scaled = BonusPassiveRuntime.getDefenseDamageMultiplier(victim, scaled, world, 
                     attacker instanceof LivingEntity ? (LivingEntity) attacker : null);
+
+            // Legendary: Reversal Mirror - reflect incoming damage back to attacker.
+            ReversalMirrorItem.tryReflectDamage(victim, attacker, scaled, world);
         }
 
         return scaled;

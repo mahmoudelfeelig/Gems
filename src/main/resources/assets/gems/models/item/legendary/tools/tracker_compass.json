@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minecraft:item/lodestone_compass_00"
+    "layer0": "gems:item/legendary/tools/tracker_compass"
   }
 }

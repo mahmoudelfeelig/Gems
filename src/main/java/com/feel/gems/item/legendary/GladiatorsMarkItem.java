@@ -5,7 +5,6 @@ import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.power.util.Targeting;
 import com.feel.gems.state.PlayerStateManager;
 import java.util.function.Consumer;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -55,8 +54,8 @@ public final class GladiatorsMarkItem extends Item implements LegendaryItem {
         }
 
         // Raycast to find target
-        LivingEntity hitEntity = Targeting.raycastLiving(player, 20);
-        if (!(hitEntity instanceof ServerPlayerEntity target)) {
+        ServerPlayerEntity target = Targeting.raycastPlayer(player, 20);
+        if (target == null) {
             player.sendMessage(Text.translatable("gems.message.no_player_target").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
         }

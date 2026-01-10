@@ -154,6 +154,7 @@ public final class ModAbilities {
         // Duelist
         register(new DuelistLungeAbility());
         register(new DuelistParryAbility());
+        register(new DuelistRapidStrikeAbility());
         register(new DuelistFlourishAbility());
         register(new DuelistMirrorMatchAbility());
         register(new DuelistBladeDanceAbility());

@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.bonus;
 
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.EtherealState;
 import com.feel.gems.util.GemsTeleport;
 import net.minecraft.block.BlockState;
 import net.minecraft.particle.ParticleTypes;
@@ -46,7 +47,7 @@ public final class BonusEtherealStepAbility implements GemAbility {
         
         int maxDistance = MAX_DISTANCE;
         Vec3d start = player.getEntityPos();
-        Vec3d direction = player.getRotationVector().normalize();
+        Vec3d direction = player.getRotationVec(1.0F).normalize();
         
         // Find destination by phasing through blocks
         Vec3d destination = findPhaseDestination(world, start, direction, maxDistance, player);
@@ -61,6 +62,9 @@ public final class BonusEtherealStepAbility implements GemAbility {
                 25, 0.3, 0.5, 0.3, 0.05);
         world.spawnParticles(ParticleTypes.SOUL, start.x, start.y + 0.5, start.z,
                 10, 0.2, 0.3, 0.2, 0.02);
+
+        // Briefly ignore damage while phasing.
+        EtherealState.setEthereal(player, 10);
 
         // Teleport
         GemsTeleport.teleport(player, world, destination.x, destination.y, destination.z, player.getYaw(), player.getPitch());

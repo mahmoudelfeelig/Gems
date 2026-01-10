@@ -1,5 +1,7 @@
 package com.feel.gems.power.ability.sentinel;
 
+import com.feel.gems.power.runtime.AbilityRestrictions;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -19,6 +21,7 @@ public final class SentinelLockdownRuntime {
     private static final int ROOT_DURATION_TICKS = 25;
     /** Slowness amplifier for rooted mobs (255 = complete immobilization) */
     private static final int ROOT_SLOWNESS_AMPLIFIER = 255;
+    private static final int SUPPRESS_DURATION_TICKS = 25;
 
     private SentinelLockdownRuntime() {}
 
@@ -59,6 +62,9 @@ public final class SentinelLockdownRuntime {
      * Tick the lockdown zones - removes expired zones and roots hostile mobs.
      */
     public static void tick(long currentTime, String worldId, ServerWorld world) {
+        if (ACTIVE_ZONES.isEmpty()) {
+            return;
+        }
         // Remove expired zones
         ACTIVE_ZONES.entrySet().removeIf(entry -> 
             entry.getValue().worldId.equals(worldId) && currentTime > entry.getValue().endTime
@@ -91,12 +97,6 @@ public final class SentinelLockdownRuntime {
                             ROOT_DURATION_TICKS, 
                             ROOT_SLOWNESS_AMPLIFIER, 
                             true, false, false));
-                    // Also prevent jumping
-                    hostile.addStatusEffect(new StatusEffectInstance(
-                            StatusEffects.JUMP_BOOST, 
-                            ROOT_DURATION_TICKS, 
-                            128, // Negative jump boost (makes jumping nearly impossible)
-                            true, false, false));
                     
                     // Spawn root particles occasionally
                     if (world.random.nextInt(20) == 0) {
@@ -109,7 +109,11 @@ public final class SentinelLockdownRuntime {
                 // Apply ability restriction to enemy players (already handled elsewhere for ability blocking)
                 // Just add visual feedback here
                 if (entity instanceof ServerPlayerEntity targetPlayer) {
+                    if (owner != null && VoidImmunity.shouldBlockEffect(owner, targetPlayer)) {
+                        continue;
+                    }
                     if (owner != null && !GemTrust.isTrusted(owner, targetPlayer) && !targetPlayer.getUuid().equals(zone.ownerId)) {
+                        AbilityRestrictions.suppress(targetPlayer, SUPPRESS_DURATION_TICKS);
                         // Spawn subtle particles to show they're in lockdown
                         if (world.random.nextInt(40) == 0) {
                             world.spawnParticles(ParticleTypes.ENCHANTED_HIT,
@@ -126,9 +130,16 @@ public final class SentinelLockdownRuntime {
      * Backwards-compatible tick method for callers that don't pass ServerWorld.
      */
     public static void tick(long currentTime, String worldId) {
+        if (ACTIVE_ZONES.isEmpty()) {
+            return;
+        }
         ACTIVE_ZONES.entrySet().removeIf(entry -> 
             entry.getValue().worldId.equals(worldId) && currentTime > entry.getValue().endTime
         );
+    }
+
+    public static boolean hasAnyZones() {
+        return !ACTIVE_ZONES.isEmpty();
     }
 
     public static void clearZone(UUID ownerId) {

@@ -219,6 +219,7 @@ public final class PowerIds {
     public static final Identifier DUELIST_BLADE_FINESSE = id("duelist_blade_finesse");
     public static final Identifier DUELIST_LUNGE = id("duelist_lunge");
     public static final Identifier DUELIST_PARRY = id("duelist_parry");
+    public static final Identifier DUELIST_RAPID_STRIKE = id("duelist_rapid_strike");
     public static final Identifier DUELIST_FLOURISH = id("duelist_flourish");
     public static final Identifier DUELIST_MIRROR_MATCH = id("duelist_mirror_match");
     public static final Identifier DUELIST_BLADE_DANCE = id("duelist_blade_dance");

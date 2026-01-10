@@ -4,6 +4,7 @@ import com.feel.gems.GemsMod;
 import com.feel.gems.core.GemId;
 import com.feel.gems.item.legendary.BloodOathBladeItem;
 import com.feel.gems.item.legendary.ChallengersGauntletItem;
+import com.feel.gems.item.legendary.ChronoCharmItem;
 import com.feel.gems.item.legendary.DemolitionBladeItem;
 import com.feel.gems.item.legendary.DuelistsRapierItem;
 import com.feel.gems.item.legendary.EarthsplitterPickItem;
@@ -23,6 +24,7 @@ import com.feel.gems.item.legendary.VampiricEdgeItem;
 import java.util.function.Function;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
+import net.minecraft.item.SpawnEggItem;
 import net.minecraft.item.ToolMaterial;
 import net.minecraft.item.equipment.ArmorMaterials;
 import net.minecraft.item.equipment.EquipmentType;
@@ -41,6 +43,8 @@ public final class ModItems {
     public static final Item ENERGY_UPGRADE = register("energy_upgrade", settings -> new EnergyUpgradeItem(settings.maxCount(16)));
     public static final Item GEM_TRADER = register("gem_trader", settings -> new TraderItem(settings.maxCount(1)));
     public static final Item GEM_PURCHASE = register("gem_purchase", settings -> new GemPurchaseItem(settings.maxCount(1)));
+    public static final Item TEST_DUMMY_SPAWN_EGG = register("test_dummy_spawn_egg",
+            settings -> new SpawnEggItem(settings.spawnEgg(com.feel.gems.entity.ModEntities.TEST_DUMMY).maxCount(64)));
 
     public static final Item TRACKER_COMPASS = register("tracker_compass", settings -> new TrackerCompassItem(settings.maxCount(1).component(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true)));
     public static final Item RECALL_RELIC = register("recall_relic", settings -> new RecallRelicItem(settings.maxCount(1)));
@@ -108,6 +112,8 @@ public final class ModItems {
             settings -> new DuelistsRapierItem(ToolMaterial.NETHERITE, settings.maxCount(1)));
     public static final Item CHALLENGERS_GAUNTLET = register("challengers_gauntlet",
             settings -> new ChallengersGauntletItem(settings.maxCount(1)));
+    public static final Item CHRONO_CHARM = register("chrono_charm",
+            settings -> new ChronoCharmItem(settings.maxCount(1)));
 
     private ModItems() {
     }

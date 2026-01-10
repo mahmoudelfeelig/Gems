@@ -28,6 +28,8 @@ public final class GemsPayloads {
         PayloadTypeRegistry.playC2S().register(BonusSelectionClaimPayload.ID, BonusSelectionClaimPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(PrismSelectionOpenRequestPayload.ID, PrismSelectionOpenRequestPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(PrismSelectionClaimPayload.ID, PrismSelectionClaimPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(SpyObservedOpenRequestPayload.ID, SpyObservedOpenRequestPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(SpyObservedSelectPayload.ID, SpyObservedSelectPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(StateSyncPayload.ID, StateSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(CooldownSnapshotPayload.ID, CooldownSnapshotPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(AbilityCooldownPayload.ID, AbilityCooldownPayload.CODEC);
@@ -42,7 +44,9 @@ public final class GemsPayloads {
         PayloadTypeRegistry.playS2C().register(BonusAbilitiesSyncPayload.ID, BonusAbilitiesSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(PrismSelectionScreenPayload.ID, PrismSelectionScreenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(PrismAbilitiesSyncPayload.ID, PrismAbilitiesSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(SpyObservedScreenPayload.ID, SpyObservedScreenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ShadowCloneSyncPayload.ID, ShadowCloneSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(TricksterControlPayload.ID, TricksterControlPayload.CODEC);
         registered = true;
     }
 }

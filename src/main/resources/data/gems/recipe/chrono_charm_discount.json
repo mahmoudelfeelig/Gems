@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CEC",
+    "DED",
+    "CEC"
+  ],
+  "key": {
+    "C": "minecraft:clock",
+    "E": "minecraft:echo_shard",
+    "D": "minecraft:diamond"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:chrono_charm"
+  }
+}

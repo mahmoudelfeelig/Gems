@@ -49,6 +49,7 @@ public final class ModItemGroups {
                             entries.add(ModItems.ENERGY_UPGRADE);
                             entries.add(ModItems.GEM_TRADER);
                             entries.add(ModItems.GEM_PURCHASE);
+                            entries.add(ModItems.TEST_DUMMY_SPAWN_EGG);
                             
                             // === LEGENDARY ITEMS ===
                             // Utility
@@ -79,6 +80,7 @@ public final class ModItemGroups {
                             entries.add(ModItems.GLADIATORS_MARK);
                             entries.add(ModItems.SOUL_SHACKLE);
                             entries.add(ModItems.CHALLENGERS_GAUNTLET);
+                            entries.add(ModItems.CHRONO_CHARM);
                         })
                         .build()
         );

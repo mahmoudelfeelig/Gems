@@ -1,7 +1,9 @@
 package com.feel.gems.power.gem.beacon;
 
+import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
@@ -87,15 +89,22 @@ public final class BeaconAuraRuntime {
 
     public static void tickEverySecond(ServerPlayerEntity player) {
         GemPlayerState.initIfNeeded(player);
-        if (GemPlayerState.getEnergy(player) <= 0 || GemPlayerState.getActiveGem(player) != GemId.BEACON) {
-            clear(player);
-            return;
-        }
-
         AuraType type = activeType(player);
         if (type == null) {
             clear(player);
             return;
+        }
+
+        if (GemPlayerState.getEnergy(player) <= 0) {
+            clear(player);
+            return;
+        }
+        GemId activeGem = GemPlayerState.getActiveGem(player);
+        if (activeGem != GemId.BEACON) {
+            if (activeGem != GemId.PRISM || !PrismSelectionsState.hasAbility(player, type.id())) {
+                clear(player);
+                return;
+            }
         }
 
         int radius = GemsBalance.v().beacon().auraRadiusBlocks();
@@ -108,6 +117,10 @@ public final class BeaconAuraRuntime {
         ServerWorld world = player.getEntityWorld();
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (net.minecraft.entity.LivingEntity other : world.getEntitiesByClass(net.minecraft.entity.LivingEntity.class, box, e -> e.isAlive())) {
+            if (other instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                other.removeStatusEffect(type.effect());
+                continue;
+            }
             boolean trusted = other instanceof ServerPlayerEntity otherPlayer && (GemTrust.isTrusted(player, otherPlayer) || otherPlayer == player);
             if (trusted) {
                 other.addStatusEffect(new StatusEffectInstance(type.effect(), refresh, amplifier, true, false, false));

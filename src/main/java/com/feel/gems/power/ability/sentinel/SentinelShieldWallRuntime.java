@@ -1,9 +1,13 @@
 package com.feel.gems.power.ability.sentinel;
 
 import com.feel.gems.trust.GemTrust;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -16,6 +20,8 @@ import java.util.*;
 public final class SentinelShieldWallRuntime {
     private static final Map<UUID, WallData> ACTIVE_WALLS = new HashMap<>();
     private static final double REPEL_STRENGTH = 0.5;
+    private static final int SLOW_TICKS = 30;
+    private static final int SLOW_AMPLIFIER = 1;
 
     private SentinelShieldWallRuntime() {}
 
@@ -56,6 +62,9 @@ public final class SentinelShieldWallRuntime {
      * Tick the shield walls - removes expired walls and repels hostile entities.
      */
     public static void tick(long currentTime, String worldId, ServerWorld world) {
+        if (ACTIVE_WALLS.isEmpty()) {
+            return;
+        }
         // Remove expired walls
         ACTIVE_WALLS.entrySet().removeIf(entry -> 
             entry.getValue().worldId.equals(worldId) && currentTime > entry.getValue().endTime
@@ -74,11 +83,25 @@ public final class SentinelShieldWallRuntime {
             
             // Find entities in or near the wall
             for (Entity entity : world.getOtherEntities(null, wallBox)) {
+                if (entity instanceof ProjectileEntity projectile) {
+                    Entity shooter = projectile.getOwner();
+                    if (shooter instanceof ServerPlayerEntity shooterPlayer) {
+                        if (shooterPlayer.getUuid().equals(wall.ownerId) || GemTrust.isTrusted(owner, shooterPlayer)) {
+                            continue;
+                        }
+                    }
+                    world.spawnParticles(ParticleTypes.END_ROD,
+                            entity.getX(), entity.getY(), entity.getZ(),
+                            6, 0.2, 0.2, 0.2, 0.05);
+                    projectile.discard();
+                    continue;
+                }
                 if (!(entity instanceof LivingEntity living)) continue;
                 
                 // Don't repel the wall owner or their trusted allies
                 if (entity instanceof ServerPlayerEntity targetPlayer) {
                     if (targetPlayer.getUuid().equals(wall.ownerId)) continue;
+                    if (VoidImmunity.shouldBlockEffect(owner, targetPlayer)) continue;
                     if (GemTrust.isTrusted(owner, targetPlayer)) continue;
                 }
                 
@@ -104,6 +127,15 @@ public final class SentinelShieldWallRuntime {
                 world.spawnParticles(ParticleTypes.END_ROD, 
                         entityPos.x, entityPos.y + 1, entityPos.z, 
                         3, 0.2, 0.2, 0.2, 0.02);
+
+                if (wall.positions.contains(BlockPos.ofFloored(entityPos))) {
+                    living.addStatusEffect(new StatusEffectInstance(
+                            StatusEffects.SLOWNESS,
+                            SLOW_TICKS,
+                            SLOW_AMPLIFIER,
+                            true, false, false
+                    ));
+                }
             }
         }
     }
@@ -112,9 +144,16 @@ public final class SentinelShieldWallRuntime {
      * Backwards-compatible tick method for worlds that don't pass ServerWorld.
      */
     public static void tick(long currentTime, String worldId) {
+        if (ACTIVE_WALLS.isEmpty()) {
+            return;
+        }
         ACTIVE_WALLS.entrySet().removeIf(entry -> 
             entry.getValue().worldId.equals(worldId) && currentTime > entry.getValue().endTime
         );
+    }
+
+    public static boolean hasAnyWalls() {
+        return !ACTIVE_WALLS.isEmpty();
     }
     
     private static Vec3d calculateWallCenter(Set<BlockPos> positions) {

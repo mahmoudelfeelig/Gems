@@ -1,7 +1,9 @@
 package com.feel.gems.power.ability.bonus;
 
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -51,6 +53,14 @@ public final class BonusTremorAbility implements GemAbility {
                 e -> e != player && e.isAlive() && !(e instanceof ServerPlayerEntity p && p.isCreative()));
 
         for (LivingEntity entity : entities) {
+            if (entity instanceof ServerPlayerEntity otherPlayer) {
+                if (VoidImmunity.shouldBlockEffect(player, otherPlayer)) {
+                    continue;
+                }
+                if (GemTrust.isTrusted(player, otherPlayer)) {
+                    continue;
+                }
+            }
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, SLOW_DURATION, 1, false, false, true));
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, SLOW_DURATION, 1, false, false, true));
             

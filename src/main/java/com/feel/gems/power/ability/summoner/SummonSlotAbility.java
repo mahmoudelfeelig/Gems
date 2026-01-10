@@ -1,5 +1,6 @@
 package com.feel.gems.power.ability.summoner;
 
+import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
@@ -65,7 +66,9 @@ public final class SummonSlotAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         GemPlayerState.initIfNeeded(player);
         if (GemPlayerState.getActiveGem(player) != GemId.SUMMONER) {
-            return false;
+            if (GemPlayerState.getActiveGem(player) != GemId.PRISM || !PrismSelectionsState.hasAbility(player, id())) {
+                return false;
+            }
         }
         if (!(player.getEntityWorld() instanceof ServerWorld world)) {
             return false;

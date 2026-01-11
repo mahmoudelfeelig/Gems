@@ -6,10 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Client-side state for Chaos gem's 4 ability slots.
+ * Client-side state for Chaos gem's ability slots.
+ * Slot count is dynamic and determined by server config.
  */
 public final class ClientChaosState {
-    public static final int SLOT_COUNT = 4;
+    /** @deprecated Use {@link #slotCount()} instead. Kept for legacy compatibility. */
+    @Deprecated
+    public static final int SLOT_COUNT = 6;
     
     public record SlotState(
         String abilityName,
@@ -28,9 +31,10 @@ public final class ClientChaosState {
     }
     
     private static final List<SlotState> slots = new ArrayList<>();
+    private static int serverSlotCount = 6; // Default, updated by server payload
     
     static {
-        for (int i = 0; i < SLOT_COUNT; i++) {
+        for (int i = 0; i < 9; i++) { // Pre-allocate max possible slots
             slots.add(SlotState.inactive());
         }
     }
@@ -38,14 +42,29 @@ public final class ClientChaosState {
     private ClientChaosState() {
     }
 
+    /**
+     * Returns the current slot count as reported by the server.
+     */
+    public static int slotCount() {
+        return serverSlotCount;
+    }
+
     public static SlotState getSlot(int index) {
-        if (index < 0 || index >= SLOT_COUNT) return SlotState.inactive();
+        if (index < 0 || index >= serverSlotCount) return SlotState.inactive();
+        if (index >= slots.size()) return SlotState.inactive();
         return slots.get(index);
     }
 
     public static void update(ChaosSlotPayload payload) {
         List<ChaosSlotPayload.SlotData> data = payload.slots();
-        for (int i = 0; i < SLOT_COUNT && i < data.size(); i++) {
+        serverSlotCount = data.size();
+        
+        // Ensure we have enough slots
+        while (slots.size() < serverSlotCount) {
+            slots.add(SlotState.inactive());
+        }
+        
+        for (int i = 0; i < serverSlotCount; i++) {
             ChaosSlotPayload.SlotData d = data.get(i);
             Identifier abilityId = (d.abilityId() == null || d.abilityId().isEmpty()) 
                 ? null : Identifier.tryParse(d.abilityId());
@@ -57,10 +76,15 @@ public final class ClientChaosState {
                 d.cooldownSeconds()
             ));
         }
+        
+        // Clear any extra slots beyond server count
+        for (int i = serverSlotCount; i < slots.size(); i++) {
+            slots.set(i, SlotState.inactive());
+        }
     }
 
     public static void reset() {
-        for (int i = 0; i < SLOT_COUNT; i++) {
+        for (int i = 0; i < slots.size(); i++) {
             slots.set(i, SlotState.inactive());
         }
     }

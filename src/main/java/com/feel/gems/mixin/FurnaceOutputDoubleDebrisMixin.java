@@ -23,7 +23,8 @@ public abstract class FurnaceOutputDoubleDebrisMixin {
         if (!(player instanceof ServerPlayerEntity serverPlayer)) {
             return;
         }
-        AbilityRuntime.setOwnerIfMissing(stack, serverPlayer.getUuid());
+        String ownerName = serverPlayer.getName().getString();
+        AbilityRuntime.setOwnerWithName(stack, serverPlayer.getUuid(), ownerName);
 
         if (!GemPowers.isPassiveActive(serverPlayer, PowerIds.DOUBLE_DEBRIS)) {
             return;
@@ -32,7 +33,10 @@ public abstract class FurnaceOutputDoubleDebrisMixin {
             return;
         }
 
-        ItemStack extra = stack.copy();
+        // Duplicate the entire stack count, not just one item.
+        // This handles both normal clicks and shift-clicks.
+        ItemStack extra = new ItemStack(Items.NETHERITE_SCRAP, stack.getCount());
+        AbilityRuntime.setOwnerWithName(extra, serverPlayer.getUuid(), ownerName);
         boolean inserted = serverPlayer.getInventory().insertStack(extra);
         if (!inserted && !extra.isEmpty()) {
             serverPlayer.dropItem(extra, false);

@@ -1,5 +1,6 @@
 package com.feel.gems.power.ability.astra;
 
+import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
@@ -124,6 +125,9 @@ public final class ShadowAnchorAbility implements GemAbility {
     }
 
     private static void startPostCooldown(ServerPlayerEntity player, long now) {
+        if (GemsAdmin.noCooldowns(player)) {
+            return;
+        }
         int cooldown = GemsBalance.v().astra().shadowAnchorPostCooldownTicks();
         if (cooldown <= 0) {
             return;

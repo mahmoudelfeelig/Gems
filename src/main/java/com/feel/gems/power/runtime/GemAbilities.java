@@ -49,8 +49,8 @@ public final class GemAbilities {
             return;
         }
 
-        // Chaos gem uses 4 independent ability slots (0-3) and is unlocked by its passive at level 1.
-        if (gemId == GemId.CHAOS && abilityIndex >= 0 && abilityIndex < ChaosSlotRuntime.SLOT_COUNT) {
+        // Chaos gem uses independent ability slots and is unlocked by its passive at level 1.
+        if (gemId == GemId.CHAOS && abilityIndex >= 0 && abilityIndex < ChaosSlotRuntime.slotCount()) {
             ChaosSlotRuntime.activateSlot(player, abilityIndex);
             return;
         }

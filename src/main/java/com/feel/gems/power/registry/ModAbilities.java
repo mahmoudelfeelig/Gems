@@ -166,6 +166,7 @@ public final class ModAbilities {
         register(new HunterCripplingShotAbility());
         register(new HunterPackTacticsAbility());
         register(new HunterCallThePackAbility());
+        register(new HunterOriginTrackingAbility());
 
         // Sentinel
         register(new SentinelShieldWallAbility());

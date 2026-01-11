@@ -307,7 +307,8 @@
         "gems:hunter_net_shot",
         "gems:hunter_crippling_shot",
         "gems:hunter_pack_tactics",
-        "gems:hunter_call_the_pack"
+        "gems:hunter_call_the_pack",
+        "gems:hunter_origin_tracking"
       ]
     },
     {

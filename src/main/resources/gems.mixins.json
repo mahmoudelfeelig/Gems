@@ -36,6 +36,7 @@
     "LivingEntitySummonDeathMixin",
     "EntitySummonDiscardMixin",
     "LivingEntityAfterimageMixin",
+    "LivingEntityElytraNetMixin",
     "PlayerEntityBackstabMixin",
     "LivingEntityHealScalingMixin",
     "LivingEntityFallDamageMixin",

@@ -236,6 +236,7 @@ public final class PowerIds {
     public static final Identifier HUNTER_CRIPPLING_SHOT = id("hunter_crippling_shot");
     public static final Identifier HUNTER_PACK_TACTICS = id("hunter_pack_tactics");
     public static final Identifier HUNTER_CALL_THE_PACK = id("hunter_call_the_pack");
+    public static final Identifier HUNTER_ORIGIN_TRACKING = id("hunter_origin_tracking");
 
     // Sentinel gem
     public static final Identifier SENTINEL_GUARDIAN_AURA = id("sentinel_guardian_aura");

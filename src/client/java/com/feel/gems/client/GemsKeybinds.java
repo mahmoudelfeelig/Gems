@@ -32,6 +32,7 @@ public final class GemsKeybinds {
     private static KeyBinding[] BONUS_ABILITY_KEYS;
     private static KeyBinding BONUS_SCREEN_KEY;
     private static KeyBinding SPY_OBSERVED_SCREEN_KEY;
+    private static KeyBinding TOGGLE_CONTROL_MODE_KEY;
 
     private GemsKeybinds() {
     }
@@ -61,6 +62,9 @@ public final class GemsKeybinds {
 
         // Spy observed abilities screen keybind (O by default)
         SPY_OBSERVED_SCREEN_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.spy_observed_screen", GLFW.GLFW_KEY_O, CATEGORY));
+
+        // Toggle control mode keybind (unbound by default - user can assign)
+        TOGGLE_CONTROL_MODE_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.toggle_control_mode", GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
     }
 
     public static boolean isModifierDown() {
@@ -119,6 +123,13 @@ public final class GemsKeybinds {
         if (SPY_OBSERVED_SCREEN_KEY != null && client.currentScreen == null) {
             while (SPY_OBSERVED_SCREEN_KEY.wasPressed()) {
                 openSpyObservedScreen(client);
+            }
+        }
+
+        // Toggle control mode key
+        if (TOGGLE_CONTROL_MODE_KEY != null) {
+            while (TOGGLE_CONTROL_MODE_KEY.wasPressed()) {
+                toggleControlMode(client);
             }
         }
         
@@ -202,6 +213,18 @@ public final class GemsKeybinds {
         ClientPlayNetworking.send(SpyObservedOpenRequestPayload.INSTANCE);
     }
 
+    private static void toggleControlMode(MinecraftClient client) {
+        GemsClientConfig cfg = GemsClientConfigManager.config();
+        if (cfg.controlMode == GemsClientConfig.ControlMode.CHORD) {
+            cfg.controlMode = GemsClientConfig.ControlMode.CUSTOM;
+            sendActionBar(client, Text.translatable("gems.controls.mode.custom"));
+        } else {
+            cfg.controlMode = GemsClientConfig.ControlMode.CHORD;
+            sendActionBar(client, Text.translatable("gems.controls.mode.chord"));
+        }
+        GemsClientConfigManager.save(cfg);
+    }
+
     public static boolean useChordControls() {
         return GemsClientConfigManager.config().controlMode == GemsClientConfig.ControlMode.CHORD;
     }
@@ -247,10 +270,10 @@ public final class GemsKeybinds {
             return;
         }
 
-        // Chaos: has 4 independent slots (0-3), each can be rolled or used
+        // Chaos: has independent slots, each can be rolled or used
         if (ClientGemState.activeGem() == GemId.CHAOS) {
             int slotIndex = slotNumber - 1;
-            if (slotIndex < 0 || slotIndex >= ClientChaosState.SLOT_COUNT) {
+            if (slotIndex < 0 || slotIndex >= ClientChaosState.slotCount()) {
                 return;
             }
             // Server handles both rolling new abilities and using existing ones

@@ -9,23 +9,41 @@ public final class LegendaryCooldowns {
     private LegendaryCooldowns() {
     }
 
+    /**
+     * Gets the cooldown multiplier for abilities. Chrono Charms stack multiplicatively.
+     * 1 charm = 0.5x (50% cooldown), 2 charms = 0.25x (25% cooldown), etc.
+     */
     public static float getCooldownMultiplier(ServerPlayerEntity player) {
         if (player == null) {
             return 1.0F;
         }
-        return hasChronoCharm(player) ? GemsBalance.v().legendary().chronoCharmCooldownMultiplier() : 1.0F;
+        int charmCount = countChronoCharms(player);
+        if (charmCount <= 0) {
+            return 1.0F;
+        }
+        float baseMultiplier = GemsBalance.v().legendary().chronoCharmCooldownMultiplier();
+        // Stack multiplicatively: 2 charms = mult^2, 3 charms = mult^3, etc.
+        return (float) Math.pow(baseMultiplier, charmCount);
     }
 
-    public static boolean hasChronoCharm(ServerPlayerEntity player) {
+    /**
+     * Counts how many Chrono Charms the player has in their inventory.
+     */
+    public static int countChronoCharms(ServerPlayerEntity player) {
         if (player == null) {
-            return false;
+            return 0;
         }
+        int count = 0;
         PlayerInventory inv = player.getInventory();
         for (int i = 0; i < inv.size(); i++) {
             if (inv.getStack(i).isOf(ModItems.CHRONO_CHARM)) {
-                return true;
+                count += inv.getStack(i).getCount();
             }
         }
-        return false;
+        return count;
+    }
+
+    public static boolean hasChronoCharm(ServerPlayerEntity player) {
+        return countChronoCharms(player) > 0;
     }
 }

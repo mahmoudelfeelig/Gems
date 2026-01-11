@@ -7,6 +7,8 @@ import java.util.UUID;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
 
 public final class DuelistMirrorMatchRuntime {
     private DuelistMirrorMatchRuntime() {
@@ -38,6 +40,9 @@ public final class DuelistMirrorMatchRuntime {
         MinecraftServer server = player.getEntityWorld().getServer();
         UUID partner = partnerUuid(player);
 
+        // Remove the barrier cage before clearing state
+        removeCageIfPresent(player);
+
         DuelistMirrorMatchAbility.clearDuel(player);
         syncDisguise(player, null);
 
@@ -45,11 +50,23 @@ public final class DuelistMirrorMatchRuntime {
         if (server != null && partner != null) {
             ServerPlayerEntity partnerPlayer = server.getPlayerManager().getPlayer(partner);
             if (partnerPlayer != null) {
+                // Note: We don't call removeCageIfPresent here because both players share the same cage
+                // and we already removed it above
                 DuelistMirrorMatchAbility.clearDuel(partnerPlayer);
                 syncDisguise(partnerPlayer, null);
             } else {
                 clearDisguiseForAllViewers(server, partner);
             }
+        }
+    }
+
+    /**
+     * Remove the barrier cage if the player is in a duel with a cage.
+     */
+    private static void removeCageIfPresent(ServerPlayerEntity player) {
+        BlockPos cageCenter = DuelistMirrorMatchAbility.getCageCenter(player);
+        if (cageCenter != null && player.getEntityWorld() instanceof ServerWorld world) {
+            DuelistMirrorMatchAbility.removeCage(world, cageCenter);
         }
     }
 

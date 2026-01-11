@@ -109,7 +109,7 @@ public final class GemsPlayerDeath {
             } else if (!skipHeartDrop && victimHeartsBefore > GemPlayerState.minMaxHearts()) {
                 GemPlayerState.setMaxHearts(victim, victimHeartsBefore - 1);
                 ItemStack heart = new ItemStack(ModItems.HEART);
-                AbilityRuntime.setOwnerIfMissing(heart, victim.getUuid());
+                AbilityRuntime.setOwnerWithName(heart, victim.getUuid(), victim.getName().getString());
                 victim.dropStack(victim.getEntityWorld(), heart);
             }
         }

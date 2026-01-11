@@ -1,6 +1,7 @@
 package com.feel.gems.power.gem.summoner;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryCooldowns;
 import com.feel.gems.state.GemsPersistentDataHolder;
@@ -427,6 +428,9 @@ public final class SummonerSummons {
     }
 
     public static void applyCooldown(ServerPlayerEntity owner) {
+        if (GemsAdmin.noCooldowns(owner)) {
+            return;
+        }
         int cooldownTicks = GemsBalance.v().summoner().summonSlotCooldownTicks();
         if (cooldownTicks <= 0) {
             return;

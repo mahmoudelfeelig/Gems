@@ -106,6 +106,9 @@ public final class AbilityRuntime {
 
     private static final String CUSTOM_DATA_KEY_AMPLIFY = "gemsAmplify";
     private static final String CUSTOM_DATA_KEY_OWNER = "gemsOwner";
+    private static final String CUSTOM_DATA_KEY_OWNER_NAME = "gemsOwnerName";
+    private static final String CUSTOM_DATA_KEY_FIRST_OWNER = "gemsFirstOwner";
+    private static final String CUSTOM_DATA_KEY_FIRST_OWNER_NAME = "gemsFirstOwnerName";
 
     private AbilityRuntime() {
     }
@@ -419,12 +422,76 @@ public final class AbilityRuntime {
         NbtComponent.set(DataComponentTypes.CUSTOM_DATA, stack, nbt -> GemsNbt.putUuid(nbt, CUSTOM_DATA_KEY_OWNER, owner));
     }
 
+    /**
+     * Sets owner UUID and name on an item (for display purposes).
+     * Also sets first owner if not already set.
+     */
+    public static void setOwnerWithName(ItemStack stack, UUID owner, String ownerName) {
+        if (stack.isEmpty()) {
+            return;
+        }
+        NbtComponent.set(DataComponentTypes.CUSTOM_DATA, stack, nbt -> {
+            GemsNbt.putUuid(nbt, CUSTOM_DATA_KEY_OWNER, owner);
+            if (ownerName != null && !ownerName.isEmpty()) {
+                nbt.putString(CUSTOM_DATA_KEY_OWNER_NAME, ownerName);
+            }
+            // Set first owner only if not already set
+            if (!GemsNbt.containsUuid(nbt, CUSTOM_DATA_KEY_FIRST_OWNER)) {
+                GemsNbt.putUuid(nbt, CUSTOM_DATA_KEY_FIRST_OWNER, owner);
+                if (ownerName != null && !ownerName.isEmpty()) {
+                    nbt.putString(CUSTOM_DATA_KEY_FIRST_OWNER_NAME, ownerName);
+                }
+            }
+        });
+    }
+
     public static UUID getOwner(ItemStack stack) {
         NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (custom == null) {
             return null;
         }
         return GemsNbt.getUuid(custom.copyNbt(), CUSTOM_DATA_KEY_OWNER);
+    }
+
+    /**
+     * Gets the owner name stored on an item, if available.
+     */
+    public static String getOwnerName(ItemStack stack) {
+        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (custom == null) {
+            return null;
+        }
+        NbtCompound nbt = custom.copyNbt();
+        if (!nbt.contains(CUSTOM_DATA_KEY_OWNER_NAME)) {
+            return null;
+        }
+        return nbt.getString(CUSTOM_DATA_KEY_OWNER_NAME).orElse(null);
+    }
+
+    /**
+     * Gets the FIRST owner UUID from an item (the original crafter/finder).
+     */
+    public static UUID getFirstOwner(ItemStack stack) {
+        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (custom == null) {
+            return null;
+        }
+        return GemsNbt.getUuid(custom.copyNbt(), CUSTOM_DATA_KEY_FIRST_OWNER);
+    }
+
+    /**
+     * Gets the FIRST owner name stored on an item, if available.
+     */
+    public static String getFirstOwnerName(ItemStack stack) {
+        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (custom == null) {
+            return null;
+        }
+        NbtCompound nbt = custom.copyNbt();
+        if (!nbt.contains(CUSTOM_DATA_KEY_FIRST_OWNER_NAME)) {
+            return null;
+        }
+        return nbt.getString(CUSTOM_DATA_KEY_FIRST_OWNER_NAME).orElse(null);
     }
 
     private static java.util.List<UUID> readUuidList(NbtCompound nbt, String key) {

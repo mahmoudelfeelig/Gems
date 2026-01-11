@@ -110,6 +110,8 @@ public final class GemsBalanceConfig {
         public int slotDurationSeconds = 300;
         /** Cooldown between uses of a rolled Chaos slot ability (seconds). */
         public int slotAbilityCooldownSeconds = 10;
+        /** Number of Chaos slots available (1-9). */
+        public int slotCount = 6;
     }
 
     /**
@@ -806,6 +808,10 @@ public final class GemsBalanceConfig {
         public int sixPackPainWideTargetRangeBlocks = 30;
         public int sixPackPainBuffDurationTicks = 200; // 10 seconds
         public int sixPackPainDebuffDurationTicks = 100; // 5 seconds
+
+        // Origin Tracking
+        public int originTrackingCooldownSeconds = 30;
+        public int originTrackingDurationSeconds = 60;
     }
 
     public static final class Sentinel {

@@ -371,6 +371,55 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += ROW_H;
                 y = addFloatRow("Overcharge self-damage per second", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.overchargeSelfDamagePerSecond, v -> cfg.flux.overchargeSelfDamagePerSecond = v, 0.0F, 20.0F);
                 logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                // Passives
+                y = addIntRow("Flux Capacitor charge threshold", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxCapacitorChargeThreshold, v -> cfg.flux.fluxCapacitorChargeThreshold = v, 0, 200);
+                logicalY += ROW_H;
+                y = addIntRow("Flux Capacitor absorption amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxCapacitorAbsorptionAmplifier, v -> cfg.flux.fluxCapacitorAbsorptionAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Flux Conductivity charge per damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxConductivityChargePerDamage, v -> cfg.flux.fluxConductivityChargePerDamage = v, 0, 50);
+                logicalY += ROW_H;
+                y = addIntRow("Flux Conductivity max charge per hit", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxConductivityMaxChargePerHit, v -> cfg.flux.fluxConductivityMaxChargePerHit = v, 0, 100);
+                logicalY += ROW_H;
+                y = addIntRow("Flux Insulation charge threshold", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxInsulationChargeThreshold, v -> cfg.flux.fluxInsulationChargeThreshold = v, 0, 200);
+                logicalY += ROW_H;
+                y = addFloatRow("Flux Insulation damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxInsulationDamageMultiplier, v -> cfg.flux.fluxInsulationDamageMultiplier = v, 0.0F, 2.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                // Flux Surge
+                y = addIntRow("Flux Surge cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxSurgeCooldownSeconds, v -> cfg.flux.fluxSurgeCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Flux Surge duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxSurgeDurationSeconds, v -> cfg.flux.fluxSurgeDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Flux Surge speed amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxSurgeSpeedAmplifier, v -> cfg.flux.fluxSurgeSpeedAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Flux Surge resistance amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxSurgeResistanceAmplifier, v -> cfg.flux.fluxSurgeResistanceAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Flux Surge charge cost", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxSurgeChargeCost, v -> cfg.flux.fluxSurgeChargeCost = v, 0, 200);
+                logicalY += ROW_H;
+                y = addIntRow("Flux Surge radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxSurgeRadiusBlocks, v -> cfg.flux.fluxSurgeRadiusBlocks = v, 0, 32);
+                logicalY += ROW_H;
+                y = addDoubleRow("Flux Surge knockback", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxSurgeKnockback, v -> cfg.flux.fluxSurgeKnockback = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                // Flux Discharge
+                y = addIntRow("Flux Discharge cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxDischargeCooldownSeconds, v -> cfg.flux.fluxDischargeCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Flux Discharge radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxDischargeRadiusBlocks, v -> cfg.flux.fluxDischargeRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addFloatRow("Flux Discharge base damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxDischargeBaseDamage, v -> cfg.flux.fluxDischargeBaseDamage = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Flux Discharge damage per charge", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxDischargeDamagePerCharge, v -> cfg.flux.fluxDischargeDamagePerCharge = v, 0.0F, 2.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Flux Discharge max damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxDischargeMaxDamage, v -> cfg.flux.fluxDischargeMaxDamage = v, 0.0F, 80.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Flux Discharge min charge", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxDischargeMinCharge, v -> cfg.flux.fluxDischargeMinCharge = v, 0, 200);
+                logicalY += ROW_H;
+                y = addDoubleRow("Flux Discharge knockback", y, labelX, labelW, fieldX, fieldW, () -> cfg.flux.fluxDischargeKnockback, v -> cfg.flux.fluxDischargeKnockback = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
             }
             case LIFE -> {
                 y = addIntRow("Vitality Vortex cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.life.vitalityVortexCooldownSeconds, v -> cfg.life.vitalityVortexCooldownSeconds = v, 0, 3600);
@@ -461,8 +510,44 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += ROW_H;
                 y = addDoubleRow("Group Bash up velocity Y", y, labelX, labelW, fieldX, fieldW, () -> cfg.puff.groupBashUpVelocityY, v -> cfg.puff.groupBashUpVelocityY = v, 0.0D, 5.0D);
                 logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Gust cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.puff.gustCooldownSeconds, v -> cfg.puff.gustCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Gust radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.puff.gustRadiusBlocks, v -> cfg.puff.gustRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addDoubleRow("Gust up velocity Y", y, labelX, labelW, fieldX, fieldW, () -> cfg.puff.gustUpVelocityY, v -> cfg.puff.gustUpVelocityY = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
+                y = addDoubleRow("Gust knockback", y, labelX, labelW, fieldX, fieldW, () -> cfg.puff.gustKnockback, v -> cfg.puff.gustKnockback = v, 0.0D, 5.0D);
+                logicalY += ROW_H;
+                y = addIntRow("Gust slowness duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.puff.gustSlownessDurationSeconds, v -> cfg.puff.gustSlownessDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Gust slowness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.puff.gustSlownessAmplifier, v -> cfg.puff.gustSlownessAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Gust slow falling duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.puff.gustSlowFallingDurationSeconds, v -> cfg.puff.gustSlowFallingDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Windborne duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.puff.windborneDurationSeconds, v -> cfg.puff.windborneDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Windborne slow falling amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.puff.windborneSlowFallingAmplifier, v -> cfg.puff.windborneSlowFallingAmplifier = v, 0, 10);
+                logicalY += ROW_H;
             }
             case SPEED -> {
+                // Passives
+                y = addDoubleRow("Momentum min speed", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.momentumMinSpeed, v -> cfg.speed.momentumMinSpeed = v, 0.0D, 1.0D);
+                logicalY += ROW_H;
+                y = addDoubleRow("Momentum max speed", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.momentumMaxSpeed, v -> cfg.speed.momentumMaxSpeed = v, 0.0D, 2.0D);
+                logicalY += ROW_H;
+                y = addFloatRow("Momentum min multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.momentumMinMultiplier, v -> cfg.speed.momentumMinMultiplier = v, 0.0F, 2.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Momentum max multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.momentumMaxMultiplier, v -> cfg.speed.momentumMaxMultiplier = v, 0.0F, 3.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Frictionless speed amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.frictionlessSpeedAmplifier, v -> cfg.speed.frictionlessSpeedAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                // Abilities
                 y = addIntRow("Arc Shot cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.arcShotCooldownSeconds, v -> cfg.speed.arcShotCooldownSeconds = v, 0, 3600);
                 logicalY += ROW_H;
                 y = addIntRow("Arc Shot range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.arcShotRangeBlocks, v -> cfg.speed.arcShotRangeBlocks = v, 0, 256);
@@ -499,6 +584,42 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += ROW_H;
                 y = addIntRow("Terminal Velocity haste amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.terminalVelocityHasteAmplifier, v -> cfg.speed.terminalVelocityHasteAmplifier = v, 0, 10);
                 logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Slipstream cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.slipstreamCooldownSeconds, v -> cfg.speed.slipstreamCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Slipstream duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.slipstreamDurationSeconds, v -> cfg.speed.slipstreamDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Slipstream length blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.slipstreamLengthBlocks, v -> cfg.speed.slipstreamLengthBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addIntRow("Slipstream radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.slipstreamRadiusBlocks, v -> cfg.speed.slipstreamRadiusBlocks = v, 0, 16);
+                logicalY += ROW_H;
+                y = addIntRow("Slipstream ally speed amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.slipstreamAllySpeedAmplifier, v -> cfg.speed.slipstreamAllySpeedAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Slipstream enemy slowness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.slipstreamEnemySlownessAmplifier, v -> cfg.speed.slipstreamEnemySlownessAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addDoubleRow("Slipstream enemy knockback", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.slipstreamEnemyKnockback, v -> cfg.speed.slipstreamEnemyKnockback = v, 0.0D, 3.0D);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Afterimage cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.afterimageCooldownSeconds, v -> cfg.speed.afterimageCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Afterimage duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.afterimageDurationSeconds, v -> cfg.speed.afterimageDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Afterimage speed amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.afterimageSpeedAmplifier, v -> cfg.speed.afterimageSpeedAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Tempo Shift cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.tempoShiftCooldownSeconds, v -> cfg.speed.tempoShiftCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Tempo Shift duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.tempoShiftDurationSeconds, v -> cfg.speed.tempoShiftDurationSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addIntRow("Tempo Shift radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.tempoShiftRadiusBlocks, v -> cfg.speed.tempoShiftRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addIntRow("Tempo Shift ally cooldown ticks/sec", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.tempoShiftAllyCooldownTicksPerSecond, v -> cfg.speed.tempoShiftAllyCooldownTicksPerSecond = v, 0, 40);
+                logicalY += ROW_H;
+                y = addIntRow("Tempo Shift enemy cooldown ticks/sec", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.tempoShiftEnemyCooldownTicksPerSecond, v -> cfg.speed.tempoShiftEnemyCooldownTicksPerSecond = v, 0, 40);
+                logicalY += ROW_H;
             }
             case STRENGTH -> {
                 y = addIntRow("Nullify cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.strength.nullifyCooldownSeconds, v -> cfg.strength.nullifyCooldownSeconds = v, 0, 3600);
@@ -528,6 +649,15 @@ public final class GemsConfigScreen extends Screen {
                 y = addIntRow("Chad Strength every hits", y, labelX, labelW, fieldX, fieldW, () -> cfg.strength.chadEveryHits, v -> cfg.strength.chadEveryHits = v, 1, 20);
                 logicalY += ROW_H;
                 y = addFloatRow("Chad Strength bonus damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.strength.chadBonusDamage, v -> cfg.strength.chadBonusDamage = v, 0.0F, 80.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                // Passives
+                y = addFloatRow("Adrenaline threshold hearts", y, labelX, labelW, fieldX, fieldW, () -> cfg.strength.adrenalineThresholdHearts, v -> cfg.strength.adrenalineThresholdHearts = v, 0.0F, 20.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Adrenaline duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.strength.adrenalineDurationSeconds, v -> cfg.strength.adrenalineDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Adrenaline resistance amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.strength.adrenalineResistanceAmplifier, v -> cfg.strength.adrenalineResistanceAmplifier = v, 0, 10);
                 logicalY += ROW_H;
             }
             case WEALTH -> {
@@ -1027,6 +1157,8 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;
+                y = addIntRow("Slot count", y, labelX, labelW, fieldX, fieldW, () -> cfg.chaos.slotCount, v -> cfg.chaos.slotCount = v, 1, 9);
+                logicalY += ROW_H;
                 y = addIntRow("Slot duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.chaos.slotDurationSeconds, v -> cfg.chaos.slotDurationSeconds = v, 1, 3600);
                 logicalY += ROW_H;
                 y = addIntRow("Slot ability cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.chaos.slotAbilityCooldownSeconds, v -> cfg.chaos.slotAbilityCooldownSeconds = v, 0, 3600);
@@ -1143,6 +1275,12 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;
+                y = addIntRow("Rapid Strike cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.rapidStrikeCooldownSeconds, v -> cfg.duelist.rapidStrikeCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Rapid Strike duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.rapidStrikeDurationSeconds, v -> cfg.duelist.rapidStrikeDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
                 y = addIntRow("Flourish cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.flourishCooldownSeconds, v -> cfg.duelist.flourishCooldownSeconds = v, 0, 3600);
                 logicalY += ROW_H;
                 y = addIntRow("Flourish radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.duelist.flourishRadiusBlocks, v -> cfg.duelist.flourishRadiusBlocks = v, 0, 32);
@@ -1246,6 +1384,13 @@ public final class GemsConfigScreen extends Screen {
                 y = addIntRow("Six-Pack Pain buff duration ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.sixPackPainBuffDurationTicks, v -> cfg.hunter.sixPackPainBuffDurationTicks = v, 0, 6000);
                 logicalY += ROW_H;
                 y = addIntRow("Six-Pack Pain debuff duration ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.sixPackPainDebuffDurationTicks, v -> cfg.hunter.sixPackPainDebuffDurationTicks = v, 0, 6000);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                // Origin Tracking
+                y = addIntRow("Origin Tracking cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.originTrackingCooldownSeconds, v -> cfg.hunter.originTrackingCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Origin Tracking duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.hunter.originTrackingDurationSeconds, v -> cfg.hunter.originTrackingDurationSeconds = v, 0, 600);
                 logicalY += ROW_H;
             }
             case SENTINEL -> {

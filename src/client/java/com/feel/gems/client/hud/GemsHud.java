@@ -180,8 +180,8 @@ public final class GemsHud {
                 }
             }
         } else if (gem == GemId.CHAOS) {
-            // Chaos has 4 independent ability slots
-            for (int i = 0; i < ClientChaosState.SLOT_COUNT; i++) {
+            // Chaos has independent ability slots
+            for (int i = 0; i < ClientChaosState.slotCount(); i++) {
                 ClientChaosState.SlotState slot = ClientChaosState.getSlot(i);
                 String key = GemsKeybinds.chordSlotLabel(i + 1);
                 boolean selected = selectedSlot == (i + 1);

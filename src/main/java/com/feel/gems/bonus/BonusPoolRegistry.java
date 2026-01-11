@@ -136,6 +136,46 @@ public final class BonusPoolRegistry {
             PowerIds.NULLIFY                  // Strength's immunity ability
     );
 
+    /**
+     * Abilities that require gem-specific state and won't work standalone for Chaos gem.
+     * These abilities depend on state accumulated by other passives.
+     */
+    public static final List<Identifier> CHAOS_ABILITY_BLACKLIST = List.of(
+            // Flux abilities require FluxCharge state
+            PowerIds.FLUX_BEAM,
+            PowerIds.FLUX_SURGE,
+            PowerIds.FLUX_DISCHARGE,
+            // Summoner abilities require loadout configuration
+            PowerIds.SUMMON_SLOT_1,
+            PowerIds.SUMMON_SLOT_2,
+            PowerIds.SUMMON_SLOT_3,
+            PowerIds.SUMMON_SLOT_4,
+            PowerIds.SUMMON_SLOT_5,
+            // Spy abilities require observed state
+            PowerIds.SPY_ECHO,
+            PowerIds.SPY_STEAL,
+            PowerIds.SPY_STOLEN_CAST,
+            // Chaos/Prism/Void special mechanics
+            PowerIds.NULLIFY,
+            PowerIds.CHAOS_RANDOM_ROTATION
+    );
+
+    /**
+     * Passives that require gem-specific state and won't work standalone for Chaos gem.
+     */
+    public static final List<Identifier> CHAOS_PASSIVE_BLACKLIST = List.of(
+            // Flux passives require FluxCharge system
+            PowerIds.FLUX_CAPACITOR,
+            PowerIds.FLUX_OVERCHARGE_RAMP,
+            PowerIds.FLUX_CONDUCTIVITY,
+            PowerIds.FLUX_INSULATION,
+            PowerIds.FLUX_ALLY_INVERSION,
+            // Void immunity - too powerful
+            PowerIds.VOID_IMMUNITY,
+            // Chaos rotation - causes recursive issues
+            PowerIds.CHAOS_RANDOM_ROTATION
+    );
+
     private BonusPoolRegistry() {
     }
 
@@ -149,5 +189,13 @@ public final class BonusPoolRegistry {
 
     public static boolean isBlacklisted(Identifier id) {
         return PRISM_BLACKLIST.contains(id);
+    }
+
+    public static boolean isChaosAbilityBlacklisted(Identifier id) {
+        return CHAOS_ABILITY_BLACKLIST.contains(id);
+    }
+
+    public static boolean isChaosPassiveBlacklisted(Identifier id) {
+        return CHAOS_PASSIVE_BLACKLIST.contains(id);
     }
 }

@@ -513,6 +513,7 @@ public final class GemsBalance {
         cfg.chaos.rotationAbilityCooldownSeconds = ticksToSeconds(v.chaos().rotationAbilityCooldownTicks());
         cfg.chaos.slotDurationSeconds = ticksToSeconds(v.chaos().slotDurationTicks());
         cfg.chaos.slotAbilityCooldownSeconds = ticksToSeconds(v.chaos().slotAbilityCooldownTicks());
+        cfg.chaos.slotCount = v.chaos().slotCount();
         cfg.prism.maxGemAbilities = v.prism().maxGemAbilities();
         cfg.prism.maxGemPassives = v.prism().maxGemPassives();
 
@@ -632,6 +633,8 @@ public final class GemsBalance {
         cfg.hunter.sixPackPainWideTargetRangeBlocks = v.hunter().sixPackPainWideTargetRangeBlocks();
         cfg.hunter.sixPackPainBuffDurationTicks = v.hunter().sixPackPainBuffDurationTicks();
         cfg.hunter.sixPackPainDebuffDurationTicks = v.hunter().sixPackPainDebuffDurationTicks();
+        cfg.hunter.originTrackingCooldownSeconds = ticksToSeconds(v.hunter().originTrackingCooldownTicks());
+        cfg.hunter.originTrackingDurationSeconds = ticksToSeconds(v.hunter().originTrackingDurationTicks());
 
         // Sentinel
         cfg.sentinel.guardianAuraDamageReduction = v.sentinel().guardianAuraDamageReduction();
@@ -1935,14 +1938,16 @@ public final class GemsBalance {
             int rotationTicks,
             int rotationAbilityCooldownTicks,
             int slotDurationTicks,
-            int slotAbilityCooldownTicks
+            int slotAbilityCooldownTicks,
+            int slotCount
     ) {
         static Chaos from(GemsBalanceConfig.Chaos cfg) {
             return new Chaos(
                     secClamped(cfg.rotationSeconds, 1, 24 * 3600),
                     secClamped(cfg.rotationAbilityCooldownSeconds, 0, 3600),
                     secClamped(cfg.slotDurationSeconds, 1, 24 * 3600),
-                    secClamped(cfg.slotAbilityCooldownSeconds, 0, 3600)
+                    secClamped(cfg.slotAbilityCooldownSeconds, 0, 3600),
+                    clampInt(cfg.slotCount, 1, 9)
             );
         }
     }
@@ -2049,7 +2054,10 @@ public final class GemsBalance {
             int sixPackPainCloseTargetRangeBlocks,
             int sixPackPainWideTargetRangeBlocks,
             int sixPackPainBuffDurationTicks,
-            int sixPackPainDebuffDurationTicks
+            int sixPackPainDebuffDurationTicks,
+            // Origin Tracking
+            int originTrackingCooldownTicks,
+            int originTrackingDurationTicks
     ) {
         static Hunter from(GemsBalanceConfig.Hunter cfg) {
             return new Hunter(
@@ -2082,7 +2090,9 @@ public final class GemsBalance {
                     clampInt(cfg.sixPackPainCloseTargetRangeBlocks, 1, 64),
                     clampInt(cfg.sixPackPainWideTargetRangeBlocks, 1, 128),
                     clampInt(cfg.sixPackPainBuffDurationTicks, 0, 6000),
-                    clampInt(cfg.sixPackPainDebuffDurationTicks, 0, 6000)
+                    clampInt(cfg.sixPackPainDebuffDurationTicks, 0, 6000),
+                    secClamped(cfg.originTrackingCooldownSeconds, 0, 3600),
+                    secClamped(cfg.originTrackingDurationSeconds, 0, 600)
             );
         }
     }

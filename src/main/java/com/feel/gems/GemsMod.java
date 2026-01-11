@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.feel.gems.net.ServerBonusNetworking;
 import com.feel.gems.net.ServerPrismNetworking;
+import com.feel.gems.net.ServerTrophyNecklaceNetworking;
 
 public final class GemsMod implements ModInitializer {
     public static final String MOD_ID = "gems";
@@ -45,6 +46,7 @@ public final class GemsMod implements ModInitializer {
         ServerSummonerNetworking.register();
         ServerBonusNetworking.register();
         ServerPrismNetworking.register();
+        ServerTrophyNecklaceNetworking.register();
         ServerSpyObservedNetworking.register();
         GemsModEvents.register();
         GemsCommands.register();

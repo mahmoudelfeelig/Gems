@@ -508,12 +508,21 @@ public final class GemsBalance {
         cfg.air.airMaceUnbreakingLevel = v.air().airMaceUnbreakingLevel();
         cfg.air.airMaceFireAspectLevel = v.air().airMaceFireAspectLevel();
 
+        cfg.voidGem.blockAllStatusEffects = v.voidGem().blockAllStatusEffects();
+        cfg.chaos.rotationSeconds = ticksToSeconds(v.chaos().rotationTicks());
+        cfg.chaos.rotationAbilityCooldownSeconds = ticksToSeconds(v.chaos().rotationAbilityCooldownTicks());
+        cfg.chaos.slotDurationSeconds = ticksToSeconds(v.chaos().slotDurationTicks());
+        cfg.chaos.slotAbilityCooldownSeconds = ticksToSeconds(v.chaos().slotAbilityCooldownTicks());
+        cfg.prism.maxGemAbilities = v.prism().maxGemAbilities();
+        cfg.prism.maxGemPassives = v.prism().maxGemPassives();
+
         cfg.legendary.craftSeconds = ticksToSeconds(v.legendary().craftTicks());
         cfg.legendary.craftMaxPerItem = v.legendary().craftMaxPerItem();
         cfg.legendary.craftMaxActivePerItem = v.legendary().craftMaxActivePerItem();
         cfg.legendary.trackerRefreshSeconds = ticksToSeconds(v.legendary().trackerRefreshTicks());
         cfg.legendary.trackerMaxDistanceBlocks = v.legendary().trackerMaxDistanceBlocks();
         cfg.legendary.recallCooldownSeconds = ticksToSeconds(v.legendary().recallCooldownTicks());
+        cfg.legendary.chronoCharmCooldownMultiplier = v.legendary().chronoCharmCooldownMultiplier();
         cfg.legendary.hypnoHoldSeconds = ticksToSeconds(v.legendary().hypnoHoldTicks());
         cfg.legendary.hypnoRangeBlocks = v.legendary().hypnoRangeBlocks();
         cfg.legendary.hypnoViewRangeBlocks = v.legendary().hypnoViewRangeBlocks();
@@ -535,6 +544,25 @@ public final class GemsBalance {
         cfg.legendary.thirdStrikeWindowSeconds = ticksToSeconds(v.legendary().thirdStrikeWindowTicks());
         cfg.legendary.thirdStrikeBonusDamage = v.legendary().thirdStrikeBonusDamage();
         cfg.legendary.vampiricHealAmount = v.legendary().vampiricHealAmount();
+        cfg.legendary.duelistsRapierParryWindowTicks = v.legendary().duelistsRapierParryWindowTicks();
+        cfg.legendary.duelistsRapierCooldownSeconds = ticksToSeconds(v.legendary().duelistsRapierCooldownTicks());
+        cfg.legendary.duelistsRapierCritDamageMultiplier = v.legendary().duelistsRapierCritDamageMultiplier();
+        cfg.legendary.challengersGauntletCooldownSeconds = ticksToSeconds(v.legendary().challengersGauntletCooldownTicks());
+        cfg.legendary.challengersGauntletRangeBlocks = v.legendary().challengersGauntletRangeBlocks();
+        cfg.legendary.reversalMirrorDurationSeconds = ticksToSeconds(v.legendary().reversalMirrorDurationTicks());
+        cfg.legendary.reversalMirrorCooldownSeconds = ticksToSeconds(v.legendary().reversalMirrorCooldownTicks());
+        cfg.legendary.gladiatorsMarkDurationSeconds = ticksToSeconds(v.legendary().gladiatorsMarkDurationTicks());
+        cfg.legendary.gladiatorsMarkCooldownSeconds = ticksToSeconds(v.legendary().gladiatorsMarkCooldownTicks());
+        cfg.legendary.gladiatorsMarkRangeBlocks = v.legendary().gladiatorsMarkRangeBlocks();
+        cfg.legendary.gladiatorsMarkDamageMultiplier = v.legendary().gladiatorsMarkDamageMultiplier();
+        cfg.legendary.soulShackleDurationSeconds = ticksToSeconds(v.legendary().soulShackleDurationTicks());
+        cfg.legendary.soulShackleCooldownSeconds = ticksToSeconds(v.legendary().soulShackleCooldownTicks());
+        cfg.legendary.soulShackleRangeBlocks = v.legendary().soulShackleRangeBlocks();
+        cfg.legendary.soulShackleSplitRatio = v.legendary().soulShackleSplitRatio();
+        cfg.legendary.experienceBladeMaxSharpness = v.legendary().experienceBladeMaxSharpness();
+        cfg.legendary.experienceBladeSharpnessPerTier = v.legendary().experienceBladeSharpnessPerTier();
+        cfg.legendary.experienceBladeXpLevelsPerTier = v.legendary().experienceBladeXpLevelsPerTier();
+        cfg.legendary.trophyNecklaceMaxPassives = v.legendary().trophyNecklaceMaxPassives();
         cfg.legendary.supremeHelmetNightVisionAmplifier = v.legendary().supremeHelmetNightVisionAmplifier();
         cfg.legendary.supremeHelmetWaterBreathingAmplifier = v.legendary().supremeHelmetWaterBreathingAmplifier();
         cfg.legendary.supremeChestStrengthAmplifier = v.legendary().supremeChestStrengthAmplifier();
@@ -687,6 +715,9 @@ public final class GemsBalance {
             SpyMimic spyMimic,
             Beacon beacon,
             Air air,
+            VoidGem voidGem,
+            Chaos chaos,
+            Prism prism,
             Legendary legendary,
             Duelist duelist,
             Hunter hunter,
@@ -719,6 +750,9 @@ public final class GemsBalance {
                     SpyMimic.from(cfg.spyMimic != null ? cfg.spyMimic : new GemsBalanceConfig.SpyMimic()),
                     Beacon.from(cfg.beacon != null ? cfg.beacon : new GemsBalanceConfig.Beacon()),
                     Air.from(cfg.air != null ? cfg.air : new GemsBalanceConfig.Air()),
+                    VoidGem.from(cfg.voidGem != null ? cfg.voidGem : new GemsBalanceConfig.VoidGem()),
+                    Chaos.from(cfg.chaos != null ? cfg.chaos : new GemsBalanceConfig.Chaos()),
+                    Prism.from(cfg.prism != null ? cfg.prism : new GemsBalanceConfig.Prism()),
                     Legendary.from(cfg.legendary != null ? cfg.legendary : new GemsBalanceConfig.Legendary()),
                     Duelist.from(cfg.duelist != null ? cfg.duelist : new GemsBalanceConfig.Duelist()),
                     Hunter.from(cfg.hunter != null ? cfg.hunter : new GemsBalanceConfig.Hunter()),
@@ -1782,6 +1816,7 @@ public final class GemsBalance {
             int trackerRefreshTicks,
             int trackerMaxDistanceBlocks,
             int recallCooldownTicks,
+            float chronoCharmCooldownMultiplier,
             int hypnoHoldTicks,
             int hypnoRangeBlocks,
             int hypnoViewRangeBlocks,
@@ -1803,6 +1838,25 @@ public final class GemsBalance {
             int thirdStrikeWindowTicks,
             float thirdStrikeBonusDamage,
             float vampiricHealAmount,
+            int duelistsRapierParryWindowTicks,
+            int duelistsRapierCooldownTicks,
+            float duelistsRapierCritDamageMultiplier,
+            int challengersGauntletCooldownTicks,
+            int challengersGauntletRangeBlocks,
+            int reversalMirrorDurationTicks,
+            int reversalMirrorCooldownTicks,
+            int gladiatorsMarkDurationTicks,
+            int gladiatorsMarkCooldownTicks,
+            int gladiatorsMarkRangeBlocks,
+            float gladiatorsMarkDamageMultiplier,
+            int soulShackleDurationTicks,
+            int soulShackleCooldownTicks,
+            int soulShackleRangeBlocks,
+            float soulShackleSplitRatio,
+            int experienceBladeMaxSharpness,
+            int experienceBladeSharpnessPerTier,
+            int experienceBladeXpLevelsPerTier,
+            int trophyNecklaceMaxPassives,
             int supremeHelmetNightVisionAmplifier,
             int supremeHelmetWaterBreathingAmplifier,
             int supremeChestStrengthAmplifier,
@@ -1819,6 +1873,7 @@ public final class GemsBalance {
                     secClamped(cfg.trackerRefreshSeconds, 1, 60),
                     clampInt(cfg.trackerMaxDistanceBlocks, 0, 200000),
                     secClamped(cfg.recallCooldownSeconds, 0, 3600),
+                    clampFloat(cfg.chronoCharmCooldownMultiplier, 0.05F, 1.0F),
                     secClamped(cfg.hypnoHoldSeconds, 1, 30),
                     clampInt(cfg.hypnoRangeBlocks, 1, 64),
                     clampInt(cfg.hypnoViewRangeBlocks, 0, 32),
@@ -1840,6 +1895,25 @@ public final class GemsBalance {
                     secClamped(cfg.thirdStrikeWindowSeconds, 1, 60),
                     clampFloat(cfg.thirdStrikeBonusDamage, 0.0F, 40.0F),
                     clampFloat(cfg.vampiricHealAmount, 0.0F, 40.0F),
+                    clampInt(cfg.duelistsRapierParryWindowTicks, 0, 60),
+                    secClamped(cfg.duelistsRapierCooldownSeconds, 0, 3600),
+                    clampFloat(cfg.duelistsRapierCritDamageMultiplier, 0.0F, 10.0F),
+                    secClamped(cfg.challengersGauntletCooldownSeconds, 0, 3600),
+                    clampInt(cfg.challengersGauntletRangeBlocks, 1, 64),
+                    secClamped(cfg.reversalMirrorDurationSeconds, 0, 60),
+                    secClamped(cfg.reversalMirrorCooldownSeconds, 0, 3600),
+                    secClamped(cfg.gladiatorsMarkDurationSeconds, 0, 3600),
+                    secClamped(cfg.gladiatorsMarkCooldownSeconds, 0, 3600),
+                    clampInt(cfg.gladiatorsMarkRangeBlocks, 1, 64),
+                    clampFloat(cfg.gladiatorsMarkDamageMultiplier, 0.0F, 10.0F),
+                    secClamped(cfg.soulShackleDurationSeconds, 0, 3600),
+                    secClamped(cfg.soulShackleCooldownSeconds, 0, 3600),
+                    clampInt(cfg.soulShackleRangeBlocks, 1, 64),
+                    clampFloat(cfg.soulShackleSplitRatio, 0.0F, 1.0F),
+                    clampInt(cfg.experienceBladeMaxSharpness, 0, 255),
+                    clampInt(cfg.experienceBladeSharpnessPerTier, 1, 50),
+                    clampInt(cfg.experienceBladeXpLevelsPerTier, 1, 100),
+                    clampInt(cfg.trophyNecklaceMaxPassives, 0, 64),
                     clampInt(cfg.supremeHelmetNightVisionAmplifier, 0, 10),
                     clampInt(cfg.supremeHelmetWaterBreathingAmplifier, 0, 10),
                     clampInt(cfg.supremeChestStrengthAmplifier, 0, 10),
@@ -1847,6 +1921,37 @@ public final class GemsBalance {
                     clampInt(cfg.supremeBootsSpeedAmplifier, 0, 10),
                     clampInt(cfg.supremeSetResistanceAmplifier, 0, 10),
                     parseRecipeGemRequirements(cfg.recipeGemRequirements)
+            );
+        }
+    }
+
+    public record VoidGem(boolean blockAllStatusEffects) {
+        static VoidGem from(GemsBalanceConfig.VoidGem cfg) {
+            return new VoidGem(cfg.blockAllStatusEffects);
+        }
+    }
+
+    public record Chaos(
+            int rotationTicks,
+            int rotationAbilityCooldownTicks,
+            int slotDurationTicks,
+            int slotAbilityCooldownTicks
+    ) {
+        static Chaos from(GemsBalanceConfig.Chaos cfg) {
+            return new Chaos(
+                    secClamped(cfg.rotationSeconds, 1, 24 * 3600),
+                    secClamped(cfg.rotationAbilityCooldownSeconds, 0, 3600),
+                    secClamped(cfg.slotDurationSeconds, 1, 24 * 3600),
+                    secClamped(cfg.slotAbilityCooldownSeconds, 0, 3600)
+            );
+        }
+    }
+
+    public record Prism(int maxGemAbilities, int maxGemPassives) {
+        static Prism from(GemsBalanceConfig.Prism cfg) {
+            return new Prism(
+                    clampInt(cfg.maxGemAbilities, 0, 10),
+                    clampInt(cfg.maxGemPassives, 0, 10)
             );
         }
     }

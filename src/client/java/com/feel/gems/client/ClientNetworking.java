@@ -5,6 +5,7 @@ import com.feel.gems.client.screen.BonusSelectionScreen;
 import com.feel.gems.client.screen.PrismSelectionScreen;
 import com.feel.gems.client.screen.SpyObservedSelectionScreen;
 import com.feel.gems.client.screen.SummonerLoadoutScreen;
+import com.feel.gems.client.screen.TrophyNecklaceScreen;
 import com.feel.gems.client.screen.TrackerCompassScreen;
 import com.feel.gems.core.GemId;
 import com.feel.gems.net.AbilityCooldownPayload;
@@ -20,6 +21,7 @@ import com.feel.gems.net.SpyObservedScreenPayload;
 import com.feel.gems.net.ServerDisablesPayload;
 import com.feel.gems.net.StateSyncPayload;
 import com.feel.gems.net.SummonerLoadoutScreenPayload;
+import com.feel.gems.net.TrophyNecklaceScreenPayload;
 import com.feel.gems.net.TrackerCompassScreenPayload;
 import com.feel.gems.net.SpySkinshiftPayload;
 import com.feel.gems.net.TricksterControlPayload;
@@ -135,6 +137,15 @@ public final class ClientNetworking {
         ClientPlayNetworking.registerGlobalReceiver(BonusAbilitiesSyncPayload.ID, (payload, context) ->
                 context.client().execute(() -> ClientBonusState.update(payload))
         );
+
+        // Trophy Necklace screen
+        ClientPlayNetworking.registerGlobalReceiver(TrophyNecklaceScreenPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    MinecraftClient client = context.client();
+                    if (client != null) {
+                        client.setScreen(new TrophyNecklaceScreen(payload));
+                    }
+                }));
 
         // Prism abilities sync (for HUD)
         ClientPlayNetworking.registerGlobalReceiver(PrismAbilitiesSyncPayload.ID, (payload, context) ->

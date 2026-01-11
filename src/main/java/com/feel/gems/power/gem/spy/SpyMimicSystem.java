@@ -654,7 +654,9 @@ public final class SpyMimicSystem {
         if (until <= 0) {
             return;
         }
-        if (now >= until || !isSpyActiveInternal(player)) {
+        // Skinshift should persist for its full duration once applied; it may be granted via Prism
+        // selection or bonus pools and shouldn't immediately cancel if the player switches gems.
+        if (now >= until || GemPlayerState.getEnergy(player) <= 0) {
             clearSkinshift(player);
         }
     }

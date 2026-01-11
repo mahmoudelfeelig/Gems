@@ -2,7 +2,6 @@ package com.feel.gems.mixin;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.item.ModItems;
-import com.feel.gems.item.legendary.DuelistsRapierItem;
 import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.util.GemsTime;
 import net.minecraft.entity.Entity;
@@ -32,16 +31,6 @@ public abstract class PlayerEntityLegendaryCritMixin {
         }
         if (!(target instanceof LivingEntity living)) {
             return;
-        }
-        
-        // Rapier guaranteed crit - apply bonus damage regardless of vanilla crit conditions
-        if (attacker.getMainHandStack().isOf(ModItems.DUELISTS_RAPIER)) {
-            if (DuelistsRapierItem.hasAndConsumeGuaranteedCrit(attacker)) {
-                // Apply crit bonus damage (50% extra, simulating a crit)
-                float critBonus = living.getHealth() * 0.5f;
-                critBonus = Math.min(critBonus, 5.0f); // Cap bonus damage
-                living.damage(attacker.getEntityWorld(), attacker.getDamageSources().playerAttack(attacker), critBonus);
-            }
         }
         
         if (!gems$isVanillaCritical(attacker)) {

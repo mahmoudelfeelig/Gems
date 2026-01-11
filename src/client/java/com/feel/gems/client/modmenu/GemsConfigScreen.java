@@ -1014,6 +1014,30 @@ public final class GemsConfigScreen extends Screen {
                 y = addIntRow("Aura regen amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.beacon.auraRegenAmplifier, v -> cfg.beacon.auraRegenAmplifier = v, 0, 10);
                 logicalY += ROW_H;
             }
+            case VOID -> {
+                y = addBoolRow("Block all status effects", y, labelX, labelW, fieldX, fieldW, () -> cfg.voidGem.blockAllStatusEffects, v -> cfg.voidGem.blockAllStatusEffects = v);
+                logicalY += ROW_H;
+                y = addNoteRow("Note: This also blocks vanilla effects (potions/beacons).", y, labelX, labelW);
+                logicalY += ROW_H;
+            }
+            case CHAOS -> {
+                y = addIntRow("Rotation seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.chaos.rotationSeconds, v -> cfg.chaos.rotationSeconds = v, 1, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Rotation ability cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.chaos.rotationAbilityCooldownSeconds, v -> cfg.chaos.rotationAbilityCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Slot duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.chaos.slotDurationSeconds, v -> cfg.chaos.slotDurationSeconds = v, 1, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Slot ability cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.chaos.slotAbilityCooldownSeconds, v -> cfg.chaos.slotAbilityCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+            }
+            case PRISM -> {
+                y = addIntRow("Max selected gem abilities", y, labelX, labelW, fieldX, fieldW, () -> cfg.prism.maxGemAbilities, v -> cfg.prism.maxGemAbilities = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Max selected gem passives", y, labelX, labelW, fieldX, fieldW, () -> cfg.prism.maxGemPassives, v -> cfg.prism.maxGemPassives = v, 0, 10);
+                logicalY += ROW_H;
+            }
             case AIR -> {
                 y = addFloatRow("Aerial Guard fall damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.air.aerialGuardFallDamageMultiplier, v -> cfg.air.aerialGuardFallDamageMultiplier = v, 0.0F, 2.0F);
                 logicalY += ROW_H;
@@ -1343,6 +1367,8 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += ROW_H;
                 y = addIntRow("Recall cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.recallCooldownSeconds, v -> cfg.legendary.recallCooldownSeconds = v, 0, 3600);
                 logicalY += ROW_H;
+                y = addFloatRow("Chrono Charm cooldown multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.chronoCharmCooldownMultiplier, v -> cfg.legendary.chronoCharmCooldownMultiplier = v, 0.05F, 1.0F);
+                logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;
                 y = addIntRow("Hypno hold seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.hypnoHoldSeconds, v -> cfg.legendary.hypnoHoldSeconds = v, 0, 10);
@@ -1390,6 +1416,56 @@ public final class GemsConfigScreen extends Screen {
                 y = addFloatRow("Third Strike bonus damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.thirdStrikeBonusDamage, v -> cfg.legendary.thirdStrikeBonusDamage = v, 0.0F, 40.0F);
                 logicalY += ROW_H;
                 y = addFloatRow("Vampiric heal amount", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.vampiricHealAmount, v -> cfg.legendary.vampiricHealAmount = v, 0.0F, 40.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Duelist's Rapier cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.duelistsRapierCooldownSeconds, v -> cfg.legendary.duelistsRapierCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Duelist's Rapier parry window ticks", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.duelistsRapierParryWindowTicks, v -> cfg.legendary.duelistsRapierParryWindowTicks = v, 0, 60);
+                logicalY += ROW_H;
+                y = addFloatRow("Duelist's Rapier crit damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.duelistsRapierCritDamageMultiplier, v -> cfg.legendary.duelistsRapierCritDamageMultiplier = v, 0.0F, 10.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Challenger's Gauntlet cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.challengersGauntletCooldownSeconds, v -> cfg.legendary.challengersGauntletCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Challenger's Gauntlet range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.challengersGauntletRangeBlocks, v -> cfg.legendary.challengersGauntletRangeBlocks = v, 1, 64);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Reversal Mirror duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.reversalMirrorDurationSeconds, v -> cfg.legendary.reversalMirrorDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Reversal Mirror cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.reversalMirrorCooldownSeconds, v -> cfg.legendary.reversalMirrorCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Gladiator's Mark duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.gladiatorsMarkDurationSeconds, v -> cfg.legendary.gladiatorsMarkDurationSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Gladiator's Mark cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.gladiatorsMarkCooldownSeconds, v -> cfg.legendary.gladiatorsMarkCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Gladiator's Mark range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.gladiatorsMarkRangeBlocks, v -> cfg.legendary.gladiatorsMarkRangeBlocks = v, 1, 64);
+                logicalY += ROW_H;
+                y = addFloatRow("Gladiator's Mark damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.gladiatorsMarkDamageMultiplier, v -> cfg.legendary.gladiatorsMarkDamageMultiplier = v, 0.0F, 10.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Soul Shackle duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.soulShackleDurationSeconds, v -> cfg.legendary.soulShackleDurationSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Soul Shackle cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.soulShackleCooldownSeconds, v -> cfg.legendary.soulShackleCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Soul Shackle range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.soulShackleRangeBlocks, v -> cfg.legendary.soulShackleRangeBlocks = v, 1, 64);
+                logicalY += ROW_H;
+                y = addFloatRow("Soul Shackle split ratio", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.soulShackleSplitRatio, v -> cfg.legendary.soulShackleSplitRatio = v, 0.0F, 1.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Experience Blade max sharpness", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.experienceBladeMaxSharpness, v -> cfg.legendary.experienceBladeMaxSharpness = v, 0, 255);
+                logicalY += ROW_H;
+                y = addIntRow("Experience Blade sharpness per tier", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.experienceBladeSharpnessPerTier, v -> cfg.legendary.experienceBladeSharpnessPerTier = v, 1, 50);
+                logicalY += ROW_H;
+                y = addIntRow("Experience Blade xp levels per tier", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.experienceBladeXpLevelsPerTier, v -> cfg.legendary.experienceBladeXpLevelsPerTier = v, 1, 100);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Trophy Necklace max stolen passives", y, labelX, labelW, fieldX, fieldW, () -> cfg.legendary.trophyNecklaceMaxPassives, v -> cfg.legendary.trophyNecklaceMaxPassives = v, 0, 64);
                 logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;
@@ -1527,6 +1603,9 @@ public final class GemsConfigScreen extends Screen {
             case SPY_MIMIC -> cfg.spyMimic = new GemsBalanceConfig.SpyMimic();
             case BEACON -> cfg.beacon = new GemsBalanceConfig.Beacon();
             case AIR -> cfg.air = new GemsBalanceConfig.Air();
+            case VOID -> cfg.voidGem = new GemsBalanceConfig.VoidGem();
+            case CHAOS -> cfg.chaos = new GemsBalanceConfig.Chaos();
+            case PRISM -> cfg.prism = new GemsBalanceConfig.Prism();
             case DUELIST -> cfg.duelist = new GemsBalanceConfig.Duelist();
             case HUNTER -> cfg.hunter = new GemsBalanceConfig.Hunter();
             case SENTINEL -> cfg.sentinel = new GemsBalanceConfig.Sentinel();
@@ -1844,7 +1923,10 @@ public final class GemsConfigScreen extends Screen {
         TRICKSTER("Trickster", Category.COMBAT),
         // Misc
         SPY_MIMIC("Spy/Mimic", Category.MISC),
-        BEACON("Beacon", Category.MISC);
+        BEACON("Beacon", Category.MISC),
+        VOID("Void", Category.MISC),
+        CHAOS("Chaos", Category.MISC),
+        PRISM("Prism", Category.MISC);
 
         private final String label;
         private final Category category;
@@ -1915,6 +1997,15 @@ public final class GemsConfigScreen extends Screen {
         }
         if (cfg.air == null) {
             cfg.air = new GemsBalanceConfig.Air();
+        }
+        if (cfg.voidGem == null) {
+            cfg.voidGem = new GemsBalanceConfig.VoidGem();
+        }
+        if (cfg.chaos == null) {
+            cfg.chaos = new GemsBalanceConfig.Chaos();
+        }
+        if (cfg.prism == null) {
+            cfg.prism = new GemsBalanceConfig.Prism();
         }
         if (cfg.duelist == null) {
             cfg.duelist = new GemsBalanceConfig.Duelist();

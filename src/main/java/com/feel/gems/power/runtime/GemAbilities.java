@@ -137,7 +137,7 @@ public final class GemAbilities {
 
         PrismSelectionsState prismState = PrismSelectionsState.get(server);
         PrismSelectionsState.PrismSelection selection = prismState.getSelection(player.getUuid());
-        List<Identifier> abilities = selection.allAbilities();
+        List<Identifier> abilities = selection.gemAbilities();
 
         if (abilities.isEmpty()) {
             player.sendMessage(Text.translatable("gems.ability.no_abilities_unlocked"), true);

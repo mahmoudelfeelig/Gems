@@ -104,6 +104,7 @@ public final class GemsModEvents {
 
         ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, sender, params) -> {
             if (sender instanceof ServerPlayerEntity player) {
+                // Skinshift: the *target* cannot chat while any other player is impersonating them.
                 if (SpyMimicSystem.isSkinshiftTarget(player)) {
                     player.sendMessage(Text.translatable("gems.spy.cannot_chat_skinshifted"), true);
                     return false;
@@ -112,6 +113,21 @@ public final class GemsModEvents {
                 if (disguise != null) {
                     broadcastDisguisedChat(player, disguise, message.getContent());
                     return false;
+                }
+                if (com.feel.gems.power.ability.duelist.DuelistMirrorMatchAbility.isInDuel(player)) {
+                    String partnerStr = com.feel.gems.state.PlayerStateManager.getPersistent(
+                            player, com.feel.gems.power.ability.duelist.DuelistMirrorMatchAbility.DUEL_PARTNER_KEY);
+                    if (partnerStr != null && !partnerStr.isEmpty() && player.getEntityWorld().getServer() != null) {
+                        try {
+                            java.util.UUID partner = java.util.UUID.fromString(partnerStr);
+                            ServerPlayerEntity partnerPlayer = player.getEntityWorld().getServer().getPlayerManager().getPlayer(partner);
+                            if (partnerPlayer != null) {
+                                broadcastDisguisedChat(player, Text.literal(partnerPlayer.getGameProfile().name()), message.getContent());
+                                return false;
+                            }
+                        } catch (IllegalArgumentException ignored) {
+                        }
+                    }
                 }
             }
             return true;
@@ -282,6 +298,13 @@ public final class GemsModEvents {
                 GemOwnership.tickPurgeQueue(s);
                 ChaosSlotRuntime.tick(s);
                 HunterCallThePackRuntime.tick(s);
+
+                // Hunting Trap: check mob triggers (players are handled via per-player checkStep).
+                if (!com.feel.gems.power.ability.hunter.HunterHuntingTrapAbility.ACTIVE_TRAPS.isEmpty()) {
+                    for (ServerWorld world : s.getWorlds()) {
+                        com.feel.gems.power.ability.hunter.HunterHuntingTrapAbility.tickWorld(world);
+                    }
+                }
                 // Sentinel ability runtime ticks (skip world scans if nothing is active)
                 if (com.feel.gems.power.ability.sentinel.SentinelShieldWallRuntime.hasAnyWalls()
                         || com.feel.gems.power.ability.sentinel.SentinelLockdownRuntime.hasAnyZones()) {
@@ -294,6 +317,7 @@ public final class GemsModEvents {
                 }
                 for (ServerPlayerEntity player : s.getPlayerManager().getPlayerList()) {
                     TerrorRigRuntime.checkStep(player);
+                    com.feel.gems.power.ability.hunter.HunterHuntingTrapAbility.checkStep(player);
                     com.feel.gems.power.ability.duelist.DuelistMirrorMatchRuntime.tick(player);
                     com.feel.gems.power.ability.trickster.TricksterPuppetRuntime.tickPuppetedPlayer(player);
                     // Trickster mirage particles (every 4 ticks for visual effect without heavy load)
@@ -308,6 +332,9 @@ public final class GemsModEvents {
                 LegendaryCrafting.tick(s);
                 LegendaryPlayerTracker.tick(s);
                 TerrorRigRuntime.tick(s);
+                for (ServerWorld world : s.getWorlds()) {
+                    com.feel.gems.power.ability.hunter.HunterHuntingTrapAbility.cleanExpiredTraps(world);
+                }
                 LegendaryDuels.tickEverySecond(s);
 
                 for (ServerPlayerEntity player : s.getPlayerManager().getPlayerList()) {

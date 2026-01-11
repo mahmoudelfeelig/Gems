@@ -88,7 +88,7 @@ public final class GemStateSync {
         
         PrismSelectionsState prismState = PrismSelectionsState.get(server);
         PrismSelectionsState.PrismSelection selection = prismState.getSelection(player.getUuid());
-        List<Identifier> selectedAbilities = selection.allAbilities();
+        List<Identifier> selectedAbilities = selection.gemAbilities();
         
         if (selectedAbilities.isEmpty()) {
             ServerPlayNetworking.send(player, new PrismAbilitiesSyncPayload(List.of()));

@@ -17,6 +17,20 @@ public final class ClientDisguiseState {
     private ClientDisguiseState() {
     }
 
+    private static UUID removeDisguise(UUID playerId) {
+        if (playerId == null) {
+            return null;
+        }
+        return DISGUISES.remove(playerId);
+    }
+
+    private static void restoreDisguise(UUID playerId, UUID target) {
+        if (playerId == null || target == null) {
+            return;
+        }
+        DISGUISES.put(playerId, target);
+    }
+
     public static void update(UUID player, Optional<UUID> target) {
         if (player == null) {
             return;
@@ -51,7 +65,14 @@ public final class ClientDisguiseState {
         if (entry == null) {
             return null;
         }
-        return entry.getSkinTextures();
+
+        // Avoid recursion if both players are disguised as each other (e.g., Mirror Match).
+        UUID removed = removeDisguise(target);
+        try {
+            return entry.getSkinTextures();
+        } finally {
+            restoreDisguise(target, removed);
+        }
     }
 
     public static Text overrideName(AbstractClientPlayerEntity player) {

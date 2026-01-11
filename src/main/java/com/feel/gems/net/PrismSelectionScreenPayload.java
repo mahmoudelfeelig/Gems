@@ -27,7 +27,11 @@ public record PrismSelectionScreenPayload(
         int maxBonusPassives
 ) implements CustomPayload {
 
-    public record PowerEntry(Identifier id, String name, String description, String sourceName) {}
+    /**
+     * @param available True if this entry can be claimed/selected (for bonus pool entries, false if claimed by others).
+     * @param claimed True if the local player currently owns/has this entry claimed (bonus pool entries only).
+     */
+    public record PowerEntry(Identifier id, String name, String description, String sourceName, boolean available, boolean claimed) {}
 
     public static final Id<PrismSelectionScreenPayload> ID =
             new Id<>(Identifier.of(GemsMod.MOD_ID, "prism_selection_screen"));
@@ -84,6 +88,8 @@ public record PrismSelectionScreenPayload(
             buf.writeString(entry.name);
             buf.writeString(entry.description);
             buf.writeString(entry.sourceName);
+            buf.writeBoolean(entry.available);
+            buf.writeBoolean(entry.claimed);
         }
     }
 
@@ -95,7 +101,9 @@ public record PrismSelectionScreenPayload(
             String name = buf.readString();
             String description = buf.readString();
             String sourceName = buf.readString();
-            entries.add(new PowerEntry(id, name, description, sourceName));
+            boolean available = buf.readBoolean();
+            boolean claimed = buf.readBoolean();
+            entries.add(new PowerEntry(id, name, description, sourceName, available, claimed));
         }
         return entries;
     }

@@ -29,6 +29,9 @@ public final class GemsBalanceConfig {
     public SpyMimic spyMimic = new SpyMimic();
     public Beacon beacon = new Beacon();
     public Air air = new Air();
+    public VoidGem voidGem = new VoidGem();
+    public Chaos chaos = new Chaos();
+    public Prism prism = new Prism();
     public Duelist duelist = new Duelist();
     public Hunter hunter = new Hunter();
     public Sentinel sentinel = new Sentinel();
@@ -80,6 +83,43 @@ public final class GemsBalanceConfig {
         public double controlledFollowStartBlocks = 6.0D;
         public double controlledFollowStopBlocks = 3.0D;
         public double controlledFollowSpeed = 1.1D;
+    }
+
+    /**
+     * Special gem: Void. Its primary gameplay is immunity to debuffs/negative effects.
+     */
+    public static final class VoidGem {
+        /**
+         * When true, Void players are immune to all status effects.
+         *
+         * <p>This is intentionally strong and will also block vanilla effects (potions, beacons, etc.).</p>
+         */
+        public boolean blockAllStatusEffects = true;
+    }
+
+    /**
+     * Special gem: Chaos. Provides randomized abilities/passives on a timer or per-slot basis.
+     */
+    public static final class Chaos {
+        /** How often the Chaos rotation changes (seconds). */
+        public int rotationSeconds = 300;
+        /** Cooldown between using the currently-rotated Chaos ability (seconds). */
+        public int rotationAbilityCooldownSeconds = 10;
+
+        /** Duration a Chaos slot stays active after rolling (seconds). */
+        public int slotDurationSeconds = 300;
+        /** Cooldown between uses of a rolled Chaos slot ability (seconds). */
+        public int slotAbilityCooldownSeconds = 10;
+    }
+
+    /**
+     * Special gem: Prism. Players select which gem abilities/passives they want to slot.
+     */
+    public static final class Prism {
+        /** Max number of selected "gem abilities" Prism can slot. */
+        public int maxGemAbilities = 3;
+        /** Max number of selected "gem passives" Prism can slot. */
+        public int maxGemPassives = 3;
     }
 
     public static final class Astra {
@@ -836,6 +876,8 @@ public final class GemsBalanceConfig {
 
         public int recallCooldownSeconds = 60;
 
+        public float chronoCharmCooldownMultiplier = 0.5F;
+
         public int hypnoHoldSeconds = 3;
         public int hypnoRangeBlocks = 40;
         public int hypnoViewRangeBlocks = 10;
@@ -859,6 +901,32 @@ public final class GemsBalanceConfig {
         public int thirdStrikeWindowSeconds = 5;
         public float thirdStrikeBonusDamage = 4.0F;
         public float vampiricHealAmount = 2.0F;
+
+        public int duelistsRapierParryWindowTicks = 10;
+        public int duelistsRapierCooldownSeconds = 8;
+        public float duelistsRapierCritDamageMultiplier = 1.5F;
+
+        public int challengersGauntletCooldownSeconds = 300;
+        public int challengersGauntletRangeBlocks = 10;
+
+        public int reversalMirrorDurationSeconds = 5;
+        public int reversalMirrorCooldownSeconds = 60;
+
+        public int gladiatorsMarkDurationSeconds = 60;
+        public int gladiatorsMarkCooldownSeconds = 120;
+        public int gladiatorsMarkRangeBlocks = 20;
+        public float gladiatorsMarkDamageMultiplier = 1.5F;
+
+        public int soulShackleDurationSeconds = 10;
+        public int soulShackleCooldownSeconds = 90;
+        public int soulShackleRangeBlocks = 15;
+        public float soulShackleSplitRatio = 0.5F;
+
+        public int experienceBladeMaxSharpness = 20;
+        public int experienceBladeSharpnessPerTier = 2;
+        public int experienceBladeXpLevelsPerTier = 10;
+
+        public int trophyNecklaceMaxPassives = 10;
 
         public int supremeHelmetNightVisionAmplifier = 0;
         public int supremeHelmetWaterBreathingAmplifier = 0;
@@ -888,6 +956,14 @@ public final class GemsBalanceConfig {
             map.put("gems:hunters_sight_bow_discount", "puff");
             map.put("gems:third_strike_blade_discount", "strength");
             map.put("gems:vampiric_edge_discount", "life");
+            map.put("gems:duelists_rapier_discount", "duelist");
+            map.put("gems:challengers_gauntlet_discount", "duelist");
+            map.put("gems:experience_blade_discount", "wealth");
+            map.put("gems:reversal_mirror_discount", "sentinel");
+            map.put("gems:hunters_trophy_necklace_discount", "hunter");
+            map.put("gems:gladiators_mark_discount", "duelist");
+            map.put("gems:soul_shackle_discount", "reaper");
+            map.put("gems:chrono_charm_discount", "astra");
             return map;
         }
     }

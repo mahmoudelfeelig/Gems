@@ -2,7 +2,7 @@ package com.feel.gems.mixin.client;
 
 import com.feel.gems.client.ClientDisguiseState;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,11 +12,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
 
-@Mixin(Entity.class)
+@Mixin(PlayerEntity.class)
 public abstract class AbstractClientPlayerEntityNameMixin {
     @Inject(method = "getName()Lnet/minecraft/text/Text;", at = @At("HEAD"), cancellable = true)
     private void gems$overrideName(CallbackInfoReturnable<Text> cir) {
-        Entity self = (Entity) (Object) this;
+        PlayerEntity self = (PlayerEntity) (Object) this;
         if (!(self instanceof AbstractClientPlayerEntity)) {
             return;
         }
@@ -28,7 +28,7 @@ public abstract class AbstractClientPlayerEntityNameMixin {
 
     @Inject(method = "getDisplayName()Lnet/minecraft/text/Text;", at = @At("HEAD"), cancellable = true)
     private void gems$overrideDisplayName(CallbackInfoReturnable<Text> cir) {
-        Entity self = (Entity) (Object) this;
+        PlayerEntity self = (PlayerEntity) (Object) this;
         if (!(self instanceof AbstractClientPlayerEntity)) {
             return;
         }

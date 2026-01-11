@@ -1,6 +1,7 @@
 package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.state.PlayerStateManager;
 import java.util.function.Consumer;
@@ -26,8 +27,6 @@ import net.minecraft.world.World;
 public final class DuelistsRapierItem extends Item implements LegendaryItem {
     private static final String PARRY_WINDOW_END_KEY = "duelists_rapier_parry_end";
     private static final String CRIT_READY_KEY = "duelists_rapier_crit_ready";
-    private static final int PARRY_WINDOW_TICKS = 10;
-    private static final int COOLDOWN_TICKS = 8 * 20;
 
     public DuelistsRapierItem(ToolMaterial material, Settings settings) {
         super(settings.sword(material, 2.0F, -2.0F).enchantable(15)); // Faster attack speed, slightly less damage
@@ -52,10 +51,14 @@ public final class DuelistsRapierItem extends Item implements LegendaryItem {
         }
 
         // Activate parry window
-        long parryEnd = world.getTime() + PARRY_WINDOW_TICKS;
+        int windowTicks = GemsBalance.v().legendary().duelistsRapierParryWindowTicks();
+        long parryEnd = world.getTime() + Math.max(0, windowTicks);
         PlayerStateManager.setPersistent(player, PARRY_WINDOW_END_KEY, String.valueOf(parryEnd));
 
-        player.getItemCooldownManager().set(stack, COOLDOWN_TICKS);
+        int cooldownTicks = GemsBalance.v().legendary().duelistsRapierCooldownTicks();
+        if (cooldownTicks > 0) {
+            player.getItemCooldownManager().set(stack, cooldownTicks);
+        }
 
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.ENTITY_PLAYER_ATTACK_WEAK, SoundCategory.PLAYERS, 1.0F, 1.5F);

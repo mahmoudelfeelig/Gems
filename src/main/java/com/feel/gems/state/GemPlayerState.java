@@ -279,6 +279,10 @@
             GemId[] values = GemId.values();
             java.util.ArrayList<GemId> allowed = new java.util.ArrayList<>(values.length);
             for (GemId gem : values) {
+                // Special gems shouldn't be randomly assigned on first join.
+                if (gem == GemId.VOID || gem == GemId.CHAOS || gem == GemId.PRISM) {
+                    continue;
+                }
                 if (!GemsDisables.isGemDisabled(gem)) {
                     allowed.add(gem);
                 }

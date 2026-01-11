@@ -15,7 +15,7 @@ Optional:
 
 1. Install Fabric Loader and Fabric API on your server.
 2. Put `gems-<version>.jar` in your server `mods/` folder.
-3. Start the server once to generate configs under `config/gems/`.
+3. Start the server once using the command `java -Xmx2G -jar fabric-server-mc.1.21.11-loader.0.18.4-launcher.1.1.1.jar` to generate configs under `config/gems/`.
 
 ## Config files
 

@@ -1,5 +1,6 @@
 package com.feel.gems.power.gem.chaos;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
@@ -26,8 +27,14 @@ import java.util.*;
  */
 public final class ChaosSlotRuntime {
     public static final int SLOT_COUNT = 4;
-    private static final int SLOT_DURATION_TICKS = 6000; // 5 minutes active period
-    private static final int ABILITY_COOLDOWN_TICKS = 200; // 10 seconds between uses
+
+    private static int slotDurationTicks() {
+        return Math.max(1, GemsBalance.v().chaos().slotDurationTicks());
+    }
+
+    private static int slotAbilityCooldownTicks() {
+        return Math.max(0, GemsBalance.v().chaos().slotAbilityCooldownTicks());
+    }
     
     // Maps player UUID -> their chaos slot states
     private static final Map<UUID, ChaosPlayerState> playerStates = new HashMap<>();
@@ -45,20 +52,20 @@ public final class ChaosSlotRuntime {
         }
         
         public boolean isActive(long currentTick) {
-            return abilityId != null && (currentTick - activationTick) < SLOT_DURATION_TICKS;
+            return abilityId != null && (currentTick - activationTick) < slotDurationTicks();
         }
         
         public int remainingTicks(long currentTick) {
             if (abilityId == null) return 0;
-            return (int) Math.max(0, SLOT_DURATION_TICKS - (currentTick - activationTick));
+            return (int) Math.max(0, slotDurationTicks() - (currentTick - activationTick));
         }
         
         public boolean canUseAbility(long currentTick) {
-            return isActive(currentTick) && (currentTick - lastAbilityUseTick) >= ABILITY_COOLDOWN_TICKS;
+            return isActive(currentTick) && (currentTick - lastAbilityUseTick) >= slotAbilityCooldownTicks();
         }
         
         public int abilityCooldownRemaining(long currentTick) {
-            return (int) Math.max(0, ABILITY_COOLDOWN_TICKS - (currentTick - lastAbilityUseTick));
+            return (int) Math.max(0, slotAbilityCooldownTicks() - (currentTick - lastAbilityUseTick));
         }
         
         public SlotState withAbilityUsed(long tick) {

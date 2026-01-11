@@ -10,9 +10,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-
 @Mixin(PlayerListEntry.class)
-public abstract class AbstractClientPlayerEntitySkinMixin {
+public abstract class PlayerListEntrySkinshiftSkinMixin {
     @Inject(method = "getSkinTextures()Lnet/minecraft/entity/player/SkinTextures;", at = @At("HEAD"), cancellable = true)
     private void gems$overrideSkin(CallbackInfoReturnable<SkinTextures> cir) {
         PlayerListEntry self = (PlayerListEntry) (Object) this;

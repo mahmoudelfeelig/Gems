@@ -118,14 +118,17 @@ public final class PrismSelectionScreen extends Screen {
         for (int i = start; i < end; i++) {
             PowerEntry entry = entries.get(i);
             boolean isSelected = selected.contains(entry.id());
+            boolean isAvailable = entry.available() || isSelected;
 
-            String buttonText = (isSelected ? "\u2714 " : "") + entry.name() + " (" + entry.sourceName() + ")";
+            String prefix = isSelected ? "\u2714 " : (!isAvailable ? "\u2716 " : "");
+            String buttonText = prefix + entry.name() + " (" + entry.sourceName() + ")";
 
             final Identifier entryId = entry.id();
             ButtonWidget entryButton = ButtonWidget.builder(
-                    Text.literal(buttonText).formatted(isSelected ? Formatting.GREEN : Formatting.WHITE),
+                    Text.literal(buttonText).formatted(!isAvailable ? Formatting.RED : (isSelected ? Formatting.GREEN : Formatting.WHITE)),
                     b -> toggleEntry(entryId)
             ).dimensions(entryX, entryY, entryWidth, entryHeight).build();
+            entryButton.active = isAvailable;
 
             addDrawableChild(entryButton);
             entryY += entryHeight + 4;
@@ -197,6 +200,14 @@ public final class PrismSelectionScreen extends Screen {
         boolean isAbility = currentTab < 2;
         boolean isBonus = currentTab == 1 || currentTab == 3;
 
+        if (isBonus && !isSelected) {
+            for (PowerEntry entry : getCurrentEntries()) {
+                if (entry.id().equals(entryId) && !entry.available()) {
+                    return;
+                }
+            }
+        }
+
         if (isSelected) {
             // Release
             selected.remove(entryId);
@@ -244,6 +255,9 @@ public final class PrismSelectionScreen extends Screen {
                 tooltip.add(Text.literal(entry.name()).formatted(Formatting.YELLOW));
                 tooltip.add(Text.literal(entry.description()).formatted(Formatting.GRAY));
                 tooltip.add(Text.literal("Source: " + entry.sourceName()).formatted(Formatting.AQUA));
+                if ((currentTab == 1 || currentTab == 3) && !entry.available() && !getCurrentSelected().contains(entry.id())) {
+                    tooltip.add(Text.translatable("gems.screen.bonus_selection.claimed_by_other").formatted(Formatting.RED));
+                }
                 context.drawTooltip(textRenderer, tooltip, mouseX, mouseY);
                 break;
             }

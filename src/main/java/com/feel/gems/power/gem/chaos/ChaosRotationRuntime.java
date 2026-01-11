@@ -1,5 +1,6 @@
 package com.feel.gems.power.gem.chaos;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
@@ -23,8 +24,13 @@ import java.util.*;
  * Every 5 minutes, assigns a random ability and passive from any gem.
  */
 public final class ChaosRotationRuntime {
-    private static final int ROTATION_TICKS = 6000; // 5 minutes
-    private static final int ABILITY_COOLDOWN_TICKS = 200; // 10 seconds between uses
+    private static int rotationTicks() {
+        return Math.max(1, GemsBalance.v().chaos().rotationTicks());
+    }
+
+    private static int rotationAbilityCooldownTicks() {
+        return Math.max(0, GemsBalance.v().chaos().rotationAbilityCooldownTicks());
+    }
     
     // Maps player UUID -> their current chaos state
     private static final Map<UUID, ChaosState> playerStates = new HashMap<>();
@@ -36,7 +42,7 @@ public final class ChaosRotationRuntime {
             long lastAbilityUseTick
     ) {
         public boolean canUseAbility(long currentTick) {
-            return currentTick - lastAbilityUseTick >= ABILITY_COOLDOWN_TICKS;
+            return currentTick - lastAbilityUseTick >= rotationAbilityCooldownTicks();
         }
 
         public ChaosState withAbilityUsed(long tick) {
@@ -73,7 +79,7 @@ public final class ChaosRotationRuntime {
             }
             
             ChaosState state = playerStates.get(player.getUuid());
-            if (state == null || currentTick - state.lastRotationTick >= ROTATION_TICKS) {
+            if (state == null || currentTick - state.lastRotationTick >= rotationTicks()) {
                 rotate(player, currentTick);
             } else if (currentTick % 20 == 0) {
                 // Sync timer every second
@@ -135,7 +141,7 @@ public final class ChaosRotationRuntime {
         String abilityId = state.currentAbility != null ? state.currentAbility.toString() : "";
         String passiveName = state.currentPassive != null ? getPassiveName(state.currentPassive) : "";
         long currentTick = player.getEntityWorld().getTime();
-        int remainingTicks = (int) Math.max(0, ROTATION_TICKS - (currentTick - state.lastRotationTick));
+        int remainingTicks = (int) Math.max(0, rotationTicks() - (currentTick - state.lastRotationTick));
         int remainingSeconds = remainingTicks / 20;
         ServerPlayNetworking.send(player, new ChaosStatePayload(abilityName, abilityId, passiveName, remainingSeconds));
     }
@@ -212,7 +218,7 @@ public final class ChaosRotationRuntime {
         
         long currentTick = player.getEntityWorld().getTime();
         if (!state.canUseAbility(currentTick)) {
-            int remainingTicks = (int)(ABILITY_COOLDOWN_TICKS - (currentTick - state.lastAbilityUseTick));
+            int remainingTicks = (int)(rotationAbilityCooldownTicks() - (currentTick - state.lastAbilityUseTick));
             int remainingSeconds = (remainingTicks + 19) / 20;
             player.sendMessage(Text.translatable("gems.chaos.ability_on_cooldown", remainingSeconds).formatted(Formatting.RED), true);
             return false;

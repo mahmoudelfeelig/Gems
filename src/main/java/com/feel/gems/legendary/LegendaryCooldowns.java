@@ -1,5 +1,6 @@
 package com.feel.gems.legendary;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.item.ModItems;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -12,7 +13,7 @@ public final class LegendaryCooldowns {
         if (player == null) {
             return 1.0F;
         }
-        return hasChronoCharm(player) ? 0.5F : 1.0F;
+        return hasChronoCharm(player) ? GemsBalance.v().legendary().chronoCharmCooldownMultiplier() : 1.0F;
     }
 
     public static boolean hasChronoCharm(ServerPlayerEntity player) {

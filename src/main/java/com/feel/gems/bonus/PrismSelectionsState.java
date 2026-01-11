@@ -15,21 +15,26 @@ import net.minecraft.world.PersistentStateType;
 import net.minecraft.world.World;
 import java.util.*;
 import net.minecraft.server.network.ServerPlayerEntity;
+import com.feel.gems.config.GemsBalance;
 
 /**
  * Tracks Prism gem ability/passive selections per player.
  * Prism gem at energy 10/10 can pick:
  * - Up to 3 abilities from normal gems
- * - Up to 2 abilities from the bonus pool
  * - Up to 3 passives from normal gems
- * - Up to 2 passives from the bonus pool
- * Total: 5 abilities, 5 passives max
+ * - Up to 2 bonus abilities from the bonus pool
+ * - Up to 2 bonus passives from the bonus pool
+ *
+ * Bonus abilities/passives are also claimed globally via {@link BonusClaimsState}; Prism selections track
+ * which specific bonus abilities/passives a Prism player is using.
  */
 public final class PrismSelectionsState extends PersistentState {
     private static final String STATE_ID = GemsMod.MOD_ID + "_prism_selections";
     
     // Maps player UUID -> their Prism selections
     private final Map<UUID, PrismSelection> selections;
+
+    private transient MinecraftServer attachedServer;
 
     public record PrismSelection(
             List<Identifier> gemAbilities,      // Max 3 from normal gems
@@ -49,17 +54,17 @@ public final class PrismSelectionsState extends PersistentState {
         }
 
         public List<Identifier> allAbilities() {
-            List<Identifier> all = new ArrayList<>();
-            all.addAll(gemAbilities);
-            all.addAll(bonusAbilities);
-            return all;
+            ArrayList<Identifier> combined = new ArrayList<>(gemAbilities.size() + bonusAbilities.size());
+            combined.addAll(gemAbilities);
+            combined.addAll(bonusAbilities);
+            return List.copyOf(combined);
         }
 
         public List<Identifier> allPassives() {
-            List<Identifier> all = new ArrayList<>();
-            all.addAll(gemPassives);
-            all.addAll(bonusPassives);
-            return all;
+            ArrayList<Identifier> combined = new ArrayList<>(gemPassives.size() + bonusPassives.size());
+            combined.addAll(gemPassives);
+            combined.addAll(bonusPassives);
+            return List.copyOf(combined);
         }
 
         public int totalAbilities() {
@@ -90,11 +95,95 @@ public final class PrismSelectionsState extends PersistentState {
 
     public static PrismSelectionsState get(MinecraftServer server) {
         PersistentStateManager manager = server.getWorld(World.OVERWORLD).getPersistentStateManager();
-        return manager.getOrCreate(TYPE);
+        PrismSelectionsState state = manager.getOrCreate(TYPE);
+        state.attach(server);
+        return state;
+    }
+
+    private void attach(MinecraftServer server) {
+        this.attachedServer = server;
     }
 
     public PrismSelection getSelection(UUID playerUuid) {
-        return selections.getOrDefault(playerUuid, PrismSelection.empty());
+        PrismSelection current = selections.get(playerUuid);
+        if (current == null) {
+            return PrismSelection.empty();
+        }
+        PrismSelection sanitized = sanitize(playerUuid, current);
+        return sanitized;
+    }
+
+    private PrismSelection sanitize(UUID playerUuid, PrismSelection current) {
+        boolean changed = false;
+
+        List<Identifier> newGemAbilities = new ArrayList<>(current.gemAbilities().size());
+        for (Identifier id : current.gemAbilities()) {
+            if (id == null || BonusPoolRegistry.isBonusAbility(id) || BonusPoolRegistry.isBlacklisted(id) || ModAbilities.get(id) == null) {
+                changed = true;
+                continue;
+            }
+            newGemAbilities.add(id);
+        }
+
+        List<Identifier> newBonusAbilities = new ArrayList<>(current.bonusAbilities().size());
+        for (Identifier id : current.bonusAbilities()) {
+            if (id == null || !BonusPoolRegistry.isBonusAbility(id) || BonusPoolRegistry.isBlacklisted(id) || ModAbilities.get(id) == null) {
+                changed = true;
+                continue;
+            }
+            newBonusAbilities.add(id);
+        }
+
+        List<Identifier> newGemPassives = new ArrayList<>(current.gemPassives().size());
+        for (Identifier id : current.gemPassives()) {
+            if (id == null || BonusPoolRegistry.isBonusPassive(id) || BonusPoolRegistry.isBlacklisted(id) || ModPassives.get(id) == null) {
+                changed = true;
+                continue;
+            }
+            newGemPassives.add(id);
+        }
+
+        List<Identifier> newBonusPassives = new ArrayList<>(current.bonusPassives().size());
+        for (Identifier id : current.bonusPassives()) {
+            if (id == null || !BonusPoolRegistry.isBonusPassive(id) || BonusPoolRegistry.isBlacklisted(id) || ModPassives.get(id) == null) {
+                changed = true;
+                continue;
+            }
+            newBonusPassives.add(id);
+        }
+
+        int maxGemAbilities = Math.max(0, GemsBalance.v().prism().maxGemAbilities());
+        int maxGemPassives = Math.max(0, GemsBalance.v().prism().maxGemPassives());
+        if (newGemAbilities.size() > maxGemAbilities) {
+            newGemAbilities = newGemAbilities.subList(0, maxGemAbilities);
+            changed = true;
+        }
+        if (newGemPassives.size() > maxGemPassives) {
+            newGemPassives = newGemPassives.subList(0, maxGemPassives);
+            changed = true;
+        }
+        if (newBonusAbilities.size() > 2) {
+            newBonusAbilities = newBonusAbilities.subList(0, 2);
+            changed = true;
+        }
+        if (newBonusPassives.size() > 2) {
+            newBonusPassives = newBonusPassives.subList(0, 2);
+            changed = true;
+        }
+
+        if (!changed) {
+            return current;
+        }
+
+        PrismSelection sanitized = new PrismSelection(
+                List.copyOf(newGemAbilities),
+                List.copyOf(newBonusAbilities),
+                List.copyOf(newGemPassives),
+                List.copyOf(newBonusPassives)
+        );
+        selections.put(playerUuid, sanitized);
+        markDirty();
+        return sanitized;
     }
 
     public static boolean hasAbility(ServerPlayerEntity player, Identifier abilityId) {
@@ -106,7 +195,10 @@ public final class PrismSelectionsState extends PersistentState {
             return false;
         }
         PrismSelection selection = get(server).getSelection(player.getUuid());
-        return selection.allAbilities().contains(abilityId);
+        if (BonusPoolRegistry.isBonusAbility(abilityId)) {
+            return selection.bonusAbilities().contains(abilityId);
+        }
+        return selection.gemAbilities().contains(abilityId);
     }
 
     public static boolean hasAnyAbility(ServerPlayerEntity player, Collection<Identifier> abilityIds) {
@@ -119,7 +211,13 @@ public final class PrismSelectionsState extends PersistentState {
         }
         PrismSelection selection = get(server).getSelection(player.getUuid());
         for (Identifier id : abilityIds) {
-            if (selection.allAbilities().contains(id)) {
+            if (BonusPoolRegistry.isBonusAbility(id)) {
+                if (selection.bonusAbilities().contains(id)) {
+                    return true;
+                }
+                continue;
+            }
+            if (selection.gemAbilities().contains(id)) {
                 return true;
             }
         }
@@ -131,6 +229,9 @@ public final class PrismSelectionsState extends PersistentState {
      * @return true if added, false if limit reached or blacklisted
      */
     public boolean addGemAbility(UUID playerUuid, Identifier abilityId) {
+        if (BonusPoolRegistry.isBonusAbility(abilityId)) {
+            return false;
+        }
         if (BonusPoolRegistry.isBlacklisted(abilityId)) {
             return false;
         }
@@ -139,7 +240,7 @@ public final class PrismSelectionsState extends PersistentState {
         }
         
         PrismSelection current = getSelection(playerUuid);
-        if (current.gemAbilities.size() >= 3) {
+        if (current.gemAbilities.size() >= GemsBalance.v().prism().maxGemAbilities()) {
             return false;
         }
         if (current.gemAbilities.contains(abilityId) || current.bonusAbilities.contains(abilityId)) {
@@ -161,15 +262,28 @@ public final class PrismSelectionsState extends PersistentState {
         if (!BonusPoolRegistry.isBonusAbility(abilityId)) {
             return false;
         }
-        
+        if (BonusPoolRegistry.isBlacklisted(abilityId)) {
+            return false;
+        }
+        if (ModAbilities.get(abilityId) == null) {
+            return false;
+        }
+
         PrismSelection current = getSelection(playerUuid);
         if (current.bonusAbilities.size() >= 2) {
             return false;
         }
-        if (current.bonusAbilities.contains(abilityId) || current.gemAbilities.contains(abilityId)) {
+        if (current.gemAbilities.contains(abilityId) || current.bonusAbilities.contains(abilityId)) {
             return false;
         }
-        
+
+        if (attachedServer != null) {
+            BonusClaimsState claims = BonusClaimsState.get(attachedServer);
+            if (!claims.claimAbility(playerUuid, abilityId)) {
+                return false;
+            }
+        }
+
         List<Identifier> newBonusAbilities = new ArrayList<>(current.bonusAbilities);
         newBonusAbilities.add(abilityId);
         selections.put(playerUuid, new PrismSelection(current.gemAbilities, newBonusAbilities, current.gemPassives, current.bonusPassives));
@@ -182,6 +296,9 @@ public final class PrismSelectionsState extends PersistentState {
      * @return true if added, false if limit reached or blacklisted
      */
     public boolean addGemPassive(UUID playerUuid, Identifier passiveId) {
+        if (BonusPoolRegistry.isBonusPassive(passiveId)) {
+            return false;
+        }
         if (BonusPoolRegistry.isBlacklisted(passiveId)) {
             return false;
         }
@@ -190,7 +307,7 @@ public final class PrismSelectionsState extends PersistentState {
         }
         
         PrismSelection current = getSelection(playerUuid);
-        if (current.gemPassives.size() >= 3) {
+        if (current.gemPassives.size() >= GemsBalance.v().prism().maxGemPassives()) {
             return false;
         }
         if (current.gemPassives.contains(passiveId) || current.bonusPassives.contains(passiveId)) {
@@ -212,15 +329,28 @@ public final class PrismSelectionsState extends PersistentState {
         if (!BonusPoolRegistry.isBonusPassive(passiveId)) {
             return false;
         }
-        
+        if (BonusPoolRegistry.isBlacklisted(passiveId)) {
+            return false;
+        }
+        if (ModPassives.get(passiveId) == null) {
+            return false;
+        }
+
         PrismSelection current = getSelection(playerUuid);
         if (current.bonusPassives.size() >= 2) {
             return false;
         }
-        if (current.bonusPassives.contains(passiveId) || current.gemPassives.contains(passiveId)) {
+        if (current.gemPassives.contains(passiveId) || current.bonusPassives.contains(passiveId)) {
             return false;
         }
-        
+
+        if (attachedServer != null) {
+            BonusClaimsState claims = BonusClaimsState.get(attachedServer);
+            if (!claims.claimPassive(playerUuid, passiveId)) {
+                return false;
+            }
+        }
+
         List<Identifier> newBonusPassives = new ArrayList<>(current.bonusPassives);
         newBonusPassives.add(passiveId);
         selections.put(playerUuid, new PrismSelection(current.gemAbilities, current.bonusAbilities, current.gemPassives, newBonusPassives));
@@ -232,7 +362,17 @@ public final class PrismSelectionsState extends PersistentState {
      * Clear all selections for a player.
      */
     public void clearSelections(UUID playerUuid) {
-        if (selections.remove(playerUuid) != null) {
+        PrismSelection removed = selections.remove(playerUuid);
+        if (removed != null && attachedServer != null) {
+            BonusClaimsState claims = BonusClaimsState.get(attachedServer);
+            for (Identifier id : removed.bonusAbilities()) {
+                claims.releaseAbility(playerUuid, id);
+            }
+            for (Identifier id : removed.bonusPassives()) {
+                claims.releasePassive(playerUuid, id);
+            }
+        }
+        if (removed != null) {
             markDirty();
         }
     }
@@ -247,6 +387,9 @@ public final class PrismSelectionsState extends PersistentState {
         
         boolean changed = newGemAbilities.remove(abilityId) || newBonusAbilities.remove(abilityId);
         if (changed) {
+            if (attachedServer != null && BonusPoolRegistry.isBonusAbility(abilityId)) {
+                BonusClaimsState.get(attachedServer).releaseAbility(playerUuid, abilityId);
+            }
             selections.put(playerUuid, new PrismSelection(newGemAbilities, newBonusAbilities, current.gemPassives, current.bonusPassives));
             markDirty();
         }
@@ -262,6 +405,9 @@ public final class PrismSelectionsState extends PersistentState {
         
         boolean changed = newGemPassives.remove(passiveId) || newBonusPassives.remove(passiveId);
         if (changed) {
+            if (attachedServer != null && BonusPoolRegistry.isBonusPassive(passiveId)) {
+                BonusClaimsState.get(attachedServer).releasePassive(playerUuid, passiveId);
+            }
             selections.put(playerUuid, new PrismSelection(current.gemAbilities, current.bonusAbilities, newGemPassives, newBonusPassives));
             markDirty();
         }

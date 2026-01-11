@@ -270,8 +270,9 @@ Passives: None (selected at max energy).
 Abilities: None (selected at max energy).
 
 At energy 10/10, Prism players can select:
-- Up to 3 abilities from normal gems + 2 from the bonus pool (5 total).
-- Up to 3 passives from normal gems + 2 from the bonus pool (5 total).
+- Up to 3 abilities from normal gems.
+- Up to 3 passives from normal gems.
+- Bonus abilities/passives are claimed from the global bonus pool (same as other gems) and are activated via the bonus keybinds (default C/V).
 - Blacklisted powers (Void Immunity, Chaos Random Rotation, Nullify) cannot be selected.
 
 How to select:
@@ -290,6 +291,7 @@ Abilities:
 - Rapid Strike: remove sword cooldowns for 5s.
 - Flourish: quick 360 sword sweep that hits all nearby enemies.
 - Mirror Match: force a target into a 1v1 duel for 15s (barrier prevents escape); also copies your skin and name onto them.
+- Mirror Match: swap skins and names with a targeted player for a short duration (includes chat display).
 - Blade Dance: combo system where consecutive hits deal increasing damage (resets after 3s without hitting).
 
 ### Hunter Gem

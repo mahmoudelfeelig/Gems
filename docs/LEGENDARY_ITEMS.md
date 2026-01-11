@@ -23,7 +23,7 @@
 - Duelist's Rapier: parry window on right-click; successful parry grants guaranteed crit on next hit.
 - Experience Blade: consume XP to gain Sharpness (10 levels -> Sharpness II, 20 -> IV, 30 -> VI, max Sharpness XX at 100 levels). Enchantment persists until death.
 - Reversal Mirror: right-click to activate for 5s; all incoming damage is reflected back to the attacker.
-- Hunter's Trophy Necklace: on player kill, permanently gain the victim's highest-level gem passive (persists through death/logout).
+- Hunter's Trophy Necklace: right-click a player (or kill a player while wearing it) to open a passive-steal menu; steal multiple passives (up to 10) and keep them permanently (persists across death/logout and gem swaps).
 - Gladiator's Mark: brand a player; both you and the marked player deal 50% more damage to each other for 60s.
 - Soul Shackle: link yourself to an enemy; damage you take is split between you both for 10s.
 - Chrono Charm: while carried, all gem and bonus ability cooldowns are reduced by 50%.

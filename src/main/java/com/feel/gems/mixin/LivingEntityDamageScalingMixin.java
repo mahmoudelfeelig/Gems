@@ -28,6 +28,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.registry.tag.EntityTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -114,6 +115,17 @@ public abstract class LivingEntityDamageScalingMixin {
 
         Entity attacker = source.getAttacker();
         if (attacker instanceof ServerPlayerEntity playerAttacker) {
+            // Duelist's Rapier: consume guaranteed crit on the next melee hit (avoid extra hit + invulnerability issues).
+            if (playerAttacker.getMainHandStack().isOf(com.feel.gems.item.ModItems.DUELISTS_RAPIER)
+                    && !source.isIn(DamageTypeTags.IS_PROJECTILE)
+                    && DuelistsRapierItem.hasAndConsumeGuaranteedCrit(playerAttacker)) {
+                scaled *= GemsBalance.v().legendary().duelistsRapierCritDamageMultiplier();
+                AbilityFeedback.sound(playerAttacker, SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, 1.0F, 1.0F);
+                if (world instanceof ServerWorld serverWorld) {
+                    AbilityFeedback.burstAt(serverWorld, self.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.CRIT, 12, 0.25D);
+                }
+            }
+
             // Void Immunity: target is immune to gem ability/passive damage bonuses
             boolean targetHasVoidImmunity = self instanceof ServerPlayerEntity victim 
                     && VoidImmunity.shouldBlockEffect(playerAttacker, victim);

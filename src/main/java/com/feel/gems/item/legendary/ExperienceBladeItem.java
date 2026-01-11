@@ -1,6 +1,7 @@
 package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.state.PlayerStateManager;
 import java.util.function.Consumer;
@@ -51,14 +52,18 @@ public final class ExperienceBladeItem extends Item implements LegendaryItem {
         ItemStack stack = player.getStackInHand(hand);
         int currentSharpness = getCurrentSharpness(player);
 
-        if (currentSharpness >= 20) {
+        int maxSharpness = GemsBalance.v().legendary().experienceBladeMaxSharpness();
+        int sharpnessPerTier = GemsBalance.v().legendary().experienceBladeSharpnessPerTier();
+        int xpLevelsPerTier = GemsBalance.v().legendary().experienceBladeXpLevelsPerTier();
+
+        if (currentSharpness >= maxSharpness) {
             player.sendMessage(Text.translatable("gems.item.experience_blade.max").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
         }
 
         // Calculate XP needed for next tier
-        int nextTier = (currentSharpness / 2) + 1;
-        int xpLevelsNeeded = nextTier * 10; // 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+        int nextTier = (currentSharpness / sharpnessPerTier) + 1;
+        int xpLevelsNeeded = nextTier * xpLevelsPerTier;
 
         if (player.experienceLevel < xpLevelsNeeded) {
             player.sendMessage(Text.translatable("gems.item.experience_blade.need_xp", xpLevelsNeeded, player.experienceLevel).formatted(Formatting.RED), true);
@@ -67,7 +72,7 @@ public final class ExperienceBladeItem extends Item implements LegendaryItem {
 
         // Consume XP and upgrade
         player.addExperienceLevels(-xpLevelsNeeded);
-        int newSharpness = currentSharpness + 2;
+        int newSharpness = Math.min(maxSharpness, currentSharpness + sharpnessPerTier);
         setCurrentSharpness(player, newSharpness);
 
         // Apply enchantment to the blade

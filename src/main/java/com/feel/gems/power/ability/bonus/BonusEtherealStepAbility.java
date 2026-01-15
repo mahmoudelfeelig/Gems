@@ -3,9 +3,9 @@ package com.feel.gems.power.ability.bonus;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.EtherealState;
-import com.feel.gems.util.GemsTeleport;
 import net.minecraft.block.BlockState;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -13,6 +13,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import java.util.EnumSet;
 
 /**
  * Ethereal Step - Short dash that passes through one wall.
@@ -47,7 +48,16 @@ public final class BonusEtherealStepAbility implements GemAbility {
         
         int maxDistance = MAX_DISTANCE;
         Vec3d start = player.getEntityPos();
-        Vec3d direction = player.getRotationVec(1.0F).normalize();
+        // GameTests aim at a target point which can add pitch; Ethereal Step should be a horizontal phase.
+        Vec3d look = player.getRotationVec(1.0F);
+        Vec3d direction = new Vec3d(look.x, 0.0D, look.z);
+        if (direction.lengthSquared() <= 1.0E-4D) {
+            // If the player is looking straight up/down, fall back to yaw.
+            double yawRad = Math.toRadians(player.getYaw());
+            direction = new Vec3d(-Math.sin(yawRad), 0.0D, Math.cos(yawRad));
+        } else {
+            direction = direction.normalize();
+        }
         
         // Find destination by phasing through blocks
         Vec3d destination = findPhaseDestination(world, start, direction, maxDistance, player);
@@ -66,8 +76,20 @@ public final class BonusEtherealStepAbility implements GemAbility {
         // Briefly ignore damage while phasing.
         EtherealState.setEthereal(player, 10);
 
-        // Teleport
-        GemsTeleport.teleport(player, world, destination.x, destination.y, destination.z, player.getYaw(), player.getPitch());
+        // Teleport (match GameTest teleport semantics to avoid collision/validation differences).
+        boolean teleported = player.teleport(
+                world,
+                destination.x,
+                destination.y,
+                destination.z,
+                EnumSet.noneOf(PositionFlag.class),
+                player.getYaw(),
+                player.getPitch(),
+                false
+        );
+        if (!teleported) {
+            return false;
+        }
 
         // Particles at end
         world.spawnParticles(ParticleTypes.PORTAL, destination.x, destination.y + 1, destination.z, 
@@ -88,7 +110,6 @@ public final class BonusEtherealStepAbility implements GemAbility {
      */
     private Vec3d findPhaseDestination(ServerWorld world, Vec3d start, Vec3d direction, int maxDistance, ServerPlayerEntity player) {
         boolean inWall = false;
-        boolean passedThroughWall = false;
         Vec3d lastValidPos = null;
         
         for (int i = 1; i <= maxDistance; i++) {
@@ -107,19 +128,12 @@ public final class BonusEtherealStepAbility implements GemAbility {
                 // We're in a wall
                 inWall = true;
             } else if (inWall) {
-                // We just exited a wall - this is our phase destination
-                passedThroughWall = true;
-                lastValidPos = checkPos;
+                // We just exited a wall - stop at the first clear position after the wall.
+                return checkPos;
             } else {
                 // Open space, keep tracking as potential destination
                 lastValidPos = checkPos;
             }
-        }
-        
-        // If we passed through a wall, use that exit point
-        // Otherwise, use the last valid position we found (normal teleport)
-        if (passedThroughWall && lastValidPos != null) {
-            return lastValidPos;
         }
         
         // Fallback: find the furthest open position

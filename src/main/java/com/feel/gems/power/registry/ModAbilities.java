@@ -206,20 +206,26 @@ public final class ModAbilities {
         
         // Bonus Pool Abilities - New 30
         register(new BonusSpectralChainsAbility());
+        register(new BonusVoidRiftAbility());
         register(new BonusSoulLinkAbility());
         register(new BonusInfernoDashAbility());
         register(new BonusTidalWaveAbility());
         register(new BonusStarfallAbility());
         register(new BonusBloodlustAbility());
         register(new BonusCrystalCageAbility());
+        register(new BonusPhantasmAbility());
         register(new BonusMirrorImageAbility());
         register(new BonusSonicBoomAbility());
         register(new BonusVampiricTouchAbility());
+        register(new BonusBlindingFlashAbility());
+        register(new BonusStormCallAbility());
         register(new BonusSmokeScreenAbility());
         register(new BonusThornsNovaAbility());
         register(new BonusQuicksandAbility());
         register(new BonusSearingLightAbility());
         register(new BonusSpectralBladeAbility());
+        register(new BonusNetherPortalAbility());
+        register(new BonusEntangleAbility());
         register(new BonusBlinkAbility());
         register(new BonusPurgeAbility());
         register(new BonusMindSpikeAbility());
@@ -228,6 +234,8 @@ public final class ModAbilities {
         register(new BonusBanishmentAbility());
         register(new BonusCorpseExplosionAbility());
         register(new BonusSoulSwapAbility());
+        register(new BonusMarkOfDeathAbility());
+        register(new BonusIronMaidenAbility());
         register(new BonusVulnerabilityAbility());
         register(new BonusReflectionWardAbility());
         register(new BonusWarpStrikeAbility());

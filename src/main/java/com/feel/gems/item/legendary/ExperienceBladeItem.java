@@ -5,6 +5,8 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.state.PlayerStateManager;
 import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
@@ -16,6 +18,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ToolMaterial;
 import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -117,6 +120,46 @@ public final class ExperienceBladeItem extends Item implements LegendaryItem {
 
     public static void clearSharpness(ServerPlayerEntity player) {
         PlayerStateManager.clearPersistent(player, SHARPNESS_LEVEL_KEY);
+    }
+
+    public static void clearOnDeath(ServerPlayerEntity player) {
+        clearSharpness(player);
+        RegistryEntry<Enchantment> sharpness = player.getEntityWorld().getRegistryManager()
+                .getOptionalEntry(Enchantments.SHARPNESS).orElse(null);
+        if (sharpness == null) {
+            return;
+        }
+        for (ItemStack stack : player.getInventory().getMainStacks()) {
+            if (!stack.isOf(com.feel.gems.item.ModItems.EXPERIENCE_BLADE)) {
+                continue;
+            }
+            stripSharpness(stack, sharpness, player);
+        }
+    }
+
+    private static void stripSharpness(ItemStack stack, RegistryEntry<Enchantment> sharpness, ServerPlayerEntity player) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+        ItemEnchantmentsComponent enchants = EnchantmentHelper.getEnchantments(stack);
+        if (enchants.isEmpty()) {
+            return;
+        }
+        List<RegistryEntry<Enchantment>> keepKeys = new ArrayList<>();
+        List<Integer> keepLevels = new ArrayList<>();
+        for (var entry : enchants.getEnchantmentEntries()) {
+            if (entry.getKey() == sharpness) {
+                continue;
+            }
+            keepKeys.add(entry.getKey());
+            keepLevels.add(entry.getIntValue());
+        }
+        EnchantmentHelper.set(stack, ItemEnchantmentsComponent.DEFAULT);
+        for (int i = 0; i < keepKeys.size(); i++) {
+            RegistryEntry<Enchantment> key = keepKeys.get(i);
+            int level = keepLevels.get(i);
+            EnchantmentHelper.apply(stack, builder -> builder.set(key, level));
+        }
     }
 
     private static String toRoman(int number) {

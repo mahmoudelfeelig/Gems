@@ -1,28 +1,29 @@
 package com.feel.gems.power.ability.bonus;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.trust.GemTrust;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Box;
-import net.minecraft.world.World;
-
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraft.util.math.Vec3d;
 
 /**
  * Corpse Explosion - Detonate nearby corpses (recently killed entities) for AoE damage.
- * For simplicity, we detect recently damaged entities at low health as "corpses".
  */
 public final class BonusCorpseExplosionAbility implements GemAbility {
-    private static final double SEARCH_RANGE = 15.0;
-    private static final double EXPLOSION_RANGE = 5.0;
-    private static final float DAMAGE = 8.0f;
+    private static final int CORPSE_LIFETIME_TICKS = 200; // 10 seconds
+    private static final List<Corpse> CORPSES = new ArrayList<>();
 
     @Override
     public Identifier id() {
@@ -36,51 +37,84 @@ public final class BonusCorpseExplosionAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Detonate nearby low-health enemies for 8 AoE damage.";
+        return "Detonate nearby corpses for AoE damage.";
     }
 
     @Override
     public int cooldownTicks() {
-        return 300; // 15 seconds
+        return GemsBalance.v().bonusPool().corpseExplosionCooldownSeconds * 20;
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
         if (!(player.getEntityWorld() instanceof ServerWorld world)) return false;
-        Box searchBox = player.getBoundingBox().expand(SEARCH_RANGE);
-        
-        // Find "corpse candidates" - entities below 25% HP
-        List<LivingEntity> corpses = world.getEntitiesByClass(LivingEntity.class, searchBox,
-                e -> e != player && e.isAlive() && e.getHealth() / e.getMaxHealth() < 0.25);
+        var cfg = GemsBalance.v().bonusPool();
+        pruneCorpses(world);
+
+        Box searchBox = player.getBoundingBox().expand(cfg.corpseExplosionCorpseRangeBlocks);
+        List<Corpse> corpses = new ArrayList<>();
+        for (Corpse corpse : CORPSES) {
+            if (!corpse.world().equals(world)) {
+                continue;
+            }
+            if (!searchBox.contains(corpse.pos())) {
+                continue;
+            }
+            corpses.add(corpse);
+        }
 
         if (corpses.isEmpty()) {
             return false;
         }
 
-        List<LivingEntity> exploded = new ArrayList<>();
-        for (LivingEntity corpse : corpses) {
-            // Kill the corpse
-            corpse.damage(world, world.getDamageSources().magic(), Float.MAX_VALUE);
-            exploded.add(corpse);
-
-            // AoE damage around the corpse
-            Box explosionBox = corpse.getBoundingBox().expand(EXPLOSION_RANGE);
+        for (Corpse corpse : corpses) {
+            Vec3d pos = corpse.pos();
+            Box explosionBox = new Box(pos, pos).expand(cfg.corpseExplosionRadiusBlocks);
             List<LivingEntity> nearby = world.getEntitiesByClass(LivingEntity.class, explosionBox,
-                    e -> e != player && e.isAlive() && !corpses.contains(e));
-            
+                    e -> e != player && e.isAlive());
+
             for (LivingEntity entity : nearby) {
-                entity.damage(world, world.getDamageSources().explosion(null, player), DAMAGE);
+                if (entity instanceof ServerPlayerEntity other) {
+                    if (GemTrust.isTrusted(player, other) || VoidImmunity.shouldBlockEffect(player, other)) {
+                        continue;
+                    }
+                }
+                entity.damage(world, world.getDamageSources().explosion(null, player), cfg.corpseExplosionDamage);
             }
 
-            // Explosion particles
-            world.spawnParticles(ParticleTypes.EXPLOSION, corpse.getX(), corpse.getY() + 0.5, corpse.getZ(), 
+            world.spawnParticles(ParticleTypes.EXPLOSION, pos.x, pos.y + 0.5, pos.z,
                     5, 0.5, 0.5, 0.5, 0);
-            world.spawnParticles(ParticleTypes.SOUL, corpse.getX(), corpse.getY() + 0.5, corpse.getZ(), 
+            world.spawnParticles(ParticleTypes.SOUL, pos.x, pos.y + 0.5, pos.z,
                     20, 0.5, 0.5, 0.5, 0.05);
+            CORPSES.remove(corpse);
         }
 
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.PLAYERS, 1.0f, 1.2f);
         return true;
+    }
+
+    public static void recordCorpse(LivingEntity entity) {
+        if (!(entity.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
+        long now = world.getTime();
+        CORPSES.add(new Corpse(world, entity.getEntityPos(), now));
+        pruneCorpses(world);
+    }
+
+    private static void pruneCorpses(ServerWorld world) {
+        long now = world.getTime();
+        Iterator<Corpse> iter = CORPSES.iterator();
+        while (iter.hasNext()) {
+            Corpse corpse = iter.next();
+            long corpseNow = corpse.world().equals(world) ? now : corpse.world().getTime();
+            if (corpseNow - corpse.time() > CORPSE_LIFETIME_TICKS) {
+                iter.remove();
+            }
+        }
+    }
+
+    private record Corpse(ServerWorld world, Vec3d pos, long time) {
     }
 }

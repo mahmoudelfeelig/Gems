@@ -3,6 +3,9 @@ package com.feel.gems.power.gem.trickster;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.GemPowers;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.item.ProjectileItem;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.network.ServerPlayerEntity;
 import java.util.Random;
@@ -78,5 +81,34 @@ public final class TricksterPassiveRuntime {
         if (shouldIgnoreSlow(player)) {
             player.removeStatusEffect(StatusEffects.SLOWNESS);
         }
+    }
+
+    public static void applyChaosEffect(ServerPlayerEntity player) {
+        if (!hasChaosAgent(player)) {
+            return;
+        }
+        int duration = 100;
+        ChaosEffect effect = rollChaosEffect();
+        switch (effect) {
+            case BENEFICIAL_SPEED -> player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(StatusEffects.SPEED, duration, 1, false, false));
+            case BENEFICIAL_STRENGTH -> player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(StatusEffects.STRENGTH, duration, 0, false, false));
+            case DETRIMENTAL_SLOW -> player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(StatusEffects.SLOWNESS, duration, 0, false, false));
+            case DETRIMENTAL_WEAKNESS -> player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, false, false));
+            default -> {
+            }
+        }
+    }
+
+    public static boolean isThrowable(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+        var item = stack.getItem();
+        if (item instanceof ProjectileItem) {
+            return true;
+        }
+        return item == Items.ENDER_PEARL || item == Items.EGG || item == Items.SNOWBALL
+                || item == Items.EXPERIENCE_BOTTLE || item == Items.SPLASH_POTION
+                || item == Items.LINGERING_POTION;
     }
 }

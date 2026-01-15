@@ -1,12 +1,16 @@
 package com.feel.gems.gametest.util;
 
 import com.feel.gems.assassin.AssassinState;
+import com.feel.gems.core.GemId;
 import com.feel.gems.item.GemItem;
+import com.feel.gems.power.runtime.GemPowers;
+import com.feel.gems.state.GemPlayerState;
 import com.mojang.authlib.GameProfile;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import java.util.List;
 import java.util.UUID;
 import io.netty.channel.embedded.EmbeddedChannel;
+import net.minecraft.block.Blocks;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -25,6 +29,18 @@ import net.minecraft.world.rule.GameRules;
 
 public final class GemsGameTestUtil {
     private GemsGameTestUtil() {
+    }
+
+    public static void placeStoneFloor(TestContext context, int radius) {
+        placeStoneFloor(context, 1, radius);
+    }
+
+    public static void placeStoneFloor(TestContext context, int y, int radius) {
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                context.setBlockState(x, y, z, Blocks.STONE.getDefaultState());
+            }
+        }
     }
 
     public static void forceSurvival(ServerPlayerEntity player) {
@@ -167,6 +183,14 @@ public final class GemsGameTestUtil {
                 player.networkHandler.tickLoading();
             }
         }
+
+        // Ensure a clean per-player state between GameTests, even if the run directory persisted playerdata.
+        ((GemsPersistentDataHolder) player).gems$setPersistentData(new net.minecraft.nbt.NbtCompound());
+
+        // GameTests should be deterministic. The production init flow assigns a random gem at first join,
+        // which makes tests flaky (e.g., the "enemy" rolling VOID and becoming immune to effects).
+        GemPlayerState.resetToNew(player, GemId.ASTRA);
+        GemPowers.sync(player);
         return player;
     }
 

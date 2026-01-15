@@ -14,7 +14,7 @@ public final class BonusPoolRegistry {
      * All bonus abilities that can be claimed (50 total).
      */
     public static final List<Identifier> BONUS_ABILITIES = List.of(
-            // Original 20 (with replacements for duplicates)
+            // Original 20
             PowerIds.BONUS_THUNDERSTRIKE,
             PowerIds.BONUS_FROSTBITE,
             PowerIds.BONUS_EARTHSHATTER,
@@ -22,50 +22,50 @@ public final class BonusPoolRegistry {
             PowerIds.BONUS_RADIANT_BURST,
             PowerIds.BONUS_VENOMSPRAY,
             PowerIds.BONUS_TIMEWARP,
-            PowerIds.BONUS_DECOY_TRAP,          // Was: Mirror Image (duplicate of Shadow Clone)
+            PowerIds.BONUS_DECOY_TRAP,
             PowerIds.BONUS_GRAVITY_WELL,
             PowerIds.BONUS_CHAIN_LIGHTNING,
             PowerIds.BONUS_MAGMA_POOL,
             PowerIds.BONUS_ICE_WALL,
             PowerIds.BONUS_WIND_SLASH,
-            PowerIds.BONUS_CURSE_BOLT,          // Was: Soul Drain (duplicate of Health Drain)
+            PowerIds.BONUS_CURSE_BOLT,
             PowerIds.BONUS_BERSERKER_RAGE,
-            PowerIds.BONUS_ETHEREAL_STEP,       // Was: Phase Shift (duplicate of Unbounded)
+            PowerIds.BONUS_ETHEREAL_STEP,
             PowerIds.BONUS_ARCANE_MISSILES,
             PowerIds.BONUS_LIFE_TAP,
             PowerIds.BONUS_DOOM_BOLT,
             PowerIds.BONUS_SANCTUARY,
-            // New 30 (with replacements for duplicates)
+            // New 30
             PowerIds.BONUS_SPECTRAL_CHAINS,
-            PowerIds.BONUS_SOUL_LINK,           // Was: Void Rift (duplicate of Gravity Well)
+            PowerIds.BONUS_VOID_RIFT,
             PowerIds.BONUS_INFERNO_DASH,
             PowerIds.BONUS_TIDAL_WAVE,
             PowerIds.BONUS_STARFALL,
             PowerIds.BONUS_BLOODLUST,
             PowerIds.BONUS_CRYSTAL_CAGE,
-            PowerIds.BONUS_MIRROR_IMAGE,        // Was: Phantasm (duplicate of Decoy Trap)
+            PowerIds.BONUS_PHANTASM,
             PowerIds.BONUS_SONIC_BOOM,
             PowerIds.BONUS_VAMPIRIC_TOUCH,
-            PowerIds.BONUS_SMOKE_SCREEN,        // Was: Blinding Flash (duplicate of Radiant Burst blind)
-            PowerIds.BONUS_THORNS_NOVA,         // Was: Storm Call (duplicate of Chain Lightning)
+            PowerIds.BONUS_BLINDING_FLASH,
+            PowerIds.BONUS_STORM_CALL,
             PowerIds.BONUS_QUICKSAND,
             PowerIds.BONUS_SEARING_LIGHT,
             PowerIds.BONUS_SPECTRAL_BLADE,      // Was: Shadow Clone (duplicate of Reaper's)
-            PowerIds.BONUS_BLINK,               // Was: Nether Portal (duplicate of Shadowstep)
-            PowerIds.BONUS_PURGE,               // Was: Entangle (duplicate of Spectral Chains root)
+            PowerIds.BONUS_NETHER_PORTAL,
+            PowerIds.BONUS_ENTANGLE,
             PowerIds.BONUS_MIND_SPIKE,
-            PowerIds.BONUS_TREMOR,              // Was: Seismic Slam (duplicate of Earthshatter)
+            PowerIds.BONUS_TREMOR,
             PowerIds.BONUS_ICICLE_BARRAGE,
             PowerIds.BONUS_BANISHMENT,
             PowerIds.BONUS_CORPSE_EXPLOSION,
             PowerIds.BONUS_SOUL_SWAP,
-            PowerIds.BONUS_VULNERABILITY,       // Was: Mark of Death (duplicate of Doom Bolt mark)
-            PowerIds.BONUS_REFLECTION_WARD,     // Was: Iron Maiden (similar to Thorns Aura passive)
-            PowerIds.BONUS_WARP_STRIKE,         // Was: Spirit Walk (duplicate of Unbounded)
+            PowerIds.BONUS_MARK_OF_DEATH,
+            PowerIds.BONUS_IRON_MAIDEN,
+            PowerIds.BONUS_WARP_STRIKE,
             PowerIds.BONUS_VORTEX_STRIKE,
             PowerIds.BONUS_PLAGUE_CLOUD,
             PowerIds.BONUS_OVERCHARGE,
-            PowerIds.BONUS_GRAVITY_CRUSH        // Was: Temporal Anchor (duplicate of Shadow Anchor)
+            PowerIds.BONUS_GRAVITY_CRUSH
     );
 
     /**

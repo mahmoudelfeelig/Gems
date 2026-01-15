@@ -105,8 +105,13 @@ public final class SpaceAnomalies {
 
             ServerPlayerEntity caster = server.getPlayerManager().getPlayer(a.caster);
             if (caster == null) {
-                it.remove();
-                continue;
+                // GameTests can spawn "mock" players that aren't registered in the PlayerManager; fall back to
+                // resolving the caster from the world player list so anomaly behavior remains testable.
+                caster = world.getPlayers().stream().filter(p -> p.getUuid().equals(a.caster)).findFirst().orElse(null);
+                if (caster == null) {
+                    it.remove();
+                    continue;
+                }
             }
 
             if (a.kind == Kind.ORBITAL_LASER) {

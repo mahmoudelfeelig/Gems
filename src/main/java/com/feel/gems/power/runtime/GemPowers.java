@@ -408,7 +408,15 @@ public final class GemPowers {
 
         BonusClaimsState claims = BonusClaimsState.get(server);
         Set<Identifier> playerPassives = claims.getPlayerPassives(player.getUuid());
-        return playerPassives.contains(passiveId) && !GemsDisables.isBonusPassiveDisabledFor(player, passiveId);
+        if (playerPassives.contains(passiveId) && !GemsDisables.isBonusPassiveDisabledFor(player, passiveId)) {
+            return true;
+        }
+
+        // Defensive fallback: treat already-applied bonus passives as active. This keeps gameplay consistent
+        // if the persistent claims state is temporarily out-of-sync (GameTests create many ephemeral players).
+        NbtCompound data = persistentRoot(player);
+        Set<Identifier> appliedBonus = readIdentifierSet(data, KEY_APPLIED_BONUS_PASSIVES);
+        return appliedBonus.contains(passiveId) && !GemsDisables.isBonusPassiveDisabledFor(player, passiveId);
     }
 
     /**

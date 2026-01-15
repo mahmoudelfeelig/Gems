@@ -2,6 +2,7 @@ package com.feel.gems.power.ability.bonus;
 
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.util.Targeting;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -10,7 +11,6 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 
 /**
  * Vampiric Touch - Drain health from touched enemy over time.
@@ -43,29 +43,20 @@ public final class BonusVampiricTouchAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         if (!(player.getEntityWorld() instanceof ServerWorld world)) return false;
-        Vec3d start = player.getEyePos();
-        Vec3d direction = player.getRotationVector();
-
-        LivingEntity target = null;
-        for (LivingEntity entity : world.getEntitiesByClass(LivingEntity.class, 
-                player.getBoundingBox().expand(RANGE), e -> e != player && e.isAlive())) {
-            Vec3d toEntity = entity.getEyePos().subtract(start);
-            double dot = toEntity.normalize().dotProduct(direction);
-            if (dot > 0.8 && toEntity.length() < RANGE) {
-                target = entity;
-                break;
-            }
-        }
+        LivingEntity target = Targeting.raycastLiving(player, RANGE);
 
         if (target == null) {
             return false;
         }
 
-        float actualDamage = Math.min(DAMAGE, target.getHealth());
+        float beforeHealth = target.getHealth();
         target.damage(world, world.getDamageSources().magic(), DAMAGE);
-        
-        float healAmount = actualDamage * HEAL_RATIO;
-        player.heal(healAmount);
+        float dealt = Math.max(0.0F, beforeHealth - target.getHealth());
+
+        float healAmount = dealt * HEAL_RATIO;
+        if (healAmount > 0.0F) {
+            player.heal(healAmount);
+        }
 
         // Particle trail from target to player
         Vec3d targetPos = target.getEntityPos().add(0, target.getHeight() / 2, 0);

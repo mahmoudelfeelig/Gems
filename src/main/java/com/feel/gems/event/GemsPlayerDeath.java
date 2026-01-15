@@ -6,6 +6,7 @@ import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.GemOwnership;
 import com.feel.gems.item.ModItems;
+import com.feel.gems.item.legendary.ExperienceBladeItem;
 import com.feel.gems.item.legendary.HuntersTrophyNecklaceItem;
 import com.feel.gems.legendary.LegendaryDuels;
 import com.feel.gems.net.GemStateSync;
@@ -35,6 +36,7 @@ public final class GemsPlayerDeath {
         if (victim.getEntityWorld().isClient()) {
             return;
         }
+        ExperienceBladeItem.clearOnDeath(victim);
         SummonerSummons.discardAll(victim);
         GemKeepOnDeath.stash(victim);
     }

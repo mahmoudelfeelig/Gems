@@ -14,6 +14,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -65,7 +66,9 @@ public final class BonusTremorAbility implements GemAbility {
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, SLOW_DURATION, 1, false, false, true));
             
             // Small knockback/stagger
-            entity.setVelocity(entity.getVelocity().add(0, 0.2, 0));
+            Vec3d vel = entity.getVelocity();
+            double up = Math.max(0.0D, vel.y) + 0.35D;
+            entity.setVelocity(vel.x, up, vel.z);
             entity.velocityDirty = true;
         }
 

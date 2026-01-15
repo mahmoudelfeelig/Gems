@@ -2195,14 +2195,748 @@ public final class GemsBalance {
         }
     }
 
-    public record BonusPool(
-            int maxBonusAbilities,
-            int maxBonusPassives,
-            boolean showBonusesInHud,
-            float bonusAbilityCooldownMultiplier,
-            float bonusAbilityDamageMultiplier,
-            float bonusPassiveEffectMultiplier
-    ) {
+    public static final class BonusPool {
+        public final int maxBonusAbilities;
+        public final int maxBonusPassives;
+        public final boolean showBonusesInHud;
+        public final float bonusAbilityCooldownMultiplier;
+        public final float bonusAbilityDamageMultiplier;
+        public final float bonusPassiveEffectMultiplier;
+
+        public final int thunderstrikeCooldownSeconds;
+        public final float thunderstrikeDamage;
+        public final int thunderstrikeRangeBlocks;
+        public final int frostbiteCooldownSeconds;
+        public final float frostbiteDamage;
+        public final int frostbiteFreezeSeconds;
+        public final int frostbiteRangeBlocks;
+        public final int earthshatterCooldownSeconds;
+        public final float earthshatterDamage;
+        public final int earthshatterRadiusBlocks;
+        public final int shadowstepCooldownSeconds;
+        public final int shadowstepDistanceBlocks;
+        public final int radiantBurstCooldownSeconds;
+        public final float radiantBurstDamage;
+        public final int radiantBurstRadiusBlocks;
+        public final int radiantBurstBlindSeconds;
+        public final int venomsprayCooldownSeconds;
+        public final int venomsprayPoisonSeconds;
+        public final int venomsprayConeAngleDegrees;
+        public final int venomsprayRangeBlocks;
+        public final int timewarpCooldownSeconds;
+        public final int timewarpDurationSeconds;
+        public final int timewarpRadiusBlocks;
+        public final int timewarpSlownessAmplifier;
+        public final int decoyTrapCooldownSeconds;
+        public final float decoyTrapExplosionDamage;
+        public final int decoyTrapArmTimeSeconds;
+        public final int gravityWellCooldownSeconds;
+        public final int gravityWellDurationSeconds;
+        public final int gravityWellRadiusBlocks;
+        public final float gravityWellPullStrength;
+        public final int chainLightningCooldownSeconds;
+        public final float chainLightningDamage;
+        public final int chainLightningMaxBounces;
+        public final int chainLightningBounceRangeBlocks;
+        public final int magmaPoolCooldownSeconds;
+        public final float magmaPoolDamagePerSecond;
+        public final int magmaPoolDurationSeconds;
+        public final int magmaPoolRadiusBlocks;
+        public final int iceWallCooldownSeconds;
+        public final int iceWallDurationSeconds;
+        public final int iceWallWidthBlocks;
+        public final int iceWallHeightBlocks;
+        public final int windSlashCooldownSeconds;
+        public final float windSlashDamage;
+        public final int windSlashRangeBlocks;
+        public final int curseBoltCooldownSeconds;
+        public final float curseBoltDamage;
+        public final int curseBoltEffectDurationSeconds;
+        public final int berserkerRageCooldownSeconds;
+        public final int berserkerRageDurationSeconds;
+        public final float berserkerRageDamageBoostPercent;
+        public final float berserkerRageDamageTakenBoostPercent;
+        public final int etherealStepCooldownSeconds;
+        public final int etherealStepDistanceBlocks;
+        public final int arcaneMissilesCooldownSeconds;
+        public final float arcaneMissilesDamagePerMissile;
+        public final int arcaneMissilesCount;
+        public final int lifeTapCooldownSeconds;
+        public final float lifeTapHealthCost;
+        public final float lifeTapCooldownReductionPercent;
+        public final int doomBoltCooldownSeconds;
+        public final float doomBoltDamage;
+        public final float doomBoltVelocity;
+        public final int sanctuaryCooldownSeconds;
+        public final int sanctuaryDurationSeconds;
+        public final int sanctuaryRadiusBlocks;
+        public final int spectralChainsCooldownSeconds;
+        public final int spectralChainsDurationSeconds;
+        public final int spectralChainsRangeBlocks;
+        public final int voidRiftCooldownSeconds;
+        public final float voidRiftDamagePerSecond;
+        public final int voidRiftDurationSeconds;
+        public final int voidRiftRadiusBlocks;
+        public final int infernoDashCooldownSeconds;
+        public final float infernoDashDamage;
+        public final int infernoDashDistanceBlocks;
+        public final int infernoDashFireDurationSeconds;
+        public final int tidalWaveCooldownSeconds;
+        public final float tidalWaveDamage;
+        public final int tidalWaveRangeBlocks;
+        public final int tidalWaveSlowSeconds;
+        public final int starfallCooldownSeconds;
+        public final float starfallDamagePerHit;
+        public final int starfallMeteorCount;
+        public final int starfallRadiusBlocks;
+        public final int bloodlustCooldownSeconds;
+        public final int bloodlustDurationSeconds;
+        public final float bloodlustAttackSpeedPerKill;
+        public final int bloodlustMaxStacks;
+        public final int crystalCageCooldownSeconds;
+        public final int crystalCageDurationSeconds;
+        public final int crystalCageRangeBlocks;
+        public final int phantasmCooldownSeconds;
+        public final int phantasmDurationSeconds;
+        public final float phantasmExplosionDamage;
+        public final int sonicBoomCooldownSeconds;
+        public final float sonicBoomDamage;
+        public final int sonicBoomRadiusBlocks;
+        public final float sonicBoomKnockbackStrength;
+        public final int vampiricTouchCooldownSeconds;
+        public final float vampiricTouchDamage;
+        public final float vampiricTouchHealPercent;
+        public final int blindingFlashCooldownSeconds;
+        public final int blindingFlashBlindSeconds;
+        public final int blindingFlashRadiusBlocks;
+        public final int stormCallCooldownSeconds;
+        public final float stormCallDamagePerStrike;
+        public final int stormCallDurationSeconds;
+        public final int stormCallRadiusBlocks;
+        public final int stormCallStrikesPerSecond;
+        public final int quicksandCooldownSeconds;
+        public final int quicksandDurationSeconds;
+        public final int quicksandRadiusBlocks;
+        public final int quicksandSlownessAmplifier;
+        public final int searingLightCooldownSeconds;
+        public final float searingLightDamage;
+        public final float searingLightUndeadBonusDamage;
+        public final int searingLightRangeBlocks;
+        public final int spectralBladeCooldownSeconds;
+        public final float spectralBladeDamage;
+        public final int spectralBladeDurationSeconds;
+        public final int netherPortalCooldownSeconds;
+        public final int netherPortalDistanceBlocks;
+        public final int entangleCooldownSeconds;
+        public final int entangleDurationSeconds;
+        public final int entangleRadiusBlocks;
+        public final int mindSpikeCooldownSeconds;
+        public final float mindSpikeDamagePerSecond;
+        public final int mindSpikeDurationSeconds;
+        public final int mindSpikeRangeBlocks;
+        public final int seismicSlamCooldownSeconds;
+        public final float seismicSlamDamage;
+        public final int seismicSlamRadiusBlocks;
+        public final float seismicSlamKnockupStrength;
+        public final int icicleBarrageCooldownSeconds;
+        public final float icicleBarrageDamagePerIcicle;
+        public final int icicleBarrageCount;
+        public final int icicleBarrageRangeBlocks;
+        public final int banishmentCooldownSeconds;
+        public final int banishmentDistanceBlocks;
+        public final int banishmentRangeBlocks;
+        public final int corpseExplosionCooldownSeconds;
+        public final float corpseExplosionDamage;
+        public final int corpseExplosionRadiusBlocks;
+        public final int corpseExplosionCorpseRangeBlocks;
+        public final int soulSwapCooldownSeconds;
+        public final int soulSwapRangeBlocks;
+        public final int markOfDeathCooldownSeconds;
+        public final int markOfDeathDurationSeconds;
+        public final float markOfDeathBonusDamagePercent;
+        public final int markOfDeathRangeBlocks;
+        public final int ironMaidenCooldownSeconds;
+        public final int ironMaidenDurationSeconds;
+        public final float ironMaidenReflectPercent;
+        public final int warpStrikeCooldownSeconds;
+        public final float warpStrikeDamage;
+        public final int warpStrikeRangeBlocks;
+        public final int vortexStrikeCooldownSeconds;
+        public final float vortexStrikeDamage;
+        public final int vortexStrikeRadiusBlocks;
+        public final float vortexStrikePullStrength;
+        public final int plagueCloudCooldownSeconds;
+        public final int plagueCloudDurationSeconds;
+        public final int plagueCloudPoisonAmplifier;
+        public final int plagueCloudWeaknessAmplifier;
+        public final int overchargeCooldownSeconds;
+        public final float overchargeDamageMultiplier;
+        public final float overchargeHealthCost;
+        public final int overchargeDurationSeconds;
+        public final int gravityCrushCooldownSeconds;
+        public final float gravityCrushDamage;
+        public final int gravityCrushRootDurationSeconds;
+        public final int gravityCrushRangeBlocks;
+
+        public final float thornsAuraDamagePercent;
+        public final float lifestealPercent;
+        public final float dodgeChancePercent;
+        public final float criticalStrikeBonusDamagePercent;
+        public final float criticalStrikeChanceBonus;
+        public final float manaShieldXpPerDamage;
+        public final int regenerationBoostAmplifier;
+        public final float damageReductionPercent;
+        public final float attackSpeedBoostPercent;
+        public final float reachExtendBlocks;
+        public final float impactAbsorbPercent;
+        public final int impactAbsorbMaxAbsorption;
+        public final int adrenalineSurgeDurationSeconds;
+        public final int adrenalineSurgeCooldownSeconds;
+        public final float intimidateDamageReductionPercent;
+        public final int intimidateRadiusBlocks;
+        public final int evasiveRollCooldownSeconds;
+        public final int evasiveRollDistanceBlocks;
+        public final float combatMeditateHealPerSecond;
+        public final int combatMeditateDelaySeconds;
+        public final float weaponMasteryBonusDamage;
+        public final float cullingBladeThresholdPercent;
+        public final float thickSkinProjectileReductionPercent;
+        public final float xpBoostPercent;
+        public final float hungerResistReductionPercent;
+        public final boolean poisonImmunityFull;
+        public final int secondWindCooldownSeconds;
+        public final float secondWindHealAmount;
+        public final float echoStrikeChancePercent;
+        public final float chainBreakerDurationReductionPercent;
+        public final float stoneSkinFlatReduction;
+        public final int arcaneBarrierCooldownSeconds;
+        public final float arcaneBarrierAbsorbAmount;
+        public final float predatorSenseThresholdPercent;
+        public final int predatorSenseRangeBlocks;
+        public final float battleMedicHealPerSecond;
+        public final int battleMedicRadiusBlocks;
+        public final float lastStandThresholdPercent;
+        public final float lastStandDamageBoostPercent;
+        public final float executionerThresholdPercent;
+        public final float executionerBonusDamagePercent;
+        public final float bloodthirstHealOnKill;
+        public final boolean steelResolveFullKnockbackImmunity;
+        public final float elementalHarmonyReductionPercent;
+        public final float treasureHunterDropBoostPercent;
+        public final float counterStrikeDamageMultiplier;
+        public final int counterStrikeWindowSeconds;
+        public final float bulwarkBlockEffectivenessBoostPercent;
+        public final float quickRecoveryDebuffReductionPercent;
+        public final int overfowingVitalityBonusHearts;
+        public final float magneticPullRangeMultiplier;
+        public final float vengeanceBuffDurationSeconds;
+        public final float vengeanceDamageBoostPercent;
+        public final float nemesisBonusDamagePercent;
+        public final float huntersInstinctCritBoostPercent;
+        public final float berserkerBloodMaxAttackSpeedBoost;
+        public final float opportunistBackstabBonusPercent;
+        public final float ironcladArmorBoostPercent;
+        public final float mistFormPhaseChancePercent;
+        public final int warCryRadiusBlocks;
+        public final int warCryStrengthDurationSeconds;
+        public final int siphonSoulRegenDurationSeconds;
+        public final float unbreakableDurabilityReductionPercent;
+        public final float focusedMindCooldownReductionPercent;
+        public final int sixthSenseWarningRangeBlocks;
+
+        private BonusPool(
+                int maxBonusAbilities,
+                int maxBonusPassives,
+                boolean showBonusesInHud,
+                float bonusAbilityCooldownMultiplier,
+                float bonusAbilityDamageMultiplier,
+                float bonusPassiveEffectMultiplier,
+                int thunderstrikeCooldownSeconds,
+                float thunderstrikeDamage,
+                int thunderstrikeRangeBlocks,
+                int frostbiteCooldownSeconds,
+                float frostbiteDamage,
+                int frostbiteFreezeSeconds,
+                int frostbiteRangeBlocks,
+                int earthshatterCooldownSeconds,
+                float earthshatterDamage,
+                int earthshatterRadiusBlocks,
+                int shadowstepCooldownSeconds,
+                int shadowstepDistanceBlocks,
+                int radiantBurstCooldownSeconds,
+                float radiantBurstDamage,
+                int radiantBurstRadiusBlocks,
+                int radiantBurstBlindSeconds,
+                int venomsprayCooldownSeconds,
+                int venomsprayPoisonSeconds,
+                int venomsprayConeAngleDegrees,
+                int venomsprayRangeBlocks,
+                int timewarpCooldownSeconds,
+                int timewarpDurationSeconds,
+                int timewarpRadiusBlocks,
+                int timewarpSlownessAmplifier,
+                int decoyTrapCooldownSeconds,
+                float decoyTrapExplosionDamage,
+                int decoyTrapArmTimeSeconds,
+                int gravityWellCooldownSeconds,
+                int gravityWellDurationSeconds,
+                int gravityWellRadiusBlocks,
+                float gravityWellPullStrength,
+                int chainLightningCooldownSeconds,
+                float chainLightningDamage,
+                int chainLightningMaxBounces,
+                int chainLightningBounceRangeBlocks,
+                int magmaPoolCooldownSeconds,
+                float magmaPoolDamagePerSecond,
+                int magmaPoolDurationSeconds,
+                int magmaPoolRadiusBlocks,
+                int iceWallCooldownSeconds,
+                int iceWallDurationSeconds,
+                int iceWallWidthBlocks,
+                int iceWallHeightBlocks,
+                int windSlashCooldownSeconds,
+                float windSlashDamage,
+                int windSlashRangeBlocks,
+                int curseBoltCooldownSeconds,
+                float curseBoltDamage,
+                int curseBoltEffectDurationSeconds,
+                int berserkerRageCooldownSeconds,
+                int berserkerRageDurationSeconds,
+                float berserkerRageDamageBoostPercent,
+                float berserkerRageDamageTakenBoostPercent,
+                int etherealStepCooldownSeconds,
+                int etherealStepDistanceBlocks,
+                int arcaneMissilesCooldownSeconds,
+                float arcaneMissilesDamagePerMissile,
+                int arcaneMissilesCount,
+                int lifeTapCooldownSeconds,
+                float lifeTapHealthCost,
+                float lifeTapCooldownReductionPercent,
+                int doomBoltCooldownSeconds,
+                float doomBoltDamage,
+                float doomBoltVelocity,
+                int sanctuaryCooldownSeconds,
+                int sanctuaryDurationSeconds,
+                int sanctuaryRadiusBlocks,
+                int spectralChainsCooldownSeconds,
+                int spectralChainsDurationSeconds,
+                int spectralChainsRangeBlocks,
+                int voidRiftCooldownSeconds,
+                float voidRiftDamagePerSecond,
+                int voidRiftDurationSeconds,
+                int voidRiftRadiusBlocks,
+                int infernoDashCooldownSeconds,
+                float infernoDashDamage,
+                int infernoDashDistanceBlocks,
+                int infernoDashFireDurationSeconds,
+                int tidalWaveCooldownSeconds,
+                float tidalWaveDamage,
+                int tidalWaveRangeBlocks,
+                int tidalWaveSlowSeconds,
+                int starfallCooldownSeconds,
+                float starfallDamagePerHit,
+                int starfallMeteorCount,
+                int starfallRadiusBlocks,
+                int bloodlustCooldownSeconds,
+                int bloodlustDurationSeconds,
+                float bloodlustAttackSpeedPerKill,
+                int bloodlustMaxStacks,
+                int crystalCageCooldownSeconds,
+                int crystalCageDurationSeconds,
+                int crystalCageRangeBlocks,
+                int phantasmCooldownSeconds,
+                int phantasmDurationSeconds,
+                float phantasmExplosionDamage,
+                int sonicBoomCooldownSeconds,
+                float sonicBoomDamage,
+                int sonicBoomRadiusBlocks,
+                float sonicBoomKnockbackStrength,
+                int vampiricTouchCooldownSeconds,
+                float vampiricTouchDamage,
+                float vampiricTouchHealPercent,
+                int blindingFlashCooldownSeconds,
+                int blindingFlashBlindSeconds,
+                int blindingFlashRadiusBlocks,
+                int stormCallCooldownSeconds,
+                float stormCallDamagePerStrike,
+                int stormCallDurationSeconds,
+                int stormCallRadiusBlocks,
+                int stormCallStrikesPerSecond,
+                int quicksandCooldownSeconds,
+                int quicksandDurationSeconds,
+                int quicksandRadiusBlocks,
+                int quicksandSlownessAmplifier,
+                int searingLightCooldownSeconds,
+                float searingLightDamage,
+                float searingLightUndeadBonusDamage,
+                int searingLightRangeBlocks,
+                int spectralBladeCooldownSeconds,
+                float spectralBladeDamage,
+                int spectralBladeDurationSeconds,
+                int netherPortalCooldownSeconds,
+                int netherPortalDistanceBlocks,
+                int entangleCooldownSeconds,
+                int entangleDurationSeconds,
+                int entangleRadiusBlocks,
+                int mindSpikeCooldownSeconds,
+                float mindSpikeDamagePerSecond,
+                int mindSpikeDurationSeconds,
+                int mindSpikeRangeBlocks,
+                int seismicSlamCooldownSeconds,
+                float seismicSlamDamage,
+                int seismicSlamRadiusBlocks,
+                float seismicSlamKnockupStrength,
+                int icicleBarrageCooldownSeconds,
+                float icicleBarrageDamagePerIcicle,
+                int icicleBarrageCount,
+                int icicleBarrageRangeBlocks,
+                int banishmentCooldownSeconds,
+                int banishmentDistanceBlocks,
+                int banishmentRangeBlocks,
+                int corpseExplosionCooldownSeconds,
+                float corpseExplosionDamage,
+                int corpseExplosionRadiusBlocks,
+                int corpseExplosionCorpseRangeBlocks,
+                int soulSwapCooldownSeconds,
+                int soulSwapRangeBlocks,
+                int markOfDeathCooldownSeconds,
+                int markOfDeathDurationSeconds,
+                float markOfDeathBonusDamagePercent,
+                int markOfDeathRangeBlocks,
+                int ironMaidenCooldownSeconds,
+                int ironMaidenDurationSeconds,
+                float ironMaidenReflectPercent,
+                int warpStrikeCooldownSeconds,
+                float warpStrikeDamage,
+                int warpStrikeRangeBlocks,
+                int vortexStrikeCooldownSeconds,
+                float vortexStrikeDamage,
+                int vortexStrikeRadiusBlocks,
+                float vortexStrikePullStrength,
+                int plagueCloudCooldownSeconds,
+                int plagueCloudDurationSeconds,
+                int plagueCloudPoisonAmplifier,
+                int plagueCloudWeaknessAmplifier,
+                int overchargeCooldownSeconds,
+                float overchargeDamageMultiplier,
+                float overchargeHealthCost,
+                int overchargeDurationSeconds,
+                int gravityCrushCooldownSeconds,
+                float gravityCrushDamage,
+                int gravityCrushRootDurationSeconds,
+                int gravityCrushRangeBlocks,
+                float thornsAuraDamagePercent,
+                float lifestealPercent,
+                float dodgeChancePercent,
+                float criticalStrikeBonusDamagePercent,
+                float criticalStrikeChanceBonus,
+                float manaShieldXpPerDamage,
+                int regenerationBoostAmplifier,
+                float damageReductionPercent,
+                float attackSpeedBoostPercent,
+                float reachExtendBlocks,
+                float impactAbsorbPercent,
+                int impactAbsorbMaxAbsorption,
+                int adrenalineSurgeDurationSeconds,
+                int adrenalineSurgeCooldownSeconds,
+                float intimidateDamageReductionPercent,
+                int intimidateRadiusBlocks,
+                int evasiveRollCooldownSeconds,
+                int evasiveRollDistanceBlocks,
+                float combatMeditateHealPerSecond,
+                int combatMeditateDelaySeconds,
+                float weaponMasteryBonusDamage,
+                float cullingBladeThresholdPercent,
+                float thickSkinProjectileReductionPercent,
+                float xpBoostPercent,
+                float hungerResistReductionPercent,
+                boolean poisonImmunityFull,
+                int secondWindCooldownSeconds,
+                float secondWindHealAmount,
+                float echoStrikeChancePercent,
+                float chainBreakerDurationReductionPercent,
+                float stoneSkinFlatReduction,
+                int arcaneBarrierCooldownSeconds,
+                float arcaneBarrierAbsorbAmount,
+                float predatorSenseThresholdPercent,
+                int predatorSenseRangeBlocks,
+                float battleMedicHealPerSecond,
+                int battleMedicRadiusBlocks,
+                float lastStandThresholdPercent,
+                float lastStandDamageBoostPercent,
+                float executionerThresholdPercent,
+                float executionerBonusDamagePercent,
+                float bloodthirstHealOnKill,
+                boolean steelResolveFullKnockbackImmunity,
+                float elementalHarmonyReductionPercent,
+                float treasureHunterDropBoostPercent,
+                float counterStrikeDamageMultiplier,
+                int counterStrikeWindowSeconds,
+                float bulwarkBlockEffectivenessBoostPercent,
+                float quickRecoveryDebuffReductionPercent,
+                int overfowingVitalityBonusHearts,
+                float magneticPullRangeMultiplier,
+                float vengeanceBuffDurationSeconds,
+                float vengeanceDamageBoostPercent,
+                float nemesisBonusDamagePercent,
+                float huntersInstinctCritBoostPercent,
+                float berserkerBloodMaxAttackSpeedBoost,
+                float opportunistBackstabBonusPercent,
+                float ironcladArmorBoostPercent,
+                float mistFormPhaseChancePercent,
+                int warCryRadiusBlocks,
+                int warCryStrengthDurationSeconds,
+                int siphonSoulRegenDurationSeconds,
+                float unbreakableDurabilityReductionPercent,
+                float focusedMindCooldownReductionPercent,
+                int sixthSenseWarningRangeBlocks) {
+            this.maxBonusAbilities = maxBonusAbilities;
+            this.maxBonusPassives = maxBonusPassives;
+            this.showBonusesInHud = showBonusesInHud;
+            this.bonusAbilityCooldownMultiplier = bonusAbilityCooldownMultiplier;
+            this.bonusAbilityDamageMultiplier = bonusAbilityDamageMultiplier;
+            this.bonusPassiveEffectMultiplier = bonusPassiveEffectMultiplier;
+            this.thunderstrikeCooldownSeconds = thunderstrikeCooldownSeconds;
+            this.thunderstrikeDamage = thunderstrikeDamage;
+            this.thunderstrikeRangeBlocks = thunderstrikeRangeBlocks;
+            this.frostbiteCooldownSeconds = frostbiteCooldownSeconds;
+            this.frostbiteDamage = frostbiteDamage;
+            this.frostbiteFreezeSeconds = frostbiteFreezeSeconds;
+            this.frostbiteRangeBlocks = frostbiteRangeBlocks;
+            this.earthshatterCooldownSeconds = earthshatterCooldownSeconds;
+            this.earthshatterDamage = earthshatterDamage;
+            this.earthshatterRadiusBlocks = earthshatterRadiusBlocks;
+            this.shadowstepCooldownSeconds = shadowstepCooldownSeconds;
+            this.shadowstepDistanceBlocks = shadowstepDistanceBlocks;
+            this.radiantBurstCooldownSeconds = radiantBurstCooldownSeconds;
+            this.radiantBurstDamage = radiantBurstDamage;
+            this.radiantBurstRadiusBlocks = radiantBurstRadiusBlocks;
+            this.radiantBurstBlindSeconds = radiantBurstBlindSeconds;
+            this.venomsprayCooldownSeconds = venomsprayCooldownSeconds;
+            this.venomsprayPoisonSeconds = venomsprayPoisonSeconds;
+            this.venomsprayConeAngleDegrees = venomsprayConeAngleDegrees;
+            this.venomsprayRangeBlocks = venomsprayRangeBlocks;
+            this.timewarpCooldownSeconds = timewarpCooldownSeconds;
+            this.timewarpDurationSeconds = timewarpDurationSeconds;
+            this.timewarpRadiusBlocks = timewarpRadiusBlocks;
+            this.timewarpSlownessAmplifier = timewarpSlownessAmplifier;
+            this.decoyTrapCooldownSeconds = decoyTrapCooldownSeconds;
+            this.decoyTrapExplosionDamage = decoyTrapExplosionDamage;
+            this.decoyTrapArmTimeSeconds = decoyTrapArmTimeSeconds;
+            this.gravityWellCooldownSeconds = gravityWellCooldownSeconds;
+            this.gravityWellDurationSeconds = gravityWellDurationSeconds;
+            this.gravityWellRadiusBlocks = gravityWellRadiusBlocks;
+            this.gravityWellPullStrength = gravityWellPullStrength;
+            this.chainLightningCooldownSeconds = chainLightningCooldownSeconds;
+            this.chainLightningDamage = chainLightningDamage;
+            this.chainLightningMaxBounces = chainLightningMaxBounces;
+            this.chainLightningBounceRangeBlocks = chainLightningBounceRangeBlocks;
+            this.magmaPoolCooldownSeconds = magmaPoolCooldownSeconds;
+            this.magmaPoolDamagePerSecond = magmaPoolDamagePerSecond;
+            this.magmaPoolDurationSeconds = magmaPoolDurationSeconds;
+            this.magmaPoolRadiusBlocks = magmaPoolRadiusBlocks;
+            this.iceWallCooldownSeconds = iceWallCooldownSeconds;
+            this.iceWallDurationSeconds = iceWallDurationSeconds;
+            this.iceWallWidthBlocks = iceWallWidthBlocks;
+            this.iceWallHeightBlocks = iceWallHeightBlocks;
+            this.windSlashCooldownSeconds = windSlashCooldownSeconds;
+            this.windSlashDamage = windSlashDamage;
+            this.windSlashRangeBlocks = windSlashRangeBlocks;
+            this.curseBoltCooldownSeconds = curseBoltCooldownSeconds;
+            this.curseBoltDamage = curseBoltDamage;
+            this.curseBoltEffectDurationSeconds = curseBoltEffectDurationSeconds;
+            this.berserkerRageCooldownSeconds = berserkerRageCooldownSeconds;
+            this.berserkerRageDurationSeconds = berserkerRageDurationSeconds;
+            this.berserkerRageDamageBoostPercent = berserkerRageDamageBoostPercent;
+            this.berserkerRageDamageTakenBoostPercent = berserkerRageDamageTakenBoostPercent;
+            this.etherealStepCooldownSeconds = etherealStepCooldownSeconds;
+            this.etherealStepDistanceBlocks = etherealStepDistanceBlocks;
+            this.arcaneMissilesCooldownSeconds = arcaneMissilesCooldownSeconds;
+            this.arcaneMissilesDamagePerMissile = arcaneMissilesDamagePerMissile;
+            this.arcaneMissilesCount = arcaneMissilesCount;
+            this.lifeTapCooldownSeconds = lifeTapCooldownSeconds;
+            this.lifeTapHealthCost = lifeTapHealthCost;
+            this.lifeTapCooldownReductionPercent = lifeTapCooldownReductionPercent;
+            this.doomBoltCooldownSeconds = doomBoltCooldownSeconds;
+            this.doomBoltDamage = doomBoltDamage;
+            this.doomBoltVelocity = doomBoltVelocity;
+            this.sanctuaryCooldownSeconds = sanctuaryCooldownSeconds;
+            this.sanctuaryDurationSeconds = sanctuaryDurationSeconds;
+            this.sanctuaryRadiusBlocks = sanctuaryRadiusBlocks;
+            this.spectralChainsCooldownSeconds = spectralChainsCooldownSeconds;
+            this.spectralChainsDurationSeconds = spectralChainsDurationSeconds;
+            this.spectralChainsRangeBlocks = spectralChainsRangeBlocks;
+            this.voidRiftCooldownSeconds = voidRiftCooldownSeconds;
+            this.voidRiftDamagePerSecond = voidRiftDamagePerSecond;
+            this.voidRiftDurationSeconds = voidRiftDurationSeconds;
+            this.voidRiftRadiusBlocks = voidRiftRadiusBlocks;
+            this.infernoDashCooldownSeconds = infernoDashCooldownSeconds;
+            this.infernoDashDamage = infernoDashDamage;
+            this.infernoDashDistanceBlocks = infernoDashDistanceBlocks;
+            this.infernoDashFireDurationSeconds = infernoDashFireDurationSeconds;
+            this.tidalWaveCooldownSeconds = tidalWaveCooldownSeconds;
+            this.tidalWaveDamage = tidalWaveDamage;
+            this.tidalWaveRangeBlocks = tidalWaveRangeBlocks;
+            this.tidalWaveSlowSeconds = tidalWaveSlowSeconds;
+            this.starfallCooldownSeconds = starfallCooldownSeconds;
+            this.starfallDamagePerHit = starfallDamagePerHit;
+            this.starfallMeteorCount = starfallMeteorCount;
+            this.starfallRadiusBlocks = starfallRadiusBlocks;
+            this.bloodlustCooldownSeconds = bloodlustCooldownSeconds;
+            this.bloodlustDurationSeconds = bloodlustDurationSeconds;
+            this.bloodlustAttackSpeedPerKill = bloodlustAttackSpeedPerKill;
+            this.bloodlustMaxStacks = bloodlustMaxStacks;
+            this.crystalCageCooldownSeconds = crystalCageCooldownSeconds;
+            this.crystalCageDurationSeconds = crystalCageDurationSeconds;
+            this.crystalCageRangeBlocks = crystalCageRangeBlocks;
+            this.phantasmCooldownSeconds = phantasmCooldownSeconds;
+            this.phantasmDurationSeconds = phantasmDurationSeconds;
+            this.phantasmExplosionDamage = phantasmExplosionDamage;
+            this.sonicBoomCooldownSeconds = sonicBoomCooldownSeconds;
+            this.sonicBoomDamage = sonicBoomDamage;
+            this.sonicBoomRadiusBlocks = sonicBoomRadiusBlocks;
+            this.sonicBoomKnockbackStrength = sonicBoomKnockbackStrength;
+            this.vampiricTouchCooldownSeconds = vampiricTouchCooldownSeconds;
+            this.vampiricTouchDamage = vampiricTouchDamage;
+            this.vampiricTouchHealPercent = vampiricTouchHealPercent;
+            this.blindingFlashCooldownSeconds = blindingFlashCooldownSeconds;
+            this.blindingFlashBlindSeconds = blindingFlashBlindSeconds;
+            this.blindingFlashRadiusBlocks = blindingFlashRadiusBlocks;
+            this.stormCallCooldownSeconds = stormCallCooldownSeconds;
+            this.stormCallDamagePerStrike = stormCallDamagePerStrike;
+            this.stormCallDurationSeconds = stormCallDurationSeconds;
+            this.stormCallRadiusBlocks = stormCallRadiusBlocks;
+            this.stormCallStrikesPerSecond = stormCallStrikesPerSecond;
+            this.quicksandCooldownSeconds = quicksandCooldownSeconds;
+            this.quicksandDurationSeconds = quicksandDurationSeconds;
+            this.quicksandRadiusBlocks = quicksandRadiusBlocks;
+            this.quicksandSlownessAmplifier = quicksandSlownessAmplifier;
+            this.searingLightCooldownSeconds = searingLightCooldownSeconds;
+            this.searingLightDamage = searingLightDamage;
+            this.searingLightUndeadBonusDamage = searingLightUndeadBonusDamage;
+            this.searingLightRangeBlocks = searingLightRangeBlocks;
+            this.spectralBladeCooldownSeconds = spectralBladeCooldownSeconds;
+            this.spectralBladeDamage = spectralBladeDamage;
+            this.spectralBladeDurationSeconds = spectralBladeDurationSeconds;
+            this.netherPortalCooldownSeconds = netherPortalCooldownSeconds;
+            this.netherPortalDistanceBlocks = netherPortalDistanceBlocks;
+            this.entangleCooldownSeconds = entangleCooldownSeconds;
+            this.entangleDurationSeconds = entangleDurationSeconds;
+            this.entangleRadiusBlocks = entangleRadiusBlocks;
+            this.mindSpikeCooldownSeconds = mindSpikeCooldownSeconds;
+            this.mindSpikeDamagePerSecond = mindSpikeDamagePerSecond;
+            this.mindSpikeDurationSeconds = mindSpikeDurationSeconds;
+            this.mindSpikeRangeBlocks = mindSpikeRangeBlocks;
+            this.seismicSlamCooldownSeconds = seismicSlamCooldownSeconds;
+            this.seismicSlamDamage = seismicSlamDamage;
+            this.seismicSlamRadiusBlocks = seismicSlamRadiusBlocks;
+            this.seismicSlamKnockupStrength = seismicSlamKnockupStrength;
+            this.icicleBarrageCooldownSeconds = icicleBarrageCooldownSeconds;
+            this.icicleBarrageDamagePerIcicle = icicleBarrageDamagePerIcicle;
+            this.icicleBarrageCount = icicleBarrageCount;
+            this.icicleBarrageRangeBlocks = icicleBarrageRangeBlocks;
+            this.banishmentCooldownSeconds = banishmentCooldownSeconds;
+            this.banishmentDistanceBlocks = banishmentDistanceBlocks;
+            this.banishmentRangeBlocks = banishmentRangeBlocks;
+            this.corpseExplosionCooldownSeconds = corpseExplosionCooldownSeconds;
+            this.corpseExplosionDamage = corpseExplosionDamage;
+            this.corpseExplosionRadiusBlocks = corpseExplosionRadiusBlocks;
+            this.corpseExplosionCorpseRangeBlocks = corpseExplosionCorpseRangeBlocks;
+            this.soulSwapCooldownSeconds = soulSwapCooldownSeconds;
+            this.soulSwapRangeBlocks = soulSwapRangeBlocks;
+            this.markOfDeathCooldownSeconds = markOfDeathCooldownSeconds;
+            this.markOfDeathDurationSeconds = markOfDeathDurationSeconds;
+            this.markOfDeathBonusDamagePercent = markOfDeathBonusDamagePercent;
+            this.markOfDeathRangeBlocks = markOfDeathRangeBlocks;
+            this.ironMaidenCooldownSeconds = ironMaidenCooldownSeconds;
+            this.ironMaidenDurationSeconds = ironMaidenDurationSeconds;
+            this.ironMaidenReflectPercent = ironMaidenReflectPercent;
+            this.warpStrikeCooldownSeconds = warpStrikeCooldownSeconds;
+            this.warpStrikeDamage = warpStrikeDamage;
+            this.warpStrikeRangeBlocks = warpStrikeRangeBlocks;
+            this.vortexStrikeCooldownSeconds = vortexStrikeCooldownSeconds;
+            this.vortexStrikeDamage = vortexStrikeDamage;
+            this.vortexStrikeRadiusBlocks = vortexStrikeRadiusBlocks;
+            this.vortexStrikePullStrength = vortexStrikePullStrength;
+            this.plagueCloudCooldownSeconds = plagueCloudCooldownSeconds;
+            this.plagueCloudDurationSeconds = plagueCloudDurationSeconds;
+            this.plagueCloudPoisonAmplifier = plagueCloudPoisonAmplifier;
+            this.plagueCloudWeaknessAmplifier = plagueCloudWeaknessAmplifier;
+            this.overchargeCooldownSeconds = overchargeCooldownSeconds;
+            this.overchargeDamageMultiplier = overchargeDamageMultiplier;
+            this.overchargeHealthCost = overchargeHealthCost;
+            this.overchargeDurationSeconds = overchargeDurationSeconds;
+            this.gravityCrushCooldownSeconds = gravityCrushCooldownSeconds;
+            this.gravityCrushDamage = gravityCrushDamage;
+            this.gravityCrushRootDurationSeconds = gravityCrushRootDurationSeconds;
+            this.gravityCrushRangeBlocks = gravityCrushRangeBlocks;
+            this.thornsAuraDamagePercent = thornsAuraDamagePercent;
+            this.lifestealPercent = lifestealPercent;
+            this.dodgeChancePercent = dodgeChancePercent;
+            this.criticalStrikeBonusDamagePercent = criticalStrikeBonusDamagePercent;
+            this.criticalStrikeChanceBonus = criticalStrikeChanceBonus;
+            this.manaShieldXpPerDamage = manaShieldXpPerDamage;
+            this.regenerationBoostAmplifier = regenerationBoostAmplifier;
+            this.damageReductionPercent = damageReductionPercent;
+            this.attackSpeedBoostPercent = attackSpeedBoostPercent;
+            this.reachExtendBlocks = reachExtendBlocks;
+            this.impactAbsorbPercent = impactAbsorbPercent;
+            this.impactAbsorbMaxAbsorption = impactAbsorbMaxAbsorption;
+            this.adrenalineSurgeDurationSeconds = adrenalineSurgeDurationSeconds;
+            this.adrenalineSurgeCooldownSeconds = adrenalineSurgeCooldownSeconds;
+            this.intimidateDamageReductionPercent = intimidateDamageReductionPercent;
+            this.intimidateRadiusBlocks = intimidateRadiusBlocks;
+            this.evasiveRollCooldownSeconds = evasiveRollCooldownSeconds;
+            this.evasiveRollDistanceBlocks = evasiveRollDistanceBlocks;
+            this.combatMeditateHealPerSecond = combatMeditateHealPerSecond;
+            this.combatMeditateDelaySeconds = combatMeditateDelaySeconds;
+            this.weaponMasteryBonusDamage = weaponMasteryBonusDamage;
+            this.cullingBladeThresholdPercent = cullingBladeThresholdPercent;
+            this.thickSkinProjectileReductionPercent = thickSkinProjectileReductionPercent;
+            this.xpBoostPercent = xpBoostPercent;
+            this.hungerResistReductionPercent = hungerResistReductionPercent;
+            this.poisonImmunityFull = poisonImmunityFull;
+            this.secondWindCooldownSeconds = secondWindCooldownSeconds;
+            this.secondWindHealAmount = secondWindHealAmount;
+            this.echoStrikeChancePercent = echoStrikeChancePercent;
+            this.chainBreakerDurationReductionPercent = chainBreakerDurationReductionPercent;
+            this.stoneSkinFlatReduction = stoneSkinFlatReduction;
+            this.arcaneBarrierCooldownSeconds = arcaneBarrierCooldownSeconds;
+            this.arcaneBarrierAbsorbAmount = arcaneBarrierAbsorbAmount;
+            this.predatorSenseThresholdPercent = predatorSenseThresholdPercent;
+            this.predatorSenseRangeBlocks = predatorSenseRangeBlocks;
+            this.battleMedicHealPerSecond = battleMedicHealPerSecond;
+            this.battleMedicRadiusBlocks = battleMedicRadiusBlocks;
+            this.lastStandThresholdPercent = lastStandThresholdPercent;
+            this.lastStandDamageBoostPercent = lastStandDamageBoostPercent;
+            this.executionerThresholdPercent = executionerThresholdPercent;
+            this.executionerBonusDamagePercent = executionerBonusDamagePercent;
+            this.bloodthirstHealOnKill = bloodthirstHealOnKill;
+            this.steelResolveFullKnockbackImmunity = steelResolveFullKnockbackImmunity;
+            this.elementalHarmonyReductionPercent = elementalHarmonyReductionPercent;
+            this.treasureHunterDropBoostPercent = treasureHunterDropBoostPercent;
+            this.counterStrikeDamageMultiplier = counterStrikeDamageMultiplier;
+            this.counterStrikeWindowSeconds = counterStrikeWindowSeconds;
+            this.bulwarkBlockEffectivenessBoostPercent = bulwarkBlockEffectivenessBoostPercent;
+            this.quickRecoveryDebuffReductionPercent = quickRecoveryDebuffReductionPercent;
+            this.overfowingVitalityBonusHearts = overfowingVitalityBonusHearts;
+            this.magneticPullRangeMultiplier = magneticPullRangeMultiplier;
+            this.vengeanceBuffDurationSeconds = vengeanceBuffDurationSeconds;
+            this.vengeanceDamageBoostPercent = vengeanceDamageBoostPercent;
+            this.nemesisBonusDamagePercent = nemesisBonusDamagePercent;
+            this.huntersInstinctCritBoostPercent = huntersInstinctCritBoostPercent;
+            this.berserkerBloodMaxAttackSpeedBoost = berserkerBloodMaxAttackSpeedBoost;
+            this.opportunistBackstabBonusPercent = opportunistBackstabBonusPercent;
+            this.ironcladArmorBoostPercent = ironcladArmorBoostPercent;
+            this.mistFormPhaseChancePercent = mistFormPhaseChancePercent;
+            this.warCryRadiusBlocks = warCryRadiusBlocks;
+            this.warCryStrengthDurationSeconds = warCryStrengthDurationSeconds;
+            this.siphonSoulRegenDurationSeconds = siphonSoulRegenDurationSeconds;
+            this.unbreakableDurabilityReductionPercent = unbreakableDurabilityReductionPercent;
+            this.focusedMindCooldownReductionPercent = focusedMindCooldownReductionPercent;
+            this.sixthSenseWarningRangeBlocks = sixthSenseWarningRangeBlocks;
+        }
+
         static BonusPool from(GemsBalanceConfig.BonusPool cfg) {
             return new BonusPool(
                     clampInt(cfg.maxBonusAbilities, 0, 10),
@@ -2210,8 +2944,275 @@ public final class GemsBalance {
                     cfg.showBonusesInHud,
                     clampFloat(cfg.bonusAbilityCooldownMultiplier, 0.0F, 10.0F),
                     clampFloat(cfg.bonusAbilityDamageMultiplier, 0.0F, 10.0F),
-                    clampFloat(cfg.bonusPassiveEffectMultiplier, 0.0F, 10.0F)
+                    clampFloat(cfg.bonusPassiveEffectMultiplier, 0.0F, 10.0F),
+                    cfg.thunderstrikeCooldownSeconds,
+                    cfg.thunderstrikeDamage,
+                    cfg.thunderstrikeRangeBlocks,
+                    cfg.frostbiteCooldownSeconds,
+                    cfg.frostbiteDamage,
+                    cfg.frostbiteFreezeSeconds,
+                    cfg.frostbiteRangeBlocks,
+                    cfg.earthshatterCooldownSeconds,
+                    cfg.earthshatterDamage,
+                    cfg.earthshatterRadiusBlocks,
+                    cfg.shadowstepCooldownSeconds,
+                    cfg.shadowstepDistanceBlocks,
+                    cfg.radiantBurstCooldownSeconds,
+                    cfg.radiantBurstDamage,
+                    cfg.radiantBurstRadiusBlocks,
+                    cfg.radiantBurstBlindSeconds,
+                    cfg.venomsprayCooldownSeconds,
+                    cfg.venomsprayPoisonSeconds,
+                    cfg.venomsprayConeAngleDegrees,
+                    cfg.venomsprayRangeBlocks,
+                    cfg.timewarpCooldownSeconds,
+                    cfg.timewarpDurationSeconds,
+                    cfg.timewarpRadiusBlocks,
+                    cfg.timewarpSlownessAmplifier,
+                    cfg.decoyTrapCooldownSeconds,
+                    cfg.decoyTrapExplosionDamage,
+                    cfg.decoyTrapArmTimeSeconds,
+                    cfg.gravityWellCooldownSeconds,
+                    cfg.gravityWellDurationSeconds,
+                    cfg.gravityWellRadiusBlocks,
+                    cfg.gravityWellPullStrength,
+                    cfg.chainLightningCooldownSeconds,
+                    cfg.chainLightningDamage,
+                    cfg.chainLightningMaxBounces,
+                    cfg.chainLightningBounceRangeBlocks,
+                    cfg.magmaPoolCooldownSeconds,
+                    cfg.magmaPoolDamagePerSecond,
+                    cfg.magmaPoolDurationSeconds,
+                    cfg.magmaPoolRadiusBlocks,
+                    cfg.iceWallCooldownSeconds,
+                    cfg.iceWallDurationSeconds,
+                    cfg.iceWallWidthBlocks,
+                    cfg.iceWallHeightBlocks,
+                    cfg.windSlashCooldownSeconds,
+                    cfg.windSlashDamage,
+                    cfg.windSlashRangeBlocks,
+                    cfg.curseBoltCooldownSeconds,
+                    cfg.curseBoltDamage,
+                    cfg.curseBoltEffectDurationSeconds,
+                    cfg.berserkerRageCooldownSeconds,
+                    cfg.berserkerRageDurationSeconds,
+                    cfg.berserkerRageDamageBoostPercent,
+                    cfg.berserkerRageDamageTakenBoostPercent,
+                    cfg.etherealStepCooldownSeconds,
+                    cfg.etherealStepDistanceBlocks,
+                    cfg.arcaneMissilesCooldownSeconds,
+                    cfg.arcaneMissilesDamagePerMissile,
+                    cfg.arcaneMissilesCount,
+                    cfg.lifeTapCooldownSeconds,
+                    cfg.lifeTapHealthCost,
+                    cfg.lifeTapCooldownReductionPercent,
+                    cfg.doomBoltCooldownSeconds,
+                    cfg.doomBoltDamage,
+                    cfg.doomBoltVelocity,
+                    cfg.sanctuaryCooldownSeconds,
+                    cfg.sanctuaryDurationSeconds,
+                    cfg.sanctuaryRadiusBlocks,
+                    cfg.spectralChainsCooldownSeconds,
+                    cfg.spectralChainsDurationSeconds,
+                    cfg.spectralChainsRangeBlocks,
+                    cfg.voidRiftCooldownSeconds,
+                    cfg.voidRiftDamagePerSecond,
+                    cfg.voidRiftDurationSeconds,
+                    cfg.voidRiftRadiusBlocks,
+                    cfg.infernoDashCooldownSeconds,
+                    cfg.infernoDashDamage,
+                    cfg.infernoDashDistanceBlocks,
+                    cfg.infernoDashFireDurationSeconds,
+                    cfg.tidalWaveCooldownSeconds,
+                    cfg.tidalWaveDamage,
+                    cfg.tidalWaveRangeBlocks,
+                    cfg.tidalWaveSlowSeconds,
+                    cfg.starfallCooldownSeconds,
+                    cfg.starfallDamagePerHit,
+                    cfg.starfallMeteorCount,
+                    cfg.starfallRadiusBlocks,
+                    cfg.bloodlustCooldownSeconds,
+                    cfg.bloodlustDurationSeconds,
+                    cfg.bloodlustAttackSpeedPerKill,
+                    cfg.bloodlustMaxStacks,
+                    cfg.crystalCageCooldownSeconds,
+                    cfg.crystalCageDurationSeconds,
+                    cfg.crystalCageRangeBlocks,
+                    cfg.phantasmCooldownSeconds,
+                    cfg.phantasmDurationSeconds,
+                    cfg.phantasmExplosionDamage,
+                    cfg.sonicBoomCooldownSeconds,
+                    cfg.sonicBoomDamage,
+                    cfg.sonicBoomRadiusBlocks,
+                    cfg.sonicBoomKnockbackStrength,
+                    cfg.vampiricTouchCooldownSeconds,
+                    cfg.vampiricTouchDamage,
+                    cfg.vampiricTouchHealPercent,
+                    cfg.blindingFlashCooldownSeconds,
+                    cfg.blindingFlashBlindSeconds,
+                    cfg.blindingFlashRadiusBlocks,
+                    cfg.stormCallCooldownSeconds,
+                    cfg.stormCallDamagePerStrike,
+                    cfg.stormCallDurationSeconds,
+                    cfg.stormCallRadiusBlocks,
+                    cfg.stormCallStrikesPerSecond,
+                    cfg.quicksandCooldownSeconds,
+                    cfg.quicksandDurationSeconds,
+                    cfg.quicksandRadiusBlocks,
+                    cfg.quicksandSlownessAmplifier,
+                    cfg.searingLightCooldownSeconds,
+                    cfg.searingLightDamage,
+                    cfg.searingLightUndeadBonusDamage,
+                    cfg.searingLightRangeBlocks,
+                    cfg.spectralBladeCooldownSeconds,
+                    cfg.spectralBladeDamage,
+                    cfg.spectralBladeDurationSeconds,
+                    cfg.netherPortalCooldownSeconds,
+                    cfg.netherPortalDistanceBlocks,
+                    cfg.entangleCooldownSeconds,
+                    cfg.entangleDurationSeconds,
+                    cfg.entangleRadiusBlocks,
+                    cfg.mindSpikeCooldownSeconds,
+                    cfg.mindSpikeDamagePerSecond,
+                    cfg.mindSpikeDurationSeconds,
+                    cfg.mindSpikeRangeBlocks,
+                    cfg.seismicSlamCooldownSeconds,
+                    cfg.seismicSlamDamage,
+                    cfg.seismicSlamRadiusBlocks,
+                    cfg.seismicSlamKnockupStrength,
+                    cfg.icicleBarrageCooldownSeconds,
+                    cfg.icicleBarrageDamagePerIcicle,
+                    cfg.icicleBarrageCount,
+                    cfg.icicleBarrageRangeBlocks,
+                    cfg.banishmentCooldownSeconds,
+                    cfg.banishmentDistanceBlocks,
+                    cfg.banishmentRangeBlocks,
+                    cfg.corpseExplosionCooldownSeconds,
+                    cfg.corpseExplosionDamage,
+                    cfg.corpseExplosionRadiusBlocks,
+                    cfg.corpseExplosionCorpseRangeBlocks,
+                    cfg.soulSwapCooldownSeconds,
+                    cfg.soulSwapRangeBlocks,
+                    cfg.markOfDeathCooldownSeconds,
+                    cfg.markOfDeathDurationSeconds,
+                    cfg.markOfDeathBonusDamagePercent,
+                    cfg.markOfDeathRangeBlocks,
+                    cfg.ironMaidenCooldownSeconds,
+                    cfg.ironMaidenDurationSeconds,
+                    cfg.ironMaidenReflectPercent,
+                    cfg.warpStrikeCooldownSeconds,
+                    cfg.warpStrikeDamage,
+                    cfg.warpStrikeRangeBlocks,
+                    cfg.vortexStrikeCooldownSeconds,
+                    cfg.vortexStrikeDamage,
+                    cfg.vortexStrikeRadiusBlocks,
+                    cfg.vortexStrikePullStrength,
+                    cfg.plagueCloudCooldownSeconds,
+                    cfg.plagueCloudDurationSeconds,
+                    cfg.plagueCloudPoisonAmplifier,
+                    cfg.plagueCloudWeaknessAmplifier,
+                    cfg.overchargeCooldownSeconds,
+                    cfg.overchargeDamageMultiplier,
+                    cfg.overchargeHealthCost,
+                    cfg.overchargeDurationSeconds,
+                    cfg.gravityCrushCooldownSeconds,
+                    cfg.gravityCrushDamage,
+                    cfg.gravityCrushRootDurationSeconds,
+                    cfg.gravityCrushRangeBlocks,
+                    cfg.thornsAuraDamagePercent,
+                    cfg.lifestealPercent,
+                    cfg.dodgeChancePercent,
+                    cfg.criticalStrikeBonusDamagePercent,
+                    cfg.criticalStrikeChanceBonus,
+                    cfg.manaShieldXpPerDamage,
+                    cfg.regenerationBoostAmplifier,
+                    cfg.damageReductionPercent,
+                    cfg.attackSpeedBoostPercent,
+                    cfg.reachExtendBlocks,
+                    cfg.impactAbsorbPercent,
+                    cfg.impactAbsorbMaxAbsorption,
+                    cfg.adrenalineSurgeDurationSeconds,
+                    cfg.adrenalineSurgeCooldownSeconds,
+                    cfg.intimidateDamageReductionPercent,
+                    cfg.intimidateRadiusBlocks,
+                    cfg.evasiveRollCooldownSeconds,
+                    cfg.evasiveRollDistanceBlocks,
+                    cfg.combatMeditateHealPerSecond,
+                    cfg.combatMeditateDelaySeconds,
+                    cfg.weaponMasteryBonusDamage,
+                    cfg.cullingBladeThresholdPercent,
+                    cfg.thickSkinProjectileReductionPercent,
+                    cfg.xpBoostPercent,
+                    cfg.hungerResistReductionPercent,
+                    cfg.poisonImmunityFull,
+                    cfg.secondWindCooldownSeconds,
+                    cfg.secondWindHealAmount,
+                    cfg.echoStrikeChancePercent,
+                    cfg.chainBreakerDurationReductionPercent,
+                    cfg.stoneSkinFlatReduction,
+                    cfg.arcaneBarrierCooldownSeconds,
+                    cfg.arcaneBarrierAbsorbAmount,
+                    cfg.predatorSenseThresholdPercent,
+                    cfg.predatorSenseRangeBlocks,
+                    cfg.battleMedicHealPerSecond,
+                    cfg.battleMedicRadiusBlocks,
+                    cfg.lastStandThresholdPercent,
+                    cfg.lastStandDamageBoostPercent,
+                    cfg.executionerThresholdPercent,
+                    cfg.executionerBonusDamagePercent,
+                    cfg.bloodthirstHealOnKill,
+                    cfg.steelResolveFullKnockbackImmunity,
+                    cfg.elementalHarmonyReductionPercent,
+                    cfg.treasureHunterDropBoostPercent,
+                    cfg.counterStrikeDamageMultiplier,
+                    cfg.counterStrikeWindowSeconds,
+                    cfg.bulwarkBlockEffectivenessBoostPercent,
+                    cfg.quickRecoveryDebuffReductionPercent,
+                    cfg.overfowingVitalityBonusHearts,
+                    cfg.magneticPullRangeMultiplier,
+                    cfg.vengeanceBuffDurationSeconds,
+                    cfg.vengeanceDamageBoostPercent,
+                    cfg.nemesisBonusDamagePercent,
+                    cfg.huntersInstinctCritBoostPercent,
+                    cfg.berserkerBloodMaxAttackSpeedBoost,
+                    cfg.opportunistBackstabBonusPercent,
+                    cfg.ironcladArmorBoostPercent,
+                    cfg.mistFormPhaseChancePercent,
+                    cfg.warCryRadiusBlocks,
+                    cfg.warCryStrengthDurationSeconds,
+                    cfg.siphonSoulRegenDurationSeconds,
+                    cfg.unbreakableDurabilityReductionPercent,
+                    cfg.focusedMindCooldownReductionPercent,
+                    cfg.sixthSenseWarningRangeBlocks
             );
+        }
+
+        public int maxBonusAbilities() {
+            return maxBonusAbilities;
+        }
+
+        public int maxBonusPassives() {
+            return maxBonusPassives;
+        }
+
+        public boolean showBonusesInHud() {
+            return showBonusesInHud;
+        }
+
+        public float bonusAbilityCooldownMultiplier() {
+            return bonusAbilityCooldownMultiplier;
+        }
+
+        public float bonusAbilityDamageMultiplier() {
+            return bonusAbilityDamageMultiplier;
+        }
+
+        public float bonusPassiveEffectMultiplier() {
+            return bonusPassiveEffectMultiplier;
+        }
+
+        public float thickSkinProjectileReductionPercent() {
+            return thickSkinProjectileReductionPercent;
         }
     }
 

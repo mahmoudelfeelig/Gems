@@ -40,7 +40,7 @@ public final class HunterPounceAbility implements GemAbility {
         float damage = GemsBalance.v().hunter().pounceDamage();
 
         // Find marked target
-        ServerPlayerEntity target = HunterPreyMarkRuntime.getMarkedTarget(player);
+        var target = HunterPreyMarkRuntime.getMarkedTarget(player);
         if (target == null || target.squaredDistanceTo(player) > range * range) {
             AbilityFeedback.sound(player, SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), 1.0F, 0.5F);
             return false;

@@ -2,8 +2,16 @@ package com.feel.gems.mixin;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.item.legendary.DuelistsRapierItem;
+import com.feel.gems.item.legendary.HunterSightBowItem;
+import com.feel.gems.item.legendary.GladiatorsMarkItem;
 import com.feel.gems.item.legendary.ReversalMirrorItem;
+import com.feel.gems.item.legendary.SoulShackleItem;
+import com.feel.gems.power.ability.bonus.BonusBerserkerRageAbility;
+import com.feel.gems.power.ability.bonus.BonusIronMaidenAbility;
+import com.feel.gems.power.ability.bonus.BonusMarkOfDeathAbility;
+import com.feel.gems.power.ability.bonus.BonusOverchargeAbility;
 import com.feel.gems.power.ability.hunter.HunterPackTacticsRuntime;
+import com.feel.gems.power.ability.duelist.DuelistBladeDanceAbility;
 import com.feel.gems.power.ability.duelist.DuelistParryAbility;
 import com.feel.gems.power.ability.sentinel.SentinelInterventionRuntime;
 import com.feel.gems.power.bonus.BonusPassiveRuntime;
@@ -31,6 +39,7 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.registry.tag.EntityTypeTags;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
@@ -43,8 +52,10 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityDamageScalingMixin {
-    @ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true)
-    private float gems$scaleDamage(float amount, ServerWorld world, DamageSource source, float originalAmount) {
+    private static final ThreadLocal<Boolean> SHACKLE_TRANSFER = ThreadLocal.withInitial(() -> Boolean.FALSE);
+    private static final ThreadLocal<Boolean> IRON_MAIDEN_REFLECT = ThreadLocal.withInitial(() -> Boolean.FALSE);
+    @ModifyVariable(method = "damage(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;F)Z", at = @At("HEAD"), ordinal = 0)
+    private float gems$scaleDamage(float amount, ServerWorld world, DamageSource source) {
         if (amount <= 0.0F) {
             return amount;
         }
@@ -113,7 +124,17 @@ public abstract class LivingEntityDamageScalingMixin {
 
         float scaled = amount;
 
+        if (BonusMarkOfDeathAbility.isMarked(self)) {
+            scaled *= BonusMarkOfDeathAbility.getDamageMultiplier();
+        }
+
         Entity attacker = source.getAttacker();
+        if (attacker == null) {
+            attacker = source.getSource();
+        }
+        if (attacker instanceof ServerPlayerEntity playerAttacker) {
+            HunterSightBowItem.recordHit(playerAttacker, self);
+        }
         if (attacker instanceof ServerPlayerEntity playerAttacker) {
             // Duelist's Rapier: consume guaranteed crit on the next melee hit (avoid extra hit + invulnerability issues).
             if (playerAttacker.getMainHandStack().isOf(com.feel.gems.item.ModItems.DUELISTS_RAPIER)
@@ -131,6 +152,15 @@ public abstract class LivingEntityDamageScalingMixin {
                     && VoidImmunity.shouldBlockEffect(playerAttacker, victim);
             
             if (!targetHasVoidImmunity) {
+                if (BonusBerserkerRageAbility.isActive(playerAttacker)) {
+                    scaled *= BonusBerserkerRageAbility.getDamageBoostMultiplier();
+                }
+
+                float overcharge = BonusOverchargeAbility.consumeDamageMultiplier(playerAttacker);
+                if (overcharge > 1.0f) {
+                    scaled *= overcharge;
+                }
+
                 if (GemPowers.isPassiveActive(playerAttacker, PowerIds.SPACE_LUNAR_SCALING)) {
                     scaled *= SpaceLunarScaling.multiplier(playerAttacker.getEntityWorld());
                 }
@@ -151,6 +181,12 @@ public abstract class LivingEntityDamageScalingMixin {
                     scaled *= DuelistPassiveRuntime.getRiposteDamageMultiplier();
                 }
 
+                // Duelist: Blade Dance - consecutive melee hits ramp damage.
+                if (source.getSource() == playerAttacker && DuelistBladeDanceAbility.isActive(playerAttacker)) {
+                    scaled *= DuelistBladeDanceAbility.getDamageMultiplier(playerAttacker);
+                    DuelistBladeDanceAbility.onHit(playerAttacker);
+                }
+
                 // Duelist: Focus - bonus damage in 1v1 combat
                 if (self instanceof ServerPlayerEntity victim) {
                     if (DuelistPassiveRuntime.isIn1v1Combat(playerAttacker, victim)) {
@@ -159,14 +195,14 @@ public abstract class LivingEntityDamageScalingMixin {
                 }
 
                 // Hunter: Prey Mark - bonus damage to marked targets
-                if (self instanceof ServerPlayerEntity victim) {
+                if (self instanceof LivingEntity victim) {
                     if (HunterPreyMarkRuntime.isMarked(playerAttacker, victim)) {
                         scaled *= HunterPreyMarkRuntime.getDamageMultiplier();
                     }
                 }
 
                 // Hunter: Pack Tactics - allies deal bonus damage to marked target
-                if (self instanceof ServerPlayerEntity victim) {
+                if (self instanceof LivingEntity victim) {
                     if (HunterPackTacticsRuntime.hasBuffAgainst(playerAttacker, victim.getUuid())) {
                         scaled *= HunterPackTacticsRuntime.getDamageMultiplier();
                     }
@@ -175,12 +211,16 @@ public abstract class LivingEntityDamageScalingMixin {
                 // Bonus Passives: attack damage multipliers
                 scaled *= BonusPassiveRuntime.getAttackDamageMultiplier(playerAttacker, self, scaled);
 
-                // Bonus Passives: lifesteal
-                BonusPassiveRuntime.applyLifesteal(playerAttacker, scaled);
-            }
+            // Bonus Passives: lifesteal
+            BonusPassiveRuntime.applyLifesteal(playerAttacker, scaled);
         }
+    }
 
-            if (self instanceof ServerPlayerEntity victim) {
+        if (self instanceof ServerPlayerEntity victim) {
+            if (BonusBerserkerRageAbility.isActive(victim)) {
+                scaled *= BonusBerserkerRageAbility.getDamageTakenMultiplier();
+            }
+
             if (AbilityRuntime.isReaperRetributionActive(victim)) {
                 if (attacker instanceof LivingEntity livingAttacker && livingAttacker != victim) {
                     float reflected = scaled * GemsBalance.v().reaper().retributionDamageMultiplier();
@@ -190,7 +230,11 @@ public abstract class LivingEntityDamageScalingMixin {
             }
 
             if (GemPowers.isPassiveActive(victim, PowerIds.SPACE_STARSHIELD) && source.isIn(DamageTypeTags.IS_PROJECTILE)) {
-                if (world.getDimension().hasSkyLight() && world.isNight() && world.isSkyVisible(victim.getBlockPos())) {
+                // GameTest worlds and some dimensions can have odd sky visibility, so treat this as a "night-time outdoors"
+                // check that keys primarily off being in a skylit dimension at night.
+                long dayTime = world.getTimeOfDay() % 24000L;
+                boolean night = dayTime >= 13000L && dayTime <= 23000L;
+                if (night) {
                     scaled *= GemsBalance.v().space().starshieldProjectileDamageMultiplier();
                 }
             }
@@ -212,6 +256,33 @@ public abstract class LivingEntityDamageScalingMixin {
                 }
             }
 
+            if (GemPowers.isPassiveActive(victim, PowerIds.BONUS_ELEMENTAL_HARMONY)) {
+                if (source.isIn(DamageTypeTags.IS_FIRE) || source.isIn(DamageTypeTags.IS_FREEZING)
+                        || source.isIn(DamageTypeTags.IS_LIGHTNING)) {
+                    float reduction = GemsBalance.v().bonusPool().elementalHarmonyReductionPercent / 100.0f;
+                    scaled *= (1.0f - reduction);
+                }
+            }
+
+            // Bonus Passives: Thick Skin - reduced projectile damage
+            if (GemPowers.isPassiveActive(victim, PowerIds.BONUS_THICK_SKIN)
+                    && (source.isIn(DamageTypeTags.IS_PROJECTILE) || source.getSource() instanceof ProjectileEntity)) {
+                float reduction = GemsBalance.v().bonusPool().thickSkinProjectileReductionPercent() / 100.0f;
+                scaled *= (1.0f - reduction);
+            }
+
+            if (victim.isBlocking() && !source.isIn(DamageTypeTags.BYPASSES_SHIELD)) {
+                scaled *= BonusPassiveRuntime.getBlockingDamageMultiplier(victim);
+                BonusPassiveRuntime.triggerCounterStrike(victim);
+            }
+
+            // Gladiator's Mark: marked players deal extra damage to each other.
+            if (attacker instanceof ServerPlayerEntity attackerPlayer) {
+                if (GladiatorsMarkItem.isMarkedAgainst(attackerPlayer, victim)) {
+                    scaled *= GladiatorsMarkItem.getDamageMultiplier();
+                }
+            }
+
             // Sentinel: Guardian Aura - nearby allies take less damage
             if (SentinelPassiveRuntime.isProtectedByGuardianAura(victim)) {
                 scaled *= (1.0f - SentinelPassiveRuntime.getGuardianAuraDamageReduction());
@@ -229,8 +300,41 @@ public abstract class LivingEntityDamageScalingMixin {
             scaled = BonusPassiveRuntime.getDefenseDamageMultiplier(victim, scaled, world, 
                     attacker instanceof LivingEntity ? (LivingEntity) attacker : null);
 
+            // Bonus Ability: Iron Maiden - reflect incoming damage back to attacker.
+            if (!IRON_MAIDEN_REFLECT.get() && BonusIronMaidenAbility.isActive(victim)) {
+                if (attacker instanceof LivingEntity livingAttacker && livingAttacker != victim) {
+                    float reflectPercent = GemsBalance.v().bonusPool().ironMaidenReflectPercent / 100.0f;
+                    float reflected = scaled * reflectPercent;
+                    if (reflected > 0.0f) {
+                        IRON_MAIDEN_REFLECT.set(Boolean.TRUE);
+                        try {
+                            livingAttacker.damage(world, victim.getDamageSources().magic(), reflected);
+                        } finally {
+                            IRON_MAIDEN_REFLECT.set(Boolean.FALSE);
+                        }
+                    }
+                }
+            }
+
             // Legendary: Reversal Mirror - reflect incoming damage back to attacker.
             ReversalMirrorItem.tryReflectDamage(victim, attacker, scaled, world);
+
+            // Legendary: Soul Shackle - split damage with the linked target.
+            if (!SHACKLE_TRANSFER.get()) {
+                ServerPlayerEntity linked = SoulShackleItem.getShackledTarget(victim);
+                if (linked != null) {
+                    float transfer = SoulShackleItem.getDamageToTransfer(victim, scaled);
+                    if (transfer > 0.0F) {
+                        SHACKLE_TRANSFER.set(Boolean.TRUE);
+                        try {
+                            linked.damage(world, world.getDamageSources().magic(), transfer);
+                        } finally {
+                            SHACKLE_TRANSFER.set(Boolean.FALSE);
+                        }
+                        scaled = Math.max(0.0F, scaled - transfer);
+                    }
+                }
+            }
         }
 
         return scaled;

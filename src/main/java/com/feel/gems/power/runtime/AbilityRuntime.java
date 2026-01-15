@@ -574,9 +574,6 @@ public final class AbilityRuntime {
         if (nbt.getLong(KEY_SPEED_STORM_UNTIL, 0L) <= now) {
             return;
         }
-        if ((now % 3) != 0) {
-            return; // reduce scan frequency while keeping activation reliable
-        }
         if (!(player.getEntityWorld() instanceof ServerWorld world)) {
             return;
         }
@@ -1078,6 +1075,10 @@ public final class AbilityRuntime {
             return;
         }
         double dist = Math.sqrt(hunter.squaredDistanceTo(target));
+        if (GemPowers.isPassiveActive(target, PowerIds.SPY_FALSE_SIGNATURE)) {
+            double factor = 0.5D + (hunter.getRandom().nextDouble() * 1.0D);
+            dist *= factor;
+        }
         hunter.sendMessage(Text.translatable("gems.bounty.tracking", target.getName().getString(), (int) dist), true);
     }
 

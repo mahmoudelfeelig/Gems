@@ -6,6 +6,7 @@
 - Progression (energy/hearts/items): `docs/PROGRESSION.md`
 - Gems (abilities + passives): `docs/GEMS.md`
 - Bonus abilities + passives: `docs/BONUS_POOL.md`
+- Advanced systems (presets, augments, mastery, synergies, rivalry): `docs/ADVANCED_FEATURES.md`
 - Legendary items: `docs/LEGENDARY_ITEMS.md`
 - Trust + ownership rules: `docs/TRUST_AND_OWNERSHIP.md`
 - Controls + HUD: `docs/CONTROLS_AND_HUD.md`

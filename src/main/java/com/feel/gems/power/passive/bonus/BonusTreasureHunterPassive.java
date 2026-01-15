@@ -22,7 +22,7 @@ public final class BonusTreasureHunterPassive implements GemPassive {
 
     @Override
     public String description() {
-        return "Mobs have a 25% increased chance to drop rare items.";
+        return "Mobs have an increased chance to drop rare items.";
     }
 
     @Override

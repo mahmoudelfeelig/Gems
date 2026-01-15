@@ -258,10 +258,10 @@ Abilities: None.
 ### Chaos Gem
 
 Passives:
-- Chaos Agent: grants access to 4 independent random ability slots.
+- Chaos Agent: grants access to n(4 by default) independent random ability slots.
 
 Abilities:
-- Slot 1-4 (LAlt + 1-4): each slot can be rolled independently. Press a slot key when empty to roll a random ability and passive from any other gem. The rolled ability lasts 5 minutes and can be used with a 10-second cooldown. All 4 slots operate independently.
+- Slot 1-n (LAlt + 1-n): each slot can be rolled independently. Press a slot key when empty to roll a random ability and passive from any other gem. The rolled ability lasts 5 minutes and can be used with a 10-second cooldown. All n slots operate independently.
 
 ### Prism Gem
 
@@ -291,7 +291,6 @@ Abilities:
 - Rapid Strike: remove sword cooldowns for 5s.
 - Flourish: quick 360 sword sweep that hits all nearby enemies.
 - Mirror Match: force a target into a 1v1 duel for 15s (barrier prevents escape); also copies your skin and name onto them.
-- Mirror Match: swap skins and names with a targeted player for a short duration (includes chat display).
 - Blade Dance: combo system where consecutive hits deal increasing damage (resets after 3s without hitting).
 
 ### Hunter Gem
@@ -307,6 +306,7 @@ Abilities:
 - Net Shot: fire a net that slows and grounds enemies (disables flight/elytra).
 - Crippling Shot: ranged attack that reduces target's movement speed by 50% for 8s.
 - Pack Tactics: nearby trusted allies deal 20% more damage to your marked target for 10s.
+- Origin Tracking: track the original owner of an item (who first crafted or found it).
 - Six-Pack Pain: summon 6 player clones that share a health pool (120 HP total) for 10s. They attack untrusted players and hostile mobs. When hit, you get regeneration + a random buff, and the attacker gets debuffed.
 
 ### Sentinel Gem

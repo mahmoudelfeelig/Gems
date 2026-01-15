@@ -189,7 +189,7 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
         Direction right = facing.rotateYClockwise();
         BlockPos.Mutable mutable = new BlockPos.Mutable();
         boolean stop = false;
-        int halfWidth = 0;
+        int halfWidth = 4;
         for (int step = 0; step < length; step++) {
             int baseX = pos.getX() + facing.getOffsetX() * step;
             int baseY = pos.getY();

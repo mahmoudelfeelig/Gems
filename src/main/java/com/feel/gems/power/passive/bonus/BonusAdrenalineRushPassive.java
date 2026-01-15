@@ -6,7 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 /**
- * Adrenaline Rush - Gain brief Speed III after getting a kill.
+ * Siphon Soul - Gain regeneration on kill.
  * Implementation via kill event hook.
  */
 public final class BonusAdrenalineRushPassive implements GemPassive {
@@ -17,12 +17,12 @@ public final class BonusAdrenalineRushPassive implements GemPassive {
 
     @Override
     public String name() {
-        return "Adrenaline Rush";
+        return "Siphon Soul";
     }
 
     @Override
     public String description() {
-        return "Gain Speed III for 5 seconds after killing an enemy.";
+        return "Killing blows grant Regeneration for a short time.";
     }
 
     @Override

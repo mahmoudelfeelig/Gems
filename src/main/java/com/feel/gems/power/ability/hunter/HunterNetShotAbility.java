@@ -6,6 +6,7 @@ import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.power.util.Targeting;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;
@@ -14,8 +15,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
 
 public final class HunterNetShotAbility implements GemAbility {
     private static final String KEY_NET_UNTIL = "hunterNetShotUntil";
@@ -47,8 +46,8 @@ public final class HunterNetShotAbility implements GemAbility {
         int slowTicks = GemsBalance.v().hunter().netShotSlowTicks();
 
         // Raycast to find target
-        HitResult hit = player.raycast(range, 0.0F, false);
-        if (!(hit instanceof EntityHitResult entityHit) || !(entityHit.getEntity() instanceof ServerPlayerEntity target)) {
+        ServerPlayerEntity target = Targeting.raycastPlayer(player, range);
+        if (target == null) {
             AbilityFeedback.sound(player, SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), 1.0F, 0.5F);
             return false;
         }

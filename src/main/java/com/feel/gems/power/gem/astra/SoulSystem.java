@@ -13,19 +13,23 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.storage.NbtWriteView;
 import net.minecraft.text.Text;
+import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
 
 public final class SoulSystem {
     private static final String KEY_SOUL_TYPE = "soulType";
+    private static final String KEY_SOUL_DATA = "soulData";
 
     private SoulSystem() {
     }
@@ -50,6 +54,13 @@ public final class SoulSystem {
         }
         NbtCompound root = persistent(player);
         root.putString(KEY_SOUL_TYPE, typeId.toString());
+        var view = NbtWriteView.create(ErrorReporter.EMPTY, player.getEntityWorld().getRegistryManager());
+        killed.writeData(view);
+        NbtCompound data = view.getNbt();
+        data.remove("UUID");
+        data.remove("UUIDMost");
+        data.remove("UUIDLeast");
+        root.put(KEY_SOUL_DATA, data);
         com.feel.gems.net.GemExtraStateSync.send(player);
         AbilityFeedback.burst(player, ParticleTypes.SCULK_SOUL, 8, 0.25D);
 
@@ -101,9 +112,22 @@ public final class SoulSystem {
         Vec3d pos = player.getEntityPos()
                 .add(player.getRotationVec(1.0F).multiply(forward))
                 .add(0.0D, up, 0.0D);
-        Entity entity = type.create(world, net.minecraft.entity.SpawnReason.MOB_SUMMONED);
+        Entity entity = null;
+        NbtCompound stored = nbt.getCompound(KEY_SOUL_DATA).orElse(null);
+        if (stored != null && !stored.isEmpty()) {
+            NbtCompound copy = stored.copy();
+            copy.putString("id", id.toString());
+            entity = EntityType.loadEntityWithPassengers(copy, world, SpawnReason.MOB_SUMMONED, spawned -> {
+                spawned.refreshPositionAndAngles(pos.x, pos.y, pos.z, player.getYaw(), player.getPitch());
+                return spawned;
+            });
+        }
+        if (entity == null) {
+            entity = type.create(world, net.minecraft.entity.SpawnReason.MOB_SUMMONED);
+        }
         if (entity == null) {
             nbt.remove(KEY_SOUL_TYPE);
+            nbt.remove(KEY_SOUL_DATA);
             player.sendMessage(Text.translatable("gems.astra.cannot_summon", id.toString()), true);
             return false;
         }
@@ -128,6 +152,7 @@ public final class SoulSystem {
         }
 
         nbt.remove(KEY_SOUL_TYPE);
+        nbt.remove(KEY_SOUL_DATA);
         com.feel.gems.net.GemExtraStateSync.send(player);
         if (GemPowers.isPassiveActive(player, PowerIds.SOUL_HEALING)) {
             player.heal(GemsBalance.v().astra().soulHealingHearts());

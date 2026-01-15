@@ -67,8 +67,8 @@ public final class BonusSoulLinkAbility implements GemAbility {
         }
 
         // Mark both with glowing to show the link
-        target.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, DURATION, 0, false, false, true));
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, DURATION, 0, false, false, true));
+        target.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, DURATION, 0, false, false, true), player);
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, DURATION, 0, false, false, true), player);
 
         // Store link data (implementation via event handler checks for this effect combo)
         // The actual damage sharing is handled in BonusPassiveHandler

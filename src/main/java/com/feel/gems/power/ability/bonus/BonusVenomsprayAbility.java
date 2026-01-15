@@ -85,7 +85,6 @@ public final class BonusVenomsprayAbility implements GemAbility {
                             // Apply damage and effects
                             living.damage(world, damageSource, DAMAGE);
                             living.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 200, 1)); // 10s Poison II
-                            living.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 100, 0)); // 5s Weakness I
                         }
                     }
                 });

@@ -315,6 +315,11 @@ public final class GemsModEvents {
                         com.feel.gems.power.ability.sentinel.SentinelLockdownRuntime.tick(currentTime, worldId, world);
                     }
                 }
+                for (ServerWorld world : s.getWorlds()) {
+                    com.feel.gems.power.ability.bonus.BonusVoidRiftAbility.tick(world);
+                    com.feel.gems.power.ability.bonus.BonusStormCallAbility.tick(world);
+                    com.feel.gems.power.ability.bonus.BonusPhantasmAbility.tick(world);
+                }
                 for (ServerPlayerEntity player : s.getPlayerManager().getPlayerList()) {
                     TerrorRigRuntime.checkStep(player);
                     com.feel.gems.power.ability.hunter.HunterHuntingTrapAbility.checkStep(player);
@@ -348,9 +353,13 @@ public final class GemsModEvents {
                     com.feel.gems.power.ability.trickster.TricksterControlSync.sync(player);
                     BeaconSupportRuntime.tickEverySecond(player);
                     BeaconAuraRuntime.tickEverySecond(player);
+                    com.feel.gems.power.gem.hunter.HunterPreyMarkRuntime.tickTrackersEye(player);
                     // Bonus passives tick handler
                     if (player.getEntityWorld() instanceof ServerWorld world) {
                         BonusPassiveRuntime.tickEverySecond(player, world);
+                        BonusPassiveRuntime.tickCombatMeditate(player);
+                        BonusPassiveRuntime.tickSixthSense(player, world);
+                        BonusPassiveRuntime.tickMagneticPull(player, world);
                     }
                     // Sync bonus abilities state (for HUD cooldown updates)
                     if (GemPlayerState.getEnergy(player) >= 10) {

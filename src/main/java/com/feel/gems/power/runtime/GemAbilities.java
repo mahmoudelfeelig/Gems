@@ -109,6 +109,7 @@ public final class GemAbilities {
             return;
         }
 
+        com.feel.gems.power.gem.trickster.TricksterPassiveRuntime.applyChaosEffect(player);
         SpyMimicSystem.onAbilityUsed(player.getEntityWorld().getServer(), player, abilityId);
 
         int cooldown = Math.max(0, ability.cooldownTicks());

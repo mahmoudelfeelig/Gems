@@ -108,6 +108,8 @@ public final class BonusAbilityRuntime {
             return;
         }
 
+        com.feel.gems.power.gem.trickster.TricksterPassiveRuntime.applyChaosEffect(player);
+
         int cooldown = Math.max(0, ability.cooldownTicks());
         cooldown = applyCooldownModifiers(player, cooldown);
         if (cooldown > 0 && !noCooldowns) {

@@ -37,18 +37,25 @@ public final class BonusIceWallAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getEntityWorld();
         Vec3d start = player.getEyePos();
-        Vec3d direction = player.getRotationVector();
+        Vec3d direction = player.getRotationVector().normalize();
         Vec3d end = start.add(direction.multiply(10));
         
         HitResult hit = world.raycast(new RaycastContext(
                 start, end, RaycastContext.ShapeType.OUTLINE, RaycastContext.FluidHandling.NONE, player));
         
         BlockPos center = BlockPos.ofFloored(hit.getPos());
-        Vec3d perpendicular = new Vec3d(-direction.z, 0, direction.x).normalize();
+        Vec3d perpendicular = new Vec3d(-direction.z, 0, direction.x);
+        if (perpendicular.lengthSquared() < 1.0E-6D) {
+            perpendicular = new Vec3d(1, 0, 0);
+        } else {
+            perpendicular = perpendicular.normalize();
+        }
         
         for (int h = 0; h < 4; h++) {
             for (int w = -2; w <= 2; w++) {
-                BlockPos pos = center.add((int)(perpendicular.x * w), h, (int)(perpendicular.z * w));
+                int dx = (int) Math.round(perpendicular.x * w);
+                int dz = (int) Math.round(perpendicular.z * w);
+                BlockPos pos = center.add(dx, h, dz);
                 if (world.getBlockState(pos).isReplaceable() || world.getBlockState(pos).isAir()) {
                     world.setBlockState(pos, Blocks.PACKED_ICE.getDefaultState());
                 }

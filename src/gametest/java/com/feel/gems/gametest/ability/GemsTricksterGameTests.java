@@ -8,6 +8,9 @@ import com.feel.gems.power.ability.trickster.TricksterMindGamesAbility;
 import com.feel.gems.power.ability.trickster.TricksterMirageAbility;
 import com.feel.gems.power.ability.trickster.TricksterPuppetMasterAbility;
 import com.feel.gems.power.ability.trickster.TricksterShadowSwapAbility;
+import com.feel.gems.power.ability.trickster.TricksterMindGamesRuntime;
+import com.feel.gems.power.ability.trickster.TricksterMirageRuntime;
+import com.feel.gems.power.ability.trickster.TricksterPuppetRuntime;
 import com.feel.gems.power.gem.trickster.TricksterPassiveRuntime;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
@@ -22,7 +25,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
 
 
 
@@ -33,14 +35,27 @@ public final class GemsTricksterGameTests {
         player.teleport(world, x, y, z, EnumSet.noneOf(PositionFlag.class), yaw, pitch, false);
     }
 
+    private static void aimAt(ServerPlayerEntity player, ServerWorld world, Vec3d target) {
+        Vec3d pos = player.getEntityPos();
+        double dx = target.x - pos.x;
+        double dz = target.z - pos.z;
+        double dy = target.y - player.getEyeY();
+        float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0D);
+        float pitch = (float) (-Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz))));
+        teleport(player, world, pos.x, pos.y, pos.z, yaw, pitch);
+    }
+
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
-    public void glitchStepTeleportsPlayerShortDistance(TestContext context) {
+    public void glitchStepTeleportsAndDamagesAfterimage(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity enemy = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
+        GemsGameTestUtil.forceSurvival(enemy);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        teleport(enemy, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
         GemPlayerState.setActiveGem(player, GemId.TRICKSTER);
@@ -48,6 +63,7 @@ public final class GemsTricksterGameTests {
         GemPowers.sync(player);
 
         Vec3d startPos = player.getEntityPos();
+        float enemyBefore = enemy.getHealth();
 
         context.runAtTick(5L, () -> {
             boolean ok = new TricksterGlitchStepAbility().activate(player);
@@ -63,12 +79,15 @@ public final class GemsTricksterGameTests {
             if (dist < 1.0D) {
                 context.throwGameTestException("Glitch Step did not teleport player");
             }
+            if (enemy.getHealth() >= enemyBefore) {
+                context.throwGameTestException("Glitch Step afterimage should damage nearby enemies");
+            }
             context.complete();
         });
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
-    public void mirageSpawnsDecoy(TestContext context) {
+    public void mirageCreatesRuntimeClones(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
@@ -85,6 +104,19 @@ public final class GemsTricksterGameTests {
             boolean ok = new TricksterMirageAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Mirage did not activate");
+                return;
+            }
+        });
+
+        context.runAtTick(15L, () -> {
+            int count = TricksterMirageRuntime.getMirageCount(player);
+            if (count <= 0) {
+                context.throwGameTestException("Mirage should register clone count in runtime");
+                return;
+            }
+            if (TricksterMirageRuntime.getMiragePositions(player).isEmpty()) {
+                context.throwGameTestException("Mirage should expose clone positions");
+                return;
             }
             context.complete();
         });
@@ -116,29 +148,35 @@ public final class GemsTricksterGameTests {
         });
 
         context.runAtTick(15L, () -> {
-            // Positions should be swapped (approximately)
             double playerDistToOriginal = player.getEntityPos().squaredDistanceTo(playerPos);
             double targetDistToOriginal = target.getEntityPos().squaredDistanceTo(targetPos);
             
-            // At least one should have moved significantly
-            if (playerDistToOriginal < 4.0D && targetDistToOriginal < 4.0D) {
-                // Both are still near their original positions - check if swap happened
+            if (playerDistToOriginal < 1.0D || targetDistToOriginal < 1.0D) {
+                context.throwGameTestException("Shadow Swap should swap player positions");
+                return;
             }
             context.complete();
         });
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 300)
-    public void mindGamesConfusesTarget(TestContext context) {
+    public void mindGamesConfusesMobTargets(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
-        ServerPlayerEntity target = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
-        GemsGameTestUtil.forceSurvival(target);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
-        teleport(target, world, pos.x + 3.0D, pos.y, pos.z, 180.0F, 0.0F);
+
+        Vec3d mobPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 3.5D));
+        var zombie = EntityType.ZOMBIE.create(world, e -> {}, BlockPos.ofFloored(mobPos), SpawnReason.TRIGGERED, false, false);
+        if (zombie == null) {
+            context.throwGameTestException("Failed to spawn zombie");
+            return;
+        }
+        zombie.refreshPositionAndAngles(mobPos.x, mobPos.y, mobPos.z, 0.0F, 0.0F);
+        world.spawnEntity(zombie);
+        aimAt(player, world, mobPos.add(0.0D, 1.0D, 0.0D));
 
         GemPlayerState.initIfNeeded(player);
         GemPlayerState.setActiveGem(player, GemId.TRICKSTER);
@@ -146,17 +184,28 @@ public final class GemsTricksterGameTests {
         GemPowers.sync(player);
 
         context.runAtTick(5L, () -> {
-            // Mind Games requires target in line of sight
             boolean ok = new TricksterMindGamesAbility().activate(player);
-            if (ok) {
-                context.throwGameTestException("Mind Games should fail without target in line of sight");
+            if (!ok) {
+                context.throwGameTestException("Mind Games did not activate with a mob target");
+                return;
+            }
+        });
+
+        context.runAtTick(15L, () -> {
+            if (zombie.getStatusEffect(StatusEffects.SLOWNESS) == null || zombie.getStatusEffect(StatusEffects.NAUSEA) == null) {
+                context.throwGameTestException("Mind Games should apply confusion effects to mobs");
+                return;
+            }
+            if (!TricksterMindGamesRuntime.isMobConfused(zombie)) {
+                context.throwGameTestException("Mind Games should mark mobs as confused in runtime");
+                return;
             }
             context.complete();
         });
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 300)
-    public void puppetMasterControlsMob(TestContext context) {
+    public void puppetMasterMarksMobAsPuppeted(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
@@ -173,6 +222,7 @@ public final class GemsTricksterGameTests {
         }
         zombie.refreshPositionAndAngles(mobPos.x, mobPos.y, mobPos.z, 0.0F, 0.0F);
         world.spawnEntity(zombie);
+        aimAt(player, world, mobPos.add(0.0D, 1.0D, 0.0D));
 
         GemPlayerState.initIfNeeded(player);
         GemPlayerState.setActiveGem(player, GemId.TRICKSTER);
@@ -180,17 +230,26 @@ public final class GemsTricksterGameTests {
         GemPowers.sync(player);
 
         context.runAtTick(5L, () -> {
-            // Puppet Master requires target in raycast line of sight
+            // Re-aim at the zombie right before activation to ensure rotation is current
+            aimAt(player, world, mobPos.add(0.0D, 1.0D, 0.0D));
             boolean ok = new TricksterPuppetMasterAbility().activate(player);
-            if (ok) {
-                context.throwGameTestException("Puppet Master should fail without target in line of sight");
+            if (!ok) {
+                context.throwGameTestException("Puppet Master did not activate with a mob target");
+                return;
+            }
+        });
+
+        context.runAtTick(15L, () -> {
+            if (!TricksterPuppetRuntime.isMobPuppeted(zombie)) {
+                context.throwGameTestException("Puppet Master should mark the mob as puppeted");
+                return;
             }
             context.complete();
         });
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
-    public void sleightOfHandPassiveWorks(TestContext context) {
+    public void sleightOfHandPassiveCanPreventConsumption(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
@@ -204,18 +263,23 @@ public final class GemsTricksterGameTests {
         GemPowers.sync(player);
 
         context.runAtTick(5L, () -> {
-            // Sleight of Hand is a passive chance-based effect
-            // Just verify the config is accessible
-            var cfg = GemsBalance.v().trickster();
-            if (cfg.sleightOfHandChance() < 0.0F || cfg.sleightOfHandChance() > 1.0F) {
-                context.throwGameTestException("Sleight of Hand chance out of range");
+            boolean triggered = false;
+            for (int i = 0; i < 200; i++) {
+                if (TricksterPassiveRuntime.shouldNotConsumeThrowable(player)) {
+                    triggered = true;
+                    break;
+                }
+            }
+            if (!triggered && GemsBalance.v().trickster().sleightOfHandChance() > 0.0F) {
+                context.throwGameTestException("Sleight of Hand should occasionally prevent item consumption");
+                return;
             }
             context.complete();
         });
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
-    public void tricksterPassivesRunWithoutError(TestContext context) {
+    public void tricksterSlipperyCanRemoveSlowness(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
@@ -228,8 +292,18 @@ public final class GemsTricksterGameTests {
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
-        context.runAtTick(10L, () -> {
-            // Just verify the test setup runs without error
+        context.runAtTick(5L, () -> {
+            player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(StatusEffects.SLOWNESS, 200, 0, false, false));
+            for (int i = 0; i < 200; i++) {
+                TricksterPassiveRuntime.tryRemoveSlowEffects(player);
+                if (player.getStatusEffect(StatusEffects.SLOWNESS) == null) {
+                    break;
+                }
+            }
+            if (player.getStatusEffect(StatusEffects.SLOWNESS) != null && GemsBalance.v().trickster().slipperyChance() > 0.0F) {
+                context.throwGameTestException("Slippery should occasionally remove slowing effects");
+                return;
+            }
             context.complete();
         });
     }

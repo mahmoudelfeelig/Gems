@@ -4,10 +4,13 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
 import com.feel.gems.gametest.util.GemsGameTestUtil;
 import com.feel.gems.power.ability.summoner.*;
+import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
 import java.util.EnumSet;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -35,9 +38,25 @@ public final class GemsSummonerGameTests {
         GemPowers.sync(player);
 
         context.runAtTick(5L, () -> {
+            int before = world.getEntitiesByClass(MobEntity.class, player.getBoundingBox().expand(12.0D), SummonerSummons::isSummon).size();
             boolean ok = new SummonSlotAbility(1).activate(player);
             if (!ok) {
                 context.throwGameTestException("Summon Slot did not activate");
+            }
+            int after = world.getEntitiesByClass(MobEntity.class, player.getBoundingBox().expand(12.0D), SummonerSummons::isSummon).size();
+            if (after <= before) {
+                context.throwGameTestException("Summon Slot should spawn summons");
+            }
+            MobEntity base = EntityType.ZOMBIE.create(world, net.minecraft.entity.SpawnReason.MOB_SUMMONED);
+            MobEntity spawned = world.getEntitiesByClass(MobEntity.class, player.getBoundingBox().expand(12.0D), SummonerSummons::isSummon)
+                    .stream()
+                    .findFirst()
+                    .orElse(null);
+            if (base != null && spawned != null) {
+                float bonus = GemsBalance.v().summoner().summonBonusHealth();
+                if (bonus > 0.0F && spawned.getMaxHealth() <= base.getMaxHealth()) {
+                    context.throwGameTestException("Familiar's Blessing should increase summon max health");
+                }
             }
             context.complete();
         });
@@ -58,10 +77,20 @@ public final class GemsSummonerGameTests {
         GemPowers.sync(player);
 
         context.runAtTick(5L, () -> {
-            // Recall requires active summons to recall
+            boolean ok = new SummonSlotAbility(1).activate(player);
+            if (!ok) {
+                context.throwGameTestException("Summon Slot did not activate");
+            }
+        });
+
+        context.runAtTick(20L, () -> {
             boolean ok = new SummonRecallAbility().activate(player);
-            if (ok) {
-                context.throwGameTestException("Summon Recall should fail without active summons");
+            if (!ok) {
+                context.throwGameTestException("Summon Recall did not activate");
+            }
+            int remaining = SummonerSummons.pruneAndCount(player);
+            if (remaining > 0) {
+                context.throwGameTestException("Summon Recall should despawn summons");
             }
             context.complete();
         });

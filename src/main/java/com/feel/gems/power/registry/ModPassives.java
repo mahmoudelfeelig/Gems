@@ -306,7 +306,7 @@ public final class ModPassives {
                 0
         ));
 
-        // Spy/Mimic
+        // Spy
         register(new MarkerPassive(
                 PowerIds.SPY_STILLNESS_CLOAK,
                 "Stillness Cloak",

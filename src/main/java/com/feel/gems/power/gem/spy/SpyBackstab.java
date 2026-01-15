@@ -28,7 +28,7 @@ public final class SpyBackstab {
         if (target instanceof ServerPlayerEntity other && GemTrust.isTrusted(attacker, other)) {
             return;
         }
-        float bonus = GemsBalance.v().spyMimic().backstabBonusDamage();
+        float bonus = GemsBalance.v().spy().backstabBonusDamage();
         if (bonus <= 0.0F) {
             return;
         }
@@ -42,7 +42,7 @@ public final class SpyBackstab {
             return;
         }
         double dot = targetLook.normalize().dotProduct(toAttacker.normalize());
-        double cone = Math.cos(Math.toRadians(GemsBalance.v().spyMimic().backstabAngleDegrees()));
+        double cone = Math.cos(Math.toRadians(GemsBalance.v().spy().backstabAngleDegrees()));
         if (dot > -cone) {
             return;
         }

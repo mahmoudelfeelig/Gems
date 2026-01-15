@@ -364,7 +364,7 @@ public final class GemsPassiveGameTests {
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void spyBackstabConfigValuesValid(TestContext context) {
         context.runAtTick(5L, () -> {
-            var cfg = GemsBalance.v().spyMimic();
+            var cfg = GemsBalance.v().spy();
             float bonus = cfg.backstabBonusDamage();
             float angle = cfg.backstabAngleDegrees();
             if (bonus < 0 || angle <= 0 || angle > 180) {

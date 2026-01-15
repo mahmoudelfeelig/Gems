@@ -21,10 +21,14 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
     public static final String CAGE_CENTER_X_KEY = "duelist_mirror_match_cage_x";
     public static final String CAGE_CENTER_Y_KEY = "duelist_mirror_match_cage_y";
     public static final String CAGE_CENTER_Z_KEY = "duelist_mirror_match_cage_z";
+    public static final String SPAWN_X_KEY = "duelist_mirror_match_spawn_x";
+    public static final String SPAWN_Y_KEY = "duelist_mirror_match_spawn_y";
+    public static final String SPAWN_Z_KEY = "duelist_mirror_match_spawn_z";
+    public static final String SPAWN_DIM_KEY = "duelist_mirror_match_spawn_dim";
     
-    // Cage dimensions: 20x20x10 (±10 on X/Z, +10 on Y from floor)
-    public static final int CAGE_HALF_SIZE = 10;
-    public static final int CAGE_HEIGHT = 10;
+    // Arena dimensions: 32x32x15 (±16 on X/Z, +15 on Y from floor)
+    public static final int CAGE_HALF_SIZE = 16;
+    public static final int CAGE_HEIGHT = 15;
 
     @Override
     public Identifier id() {
@@ -66,29 +70,36 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
         int durationTicks = GemsBalance.v().duelist().mirrorMatchDurationTicks();
         long endTime = world.getTime() + durationTicks;
 
-        // Calculate cage center (midpoint between both players)
-        BlockPos cageCenter = new BlockPos(
-            (int) ((player.getX() + target.getX()) / 2),
-            (int) Math.min(player.getY(), target.getY()),
-            (int) ((player.getZ() + target.getZ()) / 2)
-        );
+        // Find arena location high in the sky to avoid terrain interference
+        BlockPos arenaCenter = findArenaLocation(world, player.getBlockPos());
 
-        // Build barrier cage
-        buildCage(world, cageCenter);
+        // Save original spawn positions before teleporting
+        saveSpawnPosition(player);
+        saveSpawnPosition(target);
+
+        // Build the arena cage with visible boundaries
+        buildCage(world, arenaCenter);
+
+        // Teleport both players into the arena
+        double arenaY = arenaCenter.getY() + 2; // Floor + 2 blocks up for safety
+        player.teleport(world, arenaCenter.getX() - 5, arenaY, arenaCenter.getZ(), 
+            java.util.Set.of(), 90.0F, 0.0F, true);
+        target.teleport(world, arenaCenter.getX() + 5, arenaY, arenaCenter.getZ(), 
+            java.util.Set.of(), -90.0F, 0.0F, true);
 
         // Store mirror state for both players
         PlayerStateManager.setPersistent(player, DUEL_PARTNER_KEY, target.getUuidAsString());
         PlayerStateManager.setPersistent(player, DUEL_END_TIME_KEY, String.valueOf(endTime));
-        PlayerStateManager.setPersistent(player, CAGE_CENTER_X_KEY, String.valueOf(cageCenter.getX()));
-        PlayerStateManager.setPersistent(player, CAGE_CENTER_Y_KEY, String.valueOf(cageCenter.getY()));
-        PlayerStateManager.setPersistent(player, CAGE_CENTER_Z_KEY, String.valueOf(cageCenter.getZ()));
+        PlayerStateManager.setPersistent(player, CAGE_CENTER_X_KEY, String.valueOf(arenaCenter.getX()));
+        PlayerStateManager.setPersistent(player, CAGE_CENTER_Y_KEY, String.valueOf(arenaCenter.getY()));
+        PlayerStateManager.setPersistent(player, CAGE_CENTER_Z_KEY, String.valueOf(arenaCenter.getZ()));
 
         // Target state
         PlayerStateManager.setPersistent(target, DUEL_PARTNER_KEY, player.getUuidAsString());
         PlayerStateManager.setPersistent(target, DUEL_END_TIME_KEY, String.valueOf(endTime));
-        PlayerStateManager.setPersistent(target, CAGE_CENTER_X_KEY, String.valueOf(cageCenter.getX()));
-        PlayerStateManager.setPersistent(target, CAGE_CENTER_Y_KEY, String.valueOf(cageCenter.getY()));
-        PlayerStateManager.setPersistent(target, CAGE_CENTER_Z_KEY, String.valueOf(cageCenter.getZ()));
+        PlayerStateManager.setPersistent(target, CAGE_CENTER_X_KEY, String.valueOf(arenaCenter.getX()));
+        PlayerStateManager.setPersistent(target, CAGE_CENTER_Y_KEY, String.valueOf(arenaCenter.getY()));
+        PlayerStateManager.setPersistent(target, CAGE_CENTER_Z_KEY, String.valueOf(arenaCenter.getZ()));
 
         DuelistMirrorMatchRuntime.start(player, target);
 
@@ -102,7 +113,44 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
     }
 
     /**
-     * Build a barrier cage around the center position (20x20x10).
+     * Find a suitable arena location high in the sky above the player.
+     */
+    private static BlockPos findArenaLocation(ServerWorld world, BlockPos near) {
+        // Place arena at Y=200 (or world height limit - arena height - margin)
+        int targetY = Math.min(200, world.getTopYInclusive() - CAGE_HEIGHT - 10);
+        return new BlockPos(near.getX(), targetY, near.getZ());
+    }
+
+    /**
+     * Save the player's current position for later teleport back.
+     */
+    private static void saveSpawnPosition(ServerPlayerEntity player) {
+        PlayerStateManager.setPersistent(player, SPAWN_X_KEY, String.valueOf((int) player.getX()));
+        PlayerStateManager.setPersistent(player, SPAWN_Y_KEY, String.valueOf((int) player.getY()));
+        PlayerStateManager.setPersistent(player, SPAWN_Z_KEY, String.valueOf((int) player.getZ()));
+        PlayerStateManager.setPersistent(player, SPAWN_DIM_KEY, 
+            player.getEntityWorld().getRegistryKey().getValue().toString());
+    }
+
+    /**
+     * Get the saved spawn position for teleporting back after duel.
+     */
+    public static BlockPos getSavedSpawnPosition(ServerPlayerEntity player) {
+        String xStr = PlayerStateManager.getPersistent(player, SPAWN_X_KEY);
+        String yStr = PlayerStateManager.getPersistent(player, SPAWN_Y_KEY);
+        String zStr = PlayerStateManager.getPersistent(player, SPAWN_Z_KEY);
+        if (xStr == null || yStr == null || zStr == null) {
+            return null;
+        }
+        try {
+            return new BlockPos(Integer.parseInt(xStr), Integer.parseInt(yStr), Integer.parseInt(zStr));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Build an arena cage with visible boundaries (magenta stained glass for walls, barrier for floor/ceiling).
      */
     public static void buildCage(ServerWorld world, BlockPos center) {
         int minX = center.getX() - CAGE_HALF_SIZE;
@@ -112,29 +160,37 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
         int floorY = center.getY();
         int ceilingY = floorY + CAGE_HEIGHT;
 
-        // Build floor and ceiling
+        // Build floor with barrier (invisible, but solid) and ceiling with glass
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
                 world.setBlockState(new BlockPos(x, floorY, z), Blocks.BARRIER.getDefaultState());
-                world.setBlockState(new BlockPos(x, ceilingY, z), Blocks.BARRIER.getDefaultState());
+                world.setBlockState(new BlockPos(x, ceilingY, z), Blocks.MAGENTA_STAINED_GLASS.getDefaultState());
             }
         }
 
-        // Build walls
+        // Build walls with magenta stained glass (visible boundary)
         for (int y = floorY + 1; y < ceilingY; y++) {
             for (int x = minX; x <= maxX; x++) {
-                world.setBlockState(new BlockPos(x, y, minZ), Blocks.BARRIER.getDefaultState());
-                world.setBlockState(new BlockPos(x, y, maxZ), Blocks.BARRIER.getDefaultState());
+                world.setBlockState(new BlockPos(x, y, minZ), Blocks.MAGENTA_STAINED_GLASS.getDefaultState());
+                world.setBlockState(new BlockPos(x, y, maxZ), Blocks.MAGENTA_STAINED_GLASS.getDefaultState());
             }
             for (int z = minZ + 1; z < maxZ; z++) {
-                world.setBlockState(new BlockPos(minX, y, z), Blocks.BARRIER.getDefaultState());
-                world.setBlockState(new BlockPos(maxX, y, z), Blocks.BARRIER.getDefaultState());
+                world.setBlockState(new BlockPos(minX, y, z), Blocks.MAGENTA_STAINED_GLASS.getDefaultState());
+                world.setBlockState(new BlockPos(maxX, y, z), Blocks.MAGENTA_STAINED_GLASS.getDefaultState());
             }
         }
     }
 
     /**
-     * Remove the barrier cage (restore air blocks).
+     * Check if a block is part of the arena cage.
+     */
+    private static boolean isCageBlock(ServerWorld world, BlockPos pos) {
+        var state = world.getBlockState(pos);
+        return state.isOf(Blocks.BARRIER) || state.isOf(Blocks.MAGENTA_STAINED_GLASS);
+    }
+
+    /**
+     * Remove the arena cage (restore air blocks).
      */
     public static void removeCage(ServerWorld world, BlockPos center) {
         int minX = center.getX() - CAGE_HALF_SIZE;
@@ -147,10 +203,10 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
         // Remove floor and ceiling
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
-                if (world.getBlockState(new BlockPos(x, floorY, z)).isOf(Blocks.BARRIER)) {
+                if (isCageBlock(world, new BlockPos(x, floorY, z))) {
                     world.setBlockState(new BlockPos(x, floorY, z), Blocks.AIR.getDefaultState());
                 }
-                if (world.getBlockState(new BlockPos(x, ceilingY, z)).isOf(Blocks.BARRIER)) {
+                if (isCageBlock(world, new BlockPos(x, ceilingY, z))) {
                     world.setBlockState(new BlockPos(x, ceilingY, z), Blocks.AIR.getDefaultState());
                 }
             }
@@ -159,18 +215,18 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
         // Remove walls
         for (int y = floorY + 1; y < ceilingY; y++) {
             for (int x = minX; x <= maxX; x++) {
-                if (world.getBlockState(new BlockPos(x, y, minZ)).isOf(Blocks.BARRIER)) {
+                if (isCageBlock(world, new BlockPos(x, y, minZ))) {
                     world.setBlockState(new BlockPos(x, y, minZ), Blocks.AIR.getDefaultState());
                 }
-                if (world.getBlockState(new BlockPos(x, y, maxZ)).isOf(Blocks.BARRIER)) {
+                if (isCageBlock(world, new BlockPos(x, y, maxZ))) {
                     world.setBlockState(new BlockPos(x, y, maxZ), Blocks.AIR.getDefaultState());
                 }
             }
             for (int z = minZ + 1; z < maxZ; z++) {
-                if (world.getBlockState(new BlockPos(minX, y, z)).isOf(Blocks.BARRIER)) {
+                if (isCageBlock(world, new BlockPos(minX, y, z))) {
                     world.setBlockState(new BlockPos(minX, y, z), Blocks.AIR.getDefaultState());
                 }
-                if (world.getBlockState(new BlockPos(maxX, y, z)).isOf(Blocks.BARRIER)) {
+                if (isCageBlock(world, new BlockPos(maxX, y, z))) {
                     world.setBlockState(new BlockPos(maxX, y, z), Blocks.AIR.getDefaultState());
                 }
             }
@@ -213,5 +269,9 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
         PlayerStateManager.clearPersistent(player, CAGE_CENTER_X_KEY);
         PlayerStateManager.clearPersistent(player, CAGE_CENTER_Y_KEY);
         PlayerStateManager.clearPersistent(player, CAGE_CENTER_Z_KEY);
+        PlayerStateManager.clearPersistent(player, SPAWN_X_KEY);
+        PlayerStateManager.clearPersistent(player, SPAWN_Y_KEY);
+        PlayerStateManager.clearPersistent(player, SPAWN_Z_KEY);
+        PlayerStateManager.clearPersistent(player, SPAWN_DIM_KEY);
     }
 }

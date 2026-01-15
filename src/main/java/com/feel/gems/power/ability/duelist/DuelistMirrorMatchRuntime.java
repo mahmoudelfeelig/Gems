@@ -28,17 +28,24 @@ public final class DuelistMirrorMatchRuntime {
             return;
         }
         if (!DuelistMirrorMatchAbility.isInDuel(player)) {
-            clear(player);
+            clear(player, true);
             return;
         }
     }
 
-    public static void clear(ServerPlayerEntity player) {
+    /**
+     * Clear duel state and optionally teleport the player back to spawn.
+     * @param teleportBack whether to teleport the player back to their saved spawn position
+     */
+    public static void clear(ServerPlayerEntity player, boolean teleportBack) {
         if (player == null) {
             return;
         }
         MinecraftServer server = player.getEntityWorld().getServer();
         UUID partner = partnerUuid(player);
+
+        // Save spawn position before clearing for teleport
+        BlockPos spawnPos = DuelistMirrorMatchAbility.getSavedSpawnPosition(player);
 
         // Remove the barrier cage before clearing state
         removeCageIfPresent(player);
@@ -46,16 +53,73 @@ public final class DuelistMirrorMatchRuntime {
         DuelistMirrorMatchAbility.clearDuel(player);
         syncDisguise(player, null);
 
+        // Teleport winner back to spawn
+        if (teleportBack && spawnPos != null && player.getEntityWorld() instanceof ServerWorld world) {
+            player.teleport(world, spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5,
+                java.util.Set.of(), player.getYaw(), player.getPitch(), true);
+        }
+
         // Ensure the partner's disguise is also cleared for all viewers, even if the partner is offline.
         if (server != null && partner != null) {
             ServerPlayerEntity partnerPlayer = server.getPlayerManager().getPlayer(partner);
             if (partnerPlayer != null) {
                 // Note: We don't call removeCageIfPresent here because both players share the same cage
-                // and we already removed it above
+                // and we already removed it above. Also don't teleport partner - they lost/died.
                 DuelistMirrorMatchAbility.clearDuel(partnerPlayer);
                 syncDisguise(partnerPlayer, null);
             } else {
                 clearDisguiseForAllViewers(server, partner);
+            }
+        }
+    }
+
+    /**
+     * Called when a player dies during a duel - loser doesn't get teleported back.
+     */
+    public static void onDeath(ServerPlayerEntity player) {
+        if (!DuelistMirrorMatchAbility.isInDuel(player)) {
+            return;
+        }
+        // Clear without teleport - player died
+        clear(player, false);
+    }
+
+    /**
+     * Called when a player disconnects during a duel.
+     * Both players should be teleported back and the cage removed.
+     */
+    public static void onDisconnect(ServerPlayerEntity player, MinecraftServer server) {
+        if (!DuelistMirrorMatchAbility.isInDuel(player)) {
+            return;
+        }
+        
+        UUID partnerUuid = partnerUuid(player);
+        BlockPos cageCenter = DuelistMirrorMatchAbility.getCageCenter(player);
+        
+        // Remove cage before clearing state
+        if (cageCenter != null) {
+            for (ServerWorld world : server.getWorlds()) {
+                DuelistMirrorMatchAbility.removeCage(world, cageCenter);
+            }
+        }
+        
+        // Clear the disconnecting player (they can't be teleported since they're disconnecting)
+        DuelistMirrorMatchAbility.clearDuel(player);
+        syncDisguise(player, null);
+        
+        // Teleport partner back to their saved spawn
+        if (partnerUuid != null) {
+            ServerPlayerEntity partner = server.getPlayerManager().getPlayer(partnerUuid);
+            if (partner != null) {
+                BlockPos partnerSpawn = DuelistMirrorMatchAbility.getSavedSpawnPosition(partner);
+                if (partnerSpawn != null && partner.getEntityWorld() instanceof ServerWorld partnerWorld) {
+                    partner.teleport(partnerWorld, partnerSpawn.getX() + 0.5, partnerSpawn.getY(), partnerSpawn.getZ() + 0.5,
+                        java.util.Set.of(), partner.getYaw(), partner.getPitch(), true);
+                }
+                DuelistMirrorMatchAbility.clearDuel(partner);
+                syncDisguise(partner, null);
+            } else {
+                clearDisguiseForAllViewers(server, partnerUuid);
             }
         }
     }

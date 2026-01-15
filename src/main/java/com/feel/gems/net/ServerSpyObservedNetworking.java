@@ -3,7 +3,7 @@ package com.feel.gems.net;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.config.GemsDisables;
 import com.feel.gems.power.api.GemAbility;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.util.GemsTime;
@@ -33,7 +33,7 @@ public final class ServerSpyObservedNetworking {
 
     private static void openScreen(ServerPlayerEntity player) {
         GemPlayerState.initIfNeeded(player);
-        if (!SpyMimicSystem.isSpyActive(player)) {
+        if (!SpySystem.isSpyActive(player)) {
             player.sendMessage(Text.translatable("gems.spy.observed.not_spy"), true);
             return;
         }
@@ -43,12 +43,12 @@ public final class ServerSpyObservedNetworking {
         }
 
         long now = GemsTime.now(player);
-        int observeWindow = GemsBalance.v().spyMimic().observeWindowTicks();
-        int echoWindow = GemsBalance.v().spyMimic().echoWindowTicks();
-        int required = GemsBalance.v().spyMimic().stealRequiredWitnessCount();
+        int observeWindow = GemsBalance.v().spy().observeWindowTicks();
+        int echoWindow = GemsBalance.v().spy().echoWindowTicks();
+        int required = GemsBalance.v().spy().stealRequiredWitnessCount();
 
         List<SpyObservedScreenPayload.ObservedEntry> entries = new ArrayList<>();
-        for (SpyMimicSystem.ObservedAbility abilityInfo : SpyMimicSystem.observedAbilities(player)) {
+        for (SpySystem.ObservedAbility abilityInfo : SpySystem.observedAbilities(player)) {
             Identifier id = abilityInfo.id();
             if (id == null || GemsDisables.isAbilityDisabled(id)) {
                 continue;
@@ -60,8 +60,8 @@ public final class ServerSpyObservedNetworking {
             long lastSeen = abilityInfo.lastSeen();
             boolean withinObserveWindow = lastSeen > 0 && now - lastSeen <= observeWindow;
             boolean canSteal = withinObserveWindow && abilityInfo.count() >= required;
-            boolean canEcho = lastSeen > 0 && now - lastSeen <= echoWindow && SpyMimicSystem.isEchoableAbility(id);
-            if (!SpyMimicSystem.isEchoableAbility(id) && !canSteal) {
+            boolean canEcho = lastSeen > 0 && now - lastSeen <= echoWindow && SpySystem.isEchoableAbility(id);
+            if (!SpySystem.isEchoableAbility(id) && !canSteal) {
                 continue;
             }
             entries.add(new SpyObservedScreenPayload.ObservedEntry(
@@ -74,7 +74,7 @@ public final class ServerSpyObservedNetworking {
         }
 
         entries.sort(Comparator.comparing(SpyObservedScreenPayload.ObservedEntry::name));
-        Identifier selected = SpyMimicSystem.selectedObservedAbility(player);
+        Identifier selected = SpySystem.selectedObservedAbility(player);
         ServerPlayNetworking.send(player, new SpyObservedScreenPayload(entries, selected));
     }
 
@@ -82,7 +82,7 @@ public final class ServerSpyObservedNetworking {
         if (abilityId == null) {
             return;
         }
-        if (!SpyMimicSystem.selectObservedAbility(player, abilityId)) {
+        if (!SpySystem.selectObservedAbility(player, abilityId)) {
             player.sendMessage(Text.translatable("gems.spy.observed.select_failed"), true);
             return;
         }

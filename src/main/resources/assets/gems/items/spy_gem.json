@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "gems:item/gems/spy_mimic_gem"
+    "model": "gems:item/gems/spy_gem"
   }
 }

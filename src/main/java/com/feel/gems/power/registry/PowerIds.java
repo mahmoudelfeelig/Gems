@@ -78,7 +78,7 @@ public final class PowerIds {
     public static final Identifier PILLAGER_CROSSBOW_MASTERY = id("pillager_crossbow_mastery");
     public static final Identifier PILLAGER_RAIDER_STRIDE = id("pillager_raider_stride");
 
-    // Spy/Mimic (new)
+    // Spy
     public static final Identifier SPY_STILLNESS_CLOAK = id("spy_stillness_cloak");
     public static final Identifier SPY_SILENT_STEP = id("spy_silent_step");
     public static final Identifier SPY_FALSE_SIGNATURE = id("spy_false_signature");
@@ -132,6 +132,7 @@ public final class PowerIds {
     public static final Identifier SPEED_SLIPSTREAM = id("speed_slipstream");
     public static final Identifier SPEED_AFTERIMAGE = id("speed_afterimage");
     public static final Identifier SPEED_TEMPO_SHIFT = id("speed_tempo_shift");
+    public static final Identifier SPEED_AUTO_STEP = id("speed_auto_step");
 
     public static final Identifier NULLIFY = id("nullify");
     public static final Identifier FRAILER = id("frailer");
@@ -182,7 +183,7 @@ public final class PowerIds {
     public static final Identifier PILLAGER_WARHORN = id("pillager_warhorn");
     public static final Identifier PILLAGER_SNARE = id("pillager_snare");
 
-    // Spy/Mimic (new)
+    // Spy
     public static final Identifier SPY_MIMIC_FORM = id("spy_mimic_form");
     public static final Identifier SPY_ECHO = id("spy_echo");
     public static final Identifier SPY_STEAL = id("spy_steal");

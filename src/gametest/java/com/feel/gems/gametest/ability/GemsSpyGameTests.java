@@ -4,7 +4,7 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
 import com.feel.gems.gametest.util.GemsGameTestUtil;
 import com.feel.gems.power.ability.spy.*;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
@@ -45,7 +45,7 @@ public final class GemsSpyGameTests {
         teleport(enemy, world, pos.x + 2.0D, pos.y, pos.z, 180.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
-        GemPlayerState.setActiveGem(player, GemId.SPY_MIMIC);
+        GemPlayerState.setActiveGem(player, GemId.SPY);
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
@@ -83,7 +83,7 @@ public final class GemsSpyGameTests {
         teleport(target, world, pos.x, pos.y, pos.z + 2.0D, 180.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
-        GemPlayerState.setActiveGem(player, GemId.SPY_MIMIC);
+        GemPlayerState.setActiveGem(player, GemId.SPY);
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
@@ -115,7 +115,7 @@ public final class GemsSpyGameTests {
         teleport(enemy, world, pos.x + 2.0D, pos.y, pos.z, 180.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
-        GemPlayerState.setActiveGem(player, GemId.SPY_MIMIC);
+        GemPlayerState.setActiveGem(player, GemId.SPY);
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
@@ -151,7 +151,7 @@ public final class GemsSpyGameTests {
         teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
-        GemPlayerState.setActiveGem(player, GemId.SPY_MIMIC);
+        GemPlayerState.setActiveGem(player, GemId.SPY);
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
@@ -181,7 +181,7 @@ public final class GemsSpyGameTests {
         teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
-        GemPlayerState.setActiveGem(player, GemId.SPY_MIMIC);
+        GemPlayerState.setActiveGem(player, GemId.SPY);
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
@@ -193,11 +193,11 @@ public final class GemsSpyGameTests {
 
             NbtCompound observedMap = new NbtCompound();
             NbtCompound rec = new NbtCompound();
-            int required = GemsBalance.v().spyMimic().stealRequiredWitnessCount();
+            int required = GemsBalance.v().spy().stealRequiredWitnessCount();
             rec.putInt("count", required);
             rec.putLong("first", world.getTime());
             rec.putLong("last", world.getTime());
-            rec.putInt("epoch", SpyMimicSystem.deaths(player));
+            rec.putInt("epoch", SpySystem.deaths(player));
             observedMap.put(observed.toString(), rec);
             nbt.put("spyObserved", observedMap);
 
@@ -206,7 +206,7 @@ public final class GemsSpyGameTests {
                 context.throwGameTestException("Steal did not add the observed ability");
                 return;
             }
-            if (SpyMimicSystem.selectedStolenAbility(player) == null) {
+            if (SpySystem.selectedStolenAbility(player) == null) {
                 context.throwGameTestException("Steal should store a stolen ability");
                 return;
             }
@@ -227,7 +227,7 @@ public final class GemsSpyGameTests {
         teleport(enemy, world, pos.x + 2.0D, pos.y, pos.z, 180.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
-        GemPlayerState.setActiveGem(player, GemId.SPY_MIMIC);
+        GemPlayerState.setActiveGem(player, GemId.SPY);
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
@@ -263,15 +263,15 @@ public final class GemsSpyGameTests {
         teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
-        GemPlayerState.setActiveGem(player, GemId.SPY_MIMIC);
+        GemPlayerState.setActiveGem(player, GemId.SPY);
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
-        int stillness = GemsBalance.v().spyMimic().stillnessTicks();
+        int stillness = GemsBalance.v().spy().stillnessTicks();
 
-        context.runAtTick(5L, () -> SpyMimicSystem.tickEverySecond(player));
+        context.runAtTick(5L, () -> SpySystem.tickEverySecond(player));
         context.runAtTick(5L + stillness + 2L, () -> {
-            SpyMimicSystem.tickEverySecond(player);
+            SpySystem.tickEverySecond(player);
             if (player.getStatusEffect(StatusEffects.INVISIBILITY) == null) {
                 context.throwGameTestException("Stillness Cloak should grant invisibility after standing still");
                 return;
@@ -298,7 +298,7 @@ public final class GemsSpyGameTests {
         teleport(player, world, playerPos.x, playerPos.y, playerPos.z, 0.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
-        GemPlayerState.setActiveGem(player, GemId.SPY_MIMIC);
+        GemPlayerState.setActiveGem(player, GemId.SPY);
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
@@ -328,7 +328,7 @@ public final class GemsSpyGameTests {
         teleport(target, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(attacker);
-        GemPlayerState.setActiveGem(attacker, GemId.SPY_MIMIC);
+        GemPlayerState.setActiveGem(attacker, GemId.SPY);
         GemPlayerState.setEnergy(attacker, 5);
         GemPowers.sync(attacker);
 
@@ -353,7 +353,7 @@ public final class GemsSpyGameTests {
         teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(player);
-        GemPlayerState.setActiveGem(player, GemId.SPY_MIMIC);
+        GemPlayerState.setActiveGem(player, GemId.SPY);
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
@@ -368,7 +368,7 @@ public final class GemsSpyGameTests {
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void spyConfigValuesValid(TestContext context) {
-        var cfg = GemsBalance.v().spyMimic();
+        var cfg = GemsBalance.v().spy();
         
         if (cfg.smokeBombCooldownTicks() < 0) {
             context.throwGameTestException("Smoke Bomb cooldown cannot be negative");

@@ -10,7 +10,7 @@ import net.minecraft.util.Identifier;
 
 
 /**
- * Per-player ability disables (used by Spy/Mimic theft).
+ * Per-player ability disables (used by Spy theft).
  *
  * <p>Stored as persistent player NBT and checked on every ability activation.</p>
  */

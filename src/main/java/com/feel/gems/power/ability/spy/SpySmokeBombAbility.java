@@ -4,7 +4,7 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.spy.SpySystem;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -34,7 +34,7 @@ public final class SpySmokeBombAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return GemsBalance.v().spyMimic().smokeBombCooldownTicks();
+        return GemsBalance.v().spy().smokeBombCooldownTicks();
     }
 
     @Override
@@ -42,17 +42,17 @@ public final class SpySmokeBombAbility implements GemAbility {
         if (!(player.getEntityWorld() instanceof ServerWorld world)) {
             return false;
         }
-        int radius = GemsBalance.v().spyMimic().smokeBombRadiusBlocks();
-        int duration = GemsBalance.v().spyMimic().smokeBombDurationTicks();
+        int radius = GemsBalance.v().spy().smokeBombRadiusBlocks();
+        int duration = GemsBalance.v().spy().smokeBombDurationTicks();
         if (radius <= 0 || duration <= 0) {
             return false;
         }
-        int blindAmp = GemsBalance.v().spyMimic().smokeBombBlindnessAmplifier();
-        int slowAmp = GemsBalance.v().spyMimic().smokeBombSlownessAmplifier();
+        int blindAmp = GemsBalance.v().spy().smokeBombBlindnessAmplifier();
+        int slowAmp = GemsBalance.v().spy().smokeBombSlownessAmplifier();
 
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, p -> p != player)) {
-            if (other instanceof ServerPlayerEntity otherPlayer && !SpyMimicSystem.canAffect(player, otherPlayer)) {
+            if (other instanceof ServerPlayerEntity otherPlayer && !SpySystem.canAffect(player, otherPlayer)) {
                 continue;
             }
             other.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, duration, blindAmp, true, false, false));

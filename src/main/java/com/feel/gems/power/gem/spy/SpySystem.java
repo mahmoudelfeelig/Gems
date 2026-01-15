@@ -41,7 +41,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
 
-public final class SpyMimicSystem {
+public final class SpySystem {
     private static final String KEY_DEATHS = "gemsDeathCount";
 
     private static final String KEY_LAST_KILLED_TYPE = "spyLastKilledType";
@@ -81,10 +81,10 @@ public final class SpyMimicSystem {
 
     public record ObservedAbility(Identifier id, int count, long lastSeen) {}
 
-    // Cache of online players currently eligible for Spy/Mimic logic to avoid scanning everyone on each observed ability use.
+    // Cache of online players currently eligible for Spy logic to avoid scanning everyone on each observed ability use.
     private static final Set<UUID> ACTIVE_SPIES = new HashSet<>();
 
-    private SpyMimicSystem() {
+    private SpySystem() {
     }
 
     public static void incrementDeaths(ServerPlayerEntity player) {
@@ -132,9 +132,9 @@ public final class SpyMimicSystem {
             return;
         }
         long now = GemsTime.now(caster);
-        int range = GemsBalance.v().spyMimic().observeRangeBlocks();
+        int range = GemsBalance.v().spy().observeRangeBlocks();
         double rangeSq = range * (double) range;
-        int window = GemsBalance.v().spyMimic().observeWindowTicks();
+        int window = GemsBalance.v().spy().observeWindowTicks();
 
         // If the cache is empty, do a full scan so cold starts still record observations.
         if (ACTIVE_SPIES.isEmpty()) {
@@ -316,8 +316,8 @@ public final class SpyMimicSystem {
     }
 
     public static boolean canSteal(ServerPlayerEntity player, Identifier abilityId, long now) {
-        int required = GemsBalance.v().spyMimic().stealRequiredWitnessCount();
-        int window = GemsBalance.v().spyMimic().observeWindowTicks();
+        int required = GemsBalance.v().spy().stealRequiredWitnessCount();
+        int window = GemsBalance.v().spy().observeWindowTicks();
         int count = witnessedCount(player, abilityId);
         if (count < required) {
             return false;
@@ -359,7 +359,7 @@ public final class SpyMimicSystem {
         }
 
         NbtCompound nbt = persistent(spy);
-        int max = GemsBalance.v().spyMimic().maxStolenAbilities();
+        int max = GemsBalance.v().spy().maxStolenAbilities();
         NbtList list = nbt.getList(KEY_STOLEN).orElse(new NbtList());
         if (list.size() >= max) {
             spy.sendMessage(Text.translatable("gems.spy.stolen_slots_full"), true);
@@ -478,8 +478,8 @@ public final class SpyMimicSystem {
         long now = GemsTime.now(player);
         nbt.putLong(KEY_MIMIC_UNTIL, now + durationTicks);
 
-        float bonusHp = GemsBalance.v().spyMimic().mimicFormBonusMaxHealth();
-        float speedMult = GemsBalance.v().spyMimic().mimicFormSpeedMultiplier();
+        float bonusHp = GemsBalance.v().spy().mimicFormBonusMaxHealth();
+        float speedMult = GemsBalance.v().spy().mimicFormSpeedMultiplier();
 
         EntityAttributeInstance maxHp = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
         if (maxHp != null) {
@@ -533,7 +533,7 @@ public final class SpyMimicSystem {
             return false;
         }
         GemId activeGem = GemPlayerState.getActiveGem(player);
-        if (activeGem == GemId.SPY_MIMIC) {
+        if (activeGem == GemId.SPY) {
             return true;
         }
         if (activeGem == GemId.PRISM) {
@@ -598,7 +598,7 @@ public final class SpyMimicSystem {
         double ly = nbt.getDouble(KEY_STILL_LAST_Y, y);
         double lz = nbt.getDouble(KEY_STILL_LAST_Z, z);
 
-        float eps = GemsBalance.v().spyMimic().stillnessMoveEpsilonBlocks();
+        float eps = GemsBalance.v().spy().stillnessMoveEpsilonBlocks();
         double epsSq = eps * (double) eps;
         double dx = x - lx;
         double dy = y - ly;
@@ -617,7 +617,7 @@ public final class SpyMimicSystem {
         nbt.putDouble(KEY_STILL_LAST_Z, z);
 
         long lastMoved = nbt.getLong(KEY_STILL_LAST_MOVED, now);
-        int stillness = GemsBalance.v().spyMimic().stillnessTicks();
+        int stillness = GemsBalance.v().spy().stillnessTicks();
         if (stillness <= 0) {
             return;
         }
@@ -625,7 +625,7 @@ public final class SpyMimicSystem {
             return;
         }
 
-        int refresh = GemsBalance.v().spyMimic().stillnessInvisRefreshTicks();
+        int refresh = GemsBalance.v().spy().stillnessInvisRefreshTicks();
         if (refresh <= 0) {
             return;
         }

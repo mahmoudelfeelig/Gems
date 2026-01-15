@@ -1,5 +1,7 @@
 package com.feel.gems.client.screen;
 
+import static com.feel.gems.client.screen.GemsScreenConstants.*;
+
 import com.feel.gems.net.SpyObservedScreenPayload;
 import com.feel.gems.net.SpyObservedSelectPayload;
 import java.util.ArrayList;
@@ -16,8 +18,6 @@ import net.minecraft.util.Identifier;
  * Client UI for selecting observed Spy abilities for Echo/Steal.
  */
 public final class SpyObservedSelectionScreen extends Screen {
-    private static final int ENTRIES_PER_PAGE = 8;
-
     private final List<SpyObservedScreenPayload.ObservedEntry> entries;
     private final Identifier selectedId;
     private int page = 0;
@@ -38,18 +38,19 @@ public final class SpyObservedSelectionScreen extends Screen {
         clearChildren();
 
         int centerX = this.width / 2;
-        int topY = 32;
-        int panelWidth = Math.min(300, this.width - 32);
-        int buttonHeight = 20;
-        int spacing = 4;
+        int panelW = panelWidth(width);
+        int entryX = centerX - panelW / 2;
+
+        int totalPg = totalPages(entries.size(), ENTRIES_PER_PAGE);
+        page = clampPage(page, totalPg);
 
         int start = page * ENTRIES_PER_PAGE;
         int end = Math.min(entries.size(), start + ENTRIES_PER_PAGE);
-        int y = topY + 24;
+        int y = CONTENT_START_Y;
 
         if (entries.isEmpty()) {
             addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.spy_observed.none").formatted(Formatting.GRAY), btn -> {})
-                    .dimensions(centerX - (panelWidth / 2), y, panelWidth, buttonHeight)
+                    .dimensions(entryX, y, panelW, BUTTON_HEIGHT)
                     .build()).active = false;
         } else {
             for (int i = start; i < end; i++) {
@@ -65,28 +66,26 @@ public final class SpyObservedSelectionScreen extends Screen {
                 Text label = Text.literal(labelText).formatted(color);
 
                 addDrawableChild(ButtonWidget.builder(label, btn -> select(entry.id()))
-                        .dimensions(centerX - (panelWidth / 2), y + (i - start) * (buttonHeight + spacing), panelWidth, buttonHeight)
+                        .dimensions(entryX, y + (i - start) * (BUTTON_HEIGHT + SPACING), panelW, BUTTON_HEIGHT)
                         .build());
             }
         }
 
-        int bottomY = this.height - 64;
-        int smallWidth = 70;
-        int maxPage = Math.max(0, (entries.size() - 1) / ENTRIES_PER_PAGE);
+        int navY = navButtonY(height);
 
         ButtonWidget prev = ButtonWidget.builder(Text.translatable("gems.screen.button.prev"), btn -> changePage(-1))
-                .dimensions(centerX - smallWidth - 8, bottomY, smallWidth, buttonHeight)
+                .dimensions(centerX - NAV_BUTTON_WIDTH - SPACING, navY, NAV_BUTTON_WIDTH, BUTTON_HEIGHT)
                 .build();
         ButtonWidget next = ButtonWidget.builder(Text.translatable("gems.screen.button.next"), btn -> changePage(1))
-                .dimensions(centerX + 8, bottomY, smallWidth, buttonHeight)
+                .dimensions(centerX + SPACING, navY, NAV_BUTTON_WIDTH, BUTTON_HEIGHT)
                 .build();
         prev.active = page > 0;
-        next.active = page < maxPage;
+        next.active = page < totalPg - 1;
         addDrawableChild(prev);
         addDrawableChild(next);
 
         addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.close"), btn -> close())
-                .dimensions(centerX - 50, bottomY + buttonHeight + 6, 100, buttonHeight)
+                .dimensions(centerX - CLOSE_BUTTON_WIDTH / 2, closeButtonY(height), CLOSE_BUTTON_WIDTH, BUTTON_HEIGHT)
                 .build());
     }
 
@@ -117,9 +116,9 @@ public final class SpyObservedSelectionScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         int centerX = this.width / 2;
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, centerX, 12, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, centerX, TITLE_Y, COLOR_WHITE);
         context.drawCenteredTextWithShadow(this.textRenderer,
                 Text.translatable("gems.screen.spy_observed.subtitle"),
-                centerX, 22, 0xA0A0A0);
+                centerX, SUBTITLE_Y, COLOR_GRAY);
     }
 }

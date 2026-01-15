@@ -95,6 +95,10 @@ public final class GemsSpaceGameTests {
             return;
         }
         target.refreshPositionAndAngles(pos.x + 3.0D, pos.y, pos.z, 0.0F, 0.0F);
+        // Disable AI and gravity so the zombie doesn't walk toward player or fall,
+        // allowing us to isolate the black hole's pull effect on velocity.
+        target.setAiDisabled(true);
+        target.setNoGravity(true);
         world.spawnEntity(target);
         Vec3d center = player.getEntityPos().add(0.0D, 0.2D, 0.0D);
 
@@ -105,12 +109,19 @@ public final class GemsSpaceGameTests {
             }
         });
 
-        context.runAtTick(30L, () -> SpaceAnomalies.tick(world.getServer()));
+        // Tick the anomaly system continuously. Physics runs when world time >= nextPhysicsTick
+        // (which is ~20 ticks after spawn). We tick frequently to ensure the stride-based
+        // physics logic fires and accumulates velocity on the target.
+        for (long t = 6L; t <= 50L; t++) {
+            context.runAtTick(t, () -> SpaceAnomalies.tick(world.getServer()));
+        }
 
-        context.runAtTick(33L, () -> {
-            SpaceAnomalies.tick(world.getServer());
+        context.runAtTick(55L, () -> {
             Vec3d delta = center.subtract(target.getEntityPos());
-            if (target.getVelocity().dotProduct(delta) <= 0.0D) {
+            Vec3d velocity = target.getVelocity();
+            // The black hole should have applied inward velocity toward the center.
+            // Check that velocity has a positive component toward the center (dot product > 0).
+            if (velocity.lengthSquared() < 0.0001D || velocity.dotProduct(delta) <= 0.0D) {
                 context.throwGameTestException("Black Hole should pull targets inward");
                 return;
             }

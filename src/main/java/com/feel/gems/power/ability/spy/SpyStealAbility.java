@@ -3,7 +3,7 @@ package com.feel.gems.power.ability.spy;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.spy.SpySystem;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
@@ -26,12 +26,12 @@ public final class SpyStealAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return GemsBalance.v().spyMimic().stealCooldownTicks();
+        return GemsBalance.v().spy().stealCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        return SpyMimicSystem.stealLastSeen(player);
+        return SpySystem.stealLastSeen(player);
     }
 }
 

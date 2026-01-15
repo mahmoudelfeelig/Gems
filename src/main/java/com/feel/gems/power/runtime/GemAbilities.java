@@ -11,7 +11,7 @@ import com.feel.gems.legendary.LegendaryCooldowns;
 import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.chaos.ChaosSlotRuntime;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.bonus.BonusPassiveRuntime;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.state.GemPlayerState;
@@ -110,7 +110,7 @@ public final class GemAbilities {
         }
 
         com.feel.gems.power.gem.trickster.TricksterPassiveRuntime.applyChaosEffect(player);
-        SpyMimicSystem.onAbilityUsed(player.getEntityWorld().getServer(), player, abilityId);
+        SpySystem.onAbilityUsed(player.getEntityWorld().getServer(), player, abilityId);
 
         int cooldown = Math.max(0, ability.cooldownTicks());
         cooldown = applyCooldownModifiers(player, cooldown);
@@ -189,7 +189,7 @@ public final class GemAbilities {
             return;
         }
 
-        SpyMimicSystem.onAbilityUsed(server, player, abilityId);
+        SpySystem.onAbilityUsed(server, player, abilityId);
 
         int cooldown = Math.max(0, ability.cooldownTicks());
         cooldown = applyCooldownModifiers(player, cooldown);

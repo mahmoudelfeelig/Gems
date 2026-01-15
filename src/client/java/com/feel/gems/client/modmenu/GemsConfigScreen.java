@@ -1030,72 +1030,72 @@ public final class GemsConfigScreen extends Screen {
                 y = addIntRow("Snare slowness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.pillager.snareSlownessAmplifier, v -> cfg.pillager.snareSlownessAmplifier = v, 0, 10);
                 logicalY += ROW_H;
             }
-            case SPY_MIMIC -> {
-                y = addIntRow("Stillness seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.stillnessSeconds, v -> cfg.spyMimic.stillnessSeconds = v, 0, 60);
+            case SPY -> {
+                y = addIntRow("Stillness seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.stillnessSeconds, v -> cfg.spy.stillnessSeconds = v, 0, 60);
                 logicalY += ROW_H;
-                y = addFloatRow("Stillness move epsilon blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.stillnessMoveEpsilonBlocks, v -> cfg.spyMimic.stillnessMoveEpsilonBlocks = v, 0.0F, 1.0F);
+                y = addFloatRow("Stillness move epsilon blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.stillnessMoveEpsilonBlocks, v -> cfg.spy.stillnessMoveEpsilonBlocks = v, 0.0F, 1.0F);
                 logicalY += ROW_H;
-                y = addIntRow("Stillness invis refresh seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.stillnessInvisRefreshSeconds, v -> cfg.spyMimic.stillnessInvisRefreshSeconds = v, 0, 60);
+                y = addIntRow("Stillness invis refresh seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.stillnessInvisRefreshSeconds, v -> cfg.spy.stillnessInvisRefreshSeconds = v, 0, 60);
                 logicalY += ROW_H;
-                y = addIntRow("Backstep cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.backstepCooldownSeconds, v -> cfg.spyMimic.backstepCooldownSeconds = v, 0, 3600);
+                y = addIntRow("Backstep cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.backstepCooldownSeconds, v -> cfg.spy.backstepCooldownSeconds = v, 0, 3600);
                 logicalY += ROW_H;
-                y = addDoubleRow("Backstep velocity", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.backstepVelocity, v -> cfg.spyMimic.backstepVelocity = v, 0.0D, 5.0D);
+                y = addDoubleRow("Backstep velocity", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.backstepVelocity, v -> cfg.spy.backstepVelocity = v, 0.0D, 5.0D);
                 logicalY += ROW_H;
-                y = addDoubleRow("Backstep up velocity", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.backstepUpVelocity, v -> cfg.spyMimic.backstepUpVelocity = v, 0.0D, 2.0D);
+                y = addDoubleRow("Backstep up velocity", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.backstepUpVelocity, v -> cfg.spy.backstepUpVelocity = v, 0.0D, 2.0D);
                 logicalY += ROW_H;
-                y = addFloatRow("Backstab bonus damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.backstabBonusDamage, v -> cfg.spyMimic.backstabBonusDamage = v, 0.0F, 40.0F);
+                y = addFloatRow("Backstab bonus damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.backstabBonusDamage, v -> cfg.spy.backstabBonusDamage = v, 0.0F, 40.0F);
                 logicalY += ROW_H;
-                y = addIntRow("Backstab angle degrees", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.backstabAngleDegrees, v -> cfg.spyMimic.backstabAngleDegrees = v, 0, 180);
-                logicalY += ROW_H;
-                y = spacer(y);
-                logicalY += 8;
-                y = addIntRow("Observe range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.observeRangeBlocks, v -> cfg.spyMimic.observeRangeBlocks = v, 0, 128);
-                logicalY += ROW_H;
-                y = addIntRow("Observe window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.observeWindowSeconds, v -> cfg.spyMimic.observeWindowSeconds = v, 0, 3600);
-                logicalY += ROW_H;
-                y = addIntRow("Steal required witness count", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.stealRequiredWitnessCount, v -> cfg.spyMimic.stealRequiredWitnessCount = v, 1, 20);
-                logicalY += ROW_H;
-                y = addIntRow("Max stolen abilities", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.maxStolenAbilities, v -> cfg.spyMimic.maxStolenAbilities = v, 1, 10);
+                y = addIntRow("Backstab angle degrees", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.backstabAngleDegrees, v -> cfg.spy.backstabAngleDegrees = v, 0, 180);
                 logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;
-                y = addIntRow("Mimic Form cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.mimicFormCooldownSeconds, v -> cfg.spyMimic.mimicFormCooldownSeconds = v, 0, 3600);
+                y = addIntRow("Observe range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.observeRangeBlocks, v -> cfg.spy.observeRangeBlocks = v, 0, 128);
                 logicalY += ROW_H;
-                y = addIntRow("Mimic Form duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.mimicFormDurationSeconds, v -> cfg.spyMimic.mimicFormDurationSeconds = v, 0, 120);
+                y = addIntRow("Observe window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.observeWindowSeconds, v -> cfg.spy.observeWindowSeconds = v, 0, 3600);
                 logicalY += ROW_H;
-                y = addFloatRow("Mimic Form bonus max health", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.mimicFormBonusMaxHealth, v -> cfg.spyMimic.mimicFormBonusMaxHealth = v, 0.0F, 40.0F);
+                y = addIntRow("Steal required witness count", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.stealRequiredWitnessCount, v -> cfg.spy.stealRequiredWitnessCount = v, 1, 20);
                 logicalY += ROW_H;
-                y = addFloatRow("Mimic Form speed multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.mimicFormSpeedMultiplier, v -> cfg.spyMimic.mimicFormSpeedMultiplier = v, 0.1F, 3.0F);
-                logicalY += ROW_H;
-                y = spacer(y);
-                logicalY += 8;
-                y = addIntRow("Echo cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.echoCooldownSeconds, v -> cfg.spyMimic.echoCooldownSeconds = v, 0, 3600);
-                logicalY += ROW_H;
-                y = addIntRow("Echo window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.echoWindowSeconds, v -> cfg.spyMimic.echoWindowSeconds = v, 0, 60);
-                logicalY += ROW_H;
-                y = addIntRow("Steal cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.stealCooldownSeconds, v -> cfg.spyMimic.stealCooldownSeconds = v, 0, 3600);
+                y = addIntRow("Max stolen abilities", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.maxStolenAbilities, v -> cfg.spy.maxStolenAbilities = v, 1, 10);
                 logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;
-                y = addIntRow("Smoke Bomb cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.smokeBombCooldownSeconds, v -> cfg.spyMimic.smokeBombCooldownSeconds = v, 0, 3600);
+                y = addIntRow("Mimic Form cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.mimicFormCooldownSeconds, v -> cfg.spy.mimicFormCooldownSeconds = v, 0, 3600);
                 logicalY += ROW_H;
-                y = addIntRow("Smoke Bomb radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.smokeBombRadiusBlocks, v -> cfg.spyMimic.smokeBombRadiusBlocks = v, 0, 64);
+                y = addIntRow("Mimic Form duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.mimicFormDurationSeconds, v -> cfg.spy.mimicFormDurationSeconds = v, 0, 120);
                 logicalY += ROW_H;
-                y = addIntRow("Smoke Bomb duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.smokeBombDurationSeconds, v -> cfg.spyMimic.smokeBombDurationSeconds = v, 0, 60);
+                y = addFloatRow("Mimic Form bonus max health", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.mimicFormBonusMaxHealth, v -> cfg.spy.mimicFormBonusMaxHealth = v, 0.0F, 40.0F);
                 logicalY += ROW_H;
-                y = addIntRow("Smoke Bomb blindness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.smokeBombBlindnessAmplifier, v -> cfg.spyMimic.smokeBombBlindnessAmplifier = v, 0, 10);
-                logicalY += ROW_H;
-                y = addIntRow("Smoke Bomb slowness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.smokeBombSlownessAmplifier, v -> cfg.spyMimic.smokeBombSlownessAmplifier = v, 0, 10);
-                logicalY += ROW_H;
-                y = addIntRow("Stolen Cast cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.stolenCastCooldownSeconds, v -> cfg.spyMimic.stolenCastCooldownSeconds = v, 0, 3600);
+                y = addFloatRow("Mimic Form speed multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.mimicFormSpeedMultiplier, v -> cfg.spy.mimicFormSpeedMultiplier = v, 0.1F, 3.0F);
                 logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;
-                y = addIntRow("Skinshift cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.skinshiftCooldownSeconds, v -> cfg.spyMimic.skinshiftCooldownSeconds = v, 0, 3600);
+                y = addIntRow("Echo cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.echoCooldownSeconds, v -> cfg.spy.echoCooldownSeconds = v, 0, 3600);
                 logicalY += ROW_H;
-                y = addIntRow("Skinshift duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.skinshiftDurationSeconds, v -> cfg.spyMimic.skinshiftDurationSeconds = v, 0, 600);
+                y = addIntRow("Echo window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.echoWindowSeconds, v -> cfg.spy.echoWindowSeconds = v, 0, 60);
                 logicalY += ROW_H;
-                y = addIntRow("Skinshift range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.spyMimic.skinshiftRangeBlocks, v -> cfg.spyMimic.skinshiftRangeBlocks = v, 0, 128);
+                y = addIntRow("Steal cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.stealCooldownSeconds, v -> cfg.spy.stealCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Smoke Bomb cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.smokeBombCooldownSeconds, v -> cfg.spy.smokeBombCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Smoke Bomb radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.smokeBombRadiusBlocks, v -> cfg.spy.smokeBombRadiusBlocks = v, 0, 64);
+                logicalY += ROW_H;
+                y = addIntRow("Smoke Bomb duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.smokeBombDurationSeconds, v -> cfg.spy.smokeBombDurationSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Smoke Bomb blindness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.smokeBombBlindnessAmplifier, v -> cfg.spy.smokeBombBlindnessAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Smoke Bomb slowness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.smokeBombSlownessAmplifier, v -> cfg.spy.smokeBombSlownessAmplifier = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Stolen Cast cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.stolenCastCooldownSeconds, v -> cfg.spy.stolenCastCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Skinshift cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.skinshiftCooldownSeconds, v -> cfg.spy.skinshiftCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Skinshift duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.skinshiftDurationSeconds, v -> cfg.spy.skinshiftDurationSeconds = v, 0, 600);
+                logicalY += ROW_H;
+                y = addIntRow("Skinshift range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.spy.skinshiftRangeBlocks, v -> cfg.spy.skinshiftRangeBlocks = v, 0, 128);
                 logicalY += ROW_H;
             }
             case BEACON -> {
@@ -1745,7 +1745,7 @@ public final class GemsConfigScreen extends Screen {
             case SPACE -> cfg.space = new GemsBalanceConfig.Space();
             case REAPER -> cfg.reaper = new GemsBalanceConfig.Reaper();
             case PILLAGER -> cfg.pillager = new GemsBalanceConfig.Pillager();
-            case SPY_MIMIC -> cfg.spyMimic = new GemsBalanceConfig.SpyMimic();
+            case SPY -> cfg.spy = new GemsBalanceConfig.Spy();
             case BEACON -> cfg.beacon = new GemsBalanceConfig.Beacon();
             case AIR -> cfg.air = new GemsBalanceConfig.Air();
             case VOID -> cfg.voidGem = new GemsBalanceConfig.VoidGem();
@@ -2067,7 +2067,7 @@ public final class GemsConfigScreen extends Screen {
         SENTINEL("Sentinel", Category.COMBAT),
         TRICKSTER("Trickster", Category.COMBAT),
         // Misc
-        SPY_MIMIC("Spy/Mimic", Category.MISC),
+        SPY("Spy", Category.MISC),
         BEACON("Beacon", Category.MISC),
         VOID("Void", Category.MISC),
         CHAOS("Chaos", Category.MISC),
@@ -2134,8 +2134,8 @@ public final class GemsConfigScreen extends Screen {
         if (cfg.pillager == null) {
             cfg.pillager = new GemsBalanceConfig.Pillager();
         }
-        if (cfg.spyMimic == null) {
-            cfg.spyMimic = new GemsBalanceConfig.SpyMimic();
+        if (cfg.spy == null) {
+            cfg.spy = new GemsBalanceConfig.Spy();
         }
         if (cfg.beacon == null) {
             cfg.beacon = new GemsBalanceConfig.Beacon();

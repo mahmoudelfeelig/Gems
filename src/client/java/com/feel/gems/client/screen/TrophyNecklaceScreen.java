@@ -1,5 +1,7 @@
 package com.feel.gems.client.screen;
 
+import static com.feel.gems.client.screen.GemsScreenConstants.*;
+
 import com.feel.gems.net.TrophyNecklaceClaimPayload;
 import com.feel.gems.net.TrophyNecklaceScreenPayload;
 import com.feel.gems.net.TrophyNecklaceScreenPayload.PassiveEntry;
@@ -14,8 +16,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 public final class TrophyNecklaceScreen extends Screen {
-    private static final int ENTRIES_PER_PAGE = 8;
-
     private final String targetName;
     private final List<PassiveEntry> passives;
     private final int maxStolenPassives;
@@ -38,25 +38,21 @@ public final class TrophyNecklaceScreen extends Screen {
         clearChildren();
 
         int centerX = width / 2;
-        int startY = 40;
+        int panelW = panelWidth(width);
+        int entryX = centerX - panelW / 2;
 
         int stolenCount = 0;
         for (PassiveEntry entry : passives) {
             if (entry.stolen()) stolenCount++;
         }
 
-        int entryY = startY;
-        int entryWidth = 300;
-        int entryHeight = 24;
-        int entryX = centerX - entryWidth / 2;
-
-        int totalPages = Math.max(1, (passives.size() + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE);
-        if (page >= totalPages) page = totalPages - 1;
-        if (page < 0) page = 0;
+        int totalPages = totalPages(passives.size(), ENTRIES_PER_PAGE);
+        page = clampPage(page, totalPages);
 
         int start = page * ENTRIES_PER_PAGE;
         int end = Math.min(start + ENTRIES_PER_PAGE, passives.size());
 
+        int entryY = CONTENT_START_Y;
         for (int i = start; i < end; i++) {
             PassiveEntry entry = passives.get(i);
             boolean stolen = entry.stolen();
@@ -66,30 +62,30 @@ public final class TrophyNecklaceScreen extends Screen {
 
             Identifier id = entry.id();
             ButtonWidget btn = ButtonWidget.builder(label, b -> toggle(id, stolen))
-                    .dimensions(entryX, entryY, entryWidth, entryHeight)
+                    .dimensions(entryX, entryY, panelW, ENTRY_HEIGHT)
                     .build();
             if (!stolen && stolenCount >= maxStolenPassives) {
                 btn.active = false;
             }
             addDrawableChild(btn);
-            entryY += entryHeight + 4;
+            entryY += ENTRY_HEIGHT + SPACING;
         }
 
         // Pagination
-        int pageY = height - 50;
+        int navY = navButtonY(height);
         if (page > 0) {
             addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.prev"), b -> changePage(-1))
-                    .dimensions(centerX - 110, pageY, 100, 20)
+                    .dimensions(centerX - NAV_BUTTON_WIDTH - SPACING, navY, NAV_BUTTON_WIDTH, BUTTON_HEIGHT)
                     .build());
         }
         if (page < totalPages - 1) {
             addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.next"), b -> changePage(1))
-                    .dimensions(centerX + 10, pageY, 100, 20)
+                    .dimensions(centerX + SPACING, navY, NAV_BUTTON_WIDTH, BUTTON_HEIGHT)
                     .build());
         }
 
-        addDrawableChild(ButtonWidget.builder(Text.translatable("gui.done"), b -> close())
-                .dimensions(centerX - 50, height - 25, 100, 20)
+        addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.close"), b -> close())
+                .dimensions(centerX - CLOSE_BUTTON_WIDTH / 2, closeButtonY(height), CLOSE_BUTTON_WIDTH, BUTTON_HEIGHT)
                 .build());
     }
 
@@ -106,10 +102,10 @@ public final class TrophyNecklaceScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 10, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(textRenderer, title, width / 2, TITLE_Y, COLOR_WHITE);
         context.drawCenteredTextWithShadow(textRenderer,
                 Text.translatable("gems.screen.trophy_necklace.subtitle", targetName, maxStolenPassives),
-                width / 2, 24, 0xAAAAAA);
+                width / 2, SUBTITLE_Y, COLOR_GRAY);
     }
 
     @Override

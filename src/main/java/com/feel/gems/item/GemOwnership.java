@@ -137,8 +137,8 @@ public final class GemOwnership {
     public static void applyOwnerPenalty(ServerPlayerEntity owner) {
         GemPlayerState.initIfNeeded(owner);
         GemPlayerState.addMaxHearts(owner, -2);
-        int energy = GemPlayerState.getEnergy(owner);
-        GemPlayerState.setEnergy(owner, Math.min(energy, 1));
+        // int energy = GemPlayerState.getEnergy(owner);
+        // GemPlayerState.setEnergy(owner, Math.min(energy, 1));
         GemPlayerState.applyMaxHearts(owner);
         ((com.feel.gems.state.GemsPersistentDataHolder) owner).gems$getPersistentData().putBoolean(KEY_SKIP_HEART_DROP, true);
         owner.damage(owner.getEntityWorld(), owner.getDamageSources().magic(), Float.MAX_VALUE);

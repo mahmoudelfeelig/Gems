@@ -26,7 +26,7 @@ public final class GemsBalanceConfig {
     public Space space = new Space();
     public Reaper reaper = new Reaper();
     public Pillager pillager = new Pillager();
-    public SpyMimic spyMimic = new SpyMimic();
+    public Spy spy = new Spy();
     public Beacon beacon = new Beacon();
     public Air air = new Air();
     public VoidGem voidGem = new VoidGem();
@@ -336,6 +336,9 @@ public final class GemsBalanceConfig {
         public int tempoShiftRadiusBlocks = 12;
         public int tempoShiftAllyCooldownTicksPerSecond = 10;
         public int tempoShiftEnemyCooldownTicksPerSecond = 10;
+
+        public int autoStepCooldownSeconds = 5;
+        public double autoStepHeightBonus = 0.4D;
     }
 
     public static final class Strength {
@@ -623,7 +626,7 @@ public final class GemsBalanceConfig {
         public int snareSlownessAmplifier = 2;
     }
 
-    public static final class SpyMimic {
+    public static final class Spy {
         // Passives
         public int stillnessSeconds = 5;
         public float stillnessMoveEpsilonBlocks = 0.05F;
@@ -949,7 +952,7 @@ public final class GemsBalanceConfig {
 
         private static java.util.Map<String, String> defaultRecipeGemRequirements() {
             java.util.Map<String, String> map = new java.util.HashMap<>();
-            map.put("gems:tracker_compass_discount", "spy_mimic");
+            map.put("gems:tracker_compass_discount", "spy");
             map.put("gems:recall_relic_discount", "space");
             map.put("gems:hypno_staff_discount", "summoner");
             map.put("gems:earthsplitter_pick_discount", "wealth");

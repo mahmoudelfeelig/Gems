@@ -206,7 +206,7 @@ public final class GemsKeybinds {
             return;
         }
         GemId gem = ClientGemState.activeGem();
-        if (gem != GemId.SPY_MIMIC && gem != GemId.PRISM) {
+        if (gem != GemId.SPY && gem != GemId.PRISM) {
             sendActionBar(client, Text.translatable("gems.spy.observed.not_spy"));
             return;
         }

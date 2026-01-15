@@ -83,7 +83,7 @@ public final class ModItems {
     public static final Item SPACE_GEM = registerGem(GemId.SPACE);
     public static final Item REAPER_GEM = registerGem(GemId.REAPER);
     public static final Item PILLAGER_GEM = registerGem(GemId.PILLAGER);
-    public static final Item SPY_MIMIC_GEM = registerGem(GemId.SPY_MIMIC);
+    public static final Item SPY_GEM = registerGem(GemId.SPY);
     public static final Item BEACON_GEM = registerGem(GemId.BEACON);
     public static final Item AIR_GEM = registerGem(GemId.AIR);
     public static final Item VOID_GEM = registerGem(GemId.VOID);
@@ -138,7 +138,7 @@ public final class ModItems {
             case SPACE -> SPACE_GEM;
             case REAPER -> REAPER_GEM;
             case PILLAGER -> PILLAGER_GEM;
-            case SPY_MIMIC -> SPY_MIMIC_GEM;
+            case SPY -> SPY_GEM;
             case BEACON -> BEACON_GEM;
             case AIR -> AIR_GEM;
             case VOID -> VOID_GEM;

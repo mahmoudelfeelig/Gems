@@ -2,11 +2,30 @@
 
 This doc describes the rules around trusting other players and owning gems.
 
-## Trust and ownership
+## Trust
 
-- Trust only affects ally-targeted effects. PVP is always allowed.
-- Gem items are bound to their owner. You can hold multiple gems, but only one is active.
-- Activating another player's gem kills them, skips their heart drop, reduces their max hearts by 2, and caps their energy at 1.
+- Trust only affects ally-targeted effects (buffs, heals, shared cooldowns, etc.).
+- PVP is always allowed regardless of trust status.
+- Trust is managed via commands: `/gems trust`, `/gems untrust`, `/gems trustlist`.
+- For full command details, see `server-ops.md`.
 
-For the trust commands (`/gems trust`, `/gems untrust`, etc), see `server-ops.md`.
+## Gem ownership
 
+### Owning multiple gems
+
+- Gems are **bound to an owner** when first picked up or crafted.
+- A player can own multiple gems, but only **one gem is active** at a time.
+- Switching your active gem:
+  - **Gem Trader**: swaps only the active gem.
+  - **Gem Purchase Token**: adds a selected gem to your owned set and activates it.
+- When you switch gems, any gem-specific state is cleared.
+
+### When someone uses your gem
+
+If another player activates a gem that belongs to you (ownership theft), severe penalties apply to **you** (the victim):
+
+1. **Instant death** – you are killed immediately.
+2. **No heart drop** – your heart does not drop for anyone to claim.
+3. **Max hearts reduced by 2** – your maximum health permanently decreases.
+x
+This makes guarding your gem critical. Gems in item frames, chests, or dropped on the ground can still be stolen and activated by enemies.

@@ -114,8 +114,10 @@ public final class BonusAbilityRuntime {
         cooldown = applyCooldownModifiers(player, cooldown);
         if (cooldown > 0 && !noCooldowns) {
             GemAbilityCooldowns.setNextAllowedTick(player, abilityId, now + cooldown);
-            // Use offset index for bonus abilities to distinguish from gem abilities
+            // Send both the individual cooldown update and a full sync to ensure client has the data
             ServerPlayNetworking.send(player, new AbilityCooldownPayload(-1, BONUS_ABILITY_INDEX_OFFSET + slotIndex, cooldown));
+            // Full sync ensures client has complete bonus ability list for proper cooldown display
+            com.feel.gems.net.GemStateSync.sendBonusAbilitiesSync(player);
         }
     }
 

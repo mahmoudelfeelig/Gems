@@ -37,7 +37,7 @@ public class GemSeerItemTest {
     @Test
     void gemSeerFormatGemNameCapitalizesWords() {
         assertEquals("Fire", GemSeerScreenHandler.formatGemName(GemId.FIRE));
-        assertEquals("Spy Mimic", GemSeerScreenHandler.formatGemName(GemId.SPY_MIMIC));
+        assertEquals("Spy", GemSeerScreenHandler.formatGemName(GemId.SPY));
         assertEquals("Void", GemSeerScreenHandler.formatGemName(GemId.VOID));
         assertEquals("Chaos", GemSeerScreenHandler.formatGemName(GemId.CHAOS));
         assertEquals("Prism", GemSeerScreenHandler.formatGemName(GemId.PRISM));

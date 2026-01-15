@@ -11,7 +11,7 @@ import com.feel.gems.item.legendary.HuntersTrophyNecklaceItem;
 import com.feel.gems.legendary.LegendaryDuels;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.gem.hunter.HunterTrophyHunterRuntime;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.power.gem.terror.TerrorBloodPrice;
 import com.feel.gems.power.registry.PowerIds;
@@ -44,7 +44,7 @@ public final class GemsPlayerDeath {
     public static void onDeathTail(ServerPlayerEntity victim, DamageSource source) {
         GemPlayerState.initIfNeeded(victim);
         AssassinState.initIfNeeded(victim);
-        SpyMimicSystem.incrementDeaths(victim);
+        SpySystem.incrementDeaths(victim);
         boolean skipHeartDrop = GemOwnership.consumeSkipHeartDrop(victim);
 
         boolean victimWasAssassin = AssassinState.isAssassin(victim);
@@ -128,6 +128,9 @@ public final class GemsPlayerDeath {
 
         // Challenger's Gauntlet duels: return participants, transfer drops, and clean up arenas.
         LegendaryDuels.onDuelParticipantDeathTail(victim, source);
+
+        // Mirror Match: clear duel state without teleporting the loser back
+        com.feel.gems.power.ability.duelist.DuelistMirrorMatchRuntime.onDeath(victim);
 
         // Sentinel intervention should not persist through death.
         SentinelInterventionRuntime.cleanup(victim.getEntityWorld().getServer(), victim);

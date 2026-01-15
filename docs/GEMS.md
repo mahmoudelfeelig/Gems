@@ -204,7 +204,7 @@ Abilities:
 - Warhorn: buff nearby allies and slow nearby enemies.
 - Snare Shot: mark a target with glowing and slowness.
 
-### Spy / Mimic Gem
+### Spy Gem
 
 Passives:
 - Stillness Cloak: stand still to become invisible with no particles.

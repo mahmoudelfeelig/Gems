@@ -77,6 +77,7 @@ public final class ModAbilities {
         register(new SpeedSlipstreamAbility());
         register(new SpeedAfterimageAbility());
         register(new SpeedTempoShiftAbility());
+        register(new SpeedAutoStepAbility());
 
         // Strength
         register(new NullifyAbility());
@@ -129,7 +130,7 @@ public final class ModAbilities {
         register(new PillagerWarhornAbility());
         register(new PillagerSnareAbility());
 
-        // Spy/Mimic
+        // Spy
         register(new SpyMimicFormAbility());
         register(new SpyEchoAbility());
         register(new SpyStealAbility());

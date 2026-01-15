@@ -248,6 +248,8 @@ public final class GemsBalance {
         cfg.speed.tempoShiftRadiusBlocks = v.speed().tempoShiftRadiusBlocks();
         cfg.speed.tempoShiftAllyCooldownTicksPerSecond = v.speed().tempoShiftAllyCooldownTicksPerSecond();
         cfg.speed.tempoShiftEnemyCooldownTicksPerSecond = v.speed().tempoShiftEnemyCooldownTicksPerSecond();
+        cfg.speed.autoStepCooldownSeconds = ticksToSeconds(v.speed().autoStepCooldownTicks());
+        cfg.speed.autoStepHeightBonus = v.speed().autoStepHeightBonus();
 
         cfg.strength.nullifyCooldownSeconds = ticksToSeconds(v.strength().nullifyCooldownTicks());
         cfg.strength.nullifyRadiusBlocks = v.strength().nullifyRadiusBlocks();
@@ -427,34 +429,34 @@ public final class GemsBalance {
         cfg.pillager.snareDurationSeconds = ticksToSeconds(v.pillager().snareDurationTicks());
         cfg.pillager.snareSlownessAmplifier = v.pillager().snareSlownessAmplifier();
 
-        cfg.spyMimic.stillnessSeconds = ticksToSeconds(v.spyMimic().stillnessTicks());
-        cfg.spyMimic.stillnessMoveEpsilonBlocks = v.spyMimic().stillnessMoveEpsilonBlocks();
-        cfg.spyMimic.stillnessInvisRefreshSeconds = ticksToSeconds(v.spyMimic().stillnessInvisRefreshTicks());
-        cfg.spyMimic.backstepCooldownSeconds = ticksToSeconds(v.spyMimic().backstepCooldownTicks());
-        cfg.spyMimic.backstepVelocity = v.spyMimic().backstepVelocity();
-        cfg.spyMimic.backstepUpVelocity = v.spyMimic().backstepUpVelocity();
-        cfg.spyMimic.backstabBonusDamage = v.spyMimic().backstabBonusDamage();
-        cfg.spyMimic.backstabAngleDegrees = v.spyMimic().backstabAngleDegrees();
-        cfg.spyMimic.observeRangeBlocks = v.spyMimic().observeRangeBlocks();
-        cfg.spyMimic.observeWindowSeconds = ticksToSeconds(v.spyMimic().observeWindowTicks());
-        cfg.spyMimic.stealRequiredWitnessCount = v.spyMimic().stealRequiredWitnessCount();
-        cfg.spyMimic.maxStolenAbilities = v.spyMimic().maxStolenAbilities();
-        cfg.spyMimic.mimicFormCooldownSeconds = ticksToSeconds(v.spyMimic().mimicFormCooldownTicks());
-        cfg.spyMimic.mimicFormDurationSeconds = ticksToSeconds(v.spyMimic().mimicFormDurationTicks());
-        cfg.spyMimic.mimicFormBonusMaxHealth = v.spyMimic().mimicFormBonusMaxHealth();
-        cfg.spyMimic.mimicFormSpeedMultiplier = v.spyMimic().mimicFormSpeedMultiplier();
-        cfg.spyMimic.echoCooldownSeconds = ticksToSeconds(v.spyMimic().echoCooldownTicks());
-        cfg.spyMimic.echoWindowSeconds = ticksToSeconds(v.spyMimic().echoWindowTicks());
-        cfg.spyMimic.stealCooldownSeconds = ticksToSeconds(v.spyMimic().stealCooldownTicks());
-        cfg.spyMimic.smokeBombCooldownSeconds = ticksToSeconds(v.spyMimic().smokeBombCooldownTicks());
-        cfg.spyMimic.smokeBombRadiusBlocks = v.spyMimic().smokeBombRadiusBlocks();
-        cfg.spyMimic.smokeBombDurationSeconds = ticksToSeconds(v.spyMimic().smokeBombDurationTicks());
-        cfg.spyMimic.smokeBombBlindnessAmplifier = v.spyMimic().smokeBombBlindnessAmplifier();
-        cfg.spyMimic.smokeBombSlownessAmplifier = v.spyMimic().smokeBombSlownessAmplifier();
-        cfg.spyMimic.stolenCastCooldownSeconds = ticksToSeconds(v.spyMimic().stolenCastCooldownTicks());
-        cfg.spyMimic.skinshiftCooldownSeconds = ticksToSeconds(v.spyMimic().skinshiftCooldownTicks());
-        cfg.spyMimic.skinshiftDurationSeconds = ticksToSeconds(v.spyMimic().skinshiftDurationTicks());
-        cfg.spyMimic.skinshiftRangeBlocks = v.spyMimic().skinshiftRangeBlocks();
+        cfg.spy.stillnessSeconds = ticksToSeconds(v.spy().stillnessTicks());
+        cfg.spy.stillnessMoveEpsilonBlocks = v.spy().stillnessMoveEpsilonBlocks();
+        cfg.spy.stillnessInvisRefreshSeconds = ticksToSeconds(v.spy().stillnessInvisRefreshTicks());
+        cfg.spy.backstepCooldownSeconds = ticksToSeconds(v.spy().backstepCooldownTicks());
+        cfg.spy.backstepVelocity = v.spy().backstepVelocity();
+        cfg.spy.backstepUpVelocity = v.spy().backstepUpVelocity();
+        cfg.spy.backstabBonusDamage = v.spy().backstabBonusDamage();
+        cfg.spy.backstabAngleDegrees = v.spy().backstabAngleDegrees();
+        cfg.spy.observeRangeBlocks = v.spy().observeRangeBlocks();
+        cfg.spy.observeWindowSeconds = ticksToSeconds(v.spy().observeWindowTicks());
+        cfg.spy.stealRequiredWitnessCount = v.spy().stealRequiredWitnessCount();
+        cfg.spy.maxStolenAbilities = v.spy().maxStolenAbilities();
+        cfg.spy.mimicFormCooldownSeconds = ticksToSeconds(v.spy().mimicFormCooldownTicks());
+        cfg.spy.mimicFormDurationSeconds = ticksToSeconds(v.spy().mimicFormDurationTicks());
+        cfg.spy.mimicFormBonusMaxHealth = v.spy().mimicFormBonusMaxHealth();
+        cfg.spy.mimicFormSpeedMultiplier = v.spy().mimicFormSpeedMultiplier();
+        cfg.spy.echoCooldownSeconds = ticksToSeconds(v.spy().echoCooldownTicks());
+        cfg.spy.echoWindowSeconds = ticksToSeconds(v.spy().echoWindowTicks());
+        cfg.spy.stealCooldownSeconds = ticksToSeconds(v.spy().stealCooldownTicks());
+        cfg.spy.smokeBombCooldownSeconds = ticksToSeconds(v.spy().smokeBombCooldownTicks());
+        cfg.spy.smokeBombRadiusBlocks = v.spy().smokeBombRadiusBlocks();
+        cfg.spy.smokeBombDurationSeconds = ticksToSeconds(v.spy().smokeBombDurationTicks());
+        cfg.spy.smokeBombBlindnessAmplifier = v.spy().smokeBombBlindnessAmplifier();
+        cfg.spy.smokeBombSlownessAmplifier = v.spy().smokeBombSlownessAmplifier();
+        cfg.spy.stolenCastCooldownSeconds = ticksToSeconds(v.spy().stolenCastCooldownTicks());
+        cfg.spy.skinshiftCooldownSeconds = ticksToSeconds(v.spy().skinshiftCooldownTicks());
+        cfg.spy.skinshiftDurationSeconds = ticksToSeconds(v.spy().skinshiftDurationTicks());
+        cfg.spy.skinshiftRangeBlocks = v.spy().skinshiftRangeBlocks();
 
         cfg.beacon.coreRadiusBlocks = v.beacon().coreRadiusBlocks();
         cfg.beacon.corePulsePeriodSeconds = ticksToSeconds(v.beacon().corePulsePeriodTicks());
@@ -715,7 +717,7 @@ public final class GemsBalance {
             Space space,
             Reaper reaper,
             Pillager pillager,
-            SpyMimic spyMimic,
+            Spy spy,
             Beacon beacon,
             Air air,
             VoidGem voidGem,
@@ -750,7 +752,7 @@ public final class GemsBalance {
                     Space.from(cfg.space != null ? cfg.space : new GemsBalanceConfig.Space()),
                     Reaper.from(cfg.reaper != null ? cfg.reaper : new GemsBalanceConfig.Reaper()),
                     Pillager.from(cfg.pillager != null ? cfg.pillager : new GemsBalanceConfig.Pillager()),
-                    SpyMimic.from(cfg.spyMimic != null ? cfg.spyMimic : new GemsBalanceConfig.SpyMimic()),
+                    Spy.from(cfg.spy != null ? cfg.spy : new GemsBalanceConfig.Spy()),
                     Beacon.from(cfg.beacon != null ? cfg.beacon : new GemsBalanceConfig.Beacon()),
                     Air.from(cfg.air != null ? cfg.air : new GemsBalanceConfig.Air()),
                     VoidGem.from(cfg.voidGem != null ? cfg.voidGem : new GemsBalanceConfig.VoidGem()),
@@ -1155,7 +1157,9 @@ public final class GemsBalance {
             int tempoShiftDurationTicks,
             int tempoShiftRadiusBlocks,
             int tempoShiftAllyCooldownTicksPerSecond,
-            int tempoShiftEnemyCooldownTicksPerSecond
+            int tempoShiftEnemyCooldownTicksPerSecond,
+            int autoStepCooldownTicks,
+            double autoStepHeightBonus
     ) {
         static Speed from(GemsBalanceConfig.Speed cfg) {
             return new Speed(
@@ -1194,7 +1198,9 @@ public final class GemsBalance {
                     secClamped(cfg.tempoShiftDurationSeconds, 0, 3600),
                     clampInt(cfg.tempoShiftRadiusBlocks, 0, 48),
                     clampInt(cfg.tempoShiftAllyCooldownTicksPerSecond, 0, 200),
-                    clampInt(cfg.tempoShiftEnemyCooldownTicksPerSecond, 0, 200)
+                    clampInt(cfg.tempoShiftEnemyCooldownTicksPerSecond, 0, 200),
+                    secClamped(cfg.autoStepCooldownSeconds, 0, 60),
+                    clampDouble(cfg.autoStepHeightBonus, 0.0D, 1.0D)
             );
         }
     }
@@ -1632,7 +1638,7 @@ public final class GemsBalance {
         }
     }
 
-    public record SpyMimic(
+    public record Spy(
             int stillnessTicks,
             float stillnessMoveEpsilonBlocks,
             int stillnessInvisRefreshTicks,
@@ -1662,8 +1668,8 @@ public final class GemsBalance {
             int skinshiftDurationTicks,
             int skinshiftRangeBlocks
     ) {
-        static SpyMimic from(GemsBalanceConfig.SpyMimic cfg) {
-            return new SpyMimic(
+        static Spy from(GemsBalanceConfig.Spy cfg) {
+            return new Spy(
                     secClamped(cfg.stillnessSeconds, 0, 60),
                     clampFloat(cfg.stillnessMoveEpsilonBlocks, 0.0F, 2.0F),
                     secClamped(cfg.stillnessInvisRefreshSeconds, 0, 60),

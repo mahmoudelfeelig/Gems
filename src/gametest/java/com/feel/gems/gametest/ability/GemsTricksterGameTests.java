@@ -230,8 +230,6 @@ public final class GemsTricksterGameTests {
         GemPowers.sync(player);
 
         context.runAtTick(5L, () -> {
-            // Re-aim at the zombie right before activation to ensure rotation is current
-            aimAt(player, world, mobPos.add(0.0D, 1.0D, 0.0D));
             boolean ok = new TricksterPuppetMasterAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Puppet Master did not activate with a mob target");

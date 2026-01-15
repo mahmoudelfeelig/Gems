@@ -21,7 +21,7 @@ import com.feel.gems.power.gem.beacon.BeaconAuraRuntime;
 import com.feel.gems.power.gem.hunter.HunterPreyMarkRuntime;
 import com.feel.gems.power.gem.pillager.PillagerDiscipline;
 import com.feel.gems.power.gem.pillager.PillagerVolleyRuntime;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityDisables;
@@ -261,14 +261,14 @@ public final class GemsAbilityGameTests {
 
         context.runAtTick(10L, () -> {
             GemPlayerState.initIfNeeded(player);
-            GemPlayerState.setActiveGem(player, GemId.SPY_MIMIC);
+            GemPlayerState.setActiveGem(player, GemId.SPY);
             GemPlayerState.setEnergy(player, 5);
         });
 
         // Tick the stillness cloak logic deterministically.
         for (long t = 20L; t <= 140L; t += 20L) {
             long at = t;
-            context.runAtTick(at, () -> SpyMimicSystem.tickEverySecond(player));
+            context.runAtTick(at, () -> SpySystem.tickEverySecond(player));
         }
 
         context.runAtTick(160L, () -> {
@@ -302,7 +302,7 @@ public final class GemsAbilityGameTests {
 
         context.runAtTick(10L, () -> {
             GemPlayerState.initIfNeeded(spy);
-            GemPlayerState.setActiveGem(spy, GemId.SPY_MIMIC);
+            GemPlayerState.setActiveGem(spy, GemId.SPY);
             GemPlayerState.setEnergy(spy, 5);
 
             GemPlayerState.initIfNeeded(victim);
@@ -314,8 +314,8 @@ public final class GemsAbilityGameTests {
 
         context.runAtTick(20L, () -> {
             // Simulate the victim casting an ability in front of the spy enough times.
-            for (int i = 0; i < GemsBalance.v().spyMimic().stealRequiredWitnessCount(); i++) {
-                SpyMimicSystem.onAbilityUsed(server, victim, stolen);
+            for (int i = 0; i < GemsBalance.v().spy().stealRequiredWitnessCount(); i++) {
+                SpySystem.onAbilityUsed(server, victim, stolen);
             }
 
             boolean ok = new SpyStealAbility().activate(spy);
@@ -327,7 +327,7 @@ public final class GemsAbilityGameTests {
                 context.throwGameTestException("Expected victim ability to be disabled after steal");
                 return;
             }
-            if (!stolen.equals(SpyMimicSystem.selectedStolenAbility(spy))) {
+            if (!stolen.equals(SpySystem.selectedStolenAbility(spy))) {
                 context.throwGameTestException("Expected stolen ability to be selected after steal");
                 return;
             }
@@ -637,11 +637,11 @@ public final class GemsAbilityGameTests {
         world.spawnEntity(pig);
 
         GemPlayerState.initIfNeeded(spy);
-        GemPlayerState.setActiveGem(spy, GemId.SPY_MIMIC);
+        GemPlayerState.setActiveGem(spy, GemId.SPY);
         GemPlayerState.setEnergy(spy, 10);
 
         context.runAtTick(10L, () -> {
-            SpyMimicSystem.recordLastKilledMob(spy, pig);
+            SpySystem.recordLastKilledMob(spy, pig);
             pig.discard();
             boolean ok = new SpyMimicFormAbility().activate(spy);
             if (!ok) {
@@ -664,7 +664,7 @@ public final class GemsAbilityGameTests {
 
         for (long tick = 40L; tick <= 260L; tick += 20L) {
             long at = tick;
-            context.runAtTick(at, () -> SpyMimicSystem.tickEverySecond(spy));
+            context.runAtTick(at, () -> SpySystem.tickEverySecond(spy));
         }
 
         context.runAtTick(300L, () -> {
@@ -695,22 +695,22 @@ public final class GemsAbilityGameTests {
         teleport(caster, world, casterPos.x, casterPos.y, casterPos.z, 180.0F, 0.0F);
 
         GemPlayerState.initIfNeeded(spy);
-        GemPlayerState.setActiveGem(spy, GemId.SPY_MIMIC);
+        GemPlayerState.setActiveGem(spy, GemId.SPY);
         GemPlayerState.setEnergy(spy, 10);
 
         Identifier observed = PowerIds.FIREBALL;
-        int required = GemsBalance.v().spyMimic().stealRequiredWitnessCount();
+        int required = GemsBalance.v().spy().stealRequiredWitnessCount();
         long now = GemsTime.now(world);
         for (int i = 0; i < required; i++) {
-            SpyMimicSystem.onAbilityUsed(world.getServer(), caster, observed);
+            SpySystem.onAbilityUsed(world.getServer(), caster, observed);
         }
 
-        int seen = SpyMimicSystem.witnessedCount(spy, observed);
+        int seen = SpySystem.witnessedCount(spy, observed);
         if (seen < required) {
             context.throwGameTestException("Spy did not record required observations; saw=" + seen + " required=" + required);
             return;
         }
-        if (!SpyMimicSystem.canSteal(spy, observed, now)) {
+        if (!SpySystem.canSteal(spy, observed, now)) {
             context.throwGameTestException("Spy cannot steal after required observations (cold cache path)");
             return;
         }
@@ -827,25 +827,29 @@ public final class GemsAbilityGameTests {
         teleport(ally, world, base.x + 1.0D, base.y, base.z, 0.0F, 0.0F);
         teleport(attacker, world, base.x + 2.0D, base.y, base.z, 0.0F, 0.0F);
 
+        // Set up gem state before runAtTick
+        GemPlayerState.initIfNeeded(sentinel);
+        GemPlayerState.setActiveGem(sentinel, GemId.SENTINEL);
+        GemPlayerState.setEnergy(sentinel, 5);
+        GemPowers.sync(sentinel);
+
+        GemPlayerState.initIfNeeded(ally);
+        GemPlayerState.setActiveGem(ally, GemId.FIRE);
+        GemPlayerState.setEnergy(ally, 0);
+        GemPowers.sync(ally);
+
+        GemTrust.trust(sentinel, ally.getUuid());
+
         context.runAtTick(5L, () -> {
-            GemPlayerState.initIfNeeded(sentinel);
-            GemPlayerState.setActiveGem(sentinel, GemId.SENTINEL);
-            GemPlayerState.setEnergy(sentinel, 5);
-            GemPowers.sync(sentinel);
-
-            GemPlayerState.initIfNeeded(ally);
-            GemPlayerState.setActiveGem(ally, GemId.FIRE);
-            GemPlayerState.setEnergy(ally, 0);
-            GemPowers.sync(ally);
-
-            GemTrust.trust(sentinel, ally.getUuid());
-
             boolean ok = new SentinelInterventionAbility().activate(sentinel);
             if (!ok) {
                 context.throwGameTestException("Intervention did not activate");
                 return;
             }
+        });
 
+        // Test damage redirection on a separate tick to ensure state is propagated
+        context.runAtTick(15L, () -> {
             float allyBefore = ally.getHealth();
             float sentinelBefore = sentinel.getHealth();
             ally.damage(world, attacker.getDamageSources().playerAttack(attacker), 4.0F);

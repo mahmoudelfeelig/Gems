@@ -189,7 +189,7 @@ public final class GemSeerScreenHandler extends ScreenHandler {
             case SPACE -> Formatting.DARK_BLUE;
             case REAPER -> Formatting.DARK_GRAY;
             case PILLAGER -> Formatting.GRAY;
-            case SPY_MIMIC -> Formatting.LIGHT_PURPLE;
+            case SPY -> Formatting.LIGHT_PURPLE;
             case BEACON -> Formatting.BLUE;
             case AIR -> Formatting.WHITE;
             case ASTRA -> Formatting.DARK_PURPLE;

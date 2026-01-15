@@ -97,9 +97,9 @@
             NbtCompound data = root(player);
             GemId prev = getActiveGem(player);
             if (prev != gem && player instanceof ServerPlayerEntity sp) {
-                if (prev == GemId.SPY_MIMIC && gem != GemId.SPY_MIMIC) {
-                    com.feel.gems.power.gem.spy.SpyMimicSystem.restoreStolenFromThief(sp);
-                    com.feel.gems.power.gem.spy.SpyMimicSystem.clearOnGemSwitchAway(sp);
+                if (prev == GemId.SPY && gem != GemId.SPY) {
+                    com.feel.gems.power.gem.spy.SpySystem.restoreStolenFromThief(sp);
+                    com.feel.gems.power.gem.spy.SpySystem.clearOnGemSwitchAway(sp);
                 }
             }
             data.putString(KEY_ACTIVE_GEM, gem.name());

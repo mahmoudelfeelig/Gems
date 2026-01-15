@@ -20,6 +20,7 @@ import com.feel.gems.legendary.LegendaryDuels;
 import com.feel.gems.legendary.SupremeSetRuntime;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.net.ServerDisablesPayload;
+import com.feel.gems.power.ability.duelist.DuelistMirrorMatchRuntime;
 import com.feel.gems.power.ability.pillager.PillagerVindicatorBreakAbility;
 import com.feel.gems.power.ability.hunter.HunterCallThePackRuntime;
 import com.feel.gems.power.bonus.BonusPassiveRuntime;
@@ -36,7 +37,7 @@ import com.feel.gems.power.gem.puff.BreezyBashTracker;
 import com.feel.gems.power.gem.space.SpaceAnomalies;
 import com.feel.gems.power.gem.speed.SpeedFrictionlessSteps;
 import com.feel.gems.power.gem.terror.TerrorRigRuntime;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.gem.summoner.SummonerCommanderMark;
 import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.power.registry.PowerIds;
@@ -81,7 +82,7 @@ public final class GemsModEvents {
             if (entity instanceof ServerPlayerEntity player) {
                 LivingEntity living = killedEntity;
                 SoulSystem.onKilledMob(player, living);
-                SpyMimicSystem.recordLastKilledMob(player, living);
+                SpySystem.recordLastKilledMob(player, living);
 
                 // Bonus passives: on kill effects (Bloodthirst, Adrenaline Rush)
                 BonusPassiveRuntime.onKill(player, living);
@@ -96,7 +97,7 @@ public final class GemsModEvents {
             }
             if (entity instanceof ServerPlayerEntity killer && killedEntity instanceof ServerPlayerEntity victim) {
                 com.feel.gems.legendary.LegendaryWeapons.onPlayerKill(killer, victim);
-                SpyMimicSystem.restoreStolenOnKill(killer, victim);
+                SpySystem.restoreStolenOnKill(killer, victim);
                 // Track last killer for Nemesis passive
                 BonusPassiveRuntime.setLastKiller(victim, killer.getUuid());
             }
@@ -105,11 +106,11 @@ public final class GemsModEvents {
         ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, sender, params) -> {
             if (sender instanceof ServerPlayerEntity player) {
                 // Skinshift: the *target* cannot chat while any other player is impersonating them.
-                if (SpyMimicSystem.isSkinshiftTarget(player)) {
+                if (SpySystem.isSkinshiftTarget(player)) {
                     player.sendMessage(Text.translatable("gems.spy.cannot_chat_skinshifted"), true);
                     return false;
                 }
-                Text disguise = SpyMimicSystem.chatDisguiseName(player);
+                Text disguise = SpySystem.chatDisguiseName(player);
                 if (disguise != null) {
                     broadcastDisguisedChat(player, disguise, message.getContent());
                     return false;
@@ -223,8 +224,8 @@ public final class GemsModEvents {
             GemItemGlint.sync(player);
             GemStateSync.send(player);
             sendDisables(player);
-            SpyMimicSystem.syncSkinshifts(player);
-            SpyMimicSystem.syncSkinshiftSelf(player);
+            SpySystem.syncSkinshifts(player);
+            SpySystem.syncSkinshiftSelf(player);
             com.feel.gems.power.ability.trickster.TricksterControlSync.sync(player);
             unlockStartingRecipes(server, player);
             AssassinTeams.sync(server, player);
@@ -247,6 +248,7 @@ public final class GemsModEvents {
             HypnoControl.releaseAll(player);
             HunterCallThePackRuntime.onPlayerDisconnect(player.getUuid(), server);
             LegendaryDuels.onDisconnect(server, player);
+            DuelistMirrorMatchRuntime.onDisconnect(player, server);
         });
 
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
@@ -264,8 +266,8 @@ public final class GemsModEvents {
             GemPowers.sync(newPlayer);
             GemItemGlint.sync(newPlayer);
             GemStateSync.send(newPlayer);
-            SpyMimicSystem.syncSkinshifts(newPlayer);
-            SpyMimicSystem.syncSkinshiftSelf(newPlayer);
+            SpySystem.syncSkinshifts(newPlayer);
+            SpySystem.syncSkinshiftSelf(newPlayer);
             unlockStartingRecipes(newPlayer.getEntityWorld().getServer(), newPlayer);
             AssassinTeams.sync(newPlayer.getEntityWorld().getServer(), newPlayer);
             LegendaryCrafting.deliverPending(newPlayer);
@@ -349,10 +351,11 @@ public final class GemsModEvents {
                     }
                     AbilityRuntime.tickEverySecond(player);
                     PillagerDiscipline.tick(player);
-                    SpyMimicSystem.tickEverySecond(player);
+                    SpySystem.tickEverySecond(player);
                     com.feel.gems.power.ability.trickster.TricksterControlSync.sync(player);
                     BeaconSupportRuntime.tickEverySecond(player);
                     BeaconAuraRuntime.tickEverySecond(player);
+                    com.feel.gems.power.gem.speed.SpeedAutoStepRuntime.tickEverySecond(player);
                     com.feel.gems.power.gem.hunter.HunterPreyMarkRuntime.tickTrackersEye(player);
                     // Bonus passives tick handler
                     if (player.getEntityWorld() instanceof ServerWorld world) {

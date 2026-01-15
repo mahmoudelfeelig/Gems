@@ -226,7 +226,7 @@ This file is the developer-facing source-of-truth for implemented gameplay mecha
 - Space: Low Gravity, Starshield.
 - Reaper: Rot Eater, Undead Ward, Harvest.
 - Pillager: Raider’s Training, Shieldbreaker, Crossbow Mastery, Raider’s Stride.
-- Spy/Mimic: Stillness Cloak, Silent Step, False Signature, Backstab, Quick Hands.
+- Spy: Stillness Cloak, Silent Step, False Signature, Backstab, Backstep, Quick Hands.
 - Beacon: Beacon Core, Stabilize, Rally (status pulses).
 - Air: Windburst Mace, Aerial Guard, Wind Shear.
 - Chaos: Random Rotation passive.

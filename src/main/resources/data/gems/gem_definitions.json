@@ -93,7 +93,8 @@
         "gems:terminal_velocity",
         "gems:speed_slipstream",
         "gems:speed_afterimage",
-        "gems:speed_tempo_shift"
+        "gems:speed_tempo_shift",
+        "gems:speed_auto_step"
       ]
     },
     {
@@ -212,7 +213,7 @@
       ]
     },
     {
-      "id": "spy_mimic",
+      "id": "spy",
       "passives": [
         "gems:spy_stillness_cloak",
         "gems:spy_silent_step",

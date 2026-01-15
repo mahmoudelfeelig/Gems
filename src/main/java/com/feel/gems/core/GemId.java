@@ -20,7 +20,7 @@ public enum GemId {
     SPACE,
     REAPER,
     PILLAGER,
-    SPY_MIMIC,
+    SPY,
     BEACON,
     AIR,
     VOID,

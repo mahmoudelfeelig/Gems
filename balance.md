@@ -42,14 +42,14 @@ The balance file mirrors the in-code schema in `src/main/java/com/feel/gems/conf
 
 - `visual`: global particles/sounds caps.
 - `systems`: hearts + assassin tuning, controlled mob follow behavior.
-- Per-gem sections: `astra`, `fire`, `flux`, `life`, `puff`, `speed`, `strength`, `wealth`, `terror`, `summoner`, `space`, `reaper`, `pillager`, `spyMimic`, `beacon`, `air`, `duelist`, `hunter`, `sentinel`, `trickster`.
+- Per-gem sections: `astra`, `fire`, `flux`, `life`, `puff`, `speed`, `strength`, `wealth`, `terror`, `summoner`, `space`, `reaper`, `pillager`, `spy`, `beacon`, `air`, `duelist`, `hunter`, `sentinel`, `trickster`.
 - `legendary`: legendary crafting limits, tracker/recall/hypno/earthsplitter tuning, supreme set effects, and `recipeGemRequirements` for discount recipes.
 - `bonusPool`: per-bonus ability/passive tuning (cooldowns, damage, ranges, effect multipliers, etc).
 - `mobBlacklist`: universal mob blacklist used by Hypno Staff, Summoner summons, and Astra Soul Capture.
 
 ## Recipe gem requirements (discount recipes)
 
-`legendary.recipeGemRequirements` is a map of `recipe_id -> required_active_gem_id` for discount recipes (e.g. `gems:tracker_compass_discount` -> `spy_mimic`).
+`legendary.recipeGemRequirements` is a map of `recipe_id -> required_active_gem_id` for discount recipes (e.g. `gems:tracker_compass_discount` -> `spy`).
 
 ## Client config note
 

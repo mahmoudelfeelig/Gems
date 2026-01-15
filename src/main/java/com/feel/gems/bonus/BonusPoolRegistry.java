@@ -145,16 +145,21 @@ public final class BonusPoolRegistry {
             PowerIds.FLUX_BEAM,
             PowerIds.FLUX_SURGE,
             PowerIds.FLUX_DISCHARGE,
+            // Static Burst requires accumulated damage from taking hits
+            PowerIds.STATIC_BURST,
             // Summoner abilities require loadout configuration
             PowerIds.SUMMON_SLOT_1,
             PowerIds.SUMMON_SLOT_2,
             PowerIds.SUMMON_SLOT_3,
             PowerIds.SUMMON_SLOT_4,
             PowerIds.SUMMON_SLOT_5,
-            // Spy abilities require observed state
+            // Spy abilities require observed/killed state
+            PowerIds.SPY_MIMIC_FORM,  // Requires lastKilledType from SpySystem
             PowerIds.SPY_ECHO,
             PowerIds.SPY_STEAL,
             PowerIds.SPY_STOLEN_CAST,
+            // Skinshift requires target player state
+            PowerIds.SPY_SKINSHIFT,
             // Chaos/Prism/Void special mechanics
             PowerIds.NULLIFY,
             PowerIds.CHAOS_RANDOM_ROTATION
@@ -165,11 +170,23 @@ public final class BonusPoolRegistry {
      */
     public static final List<Identifier> CHAOS_PASSIVE_BLACKLIST = List.of(
             // Flux passives require FluxCharge system
+            PowerIds.FLUX_CHARGE_STORAGE,  // Core flux system
             PowerIds.FLUX_CAPACITOR,
             PowerIds.FLUX_OVERCHARGE_RAMP,
             PowerIds.FLUX_CONDUCTIVITY,
             PowerIds.FLUX_INSULATION,
             PowerIds.FLUX_ALLY_INVERSION,
+            // Summoner passives require summon system
+            PowerIds.SUMMONER_BOND,
+            PowerIds.SUMMONER_COMMANDERS_MARK,
+            PowerIds.SUMMONER_SOULBOUND,
+            PowerIds.SUMMONER_FAMILIARS_BLESSING,
+            // Spy passives that depend on spy-specific state tracking
+            PowerIds.SPY_STILLNESS_CLOAK,  // Requires position tracking state
+            PowerIds.SPY_FALSE_SIGNATURE,  // Requires spy system state
+            // Astra passives - soul system state
+            PowerIds.SOUL_CAPTURE,
+            PowerIds.SOUL_HEALING,
             // Void immunity - too powerful
             PowerIds.VOID_IMMUNITY,
             // Chaos rotation - causes recursive issues

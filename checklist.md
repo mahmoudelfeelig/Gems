@@ -66,7 +66,7 @@ This file is the developer-facing source-of-truth for implemented gameplay mecha
 
 ## Recipes and unlocks
 
-- All recipes unlock automatically on player join.
+- All gems recipes unlock automatically on player join.
 - Recipe sources:
   - Core items + legendary items: `src/main/resources/data/gems/recipe/*.json`
   - Discount recipes: `*_discount` variants

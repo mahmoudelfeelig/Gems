@@ -100,6 +100,7 @@ public final class AbilityRuntime {
     private static final String KEY_REAPER_OATH_TARGET = "reaperDeathOathTarget";
     private static final String KEY_REAPER_STEED_UNTIL = "reaperGraveSteedUntil";
     private static final String KEY_REAPER_STEED_UUID = "reaperGraveSteedUuid";
+    private static final String KEY_REAPER_STEED_LIST = "reaperGraveSteedList";
     private static final String KEY_REAPER_CLONE_UNTIL = "reaperShadowCloneUntil";
     private static final String KEY_REAPER_CLONE_UUIDS = "reaperShadowCloneUuids";
     private static final String KEY_REAPER_RETRIBUTION_UNTIL = "reaperRetributionUntil";
@@ -265,8 +266,13 @@ public final class AbilityRuntime {
             return;
         }
         NbtCompound nbt = persistent(player);
-        nbt.putLong(KEY_REAPER_STEED_UNTIL, GemsTime.now(player) + durationTicks);
-        GemsNbt.putUuid(nbt, KEY_REAPER_STEED_UUID, steedUuid);
+        long until = GemsTime.now(player) + durationTicks;
+        NbtList list = nbt.getList(KEY_REAPER_STEED_LIST).orElse(new NbtList());
+        NbtCompound entry = new NbtCompound();
+        GemsNbt.putUuid(entry, "uuid", steedUuid);
+        entry.putLong("until", until);
+        list.add(entry);
+        nbt.put(KEY_REAPER_STEED_LIST, list);
     }
 
     public static void startReaperShadowClone(ServerPlayerEntity player, java.util.List<UUID> cloneUuids, int durationTicks) {
@@ -1131,8 +1137,25 @@ public final class AbilityRuntime {
 
     private static void tickReaperGraveSteed(ServerPlayerEntity player, long now) {
         NbtCompound nbt = persistent(player);
-        long until = nbt.getLong(KEY_REAPER_STEED_UNTIL, 0L);
-        if (until <= 0) {
+        NbtList list = nbt.getList(KEY_REAPER_STEED_LIST).orElse(null);
+
+        // Migrate legacy single-steed data if present
+        if ((list == null || list.isEmpty())) {
+            long legacyUntil = nbt.getLong(KEY_REAPER_STEED_UNTIL, 0L);
+            UUID legacyUuid = GemsNbt.getUuid(nbt, KEY_REAPER_STEED_UUID);
+            if (legacyUntil > 0 && legacyUuid != null) {
+                list = new NbtList();
+                NbtCompound entry = new NbtCompound();
+                GemsNbt.putUuid(entry, "uuid", legacyUuid);
+                entry.putLong("until", legacyUntil);
+                list.add(entry);
+                nbt.put(KEY_REAPER_STEED_LIST, list);
+            }
+            nbt.remove(KEY_REAPER_STEED_UNTIL);
+            nbt.remove(KEY_REAPER_STEED_UUID);
+        }
+
+        if (list == null || list.isEmpty()) {
             return;
         }
 
@@ -1143,29 +1166,42 @@ public final class AbilityRuntime {
             return;
         }
 
-        UUID steedUuid = GemsNbt.getUuid(nbt, KEY_REAPER_STEED_UUID);
-        if (steedUuid == null) {
-            nbt.remove(KEY_REAPER_STEED_UNTIL);
-            return;
-        }
-        var e = SummonerSummons.findEntity(server, steedUuid);
-        if (!(e instanceof net.minecraft.entity.mob.SkeletonHorseEntity horse) || !horse.isAlive()) {
-            nbt.remove(KEY_REAPER_STEED_UNTIL);
-            nbt.remove(KEY_REAPER_STEED_UUID);
-            return;
-        }
-
-        if (now >= until) {
-            horse.discard();
-            nbt.remove(KEY_REAPER_STEED_UNTIL);
-            nbt.remove(KEY_REAPER_STEED_UUID);
-            return;
-        }
-
+        NbtList updated = new NbtList();
         float decay = GemsBalance.v().reaper().graveSteedDecayDamagePerSecond();
-        if (decay > 0.0F && horse.getEntityWorld() instanceof ServerWorld horseWorld) {
-            horse.damage(horseWorld, player.getDamageSources().magic(), decay);
-            AbilityFeedback.burstAt(horseWorld, horse.getEntityPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.SMOKE, 1, 0.12D);
+        for (int i = 0; i < list.size(); i++) {
+            NbtCompound entry = list.getCompound(i).orElse(null);
+            if (entry == null) {
+                continue;
+            }
+            UUID steedUuid = GemsNbt.getUuid(entry, "uuid");
+            long until = entry.getLong("until", 0L);
+            if (steedUuid == null || until <= 0) {
+                continue;
+            }
+            var e = SummonerSummons.findEntity(server, steedUuid);
+            if (!(e instanceof net.minecraft.entity.mob.SkeletonHorseEntity horse) || !horse.isAlive()) {
+                continue;
+            }
+
+            horse.hurtTime = 0;
+
+            if (now >= until) {
+                horse.discard();
+                continue;
+            }
+
+            if (decay > 0.0F && horse.getEntityWorld() instanceof ServerWorld horseWorld) {
+                horse.damage(horseWorld, player.getDamageSources().magic(), decay);
+                AbilityFeedback.burstAt(horseWorld, horse.getEntityPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.SMOKE, 1, 0.12D);
+            }
+
+            updated.add(entry);
+        }
+
+        if (updated.isEmpty()) {
+            nbt.remove(KEY_REAPER_STEED_LIST);
+        } else {
+            nbt.put(KEY_REAPER_STEED_LIST, updated);
         }
     }
 

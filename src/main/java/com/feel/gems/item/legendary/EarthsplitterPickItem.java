@@ -62,16 +62,17 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
         if (isRecursiveBreak(stack)) {
             return result;
         }
-        int radius = GemsBalance.v().legendary().earthsplitterRadiusBlocks();
-        if (radius <= 0) {
+        int horizontalRadius = Math.max(1, GemsBalance.v().legendary().earthsplitterRadiusBlocks());
+        int verticalRadius = 1;
+        if (horizontalRadius <= 0) {
             return result;
         }
         markRecursiveBreak(stack, true);
         try {
             if (isTunnelMode(stack)) {
-                breakTunnel(stack, player, pos, radius);
+                breakTunnel(stack, player, pos, verticalRadius);
             } else {
-                breakCube(stack, player, pos, radius);
+                breakCube(stack, player, pos, horizontalRadius, verticalRadius);
             }
         } finally {
             markRecursiveBreak(stack, false);
@@ -88,7 +89,15 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
         boolean tunnel = !isTunnelMode(stack);
         setTunnelMode(stack, tunnel);
         if (user instanceof ServerPlayerEntity player) {
-            String mode = tunnel ? "Tunnel 9x3x1" : "Cube 3x3x3";
+            int horizontalRadius = Math.max(1, GemsBalance.v().legendary().earthsplitterRadiusBlocks());
+            int verticalRadius = 1;
+            int cubeSize = horizontalRadius * 2 + 1;
+            int height = verticalRadius * 2 + 1;
+            int tunnelLength = Math.max(1, GemsBalance.v().legendary().earthsplitterTunnelLengthBlocks());
+            int tunnelWidth = 2;
+            String mode = tunnel
+                    ? "Tunnel " + tunnelLength + "x" + tunnelWidth + "x" + height
+                    : "Volume " + cubeSize + "x" + cubeSize + "x" + height;
             player.sendMessage(Text.translatable("gems.item.earthsplitter_pick.mode", mode), true);
         }
         return ActionResult.SUCCESS;
@@ -154,12 +163,12 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
         });
     }
 
-    private static void breakCube(ItemStack stack, ServerPlayerEntity player, BlockPos pos, int radius) {
+    private static void breakCube(ItemStack stack, ServerPlayerEntity player, BlockPos pos, int horizontalRadius, int verticalRadius) {
         BlockPos.Mutable mutable = new BlockPos.Mutable();
         boolean stop = false;
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dy = -radius; dy <= radius; dy++) {
-                for (int dz = -radius; dz <= radius; dz++) {
+        for (int dx = -horizontalRadius; dx <= horizontalRadius; dx++) {
+            for (int dy = -verticalRadius; dy <= verticalRadius; dy++) {
+                for (int dz = -horizontalRadius; dz <= horizontalRadius; dz++) {
                     if (dx == 0 && dy == 0 && dz == 0) {
                         continue;
                     }
@@ -171,7 +180,7 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
                     if (!canBreak(player, stack, mutable)) {
                         continue;
                     }
-                    player.interactionManager.tryBreakBlock(mutable.toImmutable());
+                    tryBreakBlockNoDurability(player, stack, mutable.toImmutable());
                 }
                 if (stop) {
                     break;
@@ -183,19 +192,21 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
         }
     }
 
-    private static void breakTunnel(ItemStack stack, ServerPlayerEntity player, BlockPos pos, int radius) {
+    private static void breakTunnel(ItemStack stack, ServerPlayerEntity player, BlockPos pos, int verticalRadius) {
         int length = Math.max(1, GemsBalance.v().legendary().earthsplitterTunnelLengthBlocks());
         Direction facing = player.getHorizontalFacing();
         Direction right = facing.rotateYClockwise();
         BlockPos.Mutable mutable = new BlockPos.Mutable();
         boolean stop = false;
-        int halfWidth = 4;
+        int width = 2;
+        int widthMin = -(width - 1);
+        int widthMax = 0;
         for (int step = 0; step < length; step++) {
             int baseX = pos.getX() + facing.getOffsetX() * step;
             int baseY = pos.getY();
             int baseZ = pos.getZ() + facing.getOffsetZ() * step;
-            for (int dx = -halfWidth; dx <= halfWidth; dx++) {
-                for (int dy = -radius; dy <= radius; dy++) {
+            for (int dx = widthMin; dx <= widthMax; dx++) {
+                for (int dy = -verticalRadius; dy <= verticalRadius; dy++) {
                     if (stack.isEmpty()) {
                         stop = true;
                         break;
@@ -211,7 +222,7 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
                     if (!canBreak(player, stack, mutable)) {
                         continue;
                     }
-                    player.interactionManager.tryBreakBlock(mutable.toImmutable());
+                    tryBreakBlockNoDurability(player, stack, mutable.toImmutable());
                 }
                 if (stop) {
                     break;
@@ -235,5 +246,25 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
             return false;
         }
         return true;
+    }
+
+    private static void tryBreakBlockNoDurability(ServerPlayerEntity player, ItemStack stack, BlockPos pos) {
+        int desiredDamage = stack.isDamageable() ? stack.getDamage() : 0;
+        int maxDamage = stack.getMaxDamage();
+        if (stack.isDamageable() && maxDamage > 0) {
+            int safeDamage = desiredDamage;
+            if (maxDamage > 1 && desiredDamage >= maxDamage - 1) {
+                safeDamage = Math.max(0, maxDamage - 2);
+            }
+            if (safeDamage != desiredDamage) {
+                stack.setDamage(safeDamage);
+            }
+        }
+
+        player.interactionManager.tryBreakBlock(pos);
+
+        if (!stack.isEmpty() && stack.isDamageable()) {
+            stack.setDamage(desiredDamage);
+        }
     }
 }

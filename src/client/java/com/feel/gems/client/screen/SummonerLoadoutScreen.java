@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.CyclingButtonWidget;
 import net.minecraft.entity.EntityType;
@@ -23,7 +22,7 @@ import net.minecraft.util.Identifier;
 /**
  * Client UI for choosing Summoner minions per slot.
  */
-public final class SummonerLoadoutScreen extends Screen {
+public final class SummonerLoadoutScreen extends GemsScreenBase {
     private static final int MAX_ROWS = 3;
     private static final int MIN_COLUMN_WIDTH = 190;
     private static final int ROW_HEIGHT = 44;
@@ -96,12 +95,10 @@ public final class SummonerLoadoutScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
 
-        context.fill(panelLeft, panelTop, panelRight, panelBottom, 0xAA101010);
-        context.fill(panelLeft, panelTop, panelRight, panelTop + 1, 0x44FFFFFF);
-        context.fill(panelLeft, panelBottom - 1, panelRight, panelBottom, 0x44111111);
+        drawPanel(context, panelLeft, panelTop, panelRight, panelBottom);
 
         int centerX = this.width / 2;
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, centerX, 12, 0xFFFFFF);
+        renderBase(context);
         int textY = hintY;
         for (var line : hintLines) {
             context.drawCenteredTextWithShadow(this.textRenderer, line, centerX, textY, 0xA0A0A0);

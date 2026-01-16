@@ -29,6 +29,7 @@ import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.runtime.AbilityRestrictions;
 import com.feel.gems.power.runtime.EtherealState;
 import com.feel.gems.power.runtime.GemPowers;
+import com.feel.gems.rivalry.RivalryManager;
 import com.feel.gems.trust.GemTrust;
 import java.util.UUID;
 import net.minecraft.entity.Entity;
@@ -46,7 +47,6 @@ import net.minecraft.sound.SoundEvents;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-
 
 
 
@@ -146,6 +146,12 @@ public abstract class LivingEntityDamageScalingMixin {
                     AbilityFeedback.burstAt(serverWorld, self.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.CRIT, 12, 0.25D);
                 }
             }
+                            // Rivalry: bonus damage to assigned target
+                if (self instanceof ServerPlayerEntity victim) {
+                    if (GemsBalance.v().rivalry().enabled() && RivalryManager.isRivalryTarget(playerAttacker, victim)) {
+                        scaled *= RivalryManager.getDamageMultiplier();
+                    }
+                }
 
             // Void Immunity: target is immune to gem ability/passive damage bonuses
             boolean targetHasVoidImmunity = self instanceof ServerPlayerEntity victim 
@@ -317,7 +323,9 @@ public abstract class LivingEntityDamageScalingMixin {
             }
 
             // Legendary: Reversal Mirror - reflect incoming damage back to attacker.
-            ReversalMirrorItem.tryReflectDamage(victim, attacker, scaled, world);
+            if (ReversalMirrorItem.tryReflectDamage(victim, attacker, scaled, world)) {
+                return 0.0F;
+            }
 
             // Legendary: Soul Shackle - split damage with the linked target.
             if (!SHACKLE_TRANSFER.get()) {

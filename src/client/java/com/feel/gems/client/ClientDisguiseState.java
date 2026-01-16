@@ -58,18 +58,23 @@ public final class ClientDisguiseState {
             return null;
         }
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.getNetworkHandler() == null) {
+        if (client == null || client.getNetworkHandler() == null) {
             return null;
         }
-        PlayerListEntry entry = client.getNetworkHandler().getPlayerListEntry(target);
-        if (entry == null) {
-            return null;
-        }
-
         // Avoid recursion if both players are disguised as each other (e.g., Mirror Match).
         UUID removed = removeDisguise(target);
         try {
-            return entry.getSkinTextures();
+            PlayerListEntry entry = client.getNetworkHandler().getPlayerListEntry(target);
+            if (entry != null) {
+                return entry.getSkinTextures();
+            }
+            if (client.world != null) {
+                var entity = client.world.getPlayerByUuid(target);
+                if (entity instanceof AbstractClientPlayerEntity targetPlayer) {
+                    return targetPlayer.getSkin();
+                }
+            }
+            return null;
         } finally {
             restoreDisguise(target, removed);
         }

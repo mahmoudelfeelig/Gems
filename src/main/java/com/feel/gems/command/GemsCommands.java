@@ -1,6 +1,11 @@
 package com.feel.gems.command;
 
 import com.feel.gems.admin.GemsAdmin;
+import com.feel.gems.augment.AugmentDefinition;
+import com.feel.gems.augment.AugmentInstance;
+import com.feel.gems.augment.AugmentRegistry;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.augment.AugmentRarity;
 import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.assassin.AssassinTeams;
 import com.feel.gems.config.GemsBalance;
@@ -13,6 +18,9 @@ import com.feel.gems.debug.GemsStressTest;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.item.legendary.TrackerCompassItem;
+import com.feel.gems.mastery.GemMastery;
+import com.feel.gems.mastery.MasteryReward;
+import com.feel.gems.mastery.MasteryRewards;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.api.GemPassive;
@@ -23,6 +31,7 @@ import com.feel.gems.power.registry.ModPassives;
 import com.feel.gems.power.runtime.GemAbilities;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.stats.GemsStats;
 import com.feel.gems.trade.GemTrading;
 import com.feel.gems.trust.GemTrust;
 import com.mojang.brigadier.CommandDispatcher;
@@ -31,6 +40,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
@@ -46,6 +56,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Formatting;
 import net.minecraft.world.GameMode;
 
 
@@ -153,6 +164,9 @@ public final class GemsCommands {
                                 .then(CommandManager.literal("giveAllGems")
                                         .then(CommandManager.argument("players", EntityArgumentType.players())
                                                 .executes(ctx -> giveAllGems(ctx.getSource(), EntityArgumentType.getPlayers(ctx, "players")))))
+                                .then(CommandManager.literal("giveAllLegendaries")
+                                    .then(CommandManager.argument("players", EntityArgumentType.players())
+                                        .executes(ctx -> giveAllLegendaries(ctx.getSource(), EntityArgumentType.getPlayers(ctx, "players")))))
                                 .then(CommandManager.literal("clearGems")
                                         .then(CommandManager.argument("players", EntityArgumentType.players())
                                                 .executes(ctx -> clearGems(ctx.getSource(), EntityArgumentType.getPlayers(ctx, "players")))))
@@ -203,10 +217,138 @@ public final class GemsCommands {
                                                                 EntityArgumentType.getPlayers(ctx, "players"),
                                                                 BoolArgumentType.getBool(ctx, "disabled")
                                                         )))))
+                                .then(CommandManager.literal("legendaryCooldowns")
+                                    .then(CommandManager.argument("players", EntityArgumentType.players())
+                                        .then(CommandManager.argument("disabled", BoolArgumentType.bool())
+                                            .executes(ctx -> setLegendaryCooldownsDisabled(
+                                                ctx.getSource(),
+                                                EntityArgumentType.getPlayers(ctx, "players"),
+                                                BoolArgumentType.getBool(ctx, "disabled")
+                                            )))))
+                                .then(CommandManager.literal("stats")
+                                    .then(CommandManager.literal("show")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .executes(ctx -> statsShow(
+                                                ctx.getSource(),
+                                                EntityArgumentType.getPlayers(ctx, "players")
+                                            ))))
+                                    .then(CommandManager.literal("set")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .then(CommandManager.argument("stat", StringArgumentType.word())
+                                                .then(CommandManager.argument("value", IntegerArgumentType.integer(0, 1000000))
+                                                    .executes(ctx -> statsSet(
+                                                        ctx.getSource(),
+                                                        EntityArgumentType.getPlayers(ctx, "players"),
+                                                        StringArgumentType.getString(ctx, "stat"),
+                                                        IntegerArgumentType.getInteger(ctx, "value")
+                                                    ))))))
+                                    .then(CommandManager.literal("reset")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .executes(ctx -> statsReset(
+                                                ctx.getSource(),
+                                                EntityArgumentType.getPlayers(ctx, "players")
+                                            )))))
                                 .then(CommandManager.literal("assassin")
+                                    .then(CommandManager.literal("set")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .then(CommandManager.argument("value", BoolArgumentType.bool())
+                                                .executes(ctx -> setAssassin(
+                                                    ctx.getSource(),
+                                                    EntityArgumentType.getPlayers(ctx, "players"),
+                                                    BoolArgumentType.getBool(ctx, "value")
+                                                )))))
+                                    .then(CommandManager.literal("setHearts")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .then(CommandManager.argument("hearts", IntegerArgumentType.integer(0, AssassinState.maxHearts()))
+                                                .executes(ctx -> setAssassinHearts(
+                                                    ctx.getSource(),
+                                                    EntityArgumentType.getPlayers(ctx, "players"),
+                                                    IntegerArgumentType.getInteger(ctx, "hearts")
+                                                )))))
+                                    .then(CommandManager.literal("setCounter")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .then(CommandManager.argument("counter", StringArgumentType.word())
+                                                .then(CommandManager.argument("value", IntegerArgumentType.integer(0, 1000000))
+                                                    .executes(ctx -> setAssassinCounter(
+                                                        ctx.getSource(),
+                                                        EntityArgumentType.getPlayers(ctx, "players"),
+                                                        StringArgumentType.getString(ctx, "counter"),
+                                                        IntegerArgumentType.getInteger(ctx, "value")
+                                                    ))))))
+                                    .then(CommandManager.literal("reset")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .executes(ctx -> resetAssassin(ctx.getSource(), EntityArgumentType.getPlayers(ctx, "players"))))))
+                                .then(CommandManager.literal("enhancements")
+                                    .then(CommandManager.literal("setCapPenalty")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .then(CommandManager.argument("value", IntegerArgumentType.integer(0, GemPlayerState.MAX_ENERGY))
+                                                .executes(ctx -> setEnhancementPenalty(
+                                                    ctx.getSource(),
+                                                    EntityArgumentType.getPlayers(ctx, "players"),
+                                                    IntegerArgumentType.getInteger(ctx, "value")
+                                                ))))))
+                                .then(CommandManager.literal("stats")
+                                    .then(CommandManager.literal("show")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .executes(ctx -> statsShow(
+                                                ctx.getSource(),
+                                                EntityArgumentType.getPlayers(ctx, "players")
+                                            ))))
+                                    .then(CommandManager.literal("set")
+                                    .then(CommandManager.argument("players", EntityArgumentType.players())
+                                        .then(CommandManager.argument("stat", StringArgumentType.word())
+                                        .then(CommandManager.argument("value", IntegerArgumentType.integer(0, 1000000))
+                                            .executes(ctx -> statsSet(
+                                            ctx.getSource(),
+                                            EntityArgumentType.getPlayers(ctx, "players"),
+                                            StringArgumentType.getString(ctx, "stat"),
+                                            IntegerArgumentType.getInteger(ctx, "value")
+                                            ))))))
+                                    .then(CommandManager.literal("reset")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .executes(ctx -> statsReset(
+                                                ctx.getSource(),
+                                                EntityArgumentType.getPlayers(ctx, "players")
+                                            )))))
+                                .then(CommandManager.literal("assassin")
+                                    .then(CommandManager.literal("set")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .then(CommandManager.argument("value", BoolArgumentType.bool())
+                                                .executes(ctx -> setAssassin(
+                                                    ctx.getSource(),
+                                                    EntityArgumentType.getPlayers(ctx, "players"),
+                                                    BoolArgumentType.getBool(ctx, "value")
+                                                )))))
+                                    .then(CommandManager.literal("setHearts")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .then(CommandManager.argument("hearts", IntegerArgumentType.integer(0, AssassinState.maxHearts()))
+                                                .executes(ctx -> setAssassinHearts(
+                                                    ctx.getSource(),
+                                                    EntityArgumentType.getPlayers(ctx, "players"),
+                                                    IntegerArgumentType.getInteger(ctx, "hearts")
+                                                )))))
+                                    .then(CommandManager.literal("setCounter")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .then(CommandManager.argument("counter", StringArgumentType.word())
+                                                .then(CommandManager.argument("value", IntegerArgumentType.integer(0, 1000000))
+                                                    .executes(ctx -> setAssassinCounter(
+                                                        ctx.getSource(),
+                                                        EntityArgumentType.getPlayers(ctx, "players"),
+                                                        StringArgumentType.getString(ctx, "counter"),
+                                                        IntegerArgumentType.getInteger(ctx, "value")
+                                                    ))))))
                                         .then(CommandManager.literal("reset")
                                                 .then(CommandManager.argument("players", EntityArgumentType.players())
                                                         .executes(ctx -> resetAssassin(ctx.getSource(), EntityArgumentType.getPlayers(ctx, "players"))))))
+                                .then(CommandManager.literal("enhancements")
+                                    .then(CommandManager.literal("setCapPenalty")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                            .then(CommandManager.argument("value", IntegerArgumentType.integer(0, GemPlayerState.MAX_ENERGY))
+                                                .executes(ctx -> setEnhancementPenalty(
+                                                    ctx.getSource(),
+                                                    EntityArgumentType.getPlayers(ctx, "players"),
+                                                    IntegerArgumentType.getInteger(ctx, "value")
+                                                ))))))
                                 .then(CommandManager.literal("perf")
                                         .then(CommandManager.literal("reset")
                                                 .executes(ctx -> perfReset(ctx.getSource())))
@@ -236,6 +378,9 @@ public final class GemsCommands {
                                                 .then(CommandManager.argument("players", EntityArgumentType.players())
                                                         .executes(ctx -> stressStop(ctx.getSource(), EntityArgumentType.getPlayers(ctx, "players"))))))
                         );
+
+                registerTitleCommands(dispatcher);
+                registerAugmentCommands(dispatcher);
     }
 
     private static int status(ServerCommandSource source, ServerPlayerEntity player) {
@@ -345,6 +490,45 @@ public final class GemsCommands {
         return 1;
     }
 
+    private static int setLegendaryCooldownsDisabled(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players, boolean disabled) {
+        for (ServerPlayerEntity player : players) {
+            GemsAdmin.setNoLegendaryCooldowns(player, disabled);
+        }
+        source.sendFeedback(() -> Text.literal((disabled ? "Disabled" : "Enabled") + " legendary item cooldowns for " + players.size() + " player(s)."), true);
+        return 1;
+    }
+
+    private static int statsShow(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players) {
+        for (ServerPlayerEntity player : players) {
+            List<Text> lines = GemsStats.buildSummary(player);
+            for (Text line : lines) {
+                source.sendFeedback(() -> line, false);
+            }
+        }
+        return 1;
+    }
+
+    private static int statsReset(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players) {
+        for (ServerPlayerEntity player : players) {
+            GemsStats.reset(player);
+            source.sendFeedback(() -> Text.literal("Reset stats for " + player.getName().getString()), true);
+        }
+        return 1;
+    }
+
+    private static int statsSet(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players, String stat, int value) {
+        int updated = 0;
+        for (ServerPlayerEntity player : players) {
+            if (GemsStats.setStat(player, stat, value)) {
+                updated++;
+                source.sendFeedback(() -> Text.literal("Set stat " + stat + "=" + value + " for " + player.getName().getString()), true);
+            } else {
+                source.sendError(Text.literal("Unknown stat '" + stat + "'."));
+            }
+        }
+        return updated > 0 ? 1 : 0;
+    }
+
     private static int resetAssassin(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players) {
         for (ServerPlayerEntity player : players) {
             boolean wasEliminated = AssassinState.isEliminated(player);
@@ -358,6 +542,42 @@ public final class GemsCommands {
             source.sendFeedback(() -> Text.literal("Reset assassin state for " + player.getName().getString()), true);
         }
         return 1;
+    }
+
+    private static int setAssassin(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players, boolean value) {
+        for (ServerPlayerEntity player : players) {
+            AssassinState.setAssassin(player, value);
+            if (!value && player.isSpectator()) {
+                player.changeGameMode(GameMode.SURVIVAL);
+            }
+            GemPlayerState.initIfNeeded(player);
+            resync(player);
+            AssassinTeams.sync(source.getServer(), player);
+            source.sendFeedback(() -> Text.literal("Set assassin=" + value + " for " + player.getName().getString()), true);
+        }
+        return 1;
+    }
+
+    private static int setAssassinHearts(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players, int hearts) {
+        for (ServerPlayerEntity player : players) {
+            int set = AssassinState.setAssassinHearts(player, hearts);
+            GemPlayerState.applyMaxHearts(player);
+            source.sendFeedback(() -> Text.literal("Set assassin hearts=" + set + " for " + player.getName().getString()), true);
+        }
+        return 1;
+    }
+
+    private static int setAssassinCounter(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players, String counter, int value) {
+        int updated = 0;
+        for (ServerPlayerEntity player : players) {
+            if (AssassinState.setCounter(player, counter, value)) {
+                updated++;
+                source.sendFeedback(() -> Text.literal("Set assassin counter " + counter + "=" + value + " for " + player.getName().getString()), true);
+            } else {
+                source.sendError(Text.literal("Unknown assassin counter '" + counter + "'."));
+            }
+        }
+        return updated > 0 ? 1 : 0;
     }
 
     private static int giveAllGems(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players) {
@@ -374,15 +594,79 @@ public final class GemsCommands {
         return 1;
     }
 
+    private static int giveAllLegendaries(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players) {
+        List<Item> items = List.of(
+                ModItems.TRACKER_COMPASS,
+                ModItems.RECALL_RELIC,
+                ModItems.HYPNO_STAFF,
+                ModItems.EARTHSPLITTER_PICK,
+                ModItems.SUPREME_HELMET,
+                ModItems.SUPREME_CHESTPLATE,
+                ModItems.SUPREME_LEGGINGS,
+                ModItems.SUPREME_BOOTS,
+                ModItems.BLOOD_OATH_BLADE,
+                ModItems.DEMOLITION_BLADE,
+                ModItems.HUNTERS_SIGHT_BOW,
+                ModItems.THIRD_STRIKE_BLADE,
+                ModItems.VAMPIRIC_EDGE,
+                ModItems.EXPERIENCE_BLADE,
+                ModItems.REVERSAL_MIRROR,
+                ModItems.HUNTERS_TROPHY_NECKLACE,
+                ModItems.GLADIATORS_MARK,
+                ModItems.SOUL_SHACKLE,
+                ModItems.DUELISTS_RAPIER,
+                ModItems.CHALLENGERS_GAUNTLET,
+                ModItems.CHRONO_CHARM,
+                ModItems.GEM_SEER
+        );
+        for (ServerPlayerEntity player : players) {
+            for (Item item : items) {
+                ensurePlayerHasItem(player, item);
+            }
+            source.sendFeedback(() -> Text.literal("Gave all legendaries to " + player.getName().getString()), true);
+        }
+        return 1;
+    }
+
+    private static int setEnhancementPenalty(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players, int value) {
+        for (ServerPlayerEntity player : players) {
+            int set = GemPlayerState.setEnergyCapPenalty(player, value);
+            resync(player);
+            source.sendFeedback(() -> Text.literal("Set enhancement cap penalty=" + set + " for " + player.getName().getString()), true);
+        }
+        return 1;
+    }
+
     private static int clearGems(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players) {
         for (ServerPlayerEntity player : players) {
             GemPlayerState.initIfNeeded(player);
             GemId active = GemPlayerState.getActiveGem(player);
             GemPlayerState.setOwnedGemsExact(player, EnumSet.of(active));
+            removeGemItems(player, active);
+            ensurePlayerHasItem(player, ModItems.gemItem(active));
             resync(player);
             source.sendFeedback(() -> Text.literal("Cleared owned gems for " + player.getName().getString() + " (kept " + active.name() + ")"), true);
         }
         return 1;
+    }
+
+    private static void removeGemItems(ServerPlayerEntity player, GemId keep) {
+        if (player == null) {
+            return;
+        }
+        var inventory = player.getInventory();
+        for (GemId gemId : GemId.values()) {
+            if (gemId == keep) {
+                continue;
+            }
+            Item item = ModItems.gemItem(gemId);
+            for (int i = 0; i < inventory.size(); i++) {
+                ItemStack stack = inventory.getStack(i);
+                if (!stack.isEmpty() && stack.isOf(item)) {
+                    inventory.setStack(i, ItemStack.EMPTY);
+                }
+            }
+        }
     }
 
     private static int stressStart(
@@ -575,6 +859,200 @@ public final class GemsCommands {
         return 1;
     }
 
+    private static void registerTitleCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
+        dispatcher.register(CommandManager.literal("gems")
+                .then(CommandManager.literal("admin")
+                        .requires(src -> src.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(2))))
+                        .then(CommandManager.literal("title")
+                                .then(CommandManager.literal("set")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .then(CommandManager.argument("titleId", StringArgumentType.word())
+                                                        .suggests((ctx, builder) -> suggestTitles(builder))
+                                                        .executes(ctx -> titleSet(
+                                                                ctx.getSource(),
+                                                                EntityArgumentType.getPlayers(ctx, "players"),
+                                                                StringArgumentType.getString(ctx, "titleId")
+                                                        )))))
+                                .then(CommandManager.literal("clear")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .executes(ctx -> titleClear(
+                                                        ctx.getSource(),
+                                                        EntityArgumentType.getPlayers(ctx, "players")
+                                                ))))
+                                .then(CommandManager.literal("list")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .executes(ctx -> titleList(
+                                                        ctx.getSource(),
+                                                        EntityArgumentType.getPlayers(ctx, "players")
+                                                ))))
+                        )));
+    }
+
+    private static void registerAugmentCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
+        dispatcher.register(CommandManager.literal("gems")
+                .then(CommandManager.literal("admin")
+                        .requires(src -> src.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(2))))
+                        .then(CommandManager.literal("augment")
+                                .then(CommandManager.literal("list")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .then(CommandManager.argument("gem", StringArgumentType.word())
+                                                        .suggests((ctx, builder) -> suggestGems(builder))
+                                                        .executes(ctx -> augmentList(
+                                                                ctx.getSource(),
+                                                                EntityArgumentType.getPlayers(ctx, "players"),
+                                                                StringArgumentType.getString(ctx, "gem")
+                                                        )))))
+                                .then(CommandManager.literal("remove")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .then(CommandManager.argument("gem", StringArgumentType.word())
+                                                        .suggests((ctx, builder) -> suggestGems(builder))
+                                                        .then(CommandManager.argument("slot", IntegerArgumentType.integer(1, 16))
+                                                                .executes(ctx -> augmentRemove(
+                                                                        ctx.getSource(),
+                                                                        EntityArgumentType.getPlayers(ctx, "players"),
+                                                                        StringArgumentType.getString(ctx, "gem"),
+                                                                        IntegerArgumentType.getInteger(ctx, "slot")
+                                                                ))))))
+                                .then(CommandManager.literal("clear")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .then(CommandManager.argument("gem", StringArgumentType.word())
+                                                        .suggests((ctx, builder) -> suggestGems(builder))
+                                                        .executes(ctx -> augmentClear(
+                                                                ctx.getSource(),
+                                                                EntityArgumentType.getPlayers(ctx, "players"),
+                                                                StringArgumentType.getString(ctx, "gem")
+                                                        )))))
+                        )));
+    }
+
+    private static int titleSet(ServerCommandSource source, Iterable<ServerPlayerEntity> players, String titleId) {
+        MasteryReward reward = MasteryRewards.findById(titleId);
+        if (reward == null || reward.type() != MasteryReward.MasteryRewardType.TITLE) {
+            source.sendError(Text.translatable("gems.title.admin.invalid", titleId));
+            return 0;
+        }
+        for (ServerPlayerEntity player : players) {
+            GemMastery.setSelectedTitle(player, reward.id(), true);
+            source.sendFeedback(() -> Text.translatable("gems.title.admin.set", player.getName().getString(), titleId), true);
+        }
+        return 1;
+    }
+
+    private static int titleClear(ServerCommandSource source, Iterable<ServerPlayerEntity> players) {
+        for (ServerPlayerEntity player : players) {
+            GemMastery.setSelectedTitle(player, "", true);
+            source.sendFeedback(() -> Text.translatable("gems.title.admin.cleared", player.getName().getString()), true);
+        }
+        return 1;
+    }
+
+    private static int titleList(ServerCommandSource source, Iterable<ServerPlayerEntity> players) {
+        for (ServerPlayerEntity player : players) {
+            source.sendFeedback(() -> Text.translatable("gems.title.admin.list_header", player.getName().getString()), false);
+            List<Text> lines = new ArrayList<>();
+            for (GemId gem : GemId.values()) {
+                int usage = GemMastery.getUsage(player, gem);
+                for (MasteryReward reward : MasteryRewards.getRewards(gem)) {
+                    if (reward.type() != MasteryReward.MasteryRewardType.TITLE) {
+                        continue;
+                    }
+                    boolean unlocked = usage >= reward.threshold();
+                    Text name = Text.translatable(reward.displayKey());
+                    String status = unlocked ? "unlocked" : "locked";
+                    lines.add(Text.literal("- " + reward.id() + " (" + status + "): ").append(name));
+                }
+            }
+            if (lines.isEmpty()) {
+                source.sendFeedback(() -> Text.translatable("gems.title.admin.list_empty"), false);
+            } else {
+                for (Text line : lines) {
+                    source.sendFeedback(() -> line, false);
+                }
+            }
+        }
+        return 1;
+    }
+
+    private static int augmentList(ServerCommandSource source, Iterable<ServerPlayerEntity> players, String rawGem) {
+        GemId gemId;
+        try {
+            gemId = GemId.valueOf(rawGem.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            source.sendError(Text.translatable("gems.augment.admin.invalid_gem", rawGem));
+            return 0;
+        }
+
+        for (ServerPlayerEntity player : players) {
+            List<AugmentInstance> augments = AugmentRuntime.getGemAugments(player, gemId);
+            source.sendFeedback(() -> Text.translatable("gems.augment.admin.list_header", player.getName().getString(), gemId.name()), false);
+            if (augments.isEmpty()) {
+                source.sendFeedback(() -> Text.translatable("gems.augment.admin.list_empty"), false);
+            } else {
+                for (int i = 0; i < augments.size(); i++) {
+                    int slot = i + 1;
+                    AugmentInstance inst = augments.get(i);
+                    source.sendFeedback(() -> formatAugmentEntry(slot, inst), false);
+                }
+            }
+        }
+        return 1;
+    }
+
+    private static int augmentRemove(ServerCommandSource source, Iterable<ServerPlayerEntity> players, String rawGem, int slot) {
+        GemId gemId;
+        try {
+            gemId = GemId.valueOf(rawGem.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            source.sendError(Text.translatable("gems.augment.admin.invalid_gem", rawGem));
+            return 0;
+        }
+
+        int index = slot - 1;
+        for (ServerPlayerEntity player : players) {
+            boolean removed = AugmentRuntime.removeGemAugment(player, gemId, index);
+            if (removed) {
+                source.sendFeedback(() -> Text.translatable("gems.augment.admin.removed", player.getName().getString(), slot, gemId.name()), true);
+            } else {
+                source.sendError(Text.translatable("gems.augment.admin.remove_failed", player.getName().getString(), slot, gemId.name()));
+            }
+        }
+        return 1;
+    }
+
+    private static int augmentClear(ServerCommandSource source, Iterable<ServerPlayerEntity> players, String rawGem) {
+        GemId gemId;
+        try {
+            gemId = GemId.valueOf(rawGem.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            source.sendError(Text.translatable("gems.augment.admin.invalid_gem", rawGem));
+            return 0;
+        }
+
+        for (ServerPlayerEntity player : players) {
+            AugmentRuntime.clearGemAugments(player, gemId);
+            source.sendFeedback(() -> Text.translatable("gems.augment.admin.cleared", player.getName().getString(), gemId.name()), true);
+        }
+        return 1;
+    }
+
+    private static Text formatAugmentEntry(int slot, AugmentInstance instance) {
+        AugmentDefinition def = AugmentRegistry.get(instance.augmentId());
+        String name = def != null ? Text.translatable(def.nameKey()).getString() : instance.augmentId();
+        String mag = String.format(Locale.ROOT, "%.2f", instance.magnitude());
+        Text label = Text.literal("#" + slot + " ").formatted(Formatting.GRAY)
+                .append(Text.literal(name).formatted(rarityColor(instance.rarity())))
+                .append(Text.literal(" (" + instance.rarity().name() + " x" + mag + ")").formatted(Formatting.DARK_GRAY));
+        return label;
+    }
+
+    private static Formatting rarityColor(AugmentRarity rarity) {
+        return switch (rarity) {
+            case COMMON -> Formatting.GRAY;
+            case RARE -> Formatting.AQUA;
+            case EPIC -> Formatting.LIGHT_PURPLE;
+        };
+    }
+
     private static void resync(ServerPlayerEntity player) {
         GemPlayerState.applyMaxHearts(player);
         GemPowers.sync(player);
@@ -635,6 +1113,17 @@ public final class GemsCommands {
                 "vampiric_edge"
         )) {
             builder.suggest(id);
+        }
+        return builder.buildFuture();
+    }
+
+    private static CompletableFuture<Suggestions> suggestTitles(SuggestionsBuilder builder) {
+        for (GemId gem : GemId.values()) {
+            for (MasteryReward reward : MasteryRewards.getRewards(gem)) {
+                if (reward.type() == MasteryReward.MasteryRewardType.TITLE) {
+                    builder.suggest(reward.id());
+                }
+            }
         }
         return builder.buildFuture();
     }

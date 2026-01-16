@@ -11,12 +11,11 @@ import java.util.Optional;
 import java.util.UUID;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-public final class TrackerCompassScreen extends Screen {
+public final class TrackerCompassScreen extends GemsScreenBase {
     private final List<TrackerCompassScreenPayload.Entry> entries;
     private int page = 0;
 
@@ -100,7 +99,7 @@ public final class TrackerCompassScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, TITLE_Y, COLOR_WHITE);
+        renderBase(context);
         if (!entries.isEmpty()) {
             int maxPage = totalPages(entries.size(), ENTRIES_PER_PAGE);
             String pageText = "Page " + (page + 1) + " / " + maxPage;

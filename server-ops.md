@@ -47,8 +47,18 @@ For config keys, units, and safety clamps, see `balance.md`.
   - `/gems admin setEnergy <players> <energy>`
   - `/gems admin setHearts <player> <hearts>`
   - `/gems admin giveItem <player> <itemId>`
+  - `/gems admin giveAllGems <players>`
+  - `/gems admin clearGems <players>`
+  - `/gems admin cooldowns <players> <disabled>`
+  - `/gems admin legendaryCooldowns <players> <disabled>`
+  - `/gems admin stats show <players>`
+  - `/gems admin stats reset <players>`
 - Testing helpers:
   - `/gems admin cast <player> <slot>`
+  - `/gems admin perf reset`
+  - `/gems admin perf snapshot [windowTicks]`
+  - `/gems admin stress start <players> <seconds> <periodTicks> <mode> <cycleGems> <forceEnergy10>`
+  - `/gems admin stress stop <players>`
 
 ## Performance tips
 

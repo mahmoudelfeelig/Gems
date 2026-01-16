@@ -9,7 +9,8 @@
     "accessor.InputAccessor",
     "AbstractClientPlayerEntityNameMixin",
     "PlayerListEntrySkinshiftNameMixin",
-    "PlayerListEntrySkinshiftSkinMixin"
+    "PlayerListEntrySkinshiftSkinMixin",
+    "AbstractClientPlayerEntitySkinshiftSkinMixin"
   ],
   "injectors": {
     "defaultRequire": 1

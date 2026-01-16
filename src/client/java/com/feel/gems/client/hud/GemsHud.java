@@ -8,6 +8,7 @@ import com.feel.gems.client.ClientCooldowns;
 import com.feel.gems.client.ClientExtraState;
 import com.feel.gems.client.ClientGemState;
 import com.feel.gems.client.ClientPrismState;
+import com.feel.gems.client.ClientRivalryState;
 import com.feel.gems.client.GemsKeybinds;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemEnergyState;
@@ -94,6 +95,12 @@ public final class GemsHud {
             y += lineHeight;
         }
 
+        // Rivalry target display
+        if (ClientRivalryState.hasRivalTarget()) {
+            ctx.drawTextWithShadow(tr, "Rival: " + ClientRivalryState.getRivalTarget(), x, y, opaque(0xFF6600));
+            y += lineHeight;
+        }
+
         String modifier = GemsKeybinds.modifierLabel();
         if (!modifier.isEmpty()) {
             ctx.drawTextWithShadow(tr, "Abilities: hold " + modifier + " + [1..]", x, y, opaque(0xAAAAAA));
@@ -118,6 +125,10 @@ public final class GemsHud {
                 boolean isUnlocked = i < unlocked;
                 int remaining = ClientCooldowns.remainingTicks(gem, id);
                 int cooldownCostTicks = ability != null ? Math.max(0, ability.cooldownTicks()) : 0;
+                int lastCooldown = ClientCooldowns.lastCooldownTicks(gem, id);
+                if (lastCooldown > 0) {
+                    cooldownCostTicks = lastCooldown;
+                }
 
                 int slotNumber = i == 0 ? 1 : (i + 2);
                 String key = GemsKeybinds.chordSlotLabel(slotNumber);
@@ -245,6 +256,10 @@ public final class GemsHud {
                     int remaining = ClientPrismState.remainingTicks(id);
                     GemAbility ability = ModAbilities.get(id);
                     int cooldownCostTicks = ability != null ? Math.max(0, ability.cooldownTicks()) : 0;
+                    int lastCooldown = ClientPrismState.lastCooldownTicks(id);
+                    if (lastCooldown > 0) {
+                        cooldownCostTicks = lastCooldown;
+                    }
                     
                     String key = GemsKeybinds.chordSlotLabel(i + 1);
                     String stateSuffix;
@@ -300,6 +315,10 @@ public final class GemsHud {
                 boolean isUnlocked = i < unlocked;
                 int remaining = ClientCooldowns.remainingTicks(gem, id);
                 int cooldownCostTicks = ability != null ? Math.max(0, ability.cooldownTicks()) : 0;
+                int lastCooldown = ClientCooldowns.lastCooldownTicks(gem, id);
+                if (lastCooldown > 0) {
+                    cooldownCostTicks = lastCooldown;
+                }
 
                 String key = GemsKeybinds.chordSlotLabel(i + 1);
                 String stateSuffix;
@@ -387,6 +406,12 @@ public final class GemsHud {
                     ClientBonusState.BonusAbilityEntry entry = bonusAbilities.get(i);
                     int remaining = ClientBonusState.remainingTicks(entry.id());
                     boolean lastUsed = ClientBonusState.isLastUsed(entry.id());
+                    GemAbility ability = ModAbilities.get(entry.id());
+                    int cooldownCostTicks = ability != null ? Math.max(0, ability.cooldownTicks()) : 0;
+                    int lastCooldown = ClientBonusState.lastCooldownTicks(entry.id());
+                    if (lastCooldown > 0) {
+                        cooldownCostTicks = lastCooldown;
+                    }
 
                     String key = GemsKeybinds.bonusAbilityLabel(i);
                     String prefix = lastUsed && remaining > 0 ? "* " : "";
@@ -402,7 +427,20 @@ public final class GemsHud {
                     }
                     
                     String base = prefix + key + " " + entry.name();
-                    ctx.drawTextWithShadow(tr, base + stateSuffix, x, y, lineColor);
+                    int dx = x;
+                    ctx.drawTextWithShadow(tr, base, dx, y, lineColor);
+                    dx += tr.getWidth(base);
+
+                    if (cooldownCostTicks > 0) {
+                        String cost = " [" + seconds(cooldownCostTicks) + "s]";
+                        ctx.drawTextWithShadow(tr, cost, dx, y, abilityAccentColor(entry.id()));
+                        dx += tr.getWidth(cost);
+                    }
+
+                    if (!stateSuffix.isEmpty()) {
+                        int suffixColor = remaining > 0 ? abilityAccentColor(entry.id()) : lineColor;
+                        ctx.drawTextWithShadow(tr, stateSuffix, dx, y, suffixColor);
+                    }
                     y += lineHeight;
                     
                     if (y > client.getWindow().getScaledHeight() - lineHeight) {

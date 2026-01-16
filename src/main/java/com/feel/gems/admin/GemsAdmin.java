@@ -9,6 +9,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
  */
 public final class GemsAdmin {
     private static final String KEY_NO_COOLDOWNS = "gemsAdminNoCooldowns";
+    private static final String KEY_NO_LEGENDARY_COOLDOWNS = "gemsAdminNoLegendaryCooldowns";
 
     private GemsAdmin() {
     }
@@ -22,6 +23,14 @@ public final class GemsAdmin {
         if (enabled) {
             GemAbilityCooldowns.clearAll(player);
         }
+    }
+
+    public static boolean noLegendaryCooldowns(ServerPlayerEntity player) {
+        return PlayerNbt.getBoolean(player, KEY_NO_LEGENDARY_COOLDOWNS, false);
+    }
+
+    public static void setNoLegendaryCooldowns(ServerPlayerEntity player, boolean enabled) {
+        PlayerNbt.putBoolean(player, KEY_NO_LEGENDARY_COOLDOWNS, enabled);
     }
 }
 

@@ -1,6 +1,7 @@
 package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.state.GemsPersistentDataHolder;
@@ -48,7 +49,7 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
             return ActionResult.PASS;
         }
         ItemStack held = player.getStackInHand(hand);
-        if (player.getItemCooldownManager().isCoolingDown(held)) {
+        if (player.getItemCooldownManager().isCoolingDown(held) && !GemsAdmin.noLegendaryCooldowns(player)) {
             return ActionResult.SUCCESS;
         }
         if (hasMark(player)) {
@@ -57,7 +58,7 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
             setMark(player);
         }
         int cooldown = GemsBalance.v().legendary().recallCooldownTicks();
-        if (cooldown > 0) {
+        if (cooldown > 0 && !GemsAdmin.noLegendaryCooldowns(player)) {
             player.getItemCooldownManager().set(held, cooldown);
         }
         return ActionResult.SUCCESS;

@@ -5,11 +5,12 @@ import static com.feel.gems.client.screen.GemsScreenConstants.*;
 import com.feel.gems.net.BonusSelectionClaimPayload;
 import com.feel.gems.net.BonusSelectionScreenPayload;
 import com.feel.gems.net.BonusSelectionScreenPayload.BonusEntry;
+import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.registry.ModAbilities;
 import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -17,7 +18,7 @@ import net.minecraft.util.Formatting;
 /**
  * Client UI for selecting bonus abilities and passives at energy 10.
  */
-public final class BonusSelectionScreen extends Screen {
+public final class BonusSelectionScreen extends GemsScreenBase {
     private final List<BonusEntry> abilities;
     private final List<BonusEntry> passives;
     private final int maxAbilities;
@@ -83,6 +84,7 @@ public final class BonusSelectionScreen extends Screen {
                 
                 Formatting formatting;
                 String suffix;
+                String cooldownSuffix = "";
                 if (entry.claimed()) {
                     formatting = Formatting.GREEN;
                     suffix = " [Claimed]";
@@ -93,8 +95,16 @@ public final class BonusSelectionScreen extends Screen {
                     formatting = Formatting.DARK_GRAY;
                     suffix = " [Taken]";
                 }
+
+                if (showingAbilities) {
+                    GemAbility ability = ModAbilities.get(entry.id());
+                    int cooldownTicks = ability != null ? Math.max(0, ability.cooldownTicks()) : 0;
+                    if (cooldownTicks > 0) {
+                        cooldownSuffix = " [" + seconds(cooldownTicks) + "s]";
+                    }
+                }
                 
-                Text label = Text.literal(entry.name() + suffix).formatted(formatting);
+                Text label = Text.literal(entry.name() + cooldownSuffix + suffix).formatted(formatting);
                 final BonusEntry finalEntry = entry;
                 
                 ButtonWidget button = addDrawableChild(ButtonWidget.builder(label, btn -> toggleClaim(finalEntry))
@@ -185,8 +195,7 @@ public final class BonusSelectionScreen extends Screen {
         
         int centerX = this.width / 2;
         
-        // Title
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, centerX, TITLE_Y, COLOR_WHITE);
+        renderBase(context);
         
         // Claimed count
         int claimedAbilities = countClaims(true);
@@ -234,6 +243,15 @@ public final class BonusSelectionScreen extends Screen {
                         tooltip.add(Text.literal(line).formatted(Formatting.GRAY));
                     }
                 }
+
+                if (showingAbilities) {
+                    GemAbility ability = ModAbilities.get(entry.id());
+                    int cooldownTicks = ability != null ? Math.max(0, ability.cooldownTicks()) : 0;
+                    if (cooldownTicks > 0) {
+                        tooltip.add(Text.translatable("gems.screen.bonus_selection.cooldown", seconds(cooldownTicks))
+                                .formatted(Formatting.DARK_AQUA));
+                    }
+                }
                 
                 if (entry.claimed()) {
                     tooltip.add(Text.translatable("gems.screen.bonus_selection.click_release").formatted(Formatting.YELLOW));
@@ -269,6 +287,13 @@ public final class BonusSelectionScreen extends Screen {
         }
         
         return lines;
+    }
+
+    private static int seconds(int ticks) {
+        if (ticks <= 0) {
+            return 0;
+        }
+        return Math.max(1, (ticks + 19) / 20);
     }
     
     @Override

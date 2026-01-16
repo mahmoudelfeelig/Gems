@@ -18,11 +18,12 @@ public final class ClientChaosState {
         String abilityName,
         Identifier abilityId,
         String passiveName,
+        Identifier passiveId,
         int remainingSeconds,
         int cooldownSeconds
     ) {
         public static SlotState inactive() {
-            return new SlotState("", null, "", 0, 0);
+            return new SlotState("", null, "", null, 0, 0);
         }
         
         public boolean isActive() {
@@ -68,10 +69,13 @@ public final class ClientChaosState {
             ChaosSlotPayload.SlotData d = data.get(i);
             Identifier abilityId = (d.abilityId() == null || d.abilityId().isEmpty()) 
                 ? null : Identifier.tryParse(d.abilityId());
+            Identifier passiveId = (d.passiveId() == null || d.passiveId().isEmpty())
+                ? null : Identifier.tryParse(d.passiveId());
             slots.set(i, new SlotState(
                 d.abilityName(),
                 abilityId,
                 d.passiveName(),
+                passiveId,
                 d.remainingSeconds(),
                 d.cooldownSeconds()
             ));

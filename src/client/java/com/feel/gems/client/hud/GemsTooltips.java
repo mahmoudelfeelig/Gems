@@ -107,6 +107,11 @@ public final class GemsTooltips {
                 lines.add(Text.translatable("gems.item.prism.selected_abilities").formatted(Formatting.LIGHT_PURPLE));
                 for (ClientPrismState.PrismAbilityEntry entry : abilities) {
                     lines.add(Text.literal("  • " + entry.name()).formatted(Formatting.AQUA));
+                    GemAbility ability = ModAbilities.get(entry.id());
+                    String desc = ability != null ? ability.description() : "";
+                    if (desc != null && !desc.isEmpty()) {
+                        lines.add(Text.literal("     " + desc).formatted(Formatting.DARK_GRAY));
+                    }
                 }
             } else {
                 lines.add(Text.empty());
@@ -123,7 +128,21 @@ public final class GemsTooltips {
                     ClientChaosState.SlotState slot = ClientChaosState.getSlot(i);
                     if (slot.isActive()) {
                         lines.add(Text.literal("  " + (i + 1) + ": " + slot.abilityName()).formatted(Formatting.AQUA));
+                        if (slot.abilityId() != null) {
+                            GemAbility ability = ModAbilities.get(slot.abilityId());
+                            String desc = ability != null ? ability.description() : "";
+                            if (desc != null && !desc.isEmpty()) {
+                                lines.add(Text.literal("     " + desc).formatted(Formatting.DARK_GRAY));
+                            }
+                        }
                         lines.add(Text.literal("     ↳ " + slot.passiveName()).formatted(Formatting.GREEN));
+                        if (slot.passiveId() != null) {
+                            GemPassive passive = ModPassives.get(slot.passiveId());
+                            String desc = passive != null ? passive.description() : "";
+                            if (desc != null && !desc.isEmpty()) {
+                                lines.add(Text.literal("        " + desc).formatted(Formatting.DARK_GRAY));
+                            }
+                        }
                     }
                 }
             } else {

@@ -7,7 +7,6 @@ import com.feel.gems.net.PrismSelectionScreenPayload;
 import com.feel.gems.net.PrismSelectionScreenPayload.PowerEntry;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -19,7 +18,7 @@ import java.util.List;
 /**
  * Client UI for Prism gem ability/passive selection at energy 10.
  */
-public final class PrismSelectionScreen extends Screen {
+public final class PrismSelectionScreen extends GemsScreenBase {
     private final List<PowerEntry> gemAbilities;
     private final List<PowerEntry> bonusAbilities;
     private final List<PowerEntry> gemPassives;
@@ -115,9 +114,7 @@ public final class PrismSelectionScreen extends Screen {
             PowerEntry entry = entries.get(i);
             boolean isSelected = selected.contains(entry.id());
             boolean isAvailable = entry.available() || isSelected;
-
-            String prefix = isSelected ? "\u2714 " : (!isAvailable ? "\u2716 " : "");
-            String buttonText = prefix + entry.name() + " (" + entry.sourceName() + ")";
+            String buttonText = entry.name() + " (" + entry.sourceName() + ")";
 
             final Identifier entryId = entry.id();
             ButtonWidget entryButton = ButtonWidget.builder(
@@ -223,8 +220,7 @@ public final class PrismSelectionScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
 
-        // Title
-        context.drawCenteredTextWithShadow(textRenderer, title, width / 2, TITLE_Y, COLOR_WHITE);
+        renderBase(context);
 
         // Page indicator
         List<PowerEntry> entries = getCurrentEntries();

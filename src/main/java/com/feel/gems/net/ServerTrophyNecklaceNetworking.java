@@ -1,6 +1,7 @@
 package com.feel.gems.net;
 
 import com.feel.gems.item.legendary.HuntersTrophyNecklaceItem;
+import com.feel.gems.power.util.Targeting;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,6 +20,9 @@ public final class ServerTrophyNecklaceNetworking {
     }
 
     public static void register() {
+        ServerPlayNetworking.registerGlobalReceiver(TrophyNecklaceOpenRequestPayload.ID, (payload, context) ->
+            context.player().getEntityWorld().getServer().execute(() -> handleOpen(context.player())));
+
         ServerPlayNetworking.registerGlobalReceiver(TrophyNecklaceClaimPayload.ID, (payload, context) ->
                 context.player().getEntityWorld().getServer().execute(() -> handleClaim(context.player(), payload)));
     }
@@ -54,7 +58,8 @@ public final class ServerTrophyNecklaceNetworking {
 
         boolean ok;
         if (payload.steal()) {
-            ok = HuntersTrophyNecklaceItem.stealPassive(player, passiveId);
+            UUID source = HuntersTrophyNecklaceItem.getLastTargetUuid(player);
+            ok = HuntersTrophyNecklaceItem.stealPassiveFrom(player, passiveId, source);
         } else {
             ok = HuntersTrophyNecklaceItem.unstealPassive(player, passiveId);
         }
@@ -64,5 +69,24 @@ public final class ServerTrophyNecklaceNetworking {
 
         // Re-open the UI with the same last target, if possible.
         HuntersTrophyNecklaceItem.openLastTargetScreen(player);
+    }
+
+    private static void handleOpen(ServerPlayerEntity player) {
+        if (player == null) {
+            return;
+        }
+        if (!HuntersTrophyNecklaceItem.hasNecklace(player)) {
+            player.sendMessage(Text.translatable("gems.item.trophy_necklace.need_necklace"), true);
+            return;
+        }
+        ServerPlayerEntity target = Targeting.raycastPlayer(player, 15.0D);
+        if (target != null && target != player) {
+            HuntersTrophyNecklaceItem.openScreenForTarget(player, target);
+            return;
+        }
+        boolean opened = HuntersTrophyNecklaceItem.openLastTargetScreen(player);
+        if (!opened) {
+            player.sendMessage(Text.translatable("gems.item.trophy_necklace.no_session"), true);
+        }
     }
 }

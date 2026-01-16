@@ -5,6 +5,7 @@ import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.gem.chaos.ChaosSlotRuntime;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
@@ -54,8 +55,10 @@ public final class SpeedAutoStepRuntime {
         if (activeGem != GemId.SPEED) {
             // Also allow Prism gem players with this ability selected
             if (activeGem != GemId.PRISM || !PrismSelectionsState.hasAbility(player, PowerIds.SPEED_AUTO_STEP)) {
-                removeModifier(player);
-                return;
+                if (activeGem != GemId.CHAOS || !ChaosSlotRuntime.hasActiveAbility(player, PowerIds.SPEED_AUTO_STEP)) {
+                    removeModifier(player);
+                    return;
+                }
             }
         }
 

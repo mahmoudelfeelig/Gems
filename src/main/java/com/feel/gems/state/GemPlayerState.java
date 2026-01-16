@@ -220,6 +220,14 @@
             return next;
         }
 
+        public static int setEnergyCapPenalty(PlayerEntity player, int penalty) {
+            NbtCompound data = root(player);
+            int clamped = clamp(penalty, 0, MAX_ENERGY);
+            data.putInt(KEY_ENERGY_CAP_PENALTY, clamped);
+            setEnergy(player, getEnergy(player));
+            return clamped;
+        }
+
         public static int getMaxHearts(PlayerEntity player) {
             NbtCompound data = root(player);
             return clamp(data.getInt(KEY_MAX_HEARTS, Math.max(DEFAULT_MAX_HEARTS, minMaxHearts())), minMaxHearts(), MAX_MAX_HEARTS);

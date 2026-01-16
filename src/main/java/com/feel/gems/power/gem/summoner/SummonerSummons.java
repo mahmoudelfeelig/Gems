@@ -3,6 +3,7 @@ package com.feel.gems.power.gem.summoner;
 import com.feel.gems.GemsMod;
 import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.core.GemId;
 import com.feel.gems.legendary.LegendaryCooldowns;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.GemsTime;
@@ -453,7 +454,9 @@ public final class SummonerSummons {
         if (baseTicks <= 0) {
             return 0;
         }
-        float mult = BonusPassiveRuntime.getCooldownMultiplier(player) * LegendaryCooldowns.getCooldownMultiplier(player);
+        float mult = BonusPassiveRuntime.getCooldownMultiplier(player)
+                * LegendaryCooldowns.getCooldownMultiplier(player)
+                * com.feel.gems.augment.AugmentRuntime.cooldownMultiplier(player, GemId.SUMMONER);
         int adjusted = (int) Math.ceil(baseTicks * mult);
         return Math.max(1, adjusted);
     }

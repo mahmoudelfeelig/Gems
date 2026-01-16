@@ -43,6 +43,12 @@ public final class ModItems {
     public static final Item ENERGY_UPGRADE = register("energy_upgrade", settings -> new EnergyUpgradeItem(settings.maxCount(16)));
     public static final Item GEM_TRADER = register("gem_trader", settings -> new TraderItem(settings.maxCount(1)));
     public static final Item GEM_PURCHASE = register("gem_purchase", settings -> new GemPurchaseItem(settings.maxCount(1)));
+        public static final Item GEM_AUGMENT_FOCUS = register("gem_augment_focus", settings -> new AugmentItem("focus", settings));
+        public static final Item GEM_AUGMENT_RESONANCE = register("gem_augment_resonance", settings -> new AugmentItem("resonance", settings));
+        public static final Item GEM_AUGMENT_PERSISTENCE = register("gem_augment_persistence", settings -> new AugmentItem("persistence", settings));
+        public static final Item LEGENDARY_INSCRIPTION_EDGE = register("legendary_inscription_edge", settings -> new AugmentItem("edge", settings));
+        public static final Item LEGENDARY_INSCRIPTION_SWIFT = register("legendary_inscription_swift", settings -> new AugmentItem("swift", settings));
+        public static final Item LEGENDARY_INSCRIPTION_WARD = register("legendary_inscription_ward", settings -> new AugmentItem("ward", settings));
     public static final Item TEST_DUMMY_SPAWN_EGG = register("test_dummy_spawn_egg",
             settings -> new SpawnEggItem(settings.spawnEgg(com.feel.gems.entity.ModEntities.TEST_DUMMY).maxCount(64)));
 

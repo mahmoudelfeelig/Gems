@@ -20,12 +20,12 @@ public final class SpaceOrbitalLaserAbility implements GemAbility {
 
     @Override
     public String name() {
-        return "Orbital Laser";
+        return "Orbital Laser (Damage)";
     }
 
     @Override
     public String description() {
-        return "Calls a strike from above at the block you're looking at. Sneak to mine.";
+        return Text.translatable("gems.ability.space.orbital_laser.damage.desc").getString();
     }
 
     @Override
@@ -42,9 +42,8 @@ public final class SpaceOrbitalLaserAbility implements GemAbility {
             return false;
         }
         BlockPos target = bhr.getBlockPos();
-        boolean mining = player.isSneaking();
-        SpaceAnomalies.scheduleOrbitalLaser(player, target, mining);
-        player.sendMessage(Text.translatable(mining ? "gems.ability.space.orbital_laser.mining" : "gems.ability.space.orbital_laser.damage"), true);
+        SpaceAnomalies.scheduleOrbitalLaser(player, target, false);
+        player.sendMessage(Text.translatable("gems.ability.space.orbital_laser.damage"), true);
         return true;
     }
 }

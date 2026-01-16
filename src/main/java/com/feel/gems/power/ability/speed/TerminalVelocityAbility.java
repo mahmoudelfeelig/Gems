@@ -27,7 +27,7 @@ public final class TerminalVelocityAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Temporarily grants Speed III and Haste II.";
+        return "Temporarily grants Speed V and Haste III.";
     }
 
     @Override

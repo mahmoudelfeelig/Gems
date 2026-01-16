@@ -8,6 +8,7 @@ import com.feel.gems.entity.ModEntities;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.GemsPayloads;
 import com.feel.gems.net.ServerAbilityNetworking;
+import com.feel.gems.net.ServerAugmentNetworking;
 import com.feel.gems.net.ServerClientConfigNetworking;
 import com.feel.gems.net.ServerLegendaryNetworking;
 import com.feel.gems.net.ServerSpyObservedNetworking;
@@ -48,6 +49,7 @@ public final class GemsMod implements ModInitializer {
         ServerPrismNetworking.register();
         ServerTrophyNecklaceNetworking.register();
         ServerSpyObservedNetworking.register();
+        ServerAugmentNetworking.register();
         GemsModEvents.register();
         GemsCommands.register();
     }

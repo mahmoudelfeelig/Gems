@@ -334,6 +334,7 @@ public final class GemsBalance {
         cfg.space.lunarMaxMultiplier = v.space().lunarMaxMultiplier();
         cfg.space.starshieldProjectileDamageMultiplier = v.space().starshieldProjectileDamageMultiplier();
         cfg.space.orbitalLaserCooldownSeconds = ticksToSeconds(v.space().orbitalLaserCooldownTicks());
+        cfg.space.orbitalLaserMiningCooldownSeconds = ticksToSeconds(v.space().orbitalLaserMiningCooldownTicks());
         cfg.space.orbitalLaserRangeBlocks = v.space().orbitalLaserRangeBlocks();
         cfg.space.orbitalLaserDelaySeconds = ticksToSeconds(v.space().orbitalLaserDelayTicks());
         cfg.space.orbitalLaserRadiusBlocks = v.space().orbitalLaserRadiusBlocks();
@@ -689,6 +690,39 @@ public final class GemsBalance {
         cfg.bonusPool.bonusAbilityDamageMultiplier = v.bonusPool().bonusAbilityDamageMultiplier();
         cfg.bonusPool.bonusPassiveEffectMultiplier = v.bonusPool().bonusPassiveEffectMultiplier();
 
+        // Mastery
+        cfg.mastery.enabled = v.mastery().enabled();
+        cfg.mastery.showAuraParticles = v.mastery().showAuraParticles();
+
+        // Rivalry
+        cfg.rivalry.enabled = v.rivalry().enabled();
+        cfg.rivalry.damageMultiplier = v.rivalry().damageMultiplier();
+        cfg.rivalry.showInHud = v.rivalry().showInHud();
+
+        // Loadouts
+        cfg.loadouts.enabled = v.loadouts().enabled();
+        cfg.loadouts.unlockEnergy = v.loadouts().unlockEnergy();
+        cfg.loadouts.maxPresetsPerGem = v.loadouts().maxPresetsPerGem();
+
+        // Synergies
+        cfg.synergies.enabled = v.synergies().enabled();
+        cfg.synergies.windowSeconds = ticksToSeconds(v.synergies().windowTicks());
+        cfg.synergies.cooldownSeconds = ticksToSeconds(v.synergies().cooldownTicks());
+        cfg.synergies.showNotifications = v.synergies().showNotifications();
+
+        // Augments
+        cfg.augments.gemMaxSlots = v.augments().gemMaxSlots();
+        cfg.augments.legendaryMaxSlots = v.augments().legendaryMaxSlots();
+        cfg.augments.rarityCommonWeight = v.augments().rarityCommonWeight();
+        cfg.augments.rarityRareWeight = v.augments().rarityRareWeight();
+        cfg.augments.rarityEpicWeight = v.augments().rarityEpicWeight();
+        cfg.augments.commonMagnitudeMin = v.augments().commonMagnitudeMin();
+        cfg.augments.commonMagnitudeMax = v.augments().commonMagnitudeMax();
+        cfg.augments.rareMagnitudeMin = v.augments().rareMagnitudeMin();
+        cfg.augments.rareMagnitudeMax = v.augments().rareMagnitudeMax();
+        cfg.augments.epicMagnitudeMin = v.augments().epicMagnitudeMin();
+        cfg.augments.epicMagnitudeMax = v.augments().epicMagnitudeMax();
+
         cfg.mobBlacklist = v.mobBlacklist().stream().map(Identifier::toString).toList();
 
         return cfg;
@@ -729,6 +763,11 @@ public final class GemsBalance {
             Sentinel sentinel,
             Trickster trickster,
             BonusPool bonusPool,
+            Mastery mastery,
+            Rivalry rivalry,
+            Loadouts loadouts,
+            Synergies synergies,
+                Augments augments,
             List<Identifier> mobBlacklist
     ) {
         public static Values defaults() {
@@ -764,6 +803,11 @@ public final class GemsBalance {
                     Sentinel.from(cfg.sentinel != null ? cfg.sentinel : new GemsBalanceConfig.Sentinel()),
                     Trickster.from(cfg.trickster != null ? cfg.trickster : new GemsBalanceConfig.Trickster()),
                     BonusPool.from(cfg.bonusPool != null ? cfg.bonusPool : new GemsBalanceConfig.BonusPool()),
+                    Mastery.from(cfg.mastery != null ? cfg.mastery : new GemsBalanceConfig.Mastery()),
+                    Rivalry.from(cfg.rivalry != null ? cfg.rivalry : new GemsBalanceConfig.Rivalry()),
+                    Loadouts.from(cfg.loadouts != null ? cfg.loadouts : new GemsBalanceConfig.Loadouts()),
+                    Synergies.from(cfg.synergies != null ? cfg.synergies : new GemsBalanceConfig.Synergies()),
+                    Augments.from(cfg.augments != null ? cfg.augments : new GemsBalanceConfig.Augments()),
                     parseIdentifierList(cfg.mobBlacklist)
             );
         }
@@ -1425,6 +1469,7 @@ public final class GemsBalance {
             float lunarMaxMultiplier,
             float starshieldProjectileDamageMultiplier,
             int orbitalLaserCooldownTicks,
+            int orbitalLaserMiningCooldownTicks,
             int orbitalLaserRangeBlocks,
             int orbitalLaserDelayTicks,
             int orbitalLaserRadiusBlocks,
@@ -1456,6 +1501,7 @@ public final class GemsBalance {
                     lunarMax,
                     clampFloat(cfg.starshieldProjectileDamageMultiplier, 0.0F, 1.0F),
                     secClamped(cfg.orbitalLaserCooldownSeconds, 0, 24 * 3600),
+                    secClamped(cfg.orbitalLaserMiningCooldownSeconds, 0, 24 * 3600),
                     clampInt(cfg.orbitalLaserRangeBlocks, 0, 256),
                     secClamped(cfg.orbitalLaserDelaySeconds, 0, 10),
                     clampInt(cfg.orbitalLaserRadiusBlocks, 0, 32),
@@ -3313,5 +3359,91 @@ public final class GemsBalance {
             return 0;
         }
         return Math.multiplyExact(seconds, TICKS_PER_SECOND);
+    }
+
+    public record Mastery(
+            boolean enabled,
+            boolean showAuraParticles
+    ) {
+        static Mastery from(GemsBalanceConfig.Mastery cfg) {
+            return new Mastery(
+                    cfg.enabled,
+                    cfg.showAuraParticles
+            );
+        }
+    }
+
+    public record Rivalry(
+            boolean enabled,
+            double damageMultiplier,
+            boolean showInHud
+    ) {
+        static Rivalry from(GemsBalanceConfig.Rivalry cfg) {
+            return new Rivalry(
+                    cfg.enabled,
+                    clampDouble(cfg.damageMultiplier, 1.0, 5.0),
+                    cfg.showInHud
+            );
+        }
+    }
+
+    public record Loadouts(
+            boolean enabled,
+            int unlockEnergy,
+            int maxPresetsPerGem
+    ) {
+        static Loadouts from(GemsBalanceConfig.Loadouts cfg) {
+            return new Loadouts(
+                    cfg.enabled,
+                    clampInt(cfg.unlockEnergy, 0, 10),
+                    clampInt(cfg.maxPresetsPerGem, 1, 10)
+            );
+        }
+    }
+
+    public record Synergies(
+            boolean enabled,
+            int windowTicks,
+            int cooldownTicks,
+            boolean showNotifications
+    ) {
+        static Synergies from(GemsBalanceConfig.Synergies cfg) {
+            return new Synergies(
+                    cfg.enabled,
+                    secClamped(cfg.windowSeconds, 1, 10),
+                    secClamped(cfg.cooldownSeconds, 5, 120),
+                    cfg.showNotifications
+            );
+        }
+    }
+
+    public record Augments(
+            int gemMaxSlots,
+            int legendaryMaxSlots,
+            int rarityCommonWeight,
+            int rarityRareWeight,
+            int rarityEpicWeight,
+            float commonMagnitudeMin,
+            float commonMagnitudeMax,
+            float rareMagnitudeMin,
+            float rareMagnitudeMax,
+            float epicMagnitudeMin,
+            float epicMagnitudeMax
+    ) {
+        static Augments from(GemsBalanceConfig.Augments cfg) {
+            return new Augments(
+                    clampInt(cfg.gemMaxSlots, 0, 6),
+                    clampInt(cfg.legendaryMaxSlots, 0, 4),
+                    clampInt(cfg.rarityCommonWeight, 0, 1000),
+                    clampInt(cfg.rarityRareWeight, 0, 1000),
+                    clampInt(cfg.rarityEpicWeight, 0, 1000),
+                    clampFloat(cfg.commonMagnitudeMin, 0.1f, 2.0f),
+                    clampFloat(cfg.commonMagnitudeMax, 0.1f, 3.0f),
+                    clampFloat(cfg.rareMagnitudeMin, 0.1f, 3.0f),
+                    clampFloat(cfg.rareMagnitudeMax, 0.1f, 4.0f),
+                    clampFloat(cfg.epicMagnitudeMin, 0.1f, 4.0f),
+                    clampFloat(cfg.epicMagnitudeMax, 0.1f, 5.0f)
+            );
+        }
     }
 }

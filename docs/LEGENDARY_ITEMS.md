@@ -5,12 +5,21 @@
 - Legendary crafts use `legendary.craftSeconds` for the timer, `legendary.craftMaxPerItem` for the total per-item limit, and `legendary.craftMaxActivePerItem` for concurrent crafts (default 1).
 - Crafting progress is shown to all players via a boss bar with coordinates; on completion the item drops at the crafting table.
 
+## Legendary inscriptions
+
+- Legendary items can be customized with inscription-style augments.
+- Legendary item upgrades should work on any legendary item.
+- Each legendary item has up to 2 inscription slots by default (configurable).
+- Slot counts, rarity tiers, roll weights, and magnitudes are configurable.
+- Inscriptions roll a rarity and magnitude on craft, then grant passive buffs while the legendary item is equipped or held.
+- Apply inscriptions by holding the legendary item in your other hand and right-clicking the inscription.
+
 ## Items
 
 - Tracker Compass: right-click to pick a player (including offline); shows current/last-known coords, respawn coords, and points toward them.
 - Recall Relic: mark current coords; reuse to teleport back (consumes mark); item persists; has cooldown; forceload while marked and released after teleport/no mark.
 - Hypno Staff: hold a beam on a mob for 3s to convert; works on all mobs except the universal mob blacklist (shared with Summoner/Astra); control is temporary and does not persist; hypnotized mobs follow the summon AI priority.
-- Earthsplitter Pick: netherite-tier silk touch pick; right-click toggles 3x3x3 vs 9x3x1 tunnel; respects unbreakable/blacklisted blocks.
+- Earthsplitter Pick: netherite-tier silk touch pick; right-click toggles 9x9x3 vs 20x2x3 tunnel; respects unbreakable/blacklisted blocks.
 - Supreme set: helmet (Night Vision + Water Breathing), chestplate (Strength I), leggings (Fire Resistance), boots (Speed I), full set (Resistance III); stronger effects override temporarily.
 - Blood Oath Blade: gains +1 Sharpness per unique player kill, capped at Sharpness X.
 - Demolition Blade: right-click to arm a demolition charge on a targeted block or entity; cooldown.

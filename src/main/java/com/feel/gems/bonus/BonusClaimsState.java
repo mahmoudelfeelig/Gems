@@ -30,36 +30,62 @@ public final class BonusClaimsState extends PersistentState {
     // Maps player UUID -> set of claimed ability/passive IDs (computed from above)
     private final Map<UUID, Set<Identifier>> playerAbilities;
     private final Map<UUID, Set<Identifier>> playerPassives;
+    // Maps player UUID -> ordered list of claimed abilities (queue order for keybinds)
+    private final Map<UUID, List<Identifier>> abilityOrder;
 
-    static final Codec<BonusClaimsState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+        static final Codec<BonusClaimsState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.unboundedMap(Identifier.CODEC, Uuids.CODEC)
                     .optionalFieldOf("abilityClaims", Map.of())
                     .forGetter(state -> state.abilityClaims),
             Codec.unboundedMap(Identifier.CODEC, Uuids.CODEC)
                     .optionalFieldOf("passiveClaims", Map.of())
-                    .forGetter(state -> state.passiveClaims)
-    ).apply(instance, BonusClaimsState::new));
+                .forGetter(state -> state.passiveClaims),
+            Codec.unboundedMap(Uuids.CODEC, Identifier.CODEC.listOf())
+                .optionalFieldOf("abilityOrder", Map.of())
+                .forGetter(state -> state.abilityOrder)
+        ).apply(instance, BonusClaimsState::new));
 
     private static final PersistentStateType<BonusClaimsState> TYPE =
             new PersistentStateType<>(STATE_ID, BonusClaimsState::new, CODEC, DataFixTypes.SAVED_DATA_MAP_DATA);
 
     public BonusClaimsState() {
-        this(Map.of(), Map.of());
+        this(Map.of(), Map.of(), Map.of());
     }
 
-    public BonusClaimsState(Map<Identifier, UUID> abilityClaims, Map<Identifier, UUID> passiveClaims) {
+    public BonusClaimsState(Map<Identifier, UUID> abilityClaims, Map<Identifier, UUID> passiveClaims, Map<UUID, List<Identifier>> abilityOrder) {
         this.abilityClaims = new HashMap<>(abilityClaims == null ? Map.of() : abilityClaims);
         this.passiveClaims = new HashMap<>(passiveClaims == null ? Map.of() : passiveClaims);
         
         // Build reverse lookup maps
         this.playerAbilities = new HashMap<>();
         this.playerPassives = new HashMap<>();
+        this.abilityOrder = new HashMap<>();
         
         for (var entry : this.abilityClaims.entrySet()) {
             playerAbilities.computeIfAbsent(entry.getValue(), k -> new HashSet<>()).add(entry.getKey());
         }
         for (var entry : this.passiveClaims.entrySet()) {
             playerPassives.computeIfAbsent(entry.getValue(), k -> new HashSet<>()).add(entry.getKey());
+        }
+
+        if (abilityOrder != null && !abilityOrder.isEmpty()) {
+            for (var entry : abilityOrder.entrySet()) {
+                UUID player = entry.getKey();
+                List<Identifier> list = new ArrayList<>(entry.getValue());
+                Set<Identifier> claimed = playerAbilities.getOrDefault(player, Set.of());
+                list.removeIf(id -> !claimed.contains(id));
+                this.abilityOrder.put(player, list);
+            }
+        }
+
+        for (var entry : playerAbilities.entrySet()) {
+            UUID player = entry.getKey();
+            List<Identifier> list = this.abilityOrder.computeIfAbsent(player, k -> new ArrayList<>());
+            for (Identifier id : entry.getValue()) {
+                if (!list.contains(id)) {
+                    list.add(id);
+                }
+            }
         }
     }
 
@@ -83,12 +109,16 @@ public final class BonusClaimsState extends PersistentState {
         }
         
         Set<Identifier> playerSet = playerAbilities.computeIfAbsent(playerUuid, k -> new HashSet<>());
-        if (playerSet.size() >= 2) {
+        List<Identifier> order = abilityOrder.computeIfAbsent(playerUuid, k -> new ArrayList<>());
+        if (order.size() >= 2) {
             return false; // Player already has max 2 bonus abilities
         }
         
         abilityClaims.put(abilityId, playerUuid);
         playerSet.add(abilityId);
+        if (!order.contains(abilityId)) {
+            order.add(abilityId);
+        }
         markDirty();
         return true;
     }
@@ -128,6 +158,7 @@ public final class BonusClaimsState extends PersistentState {
                 abilityClaims.remove(id);
             }
         }
+        abilityOrder.remove(playerUuid);
         
         Set<Identifier> passives = playerPassives.remove(playerUuid);
         if (passives != null) {
@@ -144,6 +175,13 @@ public final class BonusClaimsState extends PersistentState {
      */
     public Set<Identifier> getPlayerAbilities(UUID playerUuid) {
         return Set.copyOf(playerAbilities.getOrDefault(playerUuid, Set.of()));
+    }
+
+    /**
+     * Get the ordered list of claimed abilities for a player (queue order).
+     */
+    public List<Identifier> getPlayerAbilityOrder(UUID playerUuid) {
+        return List.copyOf(abilityOrder.getOrDefault(playerUuid, List.of()));
     }
 
     /**
@@ -207,6 +245,13 @@ public final class BonusClaimsState extends PersistentState {
             Set<Identifier> playerSet = playerAbilities.get(playerUuid);
             if (playerSet != null) {
                 playerSet.remove(abilityId);
+            }
+            List<Identifier> order = abilityOrder.get(playerUuid);
+            if (order != null) {
+                order.remove(abilityId);
+                if (order.isEmpty()) {
+                    abilityOrder.remove(playerUuid);
+                }
             }
             markDirty();
         }

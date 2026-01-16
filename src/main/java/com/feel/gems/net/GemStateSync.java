@@ -51,9 +51,9 @@ public final class GemStateSync {
         }
         
         BonusClaimsState claims = BonusClaimsState.get(server);
-        Set<Identifier> playerAbilities = claims.getPlayerAbilities(player.getUuid());
+        List<Identifier> orderedAbilities = claims.getPlayerAbilityOrder(player.getUuid());
         
-        if (playerAbilities.isEmpty()) {
+        if (orderedAbilities.isEmpty()) {
             ServerPlayNetworking.send(player, new BonusAbilitiesSyncPayload(List.of()));
             return;
         }
@@ -61,10 +61,7 @@ public final class GemStateSync {
         long now = GemsTime.now(player);
         List<BonusAbilitiesSyncPayload.BonusAbilityInfo> abilities = new ArrayList<>();
         
-        // Sort for consistent ordering
-        List<Identifier> sorted = playerAbilities.stream().sorted().toList();
-        
-        for (Identifier id : sorted) {
+        for (Identifier id : orderedAbilities) {
             GemAbility ability = ModAbilities.get(id);
             String name = ability != null ? ability.name() : id.getPath();
             

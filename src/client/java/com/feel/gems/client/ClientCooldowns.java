@@ -17,6 +17,7 @@ import net.minecraft.util.Identifier;
 
 public final class ClientCooldowns {
     private static final Map<Identifier, Long> END_TICKS = new HashMap<>();
+    private static final Map<Identifier, Integer> LAST_COOLDOWN_TICKS = new HashMap<>();
     private static GemId activeGem = null;
     private static Identifier lastUsedAbility = null;
 
@@ -26,6 +27,7 @@ public final class ClientCooldowns {
     public static void reset() {
         activeGem = null;
         END_TICKS.clear();
+        LAST_COOLDOWN_TICKS.clear();
         lastUsedAbility = null;
     }
 
@@ -35,6 +37,7 @@ public final class ClientCooldowns {
         }
         activeGem = gem;
         END_TICKS.clear();
+        LAST_COOLDOWN_TICKS.clear();
         lastUsedAbility = null;
     }
 
@@ -81,7 +84,15 @@ public final class ClientCooldowns {
         }
         Identifier abilityId = abilities.get(abilityIndex);
         END_TICKS.put(abilityId, now + cooldownTicks);
+        LAST_COOLDOWN_TICKS.put(abilityId, cooldownTicks);
         lastUsedAbility = abilityId;
+    }
+
+    public static int lastCooldownTicks(GemId gem, Identifier abilityId) {
+        if (activeGem != gem) {
+            return 0;
+        }
+        return LAST_COOLDOWN_TICKS.getOrDefault(abilityId, 0);
     }
 
     public static int remainingTicks(GemId gem, Identifier abilityId) {

@@ -1,6 +1,7 @@
 package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.legendary.LegendaryDuels;
@@ -49,7 +50,7 @@ public final class ChallengersGauntletItem extends Item implements LegendaryItem
         ItemStack stack = player.getStackInHand(hand);
 
         // Check cooldown
-        if (player.getItemCooldownManager().isCoolingDown(stack)) {
+        if (player.getItemCooldownManager().isCoolingDown(stack) && !GemsAdmin.noLegendaryCooldowns(player)) {
             return ActionResult.FAIL;
         }
 
@@ -71,7 +72,7 @@ public final class ChallengersGauntletItem extends Item implements LegendaryItem
         }
 
         int cooldownTicks = GemsBalance.v().legendary().challengersGauntletCooldownTicks();
-        if (cooldownTicks > 0) {
+        if (cooldownTicks > 0 && !GemsAdmin.noLegendaryCooldowns(player)) {
             player.getItemCooldownManager().set(stack, cooldownTicks);
         }
 

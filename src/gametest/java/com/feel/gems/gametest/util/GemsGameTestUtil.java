@@ -28,7 +28,21 @@ import net.minecraft.world.rule.GameRules;
 
 
 public final class GemsGameTestUtil {
+    private static final int COMPLETE_DELAY_TICKS = Integer.getInteger("gems.gametest.complete-delay", 10);
+
     private GemsGameTestUtil() {
+    }
+
+    public static void complete(TestContext context) {
+        completeAfter(context, COMPLETE_DELAY_TICKS);
+    }
+
+    public static void completeAfter(TestContext context, long delayTicks) {
+        if (delayTicks <= 0L) {
+            context.complete();
+            return;
+        }
+        context.runAtTick(delayTicks, context::complete);
     }
 
     public static void placeStoneFloor(TestContext context, int radius) {

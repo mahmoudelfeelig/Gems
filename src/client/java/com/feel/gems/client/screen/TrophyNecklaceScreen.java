@@ -9,13 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
-public final class TrophyNecklaceScreen extends Screen {
+public final class TrophyNecklaceScreen extends GemsScreenBase {
     private final String targetName;
     private final List<PassiveEntry> passives;
     private final int maxStolenPassives;
@@ -102,7 +101,7 @@ public final class TrophyNecklaceScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(textRenderer, title, width / 2, TITLE_Y, COLOR_WHITE);
+        renderBase(context);
         context.drawCenteredTextWithShadow(textRenderer,
                 Text.translatable("gems.screen.trophy_necklace.subtitle", targetName, maxStolenPassives),
                 width / 2, SUBTITLE_Y, COLOR_GRAY);

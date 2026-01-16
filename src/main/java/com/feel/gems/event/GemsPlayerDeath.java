@@ -9,6 +9,7 @@ import com.feel.gems.item.ModItems;
 import com.feel.gems.item.legendary.ExperienceBladeItem;
 import com.feel.gems.item.legendary.HuntersTrophyNecklaceItem;
 import com.feel.gems.legendary.LegendaryDuels;
+import com.feel.gems.mastery.LeaderboardTracker;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.power.gem.hunter.HunterTrophyHunterRuntime;
 import com.feel.gems.power.gem.spy.SpySystem;
@@ -19,6 +20,7 @@ import com.feel.gems.power.ability.sentinel.SentinelInterventionRuntime;
 import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.stats.GemsStats;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.entity.Entity;
@@ -59,6 +61,7 @@ public final class GemsPlayerDeath {
         if (attacker instanceof ServerPlayerEntity killer && killer != victim) {
             GemPlayerState.initIfNeeded(killer);
             AssassinState.initIfNeeded(killer);
+            LeaderboardTracker.incrementKills(killer);
             boolean killerWasAssassin = AssassinState.isAssassin(killer);
             int killerEnergyBefore = GemPlayerState.getEnergy(killer);
             GemPlayerState.addEnergy(killer, 1);
@@ -68,6 +71,8 @@ public final class GemsPlayerDeath {
 
             boolean finalKill = victimAtAssassinTrigger;
             AssassinState.recordKill(killer, finalKill, victimWasAssassin);
+
+            GemsStats.recordPlayerKill(killer, victim, killerWasAssassin, victimWasAssassin, finalKill);
 
             if (GemPowers.isPassiveActive(killer, PowerIds.TERROR_BLOOD_PRICE)) {
                 TerrorBloodPrice.onPlayerKill(killer);
@@ -104,6 +109,8 @@ public final class GemsPlayerDeath {
                 victim.dropStack(victim.getEntityWorld(), new ItemStack(ModItems.ENERGY_UPGRADE));
             }
         }
+
+        GemsStats.recordPlayerDeath(victim, attacker instanceof ServerPlayerEntity killer ? killer : null, victimWasAssassin, victimAtAssassinTrigger);
 
         if (!victimWasAssassin) {
             if (victimAtAssassinTrigger) {

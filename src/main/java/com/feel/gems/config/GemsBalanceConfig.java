@@ -38,6 +38,11 @@ public final class GemsBalanceConfig {
     public Trickster trickster = new Trickster();
     public Legendary legendary = new Legendary();
     public BonusPool bonusPool = new BonusPool();
+    public Mastery mastery = new Mastery();
+    public Rivalry rivalry = new Rivalry();
+    public Loadouts loadouts = new Loadouts();
+    public Synergies synergies = new Synergies();
+    public Augments augments = new Augments();
 
     /**
      * Universal mob blacklist for Hypno Staff, Summoner summons, and Astra soul captures.
@@ -316,8 +321,8 @@ public final class GemsBalanceConfig {
 
         public int terminalVelocityCooldownSeconds = 30;
         public int terminalVelocityDurationSeconds = 10;
-        public int terminalVelocitySpeedAmplifier = 2; // Speed III
-        public int terminalVelocityHasteAmplifier = 1; // Haste II
+        public int terminalVelocitySpeedAmplifier = 4; // Speed V
+        public int terminalVelocityHasteAmplifier = 2; // Haste III
 
         public int slipstreamCooldownSeconds = 45;
         public int slipstreamDurationSeconds = 8;
@@ -505,6 +510,7 @@ public final class GemsBalanceConfig {
 
         // Abilities
         public int orbitalLaserCooldownSeconds = 60;
+        public int orbitalLaserMiningCooldownSeconds = 60;
         public int orbitalLaserRangeBlocks = 64;
         public int orbitalLaserDelaySeconds = 1;
         public int orbitalLaserRadiusBlocks = 4;
@@ -523,14 +529,14 @@ public final class GemsBalanceConfig {
         public int blackHoleCooldownSeconds = 60;
         public int blackHoleDurationSeconds = 6;
         public int blackHoleRadiusBlocks = 10;
-        public float blackHolePullStrength = 0.25F;
-        public float blackHoleDamagePerSecond = 4.0F;
+        public float blackHolePullStrength = 0.75F;
+        public float blackHoleDamagePerSecond = 12.0F;
 
         public int whiteHoleCooldownSeconds = 60;
         public int whiteHoleDurationSeconds = 6;
         public int whiteHoleRadiusBlocks = 10;
-        public float whiteHolePushStrength = 0.30F;
-        public float whiteHoleDamagePerSecond = 3.0F;
+        public float whiteHolePushStrength = 0.90F;
+        public float whiteHoleDamagePerSecond = 9.0F;
     }
 
     public static final class Reaper {
@@ -894,8 +900,8 @@ public final class GemsBalanceConfig {
         public int hypnoMaxControlled = 10;
         public int hypnoDurationSeconds = 0; // 0 = infinite while online
 
-        public int earthsplitterRadiusBlocks = 1;
-        public int earthsplitterTunnelLengthBlocks = 9;
+        public int earthsplitterRadiusBlocks = 4;
+        public int earthsplitterTunnelLengthBlocks = 20;
 
         public int bloodOathSharpnessCap = 10;
         public int demolitionCooldownSeconds = 5;
@@ -1434,5 +1440,113 @@ public final class GemsBalanceConfig {
 
         // Sixth Sense
         public int sixthSenseWarningRangeBlocks = 15;
+    }
+
+    /**
+     * Mastery system settings (cosmetic progression).
+     */
+    public static final class Mastery {
+        /**
+         * Whether the mastery system is enabled.
+         */
+        public boolean enabled = true;
+
+        /**
+         * Whether to show aura particles for players with selected auras.
+         */
+        public boolean showAuraParticles = true;
+    }
+
+    /**
+     * Rivalry system settings.
+     */
+    public static final class Rivalry {
+        /**
+         * Whether the rivalry system is enabled.
+         */
+        public boolean enabled = true;
+
+        /**
+         * Damage multiplier when attacking your rivalry target.
+         * 1.25 = 25% bonus damage.
+         */
+        public double damageMultiplier = 1.25;
+
+        /**
+         * Whether to show the rivalry target in the HUD.
+         */
+        public boolean showInHud = true;
+    }
+
+    /**
+     * Loadout presets system settings.
+     */
+    public static final class Loadouts {
+        /**
+         * Whether the loadout presets system is enabled.
+         */
+        public boolean enabled = true;
+
+        /**
+         * Minimum energy level required to unlock loadout presets.
+         * Players must have this energy level or higher to save/load presets.
+         */
+        public int unlockEnergy = 6;
+
+        /**
+         * Maximum number of preset slots per gem.
+         */
+        public int maxPresetsPerGem = 5;
+    }
+
+    /**
+     * Team synergies system settings.
+     * Synergies trigger when different gem abilities are cast within a short window.
+     */
+    public static final class Synergies {
+        /**
+         * Whether the team synergies system is enabled.
+         */
+        public boolean enabled = true;
+
+        /**
+         * Time window in seconds for abilities to count as a synergy combo.
+         * Both abilities must be cast within this window.
+         */
+        public int windowSeconds = 3;
+
+        /**
+         * Cooldown in seconds before the same synergy can trigger again.
+         * This applies per-group (participants who triggered together).
+         */
+        public int cooldownSeconds = 30;
+
+        /**
+         * Whether to show synergy trigger notifications in chat/action bar.
+         */
+        public boolean showNotifications = true;
+    }
+
+    /**
+     * Augments/inscriptions configuration (slot caps, rarity weights, magnitude ranges).
+     */
+    public static final class Augments {
+        /** Max augment slots for a gem. */
+        public int gemMaxSlots = 4;
+        /** Max inscription slots for a legendary item. */
+        public int legendaryMaxSlots = 2;
+
+        /** Rarity roll weights (higher = more common). */
+        public int rarityCommonWeight = 70;
+        public int rarityRareWeight = 25;
+        public int rarityEpicWeight = 5;
+
+        /** Magnitude roll ranges (multiplies base augment values). */
+        public float commonMagnitudeMin = 0.9F;
+        public float commonMagnitudeMax = 1.1F;
+        public float rareMagnitudeMin = 1.1F;
+        public float rareMagnitudeMax = 1.3F;
+        public float epicMagnitudeMin = 1.3F;
+        public float epicMagnitudeMax = 1.6F;
     }
 }

@@ -1,6 +1,7 @@
 package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.state.PlayerStateManager;
@@ -49,7 +50,7 @@ public final class ReversalMirrorItem extends Item implements LegendaryItem {
         ItemStack stack = player.getStackInHand(hand);
 
         // Check cooldown
-        if (player.getItemCooldownManager().isCoolingDown(stack)) {
+        if (player.getItemCooldownManager().isCoolingDown(stack) && !GemsAdmin.noLegendaryCooldowns(player)) {
             return ActionResult.FAIL;
         }
 
@@ -59,7 +60,7 @@ public final class ReversalMirrorItem extends Item implements LegendaryItem {
         PlayerStateManager.setPersistent(player, ACTIVE_END_KEY, String.valueOf(endTime));
 
         int cooldownTicks = GemsBalance.v().legendary().reversalMirrorCooldownTicks();
-        if (cooldownTicks > 0) {
+        if (cooldownTicks > 0 && !GemsAdmin.noLegendaryCooldowns(player)) {
             player.getItemCooldownManager().set(stack, cooldownTicks);
         }
         world.playSound(null, player.getX(), player.getY(), player.getZ(), 

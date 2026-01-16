@@ -15,6 +15,7 @@ import net.minecraft.util.Identifier;
 public final class ClientBonusState {
     private static final List<BonusAbilityEntry> ABILITIES = new ArrayList<>();
     private static final Map<Identifier, Long> COOLDOWN_END_TICKS = new HashMap<>();
+    private static final Map<Identifier, Integer> LAST_COOLDOWN_TICKS = new HashMap<>();
     private static Identifier lastUsedBonus = null;
 
     private ClientBonusState() {
@@ -25,6 +26,7 @@ public final class ClientBonusState {
     public static void reset() {
         ABILITIES.clear();
         COOLDOWN_END_TICKS.clear();
+        LAST_COOLDOWN_TICKS.clear();
         lastUsedBonus = null;
     }
 
@@ -57,7 +59,12 @@ public final class ClientBonusState {
         }
         long now = world.getTime();
         COOLDOWN_END_TICKS.put(id, now + cooldownTicks);
+        LAST_COOLDOWN_TICKS.put(id, cooldownTicks);
         lastUsedBonus = id;
+    }
+
+    public static int lastCooldownTicks(Identifier abilityId) {
+        return LAST_COOLDOWN_TICKS.getOrDefault(abilityId, 0);
     }
 
     public static List<BonusAbilityEntry> getAbilities() {

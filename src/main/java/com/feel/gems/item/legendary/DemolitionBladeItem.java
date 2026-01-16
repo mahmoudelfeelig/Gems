@@ -1,6 +1,7 @@
 package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.power.util.Targeting;
@@ -45,7 +46,7 @@ public final class DemolitionBladeItem extends Item implements LegendaryItem {
             return ActionResult.PASS;
         }
         ItemStack held = player.getStackInHand(hand);
-        if (player.getItemCooldownManager().isCoolingDown(held)) {
+        if (player.getItemCooldownManager().isCoolingDown(held) && !GemsAdmin.noLegendaryCooldowns(player)) {
             return ActionResult.SUCCESS;
         }
         int cooldown = GemsBalance.v().legendary().demolitionCooldownTicks();
@@ -53,7 +54,7 @@ public final class DemolitionBladeItem extends Item implements LegendaryItem {
         if (cooldown > 0 && cooldownScale != 100) {
             cooldown = Math.max(0, Math.round(cooldown * (cooldownScale / 100.0F)));
         }
-        if (cooldown > 0) {
+        if (cooldown > 0 && !GemsAdmin.noLegendaryCooldowns(player)) {
             player.getItemCooldownManager().set(held, cooldown);
         }
         int range = GemsBalance.v().legendary().demolitionRangeBlocks();

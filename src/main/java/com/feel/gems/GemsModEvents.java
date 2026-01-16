@@ -1,6 +1,7 @@
 package com.feel.gems;
 
 import com.feel.gems.assassin.AssassinState;
+import com.feel.gems.augment.AugmentRuntime;
 import com.feel.gems.assassin.AssassinTeams;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.config.GemsDisables;
@@ -18,8 +19,10 @@ import com.feel.gems.legendary.LegendaryPlayerTracker;
 import com.feel.gems.legendary.LegendaryTargeting;
 import com.feel.gems.legendary.LegendaryDuels;
 import com.feel.gems.legendary.SupremeSetRuntime;
+import com.feel.gems.mastery.MasteryAuraRuntime;
 import com.feel.gems.net.GemStateSync;
 import com.feel.gems.net.ServerDisablesPayload;
+import com.feel.gems.rivalry.RivalryManager;
 import com.feel.gems.power.ability.duelist.DuelistMirrorMatchRuntime;
 import com.feel.gems.power.ability.pillager.PillagerVindicatorBreakAbility;
 import com.feel.gems.power.ability.hunter.HunterCallThePackRuntime;
@@ -44,6 +47,8 @@ import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.synergy.SynergyRuntime;
+import com.feel.gems.stats.GemsStats;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTickScheduler;
 import java.util.ArrayList;
@@ -84,6 +89,10 @@ public final class GemsModEvents {
                 SoulSystem.onKilledMob(player, living);
                 SpySystem.recordLastKilledMob(player, living);
 
+                if (!(killedEntity instanceof ServerPlayerEntity)) {
+                    GemsStats.recordMobKill(player);
+                }
+
                 // Bonus passives: on kill effects (Bloodthirst, Adrenaline Rush)
                 BonusPassiveRuntime.onKill(player, living);
 
@@ -98,8 +107,13 @@ public final class GemsModEvents {
             if (entity instanceof ServerPlayerEntity killer && killedEntity instanceof ServerPlayerEntity victim) {
                 com.feel.gems.legendary.LegendaryWeapons.onPlayerKill(killer, victim);
                 SpySystem.restoreStolenOnKill(killer, victim);
+                com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.restoreStolenOnKill(killer, victim);
                 // Track last killer for Nemesis passive
                 BonusPassiveRuntime.setLastKiller(victim, killer.getUuid());
+                // Rivalry: handle target kill
+                if (GemsBalance.v().rivalry().enabled()) {
+                    RivalryManager.onPlayerKill(killer, victim);
+                }
             }
         });
 
@@ -279,6 +293,11 @@ public final class GemsModEvents {
                 newPlayer.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.eliminated").formatted(net.minecraft.util.Formatting.RED), false);
             }
             LegendaryDuels.onPlayerCopyFrom(oldPlayer, newPlayer, alive);
+
+            // Rivalry: assign a new target on spawn/respawn
+            if (GemsBalance.v().rivalry().enabled()) {
+                RivalryManager.assignTarget(newPlayer);
+            }
         });
 
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> AutoSmeltCache.clear());
@@ -288,6 +307,7 @@ public final class GemsModEvents {
         GemsTickScheduler.register();
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             GemsTickScheduler.clearAll();
+            SynergyRuntime.clearAll();
 
             // Every tick: lightweight runtimes + maintenance queues.
             GemsTickScheduler.scheduleRepeating(server, 0, 1, s -> {
@@ -300,6 +320,11 @@ public final class GemsModEvents {
                 GemOwnership.tickPurgeQueue(s);
                 ChaosSlotRuntime.tick(s);
                 HunterCallThePackRuntime.tick(s);
+
+                // Clean up old synergy casts (every 20 ticks)
+                if (s.getTicks() % 20 == 0) {
+                    SynergyRuntime.cleanup(s.getOverworld().getTime());
+                }
 
                 // Hunting Trap: check mob triggers (players are handled via per-player checkStep).
                 if (!com.feel.gems.power.ability.hunter.HunterHuntingTrapAbility.ACTIVE_TRAPS.isEmpty()) {
@@ -357,6 +382,9 @@ public final class GemsModEvents {
                     BeaconAuraRuntime.tickEverySecond(player);
                     com.feel.gems.power.gem.speed.SpeedAutoStepRuntime.tickEverySecond(player);
                     com.feel.gems.power.gem.hunter.HunterPreyMarkRuntime.tickTrackersEye(player);
+                    AugmentRuntime.applyLegendaryModifiers(player);
+                    // Mastery aura particles
+                    MasteryAuraRuntime.tick(player);
                     // Bonus passives tick handler
                     if (player.getEntityWorld() instanceof ServerWorld world) {
                         BonusPassiveRuntime.tickEverySecond(player, world);
@@ -383,6 +411,11 @@ public final class GemsModEvents {
                     SummonerSummons.followOwner(player);
                     RecallRelicItem.clearIfMissingItem(player);
                 }
+            });
+
+            // Every minute: leaderboard updates for general titles.
+            GemsTickScheduler.scheduleRepeating(server, 1200, 1200, s -> {
+                com.feel.gems.mastery.LeaderboardTracker.updateLeaderboards(s);
             });
 
             // Tail hook: perf monitor should run after all scheduled work for the tick.

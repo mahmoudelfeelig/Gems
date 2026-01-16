@@ -118,6 +118,47 @@ public final class AssassinState {
         root(player).putBoolean(KEY_ELIMINATED, eliminated);
     }
 
+    public static void setAssassin(ServerPlayerEntity player, boolean assassin) {
+        initIfNeeded(player);
+        NbtCompound nbt = root(player);
+        nbt.putBoolean(KEY_IS_ASSASSIN, assassin);
+        if (!assassin) {
+            nbt.putBoolean(KEY_ELIMINATED, false);
+            nbt.putInt(KEY_ASSASSIN_HEARTS, maxHearts());
+        } else if (nbt.getInt(KEY_ASSASSIN_HEARTS, 0) <= 0) {
+            nbt.putInt(KEY_ASSASSIN_HEARTS, maxHearts());
+        }
+    }
+
+    public static int setAssassinHearts(ServerPlayerEntity player, int hearts) {
+        initIfNeeded(player);
+        int clamped = clamp(hearts, 0, maxHearts());
+        root(player).putInt(KEY_ASSASSIN_HEARTS, clamped);
+        return clamped;
+    }
+
+    public static boolean setCounter(ServerPlayerEntity player, String counterId, int value) {
+        if (player == null || counterId == null) {
+            return false;
+        }
+        initIfNeeded(player);
+        String key = counterId.trim().toLowerCase(java.util.Locale.ROOT);
+        String target = switch (key) {
+            case "totalnormalkills", "total_normal_kills", "total-normal-kills" -> KEY_TOTAL_NORMAL_KILLS;
+            case "totalfinalkills", "total_final_kills", "total-final-kills" -> KEY_TOTAL_FINAL_KILLS;
+            case "assassinnormalkills", "assassin_normal_kills", "assassin-normal-kills" -> KEY_A_NORMAL_KILLS;
+            case "assassinfinalkills", "assassin_final_kills", "assassin-final-kills" -> KEY_A_FINAL_KILLS;
+            case "assassinnormalkillsvsnon", "assassin_normal_kills_vs_non", "assassin-normal-kills-vs-non" -> KEY_A_NORMAL_KILLS_VS_NON;
+            case "assassinfinalkillsvsnon", "assassin_final_kills_vs_non", "assassin-final-kills-vs-non" -> KEY_A_FINAL_KILLS_VS_NON;
+            default -> null;
+        };
+        if (target == null) {
+            return false;
+        }
+        root(player).putInt(target, Math.max(0, value));
+        return true;
+    }
+
     public static int addAssassinHearts(ServerPlayerEntity player, int delta) {
         initIfNeeded(player);
         int next = clamp(getAssassinHearts(player) + delta, 0, maxHearts());

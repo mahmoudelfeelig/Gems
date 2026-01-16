@@ -17,7 +17,9 @@ import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsNbt;
 import com.feel.gems.util.GemsTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -466,7 +468,15 @@ public final class SpySystem {
         if (killer == null || victim == null) {
             return;
         }
-        restoreStolenBy(killer, victim.getUuid());
+        List<Identifier> recovered = restoreStolenByInternal(killer, victim.getUuid());
+        if (recovered.isEmpty()) {
+            return;
+        }
+
+        for (Identifier abilityId : recovered) {
+            removeStolenAbility(victim, abilityId);
+            addStolenAbility(killer, abilityId);
+        }
     }
 
     public static void startMimicForm(ServerPlayerEntity player, int durationTicks) {
@@ -803,15 +813,20 @@ public final class SpySystem {
     }
 
     private static void restoreStolenBy(ServerPlayerEntity victim, UUID thief) {
+        restoreStolenByInternal(victim, thief);
+    }
+
+    private static List<Identifier> restoreStolenByInternal(ServerPlayerEntity victim, UUID thief) {
         if (thief == null) {
-            return;
+            return List.of();
         }
         NbtCompound root = persistent(victim);
         NbtCompound stolenBy = root.getCompound(KEY_STOLEN_BY).orElse(null);
         if (stolenBy == null) {
-            return;
+            return List.of();
         }
         boolean changed = false;
+        List<Identifier> recovered = new ArrayList<>();
         for (String key : java.util.List.copyOf(stolenBy.getKeys())) {
             UUID recorded = GemsNbt.toUuid(stolenBy.get(key));
             if (recorded == null) {
@@ -823,6 +838,7 @@ public final class SpySystem {
             Identifier abilityId = Identifier.tryParse(key);
             if (abilityId != null) {
                 AbilityDisables.enable(victim, abilityId);
+                recovered.add(abilityId);
             }
             stolenBy.remove(key);
             changed = true;
@@ -835,6 +851,67 @@ public final class SpySystem {
         if (changed) {
             victim.sendMessage(Text.translatable("gems.spy.recovered_stolen"), true);
         }
+        return recovered;
+    }
+
+    private static void addStolenAbility(ServerPlayerEntity player, Identifier abilityId) {
+        if (player == null || abilityId == null) {
+            return;
+        }
+        NbtCompound nbt = persistent(player);
+        NbtList list = nbt.getList(KEY_STOLEN).orElse(new NbtList());
+        String raw = abilityId.toString();
+        for (int i = 0; i < list.size(); i++) {
+            if (raw.equals(list.getString(i))) {
+                return;
+            }
+        }
+        list.add(NbtString.of(raw));
+        nbt.put(KEY_STOLEN, list);
+        if (nbt.getInt(KEY_STOLEN_SELECTED, -1) < 0) {
+            nbt.putInt(KEY_STOLEN_SELECTED, 0);
+        }
+    }
+
+    private static void removeStolenAbility(ServerPlayerEntity player, Identifier abilityId) {
+        if (player == null || abilityId == null) {
+            return;
+        }
+        NbtCompound nbt = persistent(player);
+        NbtList list = nbt.getList(KEY_STOLEN).orElse(null);
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        String raw = abilityId.toString();
+        int removedIndex = -1;
+        NbtList next = new NbtList();
+        for (int i = 0; i < list.size(); i++) {
+            String entry = list.getString(i, "");
+            if (raw.equals(entry)) {
+                if (removedIndex < 0) {
+                    removedIndex = i;
+                }
+                continue;
+            }
+            next.add(NbtString.of(entry));
+        }
+        if (removedIndex < 0) {
+            return;
+        }
+        if (next.isEmpty()) {
+            nbt.remove(KEY_STOLEN);
+            nbt.remove(KEY_STOLEN_SELECTED);
+            return;
+        }
+        nbt.put(KEY_STOLEN, next);
+        int selected = nbt.getInt(KEY_STOLEN_SELECTED, 0);
+        if (selected > removedIndex) {
+            selected--;
+        }
+        if (selected < 0 || selected >= next.size()) {
+            selected = 0;
+        }
+        nbt.putInt(KEY_STOLEN_SELECTED, selected);
     }
 
     private static NbtCompound persistent(ServerPlayerEntity player) {

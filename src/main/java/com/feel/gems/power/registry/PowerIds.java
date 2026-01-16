@@ -161,7 +161,9 @@ public final class PowerIds {
     public static final Identifier SUMMON_RECALL = id("summon_recall");
 
     // Space (new)
-    public static final Identifier SPACE_ORBITAL_LASER = id("space_orbital_laser");
+    // Space
+    public static final Identifier SPACE_ORBITAL_LASER = id("space_orbital_laser"); // damage (legacy id)
+    public static final Identifier SPACE_ORBITAL_LASER_MINING = id("space_orbital_laser_mining");
     public static final Identifier SPACE_GRAVITY_FIELD = id("space_gravity_field");
     public static final Identifier SPACE_BLACK_HOLE = id("space_black_hole");
     public static final Identifier SPACE_WHITE_HOLE = id("space_white_hole");

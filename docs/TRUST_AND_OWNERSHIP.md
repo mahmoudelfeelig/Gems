@@ -27,5 +27,5 @@ If another player activates a gem that belongs to you (ownership theft), severe 
 1. **Instant death** – you are killed immediately.
 2. **No heart drop** – your heart does not drop for anyone to claim.
 3. **Max hearts reduced by 2** – your maximum health permanently decreases.
-x
+
 This makes guarding your gem critical. Gems in item frames, chests, or dropped on the ground can still be stolen and activated by enemies.

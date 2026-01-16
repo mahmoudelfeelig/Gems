@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -17,7 +16,7 @@ import net.minecraft.util.Identifier;
 /**
  * Client UI for selecting observed Spy abilities for Echo/Steal.
  */
-public final class SpyObservedSelectionScreen extends Screen {
+public final class SpyObservedSelectionScreen extends GemsScreenBase {
     private final List<SpyObservedScreenPayload.ObservedEntry> entries;
     private final Identifier selectedId;
     private int page = 0;
@@ -116,7 +115,7 @@ public final class SpyObservedSelectionScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         int centerX = this.width / 2;
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, centerX, TITLE_Y, COLOR_WHITE);
+        renderBase(context);
         context.drawCenteredTextWithShadow(this.textRenderer,
                 Text.translatable("gems.screen.spy_observed.subtitle"),
                 centerX, SUBTITLE_Y, COLOR_GRAY);

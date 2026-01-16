@@ -2,6 +2,16 @@
 
 Passives and abilities are gated by energy. For progression rules, see `docs/PROGRESSION.md`.
 
+## Gem augments
+
+- Craftable items that add modifiers to gem abilities/passives.
+- Augments require a player head and unique ingredients.
+- Gems have up to 4 augment slots (default), with 3 rarity tiers (default).
+- Rarity affects strength/roll ranges; conflicts prevent incompatible combos.
+- Slot counts, rarity tiers, roll weights, and magnitudes are configurable.
+- Apply a gem augment by right-clicking while the augment is in your hand.
+- Each augment rolls a rarity on craft; the rolled rarity scales its strength.
+
 ## Gems
 
 ### Astra Gem
@@ -166,7 +176,8 @@ Passives:
 - Starshield: reduced projectile damage outdoors at night.
 
 Abilities:
-- Orbital Laser: strike the block you're looking at; sneak for mining mode.
+- Orbital Laser (Damage): strike the block you're looking at with a damage beam.
+- Orbital Laser (Mining): strike the block you're looking at with a mining beam.
 - Gravity Field: lighten trusted allies and weigh down enemies.
 - Black Hole: pull and damage entities in an area.
 - White Hole: push and damage entities in an area.

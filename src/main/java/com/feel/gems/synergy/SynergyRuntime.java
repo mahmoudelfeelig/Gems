@@ -1,0 +1,313 @@
+package com.feel.gems.synergy;
+
+import com.feel.gems.config.GemsBalance;
+import com.feel.gems.core.GemId;
+import com.feel.gems.trust.GemTrust;
+import com.feel.gems.util.GemsTickScheduler;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
+
+/**
+ * Runtime for tracking and triggering team synergies.
+ * Synergies trigger when two or more different gem abilities are cast within a short window.
+ * Works across trusted allies or for multi-gem players (Prism).
+ */
+@SuppressWarnings("unused")
+public final class SynergyRuntime {
+    // Recent ability casts: player UUID -> list of recent casts
+    private static final Map<UUID, List<RecentCast>> RECENT_CASTS = new ConcurrentHashMap<>();
+
+    // Synergy cooldowns: synergy ID -> (player group hash -> next allowed tick)
+    private static final Map<String, Map<Integer, Long>> SYNERGY_COOLDOWNS = new ConcurrentHashMap<>();
+
+    private SynergyRuntime() {
+    }
+
+    /**
+     * Record of a recent ability cast for synergy tracking.
+     */
+    public record RecentCast(
+            UUID playerId,
+            GemId gem,
+            Identifier abilityId,
+            long castTick
+    ) {}
+
+    // ========== Ability Cast Registration ==========
+
+    /**
+     * Called when a player casts an ability.
+     * Tracks the cast for potential synergy combos.
+     */
+    public static void onAbilityCast(ServerPlayerEntity player, GemId gem, Identifier abilityId) {
+        if (!GemsBalance.v().synergies().enabled()) {
+            return;
+        }
+
+        long now = player.getEntityWorld().getTime();
+        UUID playerId = player.getUuid();
+
+        // Add this cast to recent casts
+        RECENT_CASTS.computeIfAbsent(playerId, k -> new ArrayList<>())
+                .add(new RecentCast(playerId, gem, abilityId, now));
+
+        // Check for synergies
+        checkSynergies(player, now);
+    }
+
+    /**
+     * Check for synergies involving the player and their trusted allies.
+     */
+    private static void checkSynergies(ServerPlayerEntity player, long now) {
+        MinecraftServer server = player.getEntityWorld().getServer();
+        if (server == null) {
+            return;
+        }
+
+        // Collect all recent casts from player and trusted allies
+        List<RecentCast> allRecentCasts = new ArrayList<>();
+        Set<UUID> checkedPlayers = new HashSet<>();
+
+        // Add player's casts
+        collectRecentCasts(player.getUuid(), now, allRecentCasts);
+        checkedPlayers.add(player.getUuid());
+
+        // Add trusted allies' casts
+        for (UUID trustedId : GemTrust.getTrusted(player)) {
+            if (!checkedPlayers.contains(trustedId)) {
+                collectRecentCasts(trustedId, now, allRecentCasts);
+                checkedPlayers.add(trustedId);
+            }
+        }
+
+        // Also check other online players who trust this player
+        for (ServerPlayerEntity other : server.getPlayerManager().getPlayerList()) {
+            if (!checkedPlayers.contains(other.getUuid()) && GemTrust.isTrusted(other, player)) {
+                collectRecentCasts(other.getUuid(), now, allRecentCasts);
+                checkedPlayers.add(other.getUuid());
+            }
+        }
+
+        if (allRecentCasts.size() < 2) {
+            return; // Need at least 2 casts for a synergy
+        }
+
+            // Check each registered synergy
+            for (SynergyDefinition synergy : SynergyRegistry.getAll()) {
+                checkSynergyMatch(synergy, allRecentCasts, server, now);
+            }
+    }
+
+    private static void collectRecentCasts(UUID playerId, long now, List<RecentCast> out) {
+        List<RecentCast> casts = RECENT_CASTS.get(playerId);
+        if (casts == null) {
+            return;
+        }
+
+        int windowTicks = GemsBalance.v().synergies().windowTicks();
+        long cutoff = now - windowTicks;
+
+        // Remove old casts and collect valid ones
+        casts.removeIf(cast -> cast.castTick() < cutoff);
+
+        out.addAll(casts);
+    }
+
+    private static void checkSynergyMatch(
+            SynergyDefinition synergy,
+            List<RecentCast> allRecentCasts,
+            MinecraftServer server,
+            long now
+    ) {
+        Set<GemId> requiredGems = synergy.requiredGems();
+
+        // Group casts by gem
+        Map<GemId, List<RecentCast>> castsByGem = new EnumMap<>(GemId.class);
+        for (RecentCast cast : allRecentCasts) {
+            if (requiredGems.contains(cast.gem())) {
+                castsByGem.computeIfAbsent(cast.gem(), k -> new ArrayList<>()).add(cast);
+            }
+        }
+
+        // Check if all required gems have at least one cast
+        if (!castsByGem.keySet().containsAll(requiredGems)) {
+            return;
+        }
+
+        // For ability-specific synergies, also check that the required abilities were cast
+        if (synergy.isAbilitySpecific()) {
+            Set<Identifier> requiredAbilities = synergy.requiredAbilities().orElse(Set.of());
+            Set<Identifier> castAbilities = new HashSet<>();
+            for (RecentCast cast : allRecentCasts) {
+                castAbilities.add(cast.abilityId());
+            }
+            if (!castAbilities.containsAll(requiredAbilities)) {
+                return; // Not all required abilities were cast
+            }
+        }
+
+        // Collect participants (one per gem, most recent cast - preferring required abilities)
+        List<SynergyDefinition.SynergyParticipant> participants = new ArrayList<>();
+        Set<UUID> participantIds = new HashSet<>();
+
+        for (GemId gem : requiredGems) {
+            List<RecentCast> castsForGem = castsByGem.get(gem);
+            if (castsForGem == null || castsForGem.isEmpty()) {
+                return;
+            }
+
+            // For ability-specific synergies, prefer casts with required abilities
+            RecentCast recentCast;
+            if (synergy.isAbilitySpecific()) {
+                Set<Identifier> requiredAbilities = synergy.requiredAbilities().orElse(Set.of());
+                recentCast = castsForGem.stream()
+                        .filter(c -> requiredAbilities.contains(c.abilityId()))
+                        .max(Comparator.comparingLong(RecentCast::castTick))
+                        .orElse(null);
+            } else {
+                recentCast = castsForGem.stream()
+                        .max(Comparator.comparingLong(RecentCast::castTick))
+                        .orElse(null);
+            }
+
+            if (recentCast == null) {
+                return;
+            }
+
+            ServerPlayerEntity participant = server.getPlayerManager().getPlayer(recentCast.playerId());
+            if (participant == null) {
+                return;
+            }
+
+            participants.add(new SynergyDefinition.SynergyParticipant(
+                    participant,
+                    recentCast.gem(),
+                    recentCast.abilityId(),
+                    recentCast.castTick()
+            ));
+            participantIds.add(recentCast.playerId());
+        }
+
+        // Check cooldown
+        int groupHash = participantIds.hashCode();
+        Map<Integer, Long> cooldowns = SYNERGY_COOLDOWNS.computeIfAbsent(synergy.id(), k -> new ConcurrentHashMap<>());
+        Long nextAllowed = cooldowns.get(groupHash);
+        if (nextAllowed != null && now < nextAllowed) {
+            return; // Still on cooldown for this player group
+        }
+
+        // Enforce mutual trust for multi-player synergies
+        if (!areMutuallyTrusted(participants)) {
+            return;
+        }
+
+        // Trigger the synergy!
+        triggerSynergy(synergy, participants);
+
+        // Set cooldown
+        int cooldownTicks = GemsBalance.v().synergies().cooldownTicks();
+        cooldowns.put(groupHash, now + cooldownTicks);
+
+        // Clear consumed casts
+        for (SynergyDefinition.SynergyParticipant p : participants) {
+            List<RecentCast> casts = RECENT_CASTS.get(p.player().getUuid());
+            if (casts != null) {
+                casts.removeIf(c -> c.gem() == p.gem() && c.castTick() == p.castTick());
+            }
+        }
+    }
+
+    private static void triggerSynergy(
+            SynergyDefinition synergy,
+            List<SynergyDefinition.SynergyParticipant> participants
+    ) {
+        // Apply the synergy effect
+        synergy.effect().apply(participants);
+
+        // Notify all participants if notifications are enabled
+        if (GemsBalance.v().synergies().showNotifications()) {
+            Text message = Text.translatable("gems.synergy.triggered", Text.translatable(synergy.translationKey()))
+                    .formatted(Formatting.GOLD, Formatting.BOLD);
+
+            for (SynergyDefinition.SynergyParticipant p : participants) {
+                // Action bar HUD feedback for ~3 seconds
+                sendActionBarForDuration(p.player(), message, 60);
+                // Light VFX/SFX feedback
+                var world = p.player().getEntityWorld();
+                world.spawnParticles(net.minecraft.particle.ParticleTypes.END_ROD,
+                        p.player().getX(), p.player().getY() + 1.0, p.player().getZ(),
+                        18, 0.6, 0.4, 0.6, 0.02);
+                com.feel.gems.power.runtime.AbilityFeedback.sound(
+                    p.player(),
+                    net.minecraft.sound.SoundEvents.BLOCK_BEACON_POWER_SELECT,
+                    0.7f,
+                    1.1f
+                );
+            }
+        }
+    }
+
+    private static void sendActionBarForDuration(ServerPlayerEntity player, Text message, int durationTicks) {
+        player.sendMessage(message, true);
+        MinecraftServer server = player.getEntityWorld().getServer();
+        if (server == null) {
+            return;
+        }
+        int interval = 20;
+        int repeats = Math.max(0, (durationTicks / interval) - 1);
+        for (int i = 1; i <= repeats; i++) {
+            int delay = i * interval;
+            GemsTickScheduler.schedule(server, delay, srv -> {
+                if (!player.isAlive()) {
+                    return;
+                }
+                player.sendMessage(message, true);
+            });
+        }
+    }
+
+    private static boolean areMutuallyTrusted(List<SynergyDefinition.SynergyParticipant> participants) {
+        if (participants.size() < 2) {
+            return true;
+        }
+        for (int i = 0; i < participants.size(); i++) {
+            ServerPlayerEntity a = participants.get(i).player();
+            for (int j = i + 1; j < participants.size(); j++) {
+                ServerPlayerEntity b = participants.get(j).player();
+                if (a.getUuid().equals(b.getUuid())) {
+                    continue;
+                }
+                if (!GemTrust.isTrusted(a, b) || !GemTrust.isTrusted(b, a)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // ========== Cleanup ==========
+
+    /**
+     * Clean up old casts periodically.
+     */
+    public static void cleanup(long currentTick) {
+        int windowTicks = GemsBalance.v().synergies().windowTicks();
+        long cutoff = currentTick - windowTicks - 100; // Extra buffer
+
+        RECENT_CASTS.values().forEach(casts -> casts.removeIf(cast -> cast.castTick() < cutoff));
+        RECENT_CASTS.entrySet().removeIf(e -> e.getValue().isEmpty());
+    }
+
+    /**
+     * Clear all synergy state (for server stop/reload).
+     */
+    public static void clearAll() {
+        RECENT_CASTS.clear();
+        SYNERGY_COOLDOWNS.clear();
+    }
+}

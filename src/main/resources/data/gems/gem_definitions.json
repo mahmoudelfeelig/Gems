@@ -172,6 +172,7 @@
       ],
       "abilities": [
         "gems:space_orbital_laser",
+        "gems:space_orbital_laser_mining",
         "gems:space_gravity_field",
         "gems:space_black_hole",
         "gems:space_white_hole"

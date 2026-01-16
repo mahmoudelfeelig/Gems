@@ -57,16 +57,16 @@ public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
         int centerX = this.width / 2;
         int panelWidth = Math.min(340, this.width - 32);
 
-        titleY = 12;
-        hintY = 28;
+        titleY = 24;
+        hintY = 40;
 
         panelLeft = centerX - (panelWidth / 2);
         panelRight = centerX + (panelWidth / 2);
-        panelTop = 6;
-        panelBottom = this.height - 6;
+        panelTop = 18;
+        panelBottom = this.height - 18;
 
-        int bottomY = this.height - 44;
-        int listTop = 54;
+        int bottomY = panelBottom - 44;
+        int listTop = hintY + 22;
         int availableListHeight = Math.max(ROW_HEIGHT, bottomY - listTop - 10);
         entriesPerPage = Math.max(1, Math.min(10, availableListHeight / ROW_HEIGHT));
 

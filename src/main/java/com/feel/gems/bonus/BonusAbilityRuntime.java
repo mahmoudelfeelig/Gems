@@ -12,7 +12,9 @@ import com.feel.gems.power.runtime.AbilityDisables;
 import com.feel.gems.power.runtime.AbilityRestrictions;
 import com.feel.gems.power.runtime.GemAbilityCooldowns;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.stats.GemsStats;
 import com.feel.gems.util.GemsTime;
+import com.feel.gems.util.GemsTickScheduler;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -20,6 +22,9 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Set;
 
 /**
@@ -29,6 +34,8 @@ import java.util.Set;
 public final class BonusAbilityRuntime {
     /** Ability index offset for bonus abilities in cooldown sync messages. */
     public static final int BONUS_ABILITY_INDEX_OFFSET = 100;
+
+    private static final Map<UUID, PendingBonusCast> PENDING_CASTS = new ConcurrentHashMap<>();
 
     private BonusAbilityRuntime() {
     }
@@ -58,17 +65,12 @@ public final class BonusAbilityRuntime {
         if (server == null) return;
 
         BonusClaimsState claims = BonusClaimsState.get(server);
-        Set<Identifier> playerAbilities = claims.getPlayerAbilities(player.getUuid());
+        List<Identifier> abilityList = claims.getPlayerAbilityOrder(player.getUuid());
 
-        if (playerAbilities.isEmpty()) {
+        if (abilityList.isEmpty()) {
             player.sendMessage(Text.translatable("gems.bonus.no_abilities_claimed"), true);
             return;
         }
-
-        // Convert set to ordered list for consistent slot access
-        List<Identifier> abilityList = playerAbilities.stream()
-                .sorted()
-                .toList();
 
         if (slotIndex < 0 || slotIndex >= abilityList.size()) {
             player.sendMessage(Text.translatable("gems.bonus.invalid_slot"), true);
@@ -76,6 +78,14 @@ public final class BonusAbilityRuntime {
         }
 
         Identifier abilityId = abilityList.get(slotIndex);
+
+        activateByAbility(player, abilityId, slotIndex, true);
+    }
+
+    private static void activateByAbility(ServerPlayerEntity player, Identifier abilityId, int slotIndex, boolean allowQueue) {
+        if (abilityId == null) {
+            return;
+        }
 
         if (GemsDisables.isBonusAbilityDisabledFor(player, abilityId)) {
             player.sendMessage(Text.translatable("gems.bonus.ability_disabled"), true);
@@ -98,7 +108,11 @@ public final class BonusAbilityRuntime {
             long nextAllowed = GemAbilityCooldowns.nextAllowedTick(player, abilityId);
             if (nextAllowed > now) {
                 long remainingTicks = nextAllowed - now;
-                player.sendMessage(Text.translatable("gems.ability.on_cooldown", ability.name(), ticksToSeconds(remainingTicks)), true);
+                if (allowQueue) {
+                    queueBonusCast(player, abilityId, remainingTicks);
+                } else {
+                    player.sendMessage(Text.translatable("gems.ability.on_cooldown", ability.name(), ticksToSeconds(remainingTicks)), true);
+                }
                 return;
             }
         }
@@ -107,6 +121,10 @@ public final class BonusAbilityRuntime {
         if (!ok) {
             return;
         }
+
+        clearPendingCast(player.getUuid(), abilityId);
+
+        GemsStats.recordAbilityUse(player, abilityId);
 
         com.feel.gems.power.gem.trickster.TricksterPassiveRuntime.applyChaosEffect(player);
 
@@ -120,6 +138,62 @@ public final class BonusAbilityRuntime {
             com.feel.gems.net.GemStateSync.sendBonusAbilitiesSync(player);
         }
     }
+
+    private static void queueBonusCast(ServerPlayerEntity player, Identifier abilityId, long remainingTicks) {
+        MinecraftServer server = player.getEntityWorld().getServer();
+        if (server == null || remainingTicks <= 0) {
+            return;
+        }
+
+        PendingBonusCast existing = PENDING_CASTS.remove(player.getUuid());
+        if (existing != null) {
+            existing.handle().cancel();
+        }
+
+        int delay = (int) Math.min(Integer.MAX_VALUE, Math.max(1, remainingTicks));
+        GemsTickScheduler.Handle handle = GemsTickScheduler.schedule(server, delay, s -> tryActivateQueued(s, player.getUuid(), abilityId));
+        PENDING_CASTS.put(player.getUuid(), new PendingBonusCast(abilityId, handle));
+        GemAbility ability = ModAbilities.get(abilityId);
+        String name = ability != null ? ability.name() : abilityId.toString();
+        player.sendMessage(Text.translatable("gems.bonus.queued", name), true);
+    }
+
+    private static void tryActivateQueued(MinecraftServer server, UUID playerId, Identifier abilityId) {
+        PendingBonusCast pending = PENDING_CASTS.get(playerId);
+        if (pending == null || !pending.abilityId().equals(abilityId)) {
+            return;
+        }
+
+        ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerId);
+        if (player == null) {
+            PENDING_CASTS.remove(playerId);
+            return;
+        }
+
+        BonusClaimsState claims = BonusClaimsState.get(server);
+        List<Identifier> abilityList = claims.getPlayerAbilityOrder(player.getUuid());
+        if (!abilityList.contains(abilityId)) {
+            PENDING_CASTS.remove(playerId);
+            return;
+        }
+        int slotIndex = abilityList.indexOf(abilityId);
+        if (slotIndex < 0) {
+            PENDING_CASTS.remove(playerId);
+            return;
+        }
+
+        activateByAbility(player, abilityId, slotIndex, false);
+    }
+
+    private static void clearPendingCast(UUID playerId, Identifier abilityId) {
+        PendingBonusCast pending = PENDING_CASTS.get(playerId);
+        if (pending != null && pending.abilityId().equals(abilityId)) {
+            pending.handle().cancel();
+            PENDING_CASTS.remove(playerId);
+        }
+    }
+
+    private record PendingBonusCast(Identifier abilityId, GemsTickScheduler.Handle handle) {}
 
     private static int ticksToSeconds(long ticks) {
         if (ticks <= 0) {

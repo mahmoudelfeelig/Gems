@@ -1,8 +1,11 @@
 package com.feel.gems.screen;
 
 import com.feel.gems.core.GemId;
+import com.feel.gems.legendary.GemSeerTracker;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.state.GemPlayerState;
 import java.util.Collections;
+import java.util.Comparator;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -16,6 +19,7 @@ import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -28,6 +32,7 @@ public final class GemSeerScreenHandler extends ScreenHandler {
     public record PlayerInfo(
             UUID uuid,
             String name,
+            boolean online,
             GemId activeGem,
             int energy,
             List<GemId> ownedGems
@@ -45,6 +50,7 @@ public final class GemSeerScreenHandler extends ScreenHandler {
             for (PlayerInfo info : players) {
                 buf.writeUuid(info.uuid());
                 buf.writeString(info.name(), 128);
+                buf.writeBoolean(info.online());
                 buf.writeString(info.activeGem().name(), 32);
                 buf.writeVarInt(info.energy());
                 List<GemId> owned = info.ownedGems() == null ? List.of() : info.ownedGems();
@@ -64,6 +70,7 @@ public final class GemSeerScreenHandler extends ScreenHandler {
             for (int i = 0; i < size; i++) {
                 UUID uuid = buf.readUuid();
                 String name = buf.readString(128);
+                boolean online = buf.readBoolean();
                 GemId activeGem = safeGemId(buf.readString(32), GemId.PUFF);
                 int energy = buf.readVarInt();
 
@@ -74,7 +81,7 @@ public final class GemSeerScreenHandler extends ScreenHandler {
                 for (int j = 0; j < ownedSize; j++) {
                     owned.add(safeGemId(buf.readString(32), GemId.PUFF));
                 }
-                players.add(new PlayerInfo(uuid, name, activeGem, energy, owned));
+                players.add(new PlayerInfo(uuid, name, online, activeGem, energy, owned));
             }
             return new OpeningData(players);
         }
@@ -128,6 +135,10 @@ public final class GemSeerScreenHandler extends ScreenHandler {
     }
 
     private void sendPlayerInfo(ServerPlayerEntity viewer, PlayerInfo info) {
+        if (SpySystem.hidesTracking(viewer.getEntityWorld().getServer(), info.uuid())) {
+            viewer.sendMessage(Text.translatable("gems.tracking.hidden"), true);
+            return;
+        }
         viewer.sendMessage(Text.empty(), false); // Blank line
         viewer.sendMessage(Text.translatable("gems.screen.gem_seer.header", info.name)
                 .formatted(Formatting.GOLD, Formatting.BOLD), false);
@@ -220,15 +231,44 @@ public final class GemSeerScreenHandler extends ScreenHandler {
         }
 
         List<PlayerInfo> infos = new ArrayList<>();
-        for (ServerPlayerEntity target : server.getPlayerManager().getPlayerList()) {
-            if (target.equals(viewer)) {
+        List<GemSeerTracker.Snapshot> snapshots = GemSeerTracker.knownSnapshots(server);
+        if (snapshots.isEmpty()) {
+            for (ServerPlayerEntity target : server.getPlayerManager().getPlayerList()) {
+                if (target.equals(viewer)) {
+                    continue;
+                }
+                if (SpySystem.hidesTracking(target)) {
+                    continue;
+                }
+                boolean online = true;
+                GemId activeGem = GemPlayerState.getActiveGem(target);
+                int energy = GemPlayerState.getEnergy(target);
+                List<GemId> ownedGems = new ArrayList<>(GemPlayerState.getOwnedGems(target));
+                infos.add(new PlayerInfo(target.getUuid(), target.getName().getString(), online, activeGem, energy, ownedGems));
+            }
+            infos.sort(Comparator.comparing(info -> info.name().toLowerCase(Locale.ROOT)));
+            return new OpeningData(Collections.unmodifiableList(infos));
+        }
+
+        for (GemSeerTracker.Snapshot snapshot : snapshots) {
+            if (snapshot == null || snapshot.uuid() == null || snapshot.name() == null) {
                 continue;
             }
-            GemId activeGem = GemPlayerState.getActiveGem(target);
-            int energy = GemPlayerState.getEnergy(target);
-            List<GemId> ownedGems = new ArrayList<>(GemPlayerState.getOwnedGems(target));
-            infos.add(new PlayerInfo(target.getUuid(), target.getName().getString(), activeGem, energy, ownedGems));
+            if (snapshot.uuid().equals(viewer.getUuid())) {
+                continue;
+            }
+            if (SpySystem.hidesTracking(server, snapshot.uuid())) {
+                continue;
+            }
+            boolean online = server.getPlayerManager().getPlayer(snapshot.uuid()) != null;
+            GemId activeGem = OpeningData.safeGemId(snapshot.activeGem(), GemId.PUFF);
+            List<GemId> owned = new ArrayList<>();
+            for (String raw : snapshot.ownedGems()) {
+                owned.add(OpeningData.safeGemId(raw, GemId.PUFF));
+            }
+            infos.add(new PlayerInfo(snapshot.uuid(), snapshot.name(), online, activeGem, snapshot.energy(), owned));
         }
+        infos.sort(Comparator.comparing(info -> info.name().toLowerCase(Locale.ROOT)));
         return new OpeningData(Collections.unmodifiableList(infos));
     }
 }

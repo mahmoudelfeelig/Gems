@@ -12,15 +12,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ServerPlayerEntityTitleMixin {
     @Inject(method = "getPlayerListName()Lnet/minecraft/text/Text;", at = @At("RETURN"), cancellable = true)
     private void gems$addTitleToListName(CallbackInfoReturnable<Text> cir) {
+        ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
         Text base = cir.getReturnValue();
         if (base == null) {
-            return;
+            base = player.getName();
         }
-        ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
         Text prefix = TitleDisplay.titlePrefix(player);
         if (prefix == null) {
             return;
         }
-        cir.setReturnValue(Text.empty().append(prefix).append(base));
+        cir.setReturnValue(TitleDisplay.withTitlePrefix(player, base));
     }
 }

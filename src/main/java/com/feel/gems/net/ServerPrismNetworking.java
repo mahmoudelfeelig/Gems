@@ -11,6 +11,7 @@ import com.feel.gems.power.api.GemPassive;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.power.registry.ModPassives;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.net.GemCooldownSync;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -269,6 +270,7 @@ public final class ServerPrismNetworking {
 
         GemStateSync.sendPrismAbilitiesSync(player);
         GemStateSync.sendBonusAbilitiesSync(player);
+        GemCooldownSync.send(player);
         com.feel.gems.power.runtime.GemPowers.sync(player);
 
         // Refresh the screen

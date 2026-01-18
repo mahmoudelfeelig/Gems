@@ -13,6 +13,7 @@ import net.minecraft.util.Identifier;
  */
 public record AugmentScreenPayload(
         String gemId,
+        boolean mainHand,
         List<AugmentEntry> augments,
         int maxSlots
 ) implements CustomPayload {
@@ -39,6 +40,7 @@ public record AugmentScreenPayload(
 
     private static void write(RegistryByteBuf buf, AugmentScreenPayload payload) {
         buf.writeString(payload.gemId(), 32);
+        buf.writeBoolean(payload.mainHand());
         buf.writeVarInt(payload.augments().size());
         for (AugmentEntry entry : payload.augments()) {
             buf.writeString(entry.id(), 64);
@@ -52,6 +54,7 @@ public record AugmentScreenPayload(
 
     private static AugmentScreenPayload read(RegistryByteBuf buf) {
         String gemId = buf.readString(32);
+        boolean mainHand = buf.readBoolean();
         int size = buf.readVarInt();
         List<AugmentEntry> augments = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
@@ -63,6 +66,6 @@ public record AugmentScreenPayload(
             augments.add(new AugmentEntry(id, name, description, rarity, magnitude));
         }
         int maxSlots = buf.readVarInt();
-        return new AugmentScreenPayload(gemId, augments, maxSlots);
+        return new AugmentScreenPayload(gemId, mainHand, augments, maxSlots);
     }
 }

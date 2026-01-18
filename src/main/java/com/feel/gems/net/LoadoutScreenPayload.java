@@ -18,6 +18,7 @@ public record LoadoutScreenPayload(
         int unlockEnergy,
         int maxPresets,
         int activeIndex,
+        List<Identifier> abilityOrder,
         List<Preset> presets
 ) implements CustomPayload {
     public static final Id<LoadoutScreenPayload> ID = new Id<>(Identifier.of(GemsMod.MOD_ID, "loadout_screen"));
@@ -46,6 +47,10 @@ public record LoadoutScreenPayload(
         buf.writeVarInt(payload.unlockEnergy());
         buf.writeVarInt(payload.maxPresets());
         buf.writeVarInt(payload.activeIndex());
+        buf.writeVarInt(payload.abilityOrder().size());
+        for (Identifier id : payload.abilityOrder()) {
+            buf.writeString(id.toString(), 128);
+        }
 
         List<Preset> list = payload.presets();
         buf.writeVarInt(list.size());
@@ -64,6 +69,11 @@ public record LoadoutScreenPayload(
         int unlockEnergy = buf.readVarInt();
         int maxPresets = buf.readVarInt();
         int activeIndex = buf.readVarInt();
+        int abilityCount = buf.readVarInt();
+        List<Identifier> abilityOrder = new ArrayList<>(abilityCount);
+        for (int i = 0; i < abilityCount; i++) {
+            abilityOrder.add(Identifier.of(buf.readString(128)));
+        }
 
         int size = buf.readVarInt();
         List<Preset> presets = new ArrayList<>(size);
@@ -79,6 +89,6 @@ public record LoadoutScreenPayload(
             boolean compactMode = buf.readBoolean();
             presets.add(new Preset(name, passivesEnabled, pos, showCooldowns, showEnergy, compactMode));
         }
-        return new LoadoutScreenPayload(gem, unlockEnergy, maxPresets, activeIndex, presets);
+        return new LoadoutScreenPayload(gem, unlockEnergy, maxPresets, activeIndex, abilityOrder, presets);
     }
 }

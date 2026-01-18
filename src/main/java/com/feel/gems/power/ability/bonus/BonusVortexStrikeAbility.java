@@ -65,7 +65,7 @@ public final class BonusVortexStrikeAbility implements GemAbility {
                 }
             }
             // Deal damage (avoid vanilla melee knockback fighting the pull).
-            entity.damage(world, world.getDamageSources().magic(), DAMAGE);
+            entity.damage(world, player.getDamageSources().indirectMagic(player, player), DAMAGE);
 
             // Pull toward player.
             Vec3d pullDir = player.getEntityPos().subtract(entity.getEntityPos()).normalize().multiply(PULL_STRENGTH);

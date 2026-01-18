@@ -55,6 +55,9 @@ public final class ChaosSlotRuntime {
         if (base <= 0) {
             return 0;
         }
+        if (com.feel.gems.admin.GemsAdmin.noCooldowns(player)) {
+            return 0;
+        }
         float mult = BonusPassiveRuntime.getCooldownMultiplier(player)
                 * LegendaryCooldowns.getCooldownMultiplier(player)
                 * com.feel.gems.augment.AugmentRuntime.cooldownMultiplier(player, GemId.CHAOS);
@@ -328,6 +331,52 @@ public final class ChaosSlotRuntime {
             ));
         }
         ServerPlayNetworking.send(player, new ChaosSlotPayload(slots));
+    }
+
+    public static boolean reduceCooldowns(ServerPlayerEntity player, float factor) {
+        if (factor >= 1.0F) {
+            return false;
+        }
+        ChaosPlayerState state = playerStates.get(player.getUuid());
+        if (state == null) {
+            return false;
+        }
+        long now = player.getEntityWorld().getTime();
+        int cooldownTicks = slotAbilityCooldownTicks(player);
+        if (cooldownTicks <= 0) {
+            return false;
+        }
+        boolean changed = false;
+        ChaosPlayerState updated = state;
+        for (int i = 0; i < slotCount(); i++) {
+            SlotState slot = updated.getSlot(i);
+            if (!slot.isActive(now)) {
+                continue;
+            }
+            long elapsed = now - slot.lastAbilityUseTick;
+            int remaining = (int) Math.max(0, cooldownTicks - elapsed);
+            if (remaining <= 0) {
+                continue;
+            }
+            int reducedRemaining = (int) Math.ceil(remaining * factor);
+            long newLastUse = now - (cooldownTicks - reducedRemaining);
+            if (newLastUse > slot.lastAbilityUseTick) {
+                updated = updated.withSlot(i, new SlotState(
+                        slot.abilityId,
+                        slot.abilityName,
+                        slot.passiveId,
+                        slot.passiveName,
+                        slot.activationTick,
+                        newLastUse
+                ));
+                changed = true;
+            }
+        }
+        if (changed) {
+            playerStates.put(player.getUuid(), updated);
+            syncAllToClient(player, updated, now);
+        }
+        return changed;
     }
 
     private static Identifier pickRandomAbility(net.minecraft.util.math.random.Random random) {

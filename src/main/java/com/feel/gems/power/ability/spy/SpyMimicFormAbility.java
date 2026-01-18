@@ -22,7 +22,7 @@ public final class SpyMimicFormAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Temporarily gain extra speed/health based on your last killed mob.";
+        return "Temporarily gain bonus health, attack, and speed based on your last killed mob.";
     }
 
     @Override

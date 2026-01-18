@@ -18,6 +18,11 @@ public final class SpeedMomentum {
         double vx = player.getVelocity().x;
         double vz = player.getVelocity().z;
         double speed = Math.sqrt(vx * vx + vz * vz);
+        if (speed <= 1.0E-4D) {
+            double dx = player.getX() - player.lastX;
+            double dz = player.getZ() - player.lastZ;
+            speed = Math.sqrt(dx * dx + dz * dz);
+        }
         double t = (speed - minSpeed) / (maxSpeed - minSpeed);
         if (t <= 0.0D) {
             return 0.0F;

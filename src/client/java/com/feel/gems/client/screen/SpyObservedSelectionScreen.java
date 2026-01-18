@@ -60,13 +60,14 @@ public final class SpyObservedSelectionScreen extends GemsScreenBase {
 
                 Formatting color = entry.canSteal() ? Formatting.GREEN : (entry.canEcho() ? Formatting.AQUA : Formatting.GRAY);
                 if (isSelected) {
-                    labelText = "\u2714 " + labelText;
+                    color = Formatting.GOLD;
                 }
                 Text label = Text.literal(labelText).formatted(color);
 
-                addDrawableChild(ButtonWidget.builder(label, btn -> select(entry.id()))
+                ButtonWidget button = addDrawableChild(ButtonWidget.builder(label, btn -> select(entry.id()))
                         .dimensions(entryX, y + (i - start) * (BUTTON_HEIGHT + SPACING), panelW, BUTTON_HEIGHT)
                         .build());
+                button.active = entry.canEcho() || entry.canSteal();
             }
         }
 

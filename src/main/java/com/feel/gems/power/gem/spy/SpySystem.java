@@ -4,6 +4,7 @@ import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.config.GemsDisables;
 import com.feel.gems.core.GemId;
+import com.feel.gems.legendary.GemSeerTracker;
 import com.feel.gems.net.SpySkinshiftPayload;
 import com.feel.gems.power.gem.astra.SoulSummons;
 import com.feel.gems.power.registry.PowerIds;
@@ -25,6 +26,9 @@ import java.util.Set;
 import java.util.UUID;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.attribute.DefaultAttributeContainer;
+import net.minecraft.entity.attribute.DefaultAttributeRegistry;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -40,6 +44,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 
@@ -71,6 +76,7 @@ public final class SpySystem {
 
     private static final Identifier MOD_MIMIC_MAX_HEALTH = Identifier.of("gems", "spy_mimic_max_health");
     private static final Identifier MOD_MIMIC_SPEED = Identifier.of("gems", "spy_mimic_speed");
+    private static final Identifier MOD_MIMIC_ATTACK = Identifier.of("gems", "spy_mimic_attack");
 
     private static final Set<Identifier> SPY_ABILITIES = Set.of(
             PowerIds.SPY_MIMIC_FORM,
@@ -82,6 +88,7 @@ public final class SpySystem {
     );
 
     public record ObservedAbility(Identifier id, int count, long lastSeen) {}
+    private record MimicBonuses(float bonusHealth, float bonusAttack) {}
 
     // Cache of online players currently eligible for Spy logic to avoid scanning everyone on each observed ability use.
     private static final Set<UUID> ACTIVE_SPIES = new HashSet<>();
@@ -94,7 +101,7 @@ public final class SpySystem {
         int deaths = nbt.getInt(KEY_DEATHS, 0);
         nbt.putInt(KEY_DEATHS, deaths + 1);
 
-        // Dying clears observation progress windows.
+        // Dying clears observation progress.
         nbt.remove(KEY_LAST_SEEN_ABILITY);
         nbt.remove(KEY_LAST_SEEN_AT);
         nbt.remove(KEY_LAST_SEEN_CASTER);
@@ -136,7 +143,6 @@ public final class SpySystem {
         long now = GemsTime.now(caster);
         int range = GemsBalance.v().spy().observeRangeBlocks();
         double rangeSq = range * (double) range;
-        int window = GemsBalance.v().spy().observeWindowTicks();
 
         // If the cache is empty, do a full scan so cold starts still record observations.
         if (ACTIVE_SPIES.isEmpty()) {
@@ -144,7 +150,7 @@ public final class SpySystem {
                 if (spy == caster) {
                     continue;
                 }
-                if (observeIfEligible(spy, caster, abilityId, now, rangeSq, window)) {
+                if (observeIfEligible(spy, caster, abilityId, now, rangeSq)) {
                     ACTIVE_SPIES.add(spy.getUuid());
                 }
             }
@@ -160,7 +166,7 @@ public final class SpySystem {
                 iter.remove();
                 continue;
             }
-            if (!observeIfEligible(spy, caster, abilityId, now, rangeSq, window)) {
+            if (!observeIfEligible(spy, caster, abilityId, now, rangeSq)) {
                 iter.remove();
             }
         }
@@ -170,7 +176,7 @@ public final class SpySystem {
             if (spy == caster || ACTIVE_SPIES.contains(spy.getUuid())) {
                 continue;
             }
-            if (observeIfEligible(spy, caster, abilityId, now, rangeSq, window)) {
+            if (observeIfEligible(spy, caster, abilityId, now, rangeSq)) {
                 ACTIVE_SPIES.add(spy.getUuid());
             }
         }
@@ -181,14 +187,14 @@ public final class SpySystem {
                 if (spy == caster) {
                     continue;
                 }
-                if (observeIfEligible(spy, caster, abilityId, now, rangeSq, window)) {
+                if (observeIfEligible(spy, caster, abilityId, now, rangeSq)) {
                     ACTIVE_SPIES.add(spy.getUuid());
                 }
             }
         }
     }
 
-    private static void recordObservation(ServerPlayerEntity spy, ServerPlayerEntity caster, Identifier abilityId, long now, int windowTicks) {
+    private static void recordObservation(ServerPlayerEntity spy, ServerPlayerEntity caster, Identifier abilityId, long now) {
         NbtCompound nbt = persistent(spy);
         nbt.putString(KEY_LAST_SEEN_ABILITY, abilityId.toString());
         nbt.putLong(KEY_LAST_SEEN_AT, now);
@@ -202,10 +208,12 @@ public final class SpySystem {
 
         int recEpoch = rec.getInt("epoch", 0);
         long first = rec.getLong("first", 0L);
-        long last = rec.getLong("last", 0L);
         int count = rec.getInt("count", 0);
-        if (recEpoch != epoch || first <= 0 || now - first > windowTicks || now - last > windowTicks) {
+        if (recEpoch != epoch) {
             count = 0;
+            first = now;
+        }
+        if (first <= 0) {
             first = now;
         }
         count++;
@@ -295,8 +303,13 @@ public final class SpySystem {
         if (abilityId == null) {
             return false;
         }
-        NbtCompound observed = persistent(player).getCompound(KEY_OBSERVED).orElse(null);
-        if (observed == null || !observed.contains(abilityId.toString())) {
+        ObservedAbility observed = observedAbility(player, abilityId);
+        if (observed == null) {
+            return false;
+        }
+        boolean canEcho = canEcho(player, abilityId);
+        boolean canSteal = canSteal(player, abilityId);
+        if (!canEcho && !canSteal) {
             return false;
         }
         persistent(player).putString(KEY_OBSERVED_SELECTED, abilityId.toString());
@@ -317,9 +330,22 @@ public final class SpySystem {
         return abilityId != null && SPY_ABILITIES.contains(abilityId);
     }
 
-    public static boolean canSteal(ServerPlayerEntity player, Identifier abilityId, long now) {
+    public static boolean canEcho(ServerPlayerEntity player, Identifier abilityId) {
+        if (abilityId == null) {
+            return false;
+        }
+        if (!isEchoableAbility(abilityId)) {
+            return false;
+        }
+        ObservedAbility observed = observedAbility(player, abilityId);
+        return observed != null && observed.count() > 0;
+    }
+
+    public static boolean canSteal(ServerPlayerEntity player, Identifier abilityId) {
+        if (abilityId == null) {
+            return false;
+        }
         int required = GemsBalance.v().spy().stealRequiredWitnessCount();
-        int window = GemsBalance.v().spy().observeWindowTicks();
         int count = witnessedCount(player, abilityId);
         if (count < required) {
             return false;
@@ -338,11 +364,47 @@ public final class SpySystem {
             return false;
         }
         long last = rec.getLong("last", 0L);
-        return last > 0 && now - last <= window;
+        return last > 0;
+    }
+
+    public static boolean consumeObservedCount(ServerPlayerEntity player, Identifier abilityId, int amount) {
+        if (player == null || abilityId == null || amount <= 0) {
+            return false;
+        }
+        NbtCompound nbt = persistent(player);
+        NbtCompound observed = nbt.getCompound(KEY_OBSERVED).orElse(null);
+        if (observed == null) {
+            return false;
+        }
+        String key = abilityId.toString();
+        NbtCompound rec = observed.getCompound(key).orElse(null);
+        if (rec == null) {
+            return false;
+        }
+        int count = rec.getInt("count", 0);
+        if (count < amount) {
+            return false;
+        }
+        int remaining = count - amount;
+        if (remaining <= 0) {
+            observed.remove(key);
+            if (observed.isEmpty()) {
+                nbt.remove(KEY_OBSERVED);
+            } else {
+                nbt.put(KEY_OBSERVED, observed);
+            }
+            if (key.equals(nbt.getString(KEY_OBSERVED_SELECTED, ""))) {
+                nbt.remove(KEY_OBSERVED_SELECTED);
+            }
+        } else {
+            rec.putInt("count", remaining);
+            observed.put(key, rec);
+            nbt.put(KEY_OBSERVED, observed);
+        }
+        return true;
     }
 
     public static boolean stealLastSeen(ServerPlayerEntity spy) {
-        long now = GemsTime.now(spy);
         Identifier abilityId = selectedObservedAbility(spy);
         if (abilityId == null) {
             abilityId = lastSeenAbility(spy);
@@ -355,7 +417,7 @@ public final class SpySystem {
             spy.sendMessage(Text.translatable("gems.message.ability_disabled_server"), true);
             return false;
         }
-        if (!canSteal(spy, abilityId, now)) {
+        if (!canSteal(spy, abilityId)) {
             spy.sendMessage(Text.translatable("gems.spy.not_enough_observation"), true);
             return false;
         }
@@ -407,6 +469,7 @@ public final class SpySystem {
         }
 
         AbilityFeedback.sound(spy, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 0.8F, 1.3F);
+        consumeObservedCount(spy, abilityId, GemsBalance.v().spy().stealRequiredWitnessCount());
         spy.sendMessage(Text.translatable("gems.spy.stole_ability", raw), true);
         return true;
     }
@@ -488,14 +551,24 @@ public final class SpySystem {
         long now = GemsTime.now(player);
         nbt.putLong(KEY_MIMIC_UNTIL, now + durationTicks);
 
-        float bonusHp = GemsBalance.v().spy().mimicFormBonusMaxHealth();
+        float baseBonusHp = GemsBalance.v().spy().mimicFormBonusMaxHealth();
         float speedMult = GemsBalance.v().spy().mimicFormSpeedMultiplier();
+        MimicBonuses bonuses = mimicBonuses(lastKilled, baseBonusHp);
+        float bonusHp = bonuses.bonusHealth();
+        float bonusAttack = bonuses.bonusAttack();
 
         EntityAttributeInstance maxHp = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
         if (maxHp != null) {
             maxHp.removeModifier(MOD_MIMIC_MAX_HEALTH);
             if (bonusHp > 0) {
                 maxHp.addPersistentModifier(new EntityAttributeModifier(MOD_MIMIC_MAX_HEALTH, bonusHp, EntityAttributeModifier.Operation.ADD_VALUE));
+            }
+        }
+        EntityAttributeInstance attack = player.getAttributeInstance(EntityAttributes.ATTACK_DAMAGE);
+        if (attack != null) {
+            attack.removeModifier(MOD_MIMIC_ATTACK);
+            if (bonusAttack > 0) {
+                attack.addPersistentModifier(new EntityAttributeModifier(MOD_MIMIC_ATTACK, bonusAttack, EntityAttributeModifier.Operation.ADD_VALUE));
             }
         }
         EntityAttributeInstance speed = player.getAttributeInstance(EntityAttributes.MOVEMENT_SPEED);
@@ -556,6 +629,29 @@ public final class SpySystem {
         return isSpyActiveInternal(player);
     }
 
+    public static boolean hidesTracking(ServerPlayerEntity target) {
+        if (GemPlayerState.getActiveGem(target) != GemId.SPY) {
+            return false;
+        }
+        return GemPowers.isPassiveActive(target, PowerIds.SPY_FALSE_SIGNATURE);
+    }
+
+    public static boolean hidesTracking(MinecraftServer server, UUID targetId) {
+        if (server == null || targetId == null) {
+            return false;
+        }
+        ServerPlayerEntity online = server.getPlayerManager().getPlayer(targetId);
+        if (online != null) {
+            return hidesTracking(online);
+        }
+        GemSeerTracker.Snapshot snapshot = GemSeerTracker.snapshot(server, targetId);
+        if (snapshot == null) {
+            return false;
+        }
+        GemId active = safeGemId(snapshot.activeGem());
+        return active == GemId.SPY && snapshot.energy() > 0;
+    }
+
     private static void trackActiveSpy(ServerPlayerEntity player) {
         boolean active = isSpyActiveInternal(player);
         UUID id = player.getUuid();
@@ -573,7 +669,7 @@ public final class SpySystem {
         }
     }
 
-    private static boolean observeIfEligible(ServerPlayerEntity spy, ServerPlayerEntity caster, Identifier abilityId, long now, double rangeSq, int windowTicks) {
+    private static boolean observeIfEligible(ServerPlayerEntity spy, ServerPlayerEntity caster, Identifier abilityId, long now, double rangeSq) {
         if (!isSpyActiveInternal(spy)) {
             return false;
         }
@@ -591,7 +687,7 @@ public final class SpySystem {
             return false;
         }
 
-        recordObservation(spy, caster, abilityId, now, windowTicks);
+        recordObservation(spy, caster, abilityId, now);
         return true;
     }
 
@@ -641,6 +737,17 @@ public final class SpySystem {
         }
         // No particles, no icon.
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, refresh, 0, true, false, false));
+    }
+
+    private static GemId safeGemId(String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return null;
+        }
+        try {
+            return GemId.valueOf(raw);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private static void tickMimicFormCleanup(ServerPlayerEntity player, long now) {
@@ -707,6 +814,36 @@ public final class SpySystem {
         if (player.hasStatusEffect(StatusEffects.INVISIBILITY)) {
             player.removeStatusEffect(StatusEffects.INVISIBILITY);
         }
+        EntityAttributeInstance attack = player.getAttributeInstance(EntityAttributes.ATTACK_DAMAGE);
+        if (attack != null) {
+            attack.removeModifier(MOD_MIMIC_ATTACK);
+        }
+    }
+
+    private static MimicBonuses mimicBonuses(Identifier entityId, float baseBonusHp) {
+        if (entityId == null) {
+            return new MimicBonuses(Math.max(0.0F, baseBonusHp), 0.0F);
+        }
+        EntityType<?> type = Registries.ENTITY_TYPE.get(entityId);
+        if (type == null || !LivingEntity.class.isAssignableFrom(type.getBaseClass())) {
+            return new MimicBonuses(Math.max(0.0F, baseBonusHp), 0.0F);
+        }
+        @SuppressWarnings("unchecked")
+        EntityType<? extends LivingEntity> livingType = (EntityType<? extends LivingEntity>) type;
+        if (!DefaultAttributeRegistry.hasDefinitionFor(livingType)) {
+            return new MimicBonuses(Math.max(0.0F, baseBonusHp), 0.0F);
+        }
+        DefaultAttributeContainer attrs = DefaultAttributeRegistry.get(livingType);
+        double baseHealth = attrs.getBaseValue(EntityAttributes.MAX_HEALTH);
+        double baseAttack = attrs.has(EntityAttributes.ATTACK_DAMAGE)
+                ? attrs.getBaseValue(EntityAttributes.ATTACK_DAMAGE)
+                : 0.0D;
+        float scaledHealth = (float) (baseHealth * 0.2D);
+        float minHealth = Math.max(0.0F, baseBonusHp);
+        float maxHealth = Math.max(minHealth, baseBonusHp * 4.0F);
+        float bonusHealth = MathHelper.clamp(scaledHealth, minHealth, maxHealth);
+        float bonusAttack = (float) Math.max(0.0D, Math.min(baseAttack * 0.35D, 8.0D));
+        return new MimicBonuses(bonusHealth, bonusAttack);
     }
 
     public static boolean canAffect(ServerPlayerEntity caster, ServerPlayerEntity target) {
@@ -773,6 +910,15 @@ public final class SpySystem {
             return Text.literal(online.getGameProfile().name());
         }
         return null;
+    }
+
+    public static UUID chatDisguiseTargetId(ServerPlayerEntity player) {
+        NbtCompound nbt = persistent(player);
+        long until = nbt.getLong(KEY_SKINSHIFT_UNTIL, 0L);
+        if (until <= GemsTime.now(player)) {
+            return null;
+        }
+        return GemsNbt.getUuid(nbt, KEY_SKINSHIFT_TARGET);
     }
 
     public static boolean isSkinshiftTarget(ServerPlayerEntity target) {

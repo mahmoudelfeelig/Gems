@@ -2,6 +2,8 @@ package com.feel.gems.power.ability.sentinel;
 
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -25,15 +27,22 @@ public final class SentinelShieldWallRuntime {
 
     private SentinelShieldWallRuntime() {}
 
-    public static void createWall(ServerPlayerEntity owner, BlockPos basePos, Direction perpendicular, int width, int height, long endTime) {
+    public static void createWall(ServerPlayerEntity owner, ServerWorld world, BlockPos basePos, Direction perpendicular, int width, int height, long endTime) {
         Set<BlockPos> wallPositions = new HashSet<>();
+        Map<BlockPos, BlockState> replaced = new HashMap<>();
         for (int w = -width / 2; w <= width / 2; w++) {
             for (int h = 0; h < height; h++) {
-                wallPositions.add(basePos.offset(perpendicular, w).up(h));
+                BlockPos pos = basePos.offset(perpendicular, w).up(h);
+                wallPositions.add(pos);
+                BlockState existing = world.getBlockState(pos);
+                if (existing.isAir() || existing.isReplaceable()) {
+                    replaced.put(pos, existing);
+                    world.setBlockState(pos, Blocks.BARRIER.getDefaultState());
+                }
             }
         }
 
-        ACTIVE_WALLS.put(owner.getUuid(), new WallData(owner.getUuid(), wallPositions, endTime, owner.getEntityWorld().getRegistryKey().getValue().toString()));
+        ACTIVE_WALLS.put(owner.getUuid(), new WallData(owner.getUuid(), wallPositions, replaced, endTime, owner.getEntityWorld().getRegistryKey().getValue().toString()));
     }
 
     public static boolean isInWall(Vec3d position, String worldId) {
@@ -66,9 +75,17 @@ public final class SentinelShieldWallRuntime {
             return;
         }
         // Remove expired walls
-        ACTIVE_WALLS.entrySet().removeIf(entry -> 
-            entry.getValue().worldId.equals(worldId) && currentTime > entry.getValue().endTime
-        );
+        ACTIVE_WALLS.entrySet().removeIf(entry -> {
+            WallData wall = entry.getValue();
+            if (!wall.worldId.equals(worldId)) {
+                return false;
+            }
+            if (currentTime <= wall.endTime) {
+                return false;
+            }
+            restoreBlocks(world, wall);
+            return true;
+        });
         
         // Repel entities from active walls
         for (WallData wall : ACTIVE_WALLS.values()) {
@@ -147,9 +164,10 @@ public final class SentinelShieldWallRuntime {
         if (ACTIVE_WALLS.isEmpty()) {
             return;
         }
-        ACTIVE_WALLS.entrySet().removeIf(entry -> 
-            entry.getValue().worldId.equals(worldId) && currentTime > entry.getValue().endTime
-        );
+        ACTIVE_WALLS.entrySet().removeIf(entry -> {
+            WallData wall = entry.getValue();
+            return wall.worldId.equals(worldId) && currentTime > wall.endTime;
+        });
     }
 
     public static boolean hasAnyWalls() {
@@ -183,13 +201,29 @@ public final class SentinelShieldWallRuntime {
         return new Box(minX, minY, minZ, maxX + 1, maxY + 1, maxZ + 1);
     }
 
-    public static void clearWall(UUID ownerId) {
-        ACTIVE_WALLS.remove(ownerId);
+    public static void clearWall(UUID ownerId, ServerWorld world) {
+        WallData wall = ACTIVE_WALLS.remove(ownerId);
+        if (wall != null && world != null) {
+            restoreBlocks(world, wall);
+        }
     }
     
     public static Collection<WallData> getActiveWalls() {
         return Collections.unmodifiableCollection(ACTIVE_WALLS.values());
     }
 
-    public record WallData(UUID ownerId, Set<BlockPos> positions, long endTime, String worldId) {}
+    private static void restoreBlocks(ServerWorld world, WallData wall) {
+        if (wall.replaced.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<BlockPos, BlockState> entry : wall.replaced.entrySet()) {
+            BlockPos pos = entry.getKey();
+            BlockState current = world.getBlockState(pos);
+            if (current.isOf(Blocks.BARRIER)) {
+                world.setBlockState(pos, entry.getValue());
+            }
+        }
+    }
+
+    public record WallData(UUID ownerId, Set<BlockPos> positions, Map<BlockPos, BlockState> replaced, long endTime, String worldId) {}
 }

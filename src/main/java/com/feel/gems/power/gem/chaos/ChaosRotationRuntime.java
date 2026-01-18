@@ -201,6 +201,33 @@ public final class ChaosRotationRuntime {
         return playerStates.get(playerUuid);
     }
 
+    public static boolean reduceAbilityCooldown(ServerPlayerEntity player, float factor) {
+        if (factor >= 1.0F) {
+            return false;
+        }
+        ChaosState state = playerStates.get(player.getUuid());
+        if (state == null || state.currentAbility == null) {
+            return false;
+        }
+        int cooldownTicks = rotationAbilityCooldownTicks();
+        if (cooldownTicks <= 0) {
+            return false;
+        }
+        long now = player.getEntityWorld().getTime();
+        long elapsed = now - state.lastAbilityUseTick;
+        int remaining = (int) Math.max(0, cooldownTicks - elapsed);
+        if (remaining <= 0) {
+            return false;
+        }
+        int reducedRemaining = (int) Math.ceil(remaining * factor);
+        long newLastUse = now - (cooldownTicks - reducedRemaining);
+        if (newLastUse <= state.lastAbilityUseTick) {
+            return false;
+        }
+        playerStates.put(player.getUuid(), new ChaosState(state.currentAbility, state.currentPassive, state.lastRotationTick, newLastUse));
+        return true;
+    }
+
     /**
      * Try to activate the current chaos ability.
      */

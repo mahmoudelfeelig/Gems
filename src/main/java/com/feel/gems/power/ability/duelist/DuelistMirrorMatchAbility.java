@@ -67,8 +67,7 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
             return false;
         }
 
-        int durationTicks = GemsBalance.v().duelist().mirrorMatchDurationTicks();
-        long endTime = world.getTime() + durationTicks;
+        long endTime = Long.MAX_VALUE;
 
         // Find arena location high in the sky to avoid terrain interference
         BlockPos arenaCenter = findArenaLocation(world, player.getBlockPos());
@@ -260,6 +259,9 @@ public final class DuelistMirrorMatchAbility implements GemAbility {
             return false;
         }
         long endTime = Long.parseLong(endTimeStr);
+        if (endTime <= 0) {
+            return true;
+        }
         return player.getEntityWorld().getTime() < endTime;
     }
 

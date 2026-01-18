@@ -217,12 +217,12 @@ public final class LoadoutManager {
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         NbtCompound orders = root.getCompound(KEY_ABILITY_ORDER).orElse(null);
         if (orders == null) {
-            return List.of();
+            return GemRegistry.definition(gem).abilities();
         }
 
         NbtList list = orders.getList(gem.name()).orElse(null);
         if (list == null || list.isEmpty()) {
-            return List.of();
+            return GemRegistry.definition(gem).abilities();
         }
 
         List<Identifier> result = new ArrayList<>();
@@ -235,7 +235,7 @@ public final class LoadoutManager {
                 }
             }
         }
-        return result;
+        return GemLoadout.sanitizeAbilityOrder(result, GemRegistry.definition(gem).abilities());
     }
 
     /**
@@ -245,8 +245,9 @@ public final class LoadoutManager {
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         NbtCompound orders = root.getCompound(KEY_ABILITY_ORDER).orElse(new NbtCompound());
 
+        List<Identifier> sanitized = GemLoadout.sanitizeAbilityOrder(order, GemRegistry.definition(gem).abilities());
         NbtList list = new NbtList();
-        for (Identifier id : order) {
+        for (Identifier id : sanitized) {
             list.add(NbtString.of(id.toString()));
         }
         orders.put(gem.name(), list);

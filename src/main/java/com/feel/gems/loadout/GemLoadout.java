@@ -68,16 +68,26 @@ public record GemLoadout(
 
     /**
      * Validate ability order against available abilities.
-     * Returns a sanitized list containing only valid abilities.
+     * Returns a sanitized list containing only valid abilities, appending any missing ones.
      */
     public static List<Identifier> sanitizeAbilityOrder(List<Identifier> order, List<Identifier> available) {
         if (order == null || order.isEmpty()) {
             return List.copyOf(available);
         }
         // Only include abilities that are in the available list
-        return order.stream()
+        List<Identifier> sanitized = order.stream()
                 .filter(available::contains)
                 .distinct()
                 .toList();
+        if (sanitized.size() == available.size()) {
+            return sanitized;
+        }
+        List<Identifier> result = new java.util.ArrayList<>(sanitized);
+        for (Identifier id : available) {
+            if (!result.contains(id)) {
+                result.add(id);
+            }
+        }
+        return result;
     }
 }

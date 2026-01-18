@@ -1,7 +1,9 @@
 package com.feel.gems.power.ability.strength;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.legendary.LegendaryPlayerTracker;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.AbilityRuntime;
@@ -47,21 +49,35 @@ public final class BountyHuntingAbility implements GemAbility {
             player.sendMessage(Text.translatable("gems.ability.strength.bounty.no_owner"), true);
             return false;
         }
+        UUID targetOwner = owner;
         if (owner.equals(player.getUuid())) {
-            player.sendMessage(Text.translatable("gems.ability.strength.bounty.own_item"), true);
+            UUID previous = AbilityRuntime.getPreviousOwner(stack);
+            if (previous != null && !previous.equals(player.getUuid())) {
+                targetOwner = previous;
+            } else {
+                player.sendMessage(Text.translatable("gems.ability.strength.bounty.own_item"), true);
+                return false;
+            }
+        }
+        var server = player.getEntityWorld().getServer();
+        if (server == null) {
             return false;
         }
-        var target = player.getEntityWorld().getServer().getPlayerManager().getPlayer(owner);
-        if (target == null) {
+        if (SpySystem.hidesTracking(server, targetOwner)) {
+            player.sendMessage(Text.translatable("gems.tracking.hidden"), true);
+            return false;
+        }
+        LegendaryPlayerTracker.Snapshot snapshot = LegendaryPlayerTracker.snapshot(server, targetOwner);
+        if (snapshot == null) {
             player.sendMessage(Text.translatable("gems.ability.strength.bounty.owner_offline"), true);
             return false;
         }
 
         stack.decrement(1);
-        AbilityRuntime.startBounty(player, owner, GemsBalance.v().strength().bountyDurationTicks());
+        AbilityRuntime.startBounty(player, targetOwner, GemsBalance.v().strength().bountyDurationTicks());
         AbilityFeedback.sound(player, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.9F, 0.9F);
         AbilityFeedback.burst(player, ParticleTypes.COMPOSTER, 10, 0.25D);
-        player.sendMessage(Text.translatable("gems.ability.strength.bounty.tracking", target.getName().getString()), true);
+        player.sendMessage(Text.translatable("gems.ability.strength.bounty.tracking", snapshot.name()), true);
         return true;
     }
 }

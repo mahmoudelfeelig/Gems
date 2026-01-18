@@ -95,7 +95,7 @@ public final class BonusStormCallAbility implements GemAbility {
                             continue;
                         }
                     }
-                    entity.damage(world, world.getDamageSources().magic(), storm.damagePerStrike);
+                    entity.damage(world, storm.owner.getDamageSources().indirectMagic(storm.owner, storm.owner), storm.damagePerStrike);
                 }
             }
         }

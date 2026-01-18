@@ -3,6 +3,7 @@ package com.feel.gems.mixin;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.runtime.GemPowers;
+import com.feel.gems.state.PlayerStateManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -18,6 +19,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(FurnaceOutputSlot.class)
 public abstract class FurnaceOutputDoubleDebrisMixin {
+    private static final String KEY_DOUBLE_DEBRIS = "gems_double_debris";
+
     @Inject(method = "onTakeItem", at = @At("TAIL"))
     private void gems$doubleDebris(PlayerEntity player, ItemStack stack, CallbackInfo ci) {
         if (!(player instanceof ServerPlayerEntity serverPlayer)) {
@@ -41,5 +44,6 @@ public abstract class FurnaceOutputDoubleDebrisMixin {
         if (!inserted && !extra.isEmpty()) {
             serverPlayer.dropItem(extra, false);
         }
+        PlayerStateManager.setTemporary(serverPlayer, KEY_DOUBLE_DEBRIS, 1);
     }
 }

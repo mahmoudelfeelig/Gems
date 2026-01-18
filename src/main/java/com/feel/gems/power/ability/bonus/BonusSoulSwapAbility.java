@@ -49,13 +49,23 @@ public final class BonusSoulSwapAbility implements GemAbility {
         Vec3d direction = player.getRotationVector();
 
         LivingEntity target = null;
-        for (LivingEntity entity : world.getEntitiesByClass(LivingEntity.class, 
+        double bestDot = 0.75;
+        double bestDist = Double.MAX_VALUE;
+        for (LivingEntity entity : world.getEntitiesByClass(LivingEntity.class,
                 player.getBoundingBox().expand(RANGE), e -> e != player && e.isAlive())) {
             Vec3d toEntity = entity.getEyePos().subtract(start);
+            double dist = toEntity.length();
+            if (dist > RANGE || dist <= 0.0D) {
+                continue;
+            }
             double dot = toEntity.normalize().dotProduct(direction);
-            if (dot > 0.9 && toEntity.length() < RANGE) {
+            if (dot < bestDot) {
+                continue;
+            }
+            if (dot > bestDot || dist < bestDist) {
+                bestDot = dot;
+                bestDist = dist;
                 target = entity;
-                break;
             }
         }
 

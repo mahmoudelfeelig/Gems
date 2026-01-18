@@ -281,6 +281,7 @@ public final class GemsPuffGameTests {
         player.setStackInHand(net.minecraft.util.Hand.MAIN_HAND, bow);
 
         context.runAtTick(5L, () -> {
+            player.setOnGround(false);
             GemPowers.maintain(player);
             int power = EnchantmentHelper.getLevel(world.getRegistryManager().getOptionalEntry(Enchantments.POWER).orElseThrow(), bow);
             int punch = EnchantmentHelper.getLevel(world.getRegistryManager().getOptionalEntry(Enchantments.PUNCH).orElseThrow(), bow);
@@ -373,13 +374,13 @@ public final class GemsPuffGameTests {
         context.runAtTick(5L, () -> {
             world.emitGameEvent(GameEvent.STEP, player.getEntityPos(), GameEvent.Emitter.of(player));
         });
-
-        context.runAtTick(15L, () -> {
-            if (!SculkSensorBlock.isInactive(world.getBlockState(pos))) {
-                context.throwGameTestException("Sculk Silence should block sculk sensor activation");
-                return;
-            }
-            context.complete();
-        });
+        GemsGameTestUtil.assertStaysTrue(
+                context,
+                8L,
+                80L,
+                2L,
+                () -> SculkSensorBlock.isInactive(world.getBlockState(pos)),
+                "Sculk Silence should block sculk sensor activation"
+        );
     }
 }

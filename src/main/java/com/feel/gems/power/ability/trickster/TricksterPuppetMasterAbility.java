@@ -53,8 +53,22 @@ public final class TricksterPuppetMasterAbility implements GemAbility {
         int range = GemsBalance.v().trickster().puppetMasterRangeBlocks();
         int durationTicks = GemsBalance.v().trickster().puppetMasterDurationTicks();
 
-        // Raycast to find target (any living entity)
+        // Raycast to find target (any living entity), fallback to nearest if raycast misses.
         LivingEntity target = Targeting.raycastLiving(player, range);
+        if (target == null) {
+            Box searchBox = player.getBoundingBox().expand(range);
+            double bestDist = Double.MAX_VALUE;
+            for (LivingEntity candidate : world.getEntitiesByClass(LivingEntity.class, searchBox, e -> e != player && e.isAlive())) {
+                if (candidate instanceof ServerPlayerEntity other && !VoidImmunity.canBeTargeted(player, other)) {
+                    continue;
+                }
+                double dist = player.squaredDistanceTo(candidate);
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    target = candidate;
+                }
+            }
+        }
         if (target == null) {
             AbilityFeedback.sound(player, SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), 1.0F, 0.5F);
             return false;

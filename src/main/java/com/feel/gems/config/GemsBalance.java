@@ -2282,6 +2282,8 @@ public final class GemsBalance {
         public final int decoyTrapCooldownSeconds;
         public final float decoyTrapExplosionDamage;
         public final int decoyTrapArmTimeSeconds;
+        public final int decoyTrapMaxActive;
+        public final int decoyTrapDespawnSeconds;
         public final int gravityWellCooldownSeconds;
         public final int gravityWellDurationSeconds;
         public final int gravityWellRadiusBlocks;
@@ -2401,6 +2403,7 @@ public final class GemsBalance {
         public final float corpseExplosionDamage;
         public final int corpseExplosionRadiusBlocks;
         public final int corpseExplosionCorpseRangeBlocks;
+        public final int corpseExplosionMarkDurationSeconds;
         public final int soulSwapCooldownSeconds;
         public final int soulSwapRangeBlocks;
         public final int markOfDeathCooldownSeconds;
@@ -2530,6 +2533,8 @@ public final class GemsBalance {
                 int decoyTrapCooldownSeconds,
                 float decoyTrapExplosionDamage,
                 int decoyTrapArmTimeSeconds,
+                int decoyTrapMaxActive,
+                int decoyTrapDespawnSeconds,
                 int gravityWellCooldownSeconds,
                 int gravityWellDurationSeconds,
                 int gravityWellRadiusBlocks,
@@ -2649,6 +2654,7 @@ public final class GemsBalance {
                 float corpseExplosionDamage,
                 int corpseExplosionRadiusBlocks,
                 int corpseExplosionCorpseRangeBlocks,
+                int corpseExplosionMarkDurationSeconds,
                 int soulSwapCooldownSeconds,
                 int soulSwapRangeBlocks,
                 int markOfDeathCooldownSeconds,
@@ -2775,6 +2781,8 @@ public final class GemsBalance {
             this.decoyTrapCooldownSeconds = decoyTrapCooldownSeconds;
             this.decoyTrapExplosionDamage = decoyTrapExplosionDamage;
             this.decoyTrapArmTimeSeconds = decoyTrapArmTimeSeconds;
+            this.decoyTrapMaxActive = decoyTrapMaxActive;
+            this.decoyTrapDespawnSeconds = decoyTrapDespawnSeconds;
             this.gravityWellCooldownSeconds = gravityWellCooldownSeconds;
             this.gravityWellDurationSeconds = gravityWellDurationSeconds;
             this.gravityWellRadiusBlocks = gravityWellRadiusBlocks;
@@ -2894,6 +2902,7 @@ public final class GemsBalance {
             this.corpseExplosionDamage = corpseExplosionDamage;
             this.corpseExplosionRadiusBlocks = corpseExplosionRadiusBlocks;
             this.corpseExplosionCorpseRangeBlocks = corpseExplosionCorpseRangeBlocks;
+            this.corpseExplosionMarkDurationSeconds = corpseExplosionMarkDurationSeconds;
             this.soulSwapCooldownSeconds = soulSwapCooldownSeconds;
             this.soulSwapRangeBlocks = soulSwapRangeBlocks;
             this.markOfDeathCooldownSeconds = markOfDeathCooldownSeconds;
@@ -3024,6 +3033,8 @@ public final class GemsBalance {
                     cfg.decoyTrapCooldownSeconds,
                     cfg.decoyTrapExplosionDamage,
                     cfg.decoyTrapArmTimeSeconds,
+                    clampInt(cfg.decoyTrapMaxActive, 0, 200),
+                    secClamped(cfg.decoyTrapDespawnSeconds, 0, 3600),
                     cfg.gravityWellCooldownSeconds,
                     cfg.gravityWellDurationSeconds,
                     cfg.gravityWellRadiusBlocks,
@@ -3143,6 +3154,7 @@ public final class GemsBalance {
                     cfg.corpseExplosionDamage,
                     cfg.corpseExplosionRadiusBlocks,
                     cfg.corpseExplosionCorpseRangeBlocks,
+                    cfg.corpseExplosionMarkDurationSeconds,
                     cfg.soulSwapCooldownSeconds,
                     cfg.soulSwapRangeBlocks,
                     cfg.markOfDeathCooldownSeconds,

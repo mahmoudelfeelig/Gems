@@ -4,7 +4,7 @@ At energy 10/10, any gem holder can claim up to 2 bonus abilities and 2 bonus pa
 - Most gems: Bonus Selection screen
 - Prism: Prism Selection screen (includes bonus pool tabs)
 
-Key mechanics:
+**Key mechanics:**
 - Claims are unique per player - once claimed, no other player can use that ability/passive until it is released.
 - Bonus abilities are cast using the `Bonus Ability 1` and `Bonus Ability 2` keybinds (default C and V).
 - Bonus passives are automatically applied while claimed and active.

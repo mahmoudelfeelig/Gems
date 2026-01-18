@@ -1,12 +1,10 @@
 package com.feel.gems.net;
 
-import com.feel.gems.config.GemsBalance;
 import com.feel.gems.config.GemsDisables;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.state.GemPlayerState;
-import com.feel.gems.util.GemsTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -42,11 +40,6 @@ public final class ServerSpyObservedNetworking {
             return;
         }
 
-        long now = GemsTime.now(player);
-        int observeWindow = GemsBalance.v().spy().observeWindowTicks();
-        int echoWindow = GemsBalance.v().spy().echoWindowTicks();
-        int required = GemsBalance.v().spy().stealRequiredWitnessCount();
-
         List<SpyObservedScreenPayload.ObservedEntry> entries = new ArrayList<>();
         for (SpySystem.ObservedAbility abilityInfo : SpySystem.observedAbilities(player)) {
             Identifier id = abilityInfo.id();
@@ -57,13 +50,8 @@ public final class ServerSpyObservedNetworking {
             if (ability == null) {
                 continue;
             }
-            long lastSeen = abilityInfo.lastSeen();
-            boolean withinObserveWindow = lastSeen > 0 && now - lastSeen <= observeWindow;
-            boolean canSteal = withinObserveWindow && abilityInfo.count() >= required;
-            boolean canEcho = lastSeen > 0 && now - lastSeen <= echoWindow && SpySystem.isEchoableAbility(id);
-            if (!SpySystem.isEchoableAbility(id) && !canSteal) {
-                continue;
-            }
+            boolean canSteal = SpySystem.canSteal(player, id);
+            boolean canEcho = SpySystem.canEcho(player, id);
             entries.add(new SpyObservedScreenPayload.ObservedEntry(
                     id,
                     ability.name(),

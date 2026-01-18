@@ -30,13 +30,14 @@ public final class AugmentGameTests {
 
         GemPlayerState.initIfNeeded(player);
         GemPlayerState.setActiveGem(player, GemId.FIRE);
+        ItemStack gemStack = new ItemStack(ModItems.gemItem(GemId.FIRE));
 
         for (AugmentDefinition def : AugmentRegistry.all()) {
             if (def.target() != AugmentTarget.GEM) {
                 continue;
             }
             AugmentInstance inst = new AugmentInstance(def.id(), AugmentRarity.COMMON, 1.0f);
-            if (!AugmentRuntime.applyGemAugment(player, GemId.FIRE, inst)) {
+            if (!AugmentRuntime.applyGemAugment(player, gemStack, inst)) {
                 context.throwGameTestException("Failed to apply gem augment: " + def.id());
                 return;
             }

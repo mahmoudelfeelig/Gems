@@ -62,11 +62,8 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
         if (isRecursiveBreak(stack)) {
             return result;
         }
-        int horizontalRadius = Math.max(1, GemsBalance.v().legendary().earthsplitterRadiusBlocks());
+        int horizontalRadius = 4;
         int verticalRadius = 1;
-        if (horizontalRadius <= 0) {
-            return result;
-        }
         markRecursiveBreak(stack, true);
         try {
             if (isTunnelMode(stack)) {
@@ -89,12 +86,12 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
         boolean tunnel = !isTunnelMode(stack);
         setTunnelMode(stack, tunnel);
         if (user instanceof ServerPlayerEntity player) {
-            int horizontalRadius = Math.max(1, GemsBalance.v().legendary().earthsplitterRadiusBlocks());
-            int verticalRadius = 1;
-            int cubeSize = horizontalRadius * 2 + 1;
-            int height = verticalRadius * 2 + 1;
-            int tunnelLength = Math.max(1, GemsBalance.v().legendary().earthsplitterTunnelLengthBlocks());
-            int tunnelWidth = 2;
+                int horizontalRadius = 4;
+                int verticalRadius = 1;
+                int cubeSize = horizontalRadius * 2 + 1;
+                int height = verticalRadius * 2 + 1;
+                int tunnelLength = 20;
+                int tunnelWidth = 2;
             String mode = tunnel
                     ? "Tunnel " + tunnelLength + "x" + tunnelWidth + "x" + height
                     : "Volume " + cubeSize + "x" + cubeSize + "x" + height;
@@ -193,7 +190,7 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
     }
 
     private static void breakTunnel(ItemStack stack, ServerPlayerEntity player, BlockPos pos, int verticalRadius) {
-        int length = Math.max(1, GemsBalance.v().legendary().earthsplitterTunnelLengthBlocks());
+        int length = 20;
         Direction facing = player.getHorizontalFacing();
         Direction right = facing.rotateYClockwise();
         BlockPos.Mutable mutable = new BlockPos.Mutable();

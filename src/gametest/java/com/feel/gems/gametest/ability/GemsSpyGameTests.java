@@ -121,8 +121,17 @@ public final class GemsSpyGameTests {
 
         context.runAtTick(5L, () -> {
             NbtCompound nbt = ((GemsPersistentDataHolder) player).gems$getPersistentData();
-            nbt.putString("spyLastSeenAbility", com.feel.gems.power.registry.PowerIds.SPY_SMOKE_BOMB.toString());
+            Identifier observed = com.feel.gems.power.registry.PowerIds.SPY_SMOKE_BOMB;
+            nbt.putString("spyLastSeenAbility", observed.toString());
             nbt.putLong("spyLastSeenAt", world.getTime());
+            NbtCompound observedRoot = new NbtCompound();
+            NbtCompound rec = new NbtCompound();
+            rec.putInt("epoch", com.feel.gems.power.gem.spy.SpySystem.deaths(player));
+            rec.putLong("first", world.getTime());
+            rec.putLong("last", world.getTime());
+            rec.putInt("count", 1);
+            observedRoot.put(observed.toString(), rec);
+            nbt.put("spyObserved", observedRoot);
             boolean ok = new SpyEchoAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Echo did not replay the last seen ability");

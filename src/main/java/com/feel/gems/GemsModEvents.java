@@ -9,6 +9,9 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.debug.GemsPerfMonitor;
 import com.feel.gems.debug.GemsStressTest;
 import com.feel.gems.item.GemItemGlint;
+import com.feel.gems.mastery.TitleDisplay;
+import com.feel.gems.legendary.LegendaryCooldowns;
+import com.feel.gems.net.GemCooldownSync;
 import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.GemOwnership;
 import com.feel.gems.item.ModItems;
@@ -26,6 +29,7 @@ import com.feel.gems.rivalry.RivalryManager;
 import com.feel.gems.power.ability.duelist.DuelistMirrorMatchRuntime;
 import com.feel.gems.power.ability.pillager.PillagerVindicatorBreakAbility;
 import com.feel.gems.power.ability.hunter.HunterCallThePackRuntime;
+import com.feel.gems.power.ability.sentinel.SentinelTauntRuntime;
 import com.feel.gems.power.bonus.BonusPassiveRuntime;
 import com.feel.gems.power.gem.astra.SoulSystem;
 import com.feel.gems.power.gem.beacon.BeaconAuraRuntime;
@@ -126,7 +130,14 @@ public final class GemsModEvents {
                 }
                 Text disguise = SpySystem.chatDisguiseName(player);
                 if (disguise != null) {
-                    broadcastDisguisedChat(player, disguise, message.getContent());
+                    ServerPlayerEntity target = null;
+                    java.util.UUID targetId = SpySystem.chatDisguiseTargetId(player);
+                    if (targetId != null && player.getEntityWorld().getServer() != null) {
+                        target = player.getEntityWorld().getServer().getPlayerManager().getPlayer(targetId);
+                    }
+                    Text displayName = target != null ? TitleDisplay.withTitlePrefix(target, disguise) : disguise;
+                    net.minecraft.util.Formatting color = target != null ? TitleDisplay.titleColor(target) : null;
+                    broadcastChatWithName(player, displayName, message.getContent(), color);
                     return false;
                 }
                 if (com.feel.gems.power.ability.duelist.DuelistMirrorMatchAbility.isInDuel(player)) {
@@ -137,12 +148,17 @@ public final class GemsModEvents {
                             java.util.UUID partner = java.util.UUID.fromString(partnerStr);
                             ServerPlayerEntity partnerPlayer = player.getEntityWorld().getServer().getPlayerManager().getPlayer(partner);
                             if (partnerPlayer != null) {
-                                broadcastDisguisedChat(player, Text.literal(partnerPlayer.getGameProfile().name()), message.getContent());
+                                broadcastChatWithName(player, Text.literal(partnerPlayer.getGameProfile().name()), message.getContent(), null);
                                 return false;
                             }
                         } catch (IllegalArgumentException ignored) {
                         }
                     }
+                }
+                if (TitleDisplay.titlePrefix(player) != null) {
+                    net.minecraft.util.Formatting color = TitleDisplay.titleColor(player);
+                    broadcastChatWithName(player, TitleDisplay.withTitlePrefix(player, player.getName()), message.getContent(), color);
+                    return false;
                 }
             }
             return true;
@@ -157,6 +173,13 @@ public final class GemsModEvents {
             }
             if (!(entity instanceof LivingEntity living)) {
                 return ActionResult.PASS;
+            }
+
+            java.util.UUID taunter = SentinelTauntRuntime.getTaunter(sp);
+            if (taunter != null) {
+                if (!(entity instanceof ServerPlayerEntity target && taunter.equals(target.getUuid()))) {
+                    return ActionResult.FAIL;
+                }
             }
 
             // Summoner: commander's mark.
@@ -230,6 +253,10 @@ public final class GemsModEvents {
             ServerPlayerEntity player = handler.getPlayer();
             GemPlayerState.initIfNeeded(player);
             AssassinState.initIfNeeded(player);
+            if (AssassinState.maybeUnlockChoice(player) && AssassinState.isAssassin(player)) {
+                AssassinState.sendChoicePrompt(player);
+            }
+            DuelistMirrorMatchRuntime.applyLogoutPenalty(player);
             GemPlayerState.applyMaxHearts(player);
             GemOwnership.consumeOfflinePenalty(player);
             GemKeepOnDeath.restore(player);
@@ -257,6 +284,7 @@ public final class GemsModEvents {
             ServerPlayerEntity player = handler.getPlayer();
             AbilityRuntime.cleanupOnDisconnect(server, player);
             GemTrust.clearRuntimeCache(player.getUuid());
+            LegendaryCooldowns.clearCache(player.getUuid());
             SummonerSummons.discardAll(player);
             PillagerVolleyRuntime.stop(player);
             HypnoControl.releaseAll(player);
@@ -269,10 +297,8 @@ public final class GemsModEvents {
             GemPlayerState.copy(oldPlayer, newPlayer);
             GemPlayerState.initIfNeeded(newPlayer);
             AssassinState.initIfNeeded(newPlayer);
+            AssassinState.maybeUnlockChoice(newPlayer);
             if (!alive) {
-                // Death: bump gem epoch to invalidate old gem items and purge owned stacks.
-                GemPlayerState.bumpGemEpoch(newPlayer);
-                purgeOwnedGems(newPlayer);
             }
             GemPlayerState.applyMaxHearts(newPlayer);
             GemKeepOnDeath.restore(newPlayer);
@@ -356,6 +382,9 @@ public final class GemsModEvents {
                     if (player.getEntityWorld().getTime() % 4 == 0) {
                         com.feel.gems.power.ability.trickster.TricksterMirageRuntime.tickMirageParticles(player);
                     }
+                    if (s.getTicks() % 20 == 0 && LegendaryCooldowns.updateCharmCount(player)) {
+                        GemCooldownSync.send(player);
+                    }
                 }
             });
 
@@ -363,6 +392,7 @@ public final class GemsModEvents {
             GemsTickScheduler.scheduleRepeating(server, 20, 20, s -> {
                 LegendaryCrafting.tick(s);
                 LegendaryPlayerTracker.tick(s);
+                com.feel.gems.legendary.GemSeerTracker.tick(s);
                 TerrorRigRuntime.tick(s);
                 for (ServerWorld world : s.getWorlds()) {
                     com.feel.gems.power.ability.hunter.HunterHuntingTrapAbility.cleanExpiredTraps(world);
@@ -461,11 +491,15 @@ public final class GemsModEvents {
         return false;
     }
 
-    private static void broadcastDisguisedChat(ServerPlayerEntity sender, Text disguise, Text content) {
+    private static void broadcastChatWithName(ServerPlayerEntity sender, Text name, Text content, net.minecraft.util.Formatting color) {
         if (sender == null || sender.getEntityWorld().getServer() == null) {
             return;
         }
-        Text message = Text.literal("<").append(disguise).append("> ").append(content);
+        Text styledContent = content;
+        if (color != null) {
+            styledContent = content.copy().setStyle(content.getStyle().withColor(color));
+        }
+        Text message = Text.translatable("chat.type.text", name, styledContent);
         for (ServerPlayerEntity player : sender.getEntityWorld().getServer().getPlayerManager().getPlayerList()) {
             player.sendMessage(message, false);
         }

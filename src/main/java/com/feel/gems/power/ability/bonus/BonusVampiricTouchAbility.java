@@ -50,7 +50,7 @@ public final class BonusVampiricTouchAbility implements GemAbility {
         }
 
         float beforeHealth = target.getHealth();
-        target.damage(world, world.getDamageSources().magic(), DAMAGE);
+        target.damage(world, player.getDamageSources().indirectMagic(player, player), DAMAGE);
         float dealt = Math.max(0.0F, beforeHealth - target.getHealth());
 
         float healAmount = dealt * HEAL_RATIO;

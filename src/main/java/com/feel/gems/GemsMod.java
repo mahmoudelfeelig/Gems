@@ -10,6 +10,7 @@ import com.feel.gems.net.GemsPayloads;
 import com.feel.gems.net.ServerAbilityNetworking;
 import com.feel.gems.net.ServerAugmentNetworking;
 import com.feel.gems.net.ServerClientConfigNetworking;
+import com.feel.gems.net.ServerInscriptionNetworking;
 import com.feel.gems.net.ServerLegendaryNetworking;
 import com.feel.gems.net.ServerSpyObservedNetworking;
 import com.feel.gems.net.ServerSummonerNetworking;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import com.feel.gems.net.ServerBonusNetworking;
 import com.feel.gems.net.ServerPrismNetworking;
+import com.feel.gems.net.ServerTitleSelectionNetworking;
 import com.feel.gems.net.ServerTrophyNecklaceNetworking;
 
 public final class GemsMod implements ModInitializer {
@@ -50,6 +52,8 @@ public final class GemsMod implements ModInitializer {
         ServerTrophyNecklaceNetworking.register();
         ServerSpyObservedNetworking.register();
         ServerAugmentNetworking.register();
+        ServerInscriptionNetworking.register();
+        ServerTitleSelectionNetworking.register();
         GemsModEvents.register();
         GemsCommands.register();
     }

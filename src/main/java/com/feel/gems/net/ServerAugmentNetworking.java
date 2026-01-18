@@ -5,14 +5,15 @@ import com.feel.gems.augment.AugmentInstance;
 import com.feel.gems.augment.AugmentRegistry;
 import com.feel.gems.augment.AugmentRuntime;
 import com.feel.gems.config.GemsBalance;
-import com.feel.gems.core.GemId;
 import com.feel.gems.state.GemPlayerState;
 import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import com.feel.gems.item.GemItem;
 
 /**
  * Server-side networking for augment management.
@@ -23,7 +24,7 @@ public final class ServerAugmentNetworking {
 
     public static void register() {
         ServerPlayNetworking.registerGlobalReceiver(AugmentOpenRequestPayload.ID, (payload, context) ->
-                context.server().execute(() -> openScreen(context.player(), payload.gem())));
+                context.server().execute(() -> openScreen(context.player(), payload.mainHand())));
 
         ServerPlayNetworking.registerGlobalReceiver(AugmentRemovePayload.ID, (payload, context) ->
                 context.server().execute(() -> handleRemove(context.player(), payload)));
@@ -31,21 +32,31 @@ public final class ServerAugmentNetworking {
 
     private static void handleRemove(ServerPlayerEntity player, AugmentRemovePayload payload) {
         GemPlayerState.initIfNeeded(player);
-        GemId gem = parseGem(payload.gemId());
-        if (gem == null) {
-            player.sendMessage(Text.translatable("gems.augment.invalid_gem").formatted(Formatting.RED), true);
+        ItemStack stack = payload.mainHand() ? player.getMainHandStack() : player.getOffHandStack();
+        if (!(stack.getItem() instanceof GemItem)) {
+            player.sendMessage(Text.translatable("gems.augment.need_gem").formatted(Formatting.RED), true);
             return;
         }
-        boolean removed = AugmentRuntime.removeGemAugment(player, gem, payload.index());
+        GemItem gemItem = (GemItem) stack.getItem();
+        boolean removed = AugmentRuntime.removeGemAugment(stack, payload.index());
         if (removed) {
             player.sendMessage(Text.translatable("gems.augment.removed").formatted(Formatting.GREEN), true);
+            if (GemPlayerState.getActiveGem(player) == gemItem.gemId()) {
+                AugmentRuntime.captureActiveGemAugments(player, gemItem.gemId(), stack);
+                GemCooldownSync.send(player);
+            }
         }
-        openScreen(player, gem);
+        openScreen(player, payload.mainHand());
     }
 
-    private static void openScreen(ServerPlayerEntity player, GemId gem) {
+    private static void openScreen(ServerPlayerEntity player, boolean mainHand) {
         GemPlayerState.initIfNeeded(player);
-        List<AugmentInstance> augments = AugmentRuntime.getGemAugments(player, gem);
+        ItemStack stack = mainHand ? player.getMainHandStack() : player.getOffHandStack();
+        if (!(stack.getItem() instanceof GemItem gemItem)) {
+            player.sendMessage(Text.translatable("gems.augment.need_gem").formatted(Formatting.RED), true);
+            return;
+        }
+        List<AugmentInstance> augments = AugmentRuntime.getGemAugments(stack);
         List<AugmentScreenPayload.AugmentEntry> entries = new ArrayList<>(augments.size());
         for (AugmentInstance instance : augments) {
             AugmentDefinition def = AugmentRegistry.get(instance.augmentId());
@@ -61,17 +72,6 @@ public final class ServerAugmentNetworking {
             ));
         }
         int maxSlots = GemsBalance.v().augments().gemMaxSlots();
-        ServerPlayNetworking.send(player, new AugmentScreenPayload(gem.name(), entries, maxSlots));
-    }
-
-    private static GemId parseGem(String gemId) {
-        if (gemId == null || gemId.isBlank()) {
-            return null;
-        }
-        try {
-            return GemId.valueOf(gemId);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        ServerPlayNetworking.send(player, new AugmentScreenPayload(gemItem.gemId().name(), mainHand, entries, maxSlots));
     }
 }

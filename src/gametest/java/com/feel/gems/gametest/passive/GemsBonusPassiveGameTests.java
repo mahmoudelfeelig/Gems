@@ -43,6 +43,7 @@ public final class GemsBonusPassiveGameTests {
         GemsGameTestUtil.placeStoneFloor(context, 10);
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
+        GemsGameTestUtil.resetPlayerForTest(player);
         teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
         GemPlayerState.initIfNeeded(player);
         GemPlayerState.setActiveGem(player, GemId.AIR);
@@ -50,6 +51,35 @@ public final class GemsBonusPassiveGameTests {
         GemPowers.sync(player);
         BonusClaimsState.get(world.getServer()).releaseAllClaims(player.getUuid());
         return player;
+    }
+
+    private static void claimBonusPassives(ServerPlayerEntity player, Identifier... passives) {
+        ServerWorld world = player.getEntityWorld();
+        BonusClaimsState claims = BonusClaimsState.get(world.getServer());
+        claims.releaseAllClaims(player.getUuid());
+        for (Identifier passiveId : passives) {
+            UUID claimant = claims.getPassiveClaimant(passiveId);
+            if (claimant != null && !claimant.equals(player.getUuid())) {
+                claims.releasePassive(claimant, passiveId);
+            }
+            if (!claims.claimPassive(player.getUuid(), passiveId)) {
+                throw new IllegalStateException("Failed to claim bonus passive " + passiveId);
+            }
+        }
+        GemPowers.sync(player);
+    }
+
+    private static void addBonusPassive(ServerPlayerEntity player, Identifier passiveId) {
+        ServerWorld world = player.getEntityWorld();
+        BonusClaimsState claims = BonusClaimsState.get(world.getServer());
+        UUID claimant = claims.getPassiveClaimant(passiveId);
+        if (claimant != null && !claimant.equals(player.getUuid())) {
+            claims.releasePassive(claimant, passiveId);
+        }
+        if (!claims.claimPassive(player.getUuid(), passiveId)) {
+            throw new IllegalStateException("Failed to claim bonus passive " + passiveId);
+        }
+        GemPowers.sync(player);
     }
 
     private static void claimBonusPassive(ServerPlayerEntity player, Identifier passiveId) {
@@ -922,52 +952,26 @@ public final class GemsBonusPassiveGameTests {
         ServerPlayerEntity attacker = setupBonusPlayer(context, pos);
         ServerPlayerEntity target = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(target);
-        teleport(target, world, pos.x + 2.0D, pos.y, pos.z, 0.0F, 0.0F);
-        claimBonusPassive(attacker, PowerIds.BONUS_CRITICAL_STRIKE);
-        BonusClaimsState claims = BonusClaimsState.get(world.getServer());
+        teleport(target, world, pos.x + 2.0D, pos.y, pos.z, -90.0F, 0.0F);
+        claimBonusPassives(attacker, PowerIds.BONUS_CRITICAL_STRIKE, PowerIds.BONUS_HUNTERS_INSTINCT);
 
-        context.runAtTick(5L, () -> {
-            // Reset pity timer and RNG for baseline measurement (without Hunter's Instinct)
-            PlayerStateManager.clearPersistent(attacker, "bonus_critical_strike_pity");
-            attacker.getRandom().setSeed(123L);
-            int baselineCrits = 0;
-            for (int i = 0; i < 200; i++) {
-                // Set velocity before each call to ensure it persists
-                target.setVelocity(1.0D, 0.0D, 0.0D);
-                float mult = BonusPassiveRuntime.getAttackDamageMultiplier(attacker, target, 4.0F);
-                if (mult > 1.1F) {
-                    baselineCrits++;
-                }
-            }
+        GemsGameTestUtil.assertEventually(
+                context,
+                20L,
+                80L,
+                5L,
+                () -> {
+                    teleport(target, world, pos.x + 2.0D, pos.y, pos.z, -90.0F, 0.0F);
+                    target.setSprinting(true);
+                    target.setVelocity(1.0D, 0.0D, 0.0D);
 
-            UUID claimant = claims.getPassiveClaimant(PowerIds.BONUS_HUNTERS_INSTINCT);
-            if (claimant != null && !claimant.equals(attacker.getUuid())) {
-                claims.releasePassive(claimant, PowerIds.BONUS_HUNTERS_INSTINCT);
-            }
-            claims.claimPassive(attacker.getUuid(), PowerIds.BONUS_HUNTERS_INSTINCT);
-            GemPowers.sync(attacker);
-
-            // Reset pity timer and RNG for boosted measurement (same starting conditions)
-            PlayerStateManager.clearPersistent(attacker, "bonus_critical_strike_pity");
-            attacker.getRandom().setSeed(123L);
-            int boostedCrits = 0;
-            for (int i = 0; i < 200; i++) {
-                // Set velocity before each call to ensure it persists
-                target.setVelocity(1.0D, 0.0D, 0.0D);
-                float mult = BonusPassiveRuntime.getAttackDamageMultiplier(attacker, target, 4.0F);
-                if (mult > 1.1F) {
-                    boostedCrits++;
-                }
-            }
-
-            if (boostedCrits <= baselineCrits) {
-                context.throwGameTestException("Hunter's Instinct should increase crit chance against fleeing targets");
-                return;
-            }
-            claims.releaseAllClaims(attacker.getUuid());
-            GemPowers.sync(attacker);
-            context.complete();
-        });
+                    float chance = BonusPassiveRuntime.getCriticalStrikeChance(attacker, target);
+                    float baseline = GemsBalance.v().bonusPool().criticalStrikeChanceBonus / 100.0f;
+                    float expected = baseline + (GemsBalance.v().bonusPool().huntersInstinctCritBoostPercent / 100.0f);
+                    return chance >= expected - 0.001f;
+                },
+                "Hunter's Instinct should increase crit chance against fleeing targets"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)

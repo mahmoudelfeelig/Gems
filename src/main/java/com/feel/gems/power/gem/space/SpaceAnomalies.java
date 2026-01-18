@@ -34,6 +34,7 @@ public final class SpaceAnomalies {
     private static final List<Anomaly> ACTIVE = new ArrayList<>();
     private static final int HOLE_TICK_STRIDE = 3; // reduce per-tick physics work
     private static final int HOLE_VFX_TICK_STRIDE = 5; // keep particles/sounds less frequent than physics
+    private static final float GRAVITY_WELL_STRENGTH = 1.5F;
 
     private SpaceAnomalies() {
     }
@@ -184,7 +185,7 @@ public final class SpaceAnomalies {
             if (living instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(caster, otherPlayer)) {
                 continue;
             }
-            living.damage(world, caster.getDamageSources().magic(), damage);
+            living.damage(world, caster.getDamageSources().indirectMagic(caster, caster), damage);
         }
         AbilityFeedback.burstAt(world, center, ParticleTypes.ELECTRIC_SPARK, 18, 0.4D);
     }
@@ -257,7 +258,7 @@ public final class SpaceAnomalies {
         Box box = new Box(center, center).expand(radius);
         List<LivingEntity> targets = world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive());
 
-        float strength = a.strength;
+        float strength = a.strengthMultiplier * GRAVITY_WELL_STRENGTH;
         int vfxTargets = 0;
         for (LivingEntity living : targets) {
             if (living == caster) {
@@ -270,8 +271,7 @@ public final class SpaceAnomalies {
                 continue;
             }
             Vec3d delta = (a.kind == Kind.BLACK_HOLE) ? center.subtract(living.getEntityPos()) : living.getEntityPos().subtract(center);
-            double dist = Math.max(0.5D, delta.length());
-            Vec3d push = delta.normalize().multiply(strength / dist);
+            Vec3d push = delta.normalize().multiply(strength);
             living.setVelocity(living.getVelocity().add(push));
             living.velocityDirty = true;
 
@@ -297,7 +297,7 @@ public final class SpaceAnomalies {
                     if (living instanceof ServerPlayerEntity otherPlayer && VoidImmunity.shouldBlockEffect(caster, otherPlayer)) {
                         continue;
                     }
-                    living.damage(world, caster.getDamageSources().magic(), dmg);
+                    living.damage(world, caster.getDamageSources().indirectMagic(caster, caster), dmg);
                 }
             }
         }
@@ -334,10 +334,12 @@ public final class SpaceAnomalies {
         final UUID caster;
         final net.minecraft.registry.RegistryKey<World> dimension;
         final Vec3d center;
+        final long startTick;
         final long untilTick;
+        final int durationTicks;
 
         final int radiusBlocks;
-        final float strength;
+        final float strengthMultiplier;
         final float damagePerSecond;
         long nextDamageTick;
         long nextPhysicsTick;
@@ -346,16 +348,18 @@ public final class SpaceAnomalies {
         final boolean miningMode;
         final long strikeAtTick;
 
-        private Anomaly(Kind kind, UUID caster, net.minecraft.registry.RegistryKey<World> dimension, Vec3d center, long untilTick,
-                        int radiusBlocks, float strength, float damagePerSecond, long nextDamageTick,
+        private Anomaly(Kind kind, UUID caster, net.minecraft.registry.RegistryKey<World> dimension, Vec3d center, long startTick, long untilTick,
+                        int durationTicks, int radiusBlocks, float strengthMultiplier, float damagePerSecond, long nextDamageTick,
                         BlockPos laserTarget, boolean miningMode, long strikeAtTick) {
             this.kind = kind;
             this.caster = caster;
             this.dimension = dimension;
             this.center = center;
+            this.startTick = startTick;
             this.untilTick = untilTick;
+            this.durationTicks = durationTicks;
             this.radiusBlocks = radiusBlocks;
-            this.strength = strength;
+            this.strengthMultiplier = strengthMultiplier;
             this.damagePerSecond = damagePerSecond;
             this.nextDamageTick = nextDamageTick;
             this.nextPhysicsTick = nextDamageTick; // align first physics tick with first damage tick window
@@ -369,7 +373,7 @@ public final class SpaceAnomalies {
             int radius = GemsBalance.v().space().blackHoleRadiusBlocks();
             float strength = GemsBalance.v().space().blackHolePullStrength();
             float dmg = GemsBalance.v().space().blackHoleDamagePerSecond();
-            return new Anomaly(Kind.BLACK_HOLE, caster, dim, center, now + duration, radius, strength, dmg, now + 20, null, false, 0);
+            return new Anomaly(Kind.BLACK_HOLE, caster, dim, center, now, now + duration, duration, radius, strength, dmg, now + 20, null, false, 0);
         }
 
         static Anomaly whiteHole(UUID caster, net.minecraft.registry.RegistryKey<World> dim, Vec3d center, long now) {
@@ -377,12 +381,12 @@ public final class SpaceAnomalies {
             int radius = GemsBalance.v().space().whiteHoleRadiusBlocks();
             float strength = GemsBalance.v().space().whiteHolePushStrength();
             float dmg = GemsBalance.v().space().whiteHoleDamagePerSecond();
-            return new Anomaly(Kind.WHITE_HOLE, caster, dim, center, now + duration, radius, strength, dmg, now + 20, null, false, 0);
+            return new Anomaly(Kind.WHITE_HOLE, caster, dim, center, now, now + duration, duration, radius, strength, dmg, now + 20, null, false, 0);
         }
 
         static Anomaly laser(UUID caster, net.minecraft.registry.RegistryKey<World> dim, BlockPos target, boolean miningMode, long now) {
             int delay = GemsBalance.v().space().orbitalLaserDelayTicks();
-            return new Anomaly(Kind.ORBITAL_LASER, caster, dim, Vec3d.ofCenter(target), now + delay + 200, 0, 0.0F, 0.0F, 0, target, miningMode, now + delay);
+            return new Anomaly(Kind.ORBITAL_LASER, caster, dim, Vec3d.ofCenter(target), now, now + delay + 200, 0, 0, 0.0F, 0.0F, 0, target, miningMode, now + delay);
         }
     }
 }

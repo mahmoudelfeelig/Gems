@@ -246,7 +246,7 @@ public final class GemsBalanceConfig {
         public int vitalityVortexVerdantThreshold = 10;
         public float vitalityVortexAllyHeal = 2.0F;
 
-        public int healthDrainCooldownSeconds = 12;
+        public int healthDrainCooldownSeconds = 45;
         public int healthDrainRangeBlocks = 20;
         public float healthDrainAmount = 6.0F;
 
@@ -299,10 +299,10 @@ public final class GemsBalanceConfig {
     }
 
     public static final class Speed {
-        public double momentumMinSpeed = 0.10D;
-        public double momentumMaxSpeed = 0.60D;
-        public float momentumMinMultiplier = 0.90F;
-        public float momentumMaxMultiplier = 1.30F;
+        public double momentumMinSpeed = 0.05D;
+        public double momentumMaxSpeed = 0.45D;
+        public float momentumMinMultiplier = 1.00F;
+        public float momentumMaxMultiplier = 2.00F;
         public int frictionlessSpeedAmplifier = 1;
 
         public int arcShotCooldownSeconds = 20;
@@ -529,13 +529,13 @@ public final class GemsBalanceConfig {
         public int blackHoleCooldownSeconds = 60;
         public int blackHoleDurationSeconds = 6;
         public int blackHoleRadiusBlocks = 10;
-        public float blackHolePullStrength = 0.75F;
+        public float blackHolePullStrength = 1.0F;
         public float blackHoleDamagePerSecond = 12.0F;
 
         public int whiteHoleCooldownSeconds = 60;
         public int whiteHoleDurationSeconds = 6;
         public int whiteHoleRadiusBlocks = 10;
-        public float whiteHolePushStrength = 0.90F;
+        public float whiteHolePushStrength = 1.0F;
         public float whiteHoleDamagePerSecond = 9.0F;
     }
 
@@ -1043,6 +1043,8 @@ public final class GemsBalanceConfig {
         public int decoyTrapCooldownSeconds = 30;
         public float decoyTrapExplosionDamage = 6.0F;
         public int decoyTrapArmTimeSeconds = 2;
+        public int decoyTrapMaxActive = 20;
+        public int decoyTrapDespawnSeconds = 60;
 
         // Gravity Well
         public int gravityWellCooldownSeconds = 30;
@@ -1081,7 +1083,7 @@ public final class GemsBalanceConfig {
         // Berserker Rage
         public int berserkerRageCooldownSeconds = 60;
         public int berserkerRageDurationSeconds = 10;
-        public float berserkerRageDamageBoostPercent = 50.0F;
+        public float berserkerRageDamageBoostPercent = 200.0F;
         public float berserkerRageDamageTakenBoostPercent = 25.0F;
 
         // Ethereal Step (was Phase Shift)
@@ -1230,6 +1232,7 @@ public final class GemsBalanceConfig {
         public float corpseExplosionDamage = 5.0F;
         public int corpseExplosionRadiusBlocks = 6;
         public int corpseExplosionCorpseRangeBlocks = 10;
+        public int corpseExplosionMarkDurationSeconds = 5;
 
         // Soul Swap
         public int soulSwapCooldownSeconds = 30;

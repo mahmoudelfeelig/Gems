@@ -8,6 +8,11 @@ import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.state.PlayerStateManager;
 import com.feel.gems.trust.GemTrust;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LazyEntityReference;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.Angerable;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.particle.ParticleTypes;
@@ -51,15 +56,34 @@ public final class SentinelTauntAbility implements GemAbility {
         PlayerStateManager.setPersistent(player, TAUNT_ACTIVE_KEY, "true");
         PlayerStateManager.setPersistent(player, TAUNT_END_KEY, String.valueOf(endTime));
 
-        // Apply taunt effect to nearby enemies
+        // Apply taunt effect to nearby enemies.
         Box box = player.getBoundingBox().expand(radius);
-        for (Entity e : world.getOtherEntities(player, box, ent -> ent instanceof ServerPlayerEntity)) {
-            ServerPlayerEntity target = (ServerPlayerEntity) e;
-            if (GemTrust.isTrusted(player, target)) continue;
-            if (!VoidImmunity.canBeTargeted(player, target)) continue;
-
-            // Mark them as taunted by this player
-            SentinelTauntRuntime.applyTaunt(target, player.getUuid(), durationTicks);
+        for (Entity e : world.getOtherEntities(player, box, ent -> ent instanceof LivingEntity)) {
+            LivingEntity target = (LivingEntity) e;
+            if (target == player) {
+                continue;
+            }
+            if (target instanceof ServerPlayerEntity targetPlayer) {
+                if (GemTrust.isTrusted(player, targetPlayer)) {
+                    continue;
+                }
+                if (!VoidImmunity.canBeTargeted(player, targetPlayer)) {
+                    continue;
+                }
+                // Mark them as taunted by this player.
+                SentinelTauntRuntime.applyTaunt(targetPlayer, player.getUuid(), durationTicks);
+                continue;
+            }
+            if (target instanceof MobEntity mob) {
+                if (!(mob instanceof HostileEntity) && !(mob instanceof Angerable)) {
+                    continue;
+                }
+                mob.setTarget(player);
+                mob.setAttacker(player);
+                if (mob instanceof Angerable angerable) {
+                    angerable.setAngryAt(LazyEntityReference.of(player));
+                }
+            }
         }
 
         // Grant resistance to self

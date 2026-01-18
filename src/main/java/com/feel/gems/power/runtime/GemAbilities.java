@@ -5,10 +5,9 @@ import java.util.List;
 import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.config.GemsDisables;
-import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemId;
-import com.feel.gems.core.GemRegistry;
+import com.feel.gems.loadout.LoadoutManager;
 import com.feel.gems.legendary.LegendaryCooldowns;
 import com.feel.gems.mastery.GemMastery;
 import com.feel.gems.net.AbilityCooldownPayload;
@@ -71,8 +70,7 @@ public final class GemAbilities {
             return;
         }
 
-        GemDefinition def = GemRegistry.definition(gemId);
-        List<Identifier> abilities = def.abilities();
+        List<Identifier> abilities = LoadoutManager.getAbilityOrder(player, gemId);
         int unlocked = new GemEnergyState(energy).unlockedAbilityCount(abilities.size());
         if (unlocked <= 0) {
             player.sendMessage(Text.translatable("gems.ability.no_abilities_unlocked"), true);
@@ -138,6 +136,10 @@ public final class GemAbilities {
             return 0;
         }
         return (int) Math.max(1, (ticks + 19) / 20);
+    }
+
+    public static int adjustedCooldownTicks(ServerPlayerEntity player, GemId gemId, int baseTicks) {
+        return applyCooldownModifiers(player, baseTicks, gemId);
     }
 
     /**

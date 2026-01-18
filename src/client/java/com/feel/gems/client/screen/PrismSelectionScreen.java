@@ -19,6 +19,9 @@ import java.util.List;
  * Client UI for Prism gem ability/passive selection at energy 10.
  */
 public final class PrismSelectionScreen extends GemsScreenBase {
+    private static int lastTab = 0;
+    private static final int[] lastPages = new int[4];
+
     private final List<PowerEntry> gemAbilities;
     private final List<PowerEntry> bonusAbilities;
     private final List<PowerEntry> gemPassives;
@@ -51,6 +54,11 @@ public final class PrismSelectionScreen extends GemsScreenBase {
         this.maxBonusAbilities = payload.maxBonusAbilities();
         this.maxGemPassives = payload.maxGemPassives();
         this.maxBonusPassives = payload.maxBonusPassives();
+        if (lastTab < 0 || lastTab > 3) {
+            lastTab = 0;
+        }
+        this.currentTab = lastTab;
+        this.page = lastPages[currentTab];
     }
 
     @Override
@@ -103,6 +111,7 @@ public final class PrismSelectionScreen extends GemsScreenBase {
 
         int totalPg = totalPages(entries.size(), ENTRIES_PER_PAGE);
         page = clampPage(page, totalPg);
+        cachePage();
 
         int entryY = startY + TAB_HEIGHT + 20;
         int entryX = centerX - panelW / 2;
@@ -178,13 +187,23 @@ public final class PrismSelectionScreen extends GemsScreenBase {
 
     private void switchTab(int tab) {
         currentTab = tab;
-        page = 0;
+        page = lastPages[currentTab];
+        lastTab = currentTab;
         rebuild();
     }
 
     private void changePage(int delta) {
         page += delta;
+        cachePage();
         rebuild();
+    }
+
+    private void cachePage() {
+        if (currentTab < 0 || currentTab > 3) {
+            return;
+        }
+        lastTab = currentTab;
+        lastPages[currentTab] = page;
     }
 
     private void toggleEntry(Identifier entryId) {

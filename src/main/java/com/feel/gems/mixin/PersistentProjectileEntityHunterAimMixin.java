@@ -3,6 +3,7 @@ package com.feel.gems.mixin;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.legendary.LegendaryTargeting;
+import com.feel.gems.power.util.Targeting;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
@@ -41,9 +42,19 @@ public abstract class PersistentProjectileEntityHunterAimMixin {
         int timeout = GemsBalance.v().legendary().hunterAimTimeoutTicks();
         LivingEntity target = LegendaryTargeting.findTarget(player, range, timeout);
         if (target == null) {
+            target = Targeting.raycastLiving(player, range);
+        }
+        if (target == null) {
             return;
         }
-        Vec3d desired = target.getEyePos().subtract(player.getEyePos());
+        Vec3d targetPos = target.getEyePos();
+        Vec3d targetVel = target.getVelocity();
+        double baseSpeed = Math.sqrt(x * x + y * y + z * z);
+        double flightSpeed = baseSpeed > 1.0E-4D ? baseSpeed : Math.max(0.01D, speed);
+        double distance = player.getEyePos().distanceTo(targetPos);
+        double leadTime = distance / flightSpeed;
+        leadTime = Math.min(1.5D, Math.max(0.0D, leadTime));
+        Vec3d desired = targetPos.add(targetVel.multiply(leadTime)).subtract(player.getEyePos());
         if (desired.lengthSquared() < 0.0001D) {
             return;
         }

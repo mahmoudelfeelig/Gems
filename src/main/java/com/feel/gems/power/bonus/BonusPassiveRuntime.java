@@ -190,14 +190,7 @@ public final class BonusPassiveRuntime {
 
         // Critical Strike - bonus chance and bonus damage
         if (GemPowers.isPassiveActive(attacker, PowerIds.BONUS_CRITICAL_STRIKE)) {
-            float chance = cfg.criticalStrikeChanceBonus / 100.0f;
-            if (GemPowers.isPassiveActive(attacker, PowerIds.BONUS_HUNTERS_INSTINCT)) {
-                Vec3d targetVel = target.getVelocity();
-                Vec3d toAttacker = attacker.getEntityPos().subtract(target.getEntityPos()).normalize();
-                if (targetVel.length() > 0.1 && targetVel.normalize().dotProduct(toAttacker) < -0.3) {
-                    chance += cfg.huntersInstinctCritBoostPercent / 100.0f;
-                }
-            }
+            float chance = getCriticalStrikeChance(attacker, target);
             boolean crit = attacker.getRandom().nextFloat() < chance;
             if (!crit && chance > 0.0f) {
                 // Pity timer to keep the behavior testable/deterministic and avoid pathological RNG streaks.
@@ -295,6 +288,30 @@ public final class BonusPassiveRuntime {
         }
 
         return multiplier;
+    }
+
+    public static float getCriticalStrikeChance(ServerPlayerEntity attacker, LivingEntity target) {
+        if (!GemPowers.isPassiveActive(attacker, PowerIds.BONUS_CRITICAL_STRIKE)) {
+            return 0.0f;
+        }
+        var cfg = GemsBalance.v().bonusPool();
+        float chance = cfg.criticalStrikeChanceBonus / 100.0f;
+        if (GemPowers.isPassiveActive(attacker, PowerIds.BONUS_HUNTERS_INSTINCT) && isTargetFleeing(attacker, target)) {
+            chance += cfg.huntersInstinctCritBoostPercent / 100.0f;
+        }
+        return Math.max(0.0f, chance);
+    }
+
+    private static boolean isTargetFleeing(ServerPlayerEntity attacker, LivingEntity target) {
+        Vec3d toAttacker = attacker.getEntityPos().subtract(target.getEntityPos()).normalize();
+        Vec3d targetVel = target.getVelocity();
+        if (targetVel.length() > 0.1) {
+            return targetVel.normalize().dotProduct(toAttacker) < -0.1;
+        }
+        if (target instanceof ServerPlayerEntity player && player.isSprinting()) {
+            return toAttacker.dotProduct(player.getRotationVec(1.0F)) < -0.1;
+        }
+        return false;
     }
 
     // ========== Defense Damage Modifiers ==========

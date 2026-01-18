@@ -11,16 +11,18 @@
 ## Special controls
 
 - Astra Soul Release: the slot after Astra's last ability.
-- Summoner loadout UI: Gems Modifier + the hotbar key after Recall (default Alt + 7).
+- Summoner loadout UI: Gems Modifier + the hotbar key after the last ability slot (default Alt + 7) while using Summoner.
 - Loadout presets manager: press L (default) to open the loadout presets screen.
 - Guidebook: press ~ (tilde) to open the in-game docs viewer.
+- Augment/inscription screen: press U (default) while holding a gem or legendary item to manage augments or inscriptions for that specific item.
+- Title selection: press M (default) to pick your active title and view progress across unlocked titles.
 - Selection screen: press B (default) to open the selection screen (requires energy 10/10).
   - Most gems: bonus ability/passive selection.
   - Prism: Prism selection (choose from normal gem powers + bonus pool).
 - Bonus abilities: use the dedicated `Bonus Ability 1` and `Bonus Ability 2` keybinds (default C and V; customizable in Options -> Controls -> Gems).
 - Toggle control mode: optional keybind (unbound by default) to switch between CHORD and CUSTOM at runtime.
 - Chaos slots: LAlt + 1-4 to roll or use chaos abilities.
-- Spy observed menu: press O (default) to choose which observed ability Echo/Steal will use.
+- Spy observed menu: press O (default) to choose which observed ability Echo/Steal will use; observations persist until used (Echo consumes 1, Steal consumes 4).
 
 ## HUD
 

@@ -64,7 +64,7 @@ public final class BonusMindSpikeAbility implements GemAbility {
         }
 
         // Psychic damage
-        target.damage(world, world.getDamageSources().magic(), DAMAGE);
+        target.damage(world, player.getDamageSources().indirectMagic(player, player), DAMAGE);
         
         // Apply glowing to reveal location
         target.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, GLOW_DURATION, 0, false, false, true));

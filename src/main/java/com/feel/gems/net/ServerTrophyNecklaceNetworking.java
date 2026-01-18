@@ -52,7 +52,10 @@ public final class ServerTrophyNecklaceNetworking {
             return;
         }
         Identifier passiveId = payload.passiveId();
-        if (passiveId == null || !isOffered(player, passiveId)) {
+        if (passiveId == null) {
+            return;
+        }
+        if (!isOffered(player, passiveId) && !HuntersTrophyNecklaceItem.wasLastOffered(player, passiveId)) {
             return;
         }
 

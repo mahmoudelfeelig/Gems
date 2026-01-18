@@ -2,14 +2,14 @@
 
 ## Gem Mastery (Cosmetic Progression)
 
-Each gem has a mastery track that rewards players with epic cosmetic titles and aura effects based on ability usage.
+Each gem has a mastery track that rewards players with epic cosmetic titles based on ability usage.
 
 ### How It Works
 
 - **Tracking**: Every time you successfully use a gem ability, your mastery progress for that gem increases
-- **Thresholds**: Epic titles and auras unlock at specific usage milestones
-- **Mix & Match**: You can combine any unlocked title with any unlocked aura, regardless of which gem they came from
+- **Thresholds**: Epic titles unlock at specific usage milestones
 - **Cosmetic Only**: Mastery rewards provide no gameplay advantages
+- **Auto-display**: If you haven't selected a title, a leaderboard title shows first (if you hold one), otherwise your highest unlocked title for your active gem is shown
 
 ### Title Thresholds
 
@@ -48,6 +48,16 @@ Each gem has 2 unique epic titles:
 | Sentinel | Bulwark | The Immovable |
 | Trickster | Illusionist | Master of Deception |
 
+### Title Selection Screen
+
+- Open the title selection screen with the `Title Selection` keybind (default M).
+- The screen lists every title with your current progress (`uses / threshold`).
+- Click an unlocked title to equip it or use Clear to remove your selection.
+- Selected titles display in chat and the tab list with their title colors.
+- Your title color also tints your chat message text; if no aura is selected, your aura color follows your title.
+- Skinshifted chat uses the target's title and color.
+- Admin-forced titles are labeled in the list.
+
 ### General Titles (Leaderboard-Based)
 
 In addition to gem-specific titles, there are server-wide general titles awarded to the current leader in each category:
@@ -60,48 +70,6 @@ In addition to gem-specific titles, there are server-wide general titles awarded
 | Whale | Maximum energy (10) |
 
 These titles update every minute based on current server statistics.
-
-### Aura Thresholds
-
-| Threshold | Aura Tier |
-|-----------|----------|
-| 25 uses | Spark (small particles) |
-| 75 uses | Glow (medium particles) |
-| 150 uses | Radiance (larger particles) |
-| 300 uses | Brilliance (full aura) |
-
-### Aura Effects
-
-Each gem has a unique particle color for its aura:
-- **Astra**: Purple
-- **Fire**: Orange-red
-- **Water**: Blue
-- **Air**: White-blue
-- **Earth**: Brown
-- **Life**: Green
-- **Void**: Dark purple
-- **Flux**: Cyan
-- **Space**: Deep blue
-- **Speed**: Yellow
-- **Reaper**: Dark red
-- **Spy**: Gray
-- **Beacon**: Gold
-- **Hunter**: Olive
-- **Duelist**: Crimson
-- **Trickster**: Pink
-- **Wealth**: Gold
-- **Sentinel**: Silver
-- **Summoner**: Violet
-- **Terror**: Dark crimson
-- **Chaos**: Magenta
-- **Pillager**: Dark gray
-- **Prism**: White
-
-### Settings
-
-Mastery visuals can be tuned by the server. If you don’t see auras, ask your server owner.
-
----
 
 ## Rivalry System
 

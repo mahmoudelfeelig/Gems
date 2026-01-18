@@ -1,13 +1,18 @@
 package com.feel.gems.client.screen;
 
+import static com.feel.gems.client.screen.GemsScreenConstants.*;
+
 import com.feel.gems.client.ClientGemState;
 import com.feel.gems.core.GemId;
+import com.feel.gems.core.GemRegistry;
 import com.feel.gems.loadout.GemLoadout;
 import com.feel.gems.net.LoadoutDeletePayload;
 import com.feel.gems.net.LoadoutLoadPayload;
 import com.feel.gems.net.LoadoutOpenRequestPayload;
 import com.feel.gems.net.LoadoutSavePayload;
 import com.feel.gems.net.LoadoutScreenPayload;
+import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.registry.ModAbilities;
 import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -17,6 +22,7 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.CyclingButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 /**
  * Client UI for managing per-gem loadout presets.
@@ -25,10 +31,14 @@ public final class LoadoutPresetsScreen extends GemsScreenBase {
     private static final int ROW_HEIGHT = 24;
     private static final int BUTTON_HEIGHT = 20;
     private static final int SETTINGS_ROW_HEIGHT = 22;
+    private static final int ABILITY_ROW_HEIGHT = 22;
+    private static final int ABILITY_BUTTON_WIDTH = 22;
 
     private final LoadoutScreenPayload payload;
     private final List<ButtonWidget> loadButtons = new ArrayList<>();
     private final List<ButtonWidget> deleteButtons = new ArrayList<>();
+    private final List<ButtonWidget> abilityUpButtons = new ArrayList<>();
+    private final List<ButtonWidget> abilityDownButtons = new ArrayList<>();
 
     private TextFieldWidget nameField;
     private ButtonWidget saveButton;
@@ -47,10 +57,15 @@ public final class LoadoutPresetsScreen extends GemsScreenBase {
     private boolean showEnergy = true;
     private boolean compactMode = false;
 
+    private List<Identifier> abilityOrder = new ArrayList<>();
+    private String initialName = "Preset";
+
     private int listTop;
     private int labelX;
     private int loadX;
     private int deleteX;
+    private int abilityTop;
+    private int abilityTextWidth;
     private int panelLeft;
     private int panelRight;
     private int panelTop;
@@ -64,7 +79,30 @@ public final class LoadoutPresetsScreen extends GemsScreenBase {
     @Override
     protected void init() {
         super.init();
+        if (abilityOrder.isEmpty()) {
+            initStateFromPayload();
+        }
+        rebuild();
+    }
+
+    private void initStateFromPayload() {
+        LoadoutScreenPayload.Preset activePreset = getActivePreset();
+        if (activePreset != null) {
+            applyPresetToEditor(activePreset);
+            if (!activePreset.name().isBlank()) {
+                initialName = activePreset.name();
+            }
+        }
+        List<Identifier> available = GemRegistry.definition(payload.gem()).abilities();
+        abilityOrder = new ArrayList<>(GemLoadout.sanitizeAbilityOrder(payload.abilityOrder(), available));
+    }
+
+    private void rebuild() {
         clearChildren();
+        loadButtons.clear();
+        deleteButtons.clear();
+        abilityUpButtons.clear();
+        abilityDownButtons.clear();
 
         int centerX = this.width / 2;
         int panelWidth = Math.min(380, this.width - 40);
@@ -76,17 +114,16 @@ public final class LoadoutPresetsScreen extends GemsScreenBase {
         int top = 28;
         int settingsTop = top + 50;
         int settingsRows = 5;
-        listTop = settingsTop + (settingsRows * SETTINGS_ROW_HEIGHT) + 8;
+        int abilityLabelTop = settingsTop + (settingsRows * SETTINGS_ROW_HEIGHT) + 8;
+        abilityTop = abilityLabelTop + SETTINGS_ROW_HEIGHT;
+        listTop = abilityTop + (Math.max(1, abilityOrder.size()) * ABILITY_ROW_HEIGHT) + 10;
         labelX = panelLeft + 10;
         loadX = panelRight - 130;
         deleteX = panelRight - 60;
 
+        String nameText = nameField != null ? nameField.getText() : initialName;
         nameField = new TextFieldWidget(this.textRenderer, panelLeft + 10, top + 26, panelWidth - 150, 18, Text.translatable("gems.screen.loadout_presets.name"));
-        LoadoutScreenPayload.Preset activePreset = getActivePreset();
-        if (activePreset != null) {
-            applyPresetToEditor(activePreset);
-        }
-        nameField.setText(activePreset != null && !activePreset.name().isBlank() ? activePreset.name() : "Preset");
+        nameField.setText(nameText);
         addDrawableChild(nameField);
 
         saveButton = ButtonWidget.builder(Text.translatable("gems.screen.loadout_presets.save"), btn -> savePreset())
@@ -137,7 +174,32 @@ public final class LoadoutPresetsScreen extends GemsScreenBase {
         addLabel(labelX, rowY, labelW, "Compact Mode");
         compactModeToggle = addToggle(fieldX, rowY, fieldW, compactMode, v -> compactMode = v);
 
+        addLabel(labelX, abilityLabelTop, panelWidth - 20, "Ability Order");
+        abilityTextWidth = (panelWidth - 20) - (ABILITY_BUTTON_WIDTH * 2) - 10;
+        buildAbilityButtons();
+
         buildPresetButtons(panelRight);
+    }
+
+    private void buildAbilityButtons() {
+        int buttonX = panelRight - (ABILITY_BUTTON_WIDTH * 2) - 12;
+        for (int i = 0; i < Math.max(1, abilityOrder.size()); i++) {
+            int index = i;
+            int y = abilityTop + (i * ABILITY_ROW_HEIGHT);
+            ButtonWidget up = ButtonWidget.builder(Text.literal("^"), btn -> moveAbility(index, -1))
+                    .dimensions(buttonX, y - 2, ABILITY_BUTTON_WIDTH, BUTTON_HEIGHT)
+                    .build();
+            ButtonWidget down = ButtonWidget.builder(Text.literal("v"), btn -> moveAbility(index, 1))
+                    .dimensions(buttonX + ABILITY_BUTTON_WIDTH + 4, y - 2, ABILITY_BUTTON_WIDTH, BUTTON_HEIGHT)
+                    .build();
+            boolean active = index < abilityOrder.size();
+            up.active = active && index > 0;
+            down.active = active && index < abilityOrder.size() - 1;
+            abilityUpButtons.add(up);
+            abilityDownButtons.add(down);
+            addDrawableChild(up);
+            addDrawableChild(down);
+        }
     }
 
     private void buildPresetButtons(int panelRight) {
@@ -175,7 +237,7 @@ public final class LoadoutPresetsScreen extends GemsScreenBase {
         ClientPlayNetworking.send(new LoadoutSavePayload(
                 payload.gem(),
                 name == null ? "" : name,
-                List.of(),
+                List.copyOf(abilityOrder),
                 passivesEnabled,
                 hudPosition,
                 showCooldowns,
@@ -183,6 +245,20 @@ public final class LoadoutPresetsScreen extends GemsScreenBase {
                 compactMode
         ));
         requestGem(payload.gem());
+    }
+
+    private void moveAbility(int index, int delta) {
+        if (index < 0 || index >= abilityOrder.size()) {
+            return;
+        }
+        int target = index + delta;
+        if (target < 0 || target >= abilityOrder.size()) {
+            return;
+        }
+        Identifier current = abilityOrder.get(index);
+        abilityOrder.set(index, abilityOrder.get(target));
+        abilityOrder.set(target, current);
+        rebuild();
     }
 
     private void loadPreset(int index) {
@@ -225,11 +301,22 @@ public final class LoadoutPresetsScreen extends GemsScreenBase {
         super.render(context, mouseX, mouseY, delta);
         drawPanel(context, panelLeft, panelTop, panelRight, panelBottom);
 
-        int centerX = this.width / 2;
         renderBase(context);
 
         String gemLabel = Text.translatable("gems.screen.loadout_presets.gem", payload.gem().name()).getString();
-        context.drawTextWithShadow(this.textRenderer, gemLabel, (this.width / 2) - 20, 30, 0xA0A0A0);
+        context.drawTextWithShadow(this.textRenderer, gemLabel, (this.width / 2) - 20, 30, COLOR_GRAY);
+
+        int abilityRows = Math.max(1, abilityOrder.size());
+        for (int i = 0; i < abilityRows; i++) {
+            String label = Text.translatable("gems.screen.loadout_presets.empty").getString();
+            if (i < abilityOrder.size()) {
+                Identifier id = abilityOrder.get(i);
+                GemAbility ability = ModAbilities.get(id);
+                label = ability != null ? ability.name() : id.getPath();
+            }
+            String line = (i + 1) + ". " + label;
+            context.drawTextWithShadow(this.textRenderer, this.textRenderer.trimToWidth(line, abilityTextWidth), labelX, abilityTop + (i * ABILITY_ROW_HEIGHT), COLOR_WHITE);
+        }
 
         int maxPresets = Math.max(1, payload.maxPresets());
         for (int i = 0; i < maxPresets; i++) {
@@ -241,7 +328,7 @@ public final class LoadoutPresetsScreen extends GemsScreenBase {
             if (i == payload.activeIndex()) {
                 label = label + " " + Text.translatable("gems.screen.loadout_presets.active").getString();
             }
-            context.drawTextWithShadow(this.textRenderer, (i + 1) + ". " + label, labelX, listTop + (i * ROW_HEIGHT), 0xFFFFFF);
+            context.drawTextWithShadow(this.textRenderer, (i + 1) + ". " + label, labelX, listTop + (i * ROW_HEIGHT), COLOR_WHITE);
         }
 
     }

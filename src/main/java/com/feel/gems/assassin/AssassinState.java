@@ -14,9 +14,11 @@ import net.minecraft.server.network.ServerPlayerEntity;
  * <p>Assassins keep gems/energy as normal; this only governs max-hearts and scoring.</p>
  */
 public final class AssassinState {
+    private static final int CHOICE_POINTS = 10;
     private static final String KEY_IS_ASSASSIN = "assassinIsAssassin";
     private static final String KEY_ELIMINATED = "assassinEliminated";
     private static final String KEY_ASSASSIN_HEARTS = "assassinHearts";
+    private static final String KEY_CHOICE_UNLOCKED = "assassinChoiceUnlocked";
 
     private static final String KEY_TOTAL_NORMAL_KILLS = "assassinTotalNormalKills";
     private static final String KEY_TOTAL_FINAL_KILLS = "assassinTotalFinalKills";
@@ -58,6 +60,9 @@ public final class AssassinState {
         }
         if (nbt.getInt(KEY_A_FINAL_KILLS_VS_NON).isEmpty()) {
             nbt.putInt(KEY_A_FINAL_KILLS_VS_NON, 0);
+        }
+        if (nbt.getBoolean(KEY_CHOICE_UNLOCKED).isEmpty()) {
+            nbt.putBoolean(KEY_CHOICE_UNLOCKED, false);
         }
     }
 
@@ -105,6 +110,7 @@ public final class AssassinState {
         nbt.putBoolean(KEY_IS_ASSASSIN, false);
         nbt.putBoolean(KEY_ELIMINATED, false);
         nbt.putInt(KEY_ASSASSIN_HEARTS, maxHearts());
+        nbt.putBoolean(KEY_CHOICE_UNLOCKED, false);
         nbt.putInt(KEY_TOTAL_NORMAL_KILLS, 0);
         nbt.putInt(KEY_TOTAL_FINAL_KILLS, 0);
         nbt.putInt(KEY_A_NORMAL_KILLS, 0);
@@ -156,6 +162,7 @@ public final class AssassinState {
             return false;
         }
         root(player).putInt(target, Math.max(0, value));
+        maybeUnlockChoice(player);
         return true;
     }
 
@@ -188,7 +195,43 @@ public final class AssassinState {
                     nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, nbt.getInt(KEY_A_NORMAL_KILLS_VS_NON, 0) + 1);
                 }
             }
+            if (maybeUnlockChoice(killer)) {
+                sendChoicePrompt(killer);
+            }
         }
+    }
+
+    public static int choicePointsRequired() {
+        return CHOICE_POINTS;
+    }
+
+    public static boolean isChoiceUnlocked(ServerPlayerEntity player) {
+        return root(player).getBoolean(KEY_CHOICE_UNLOCKED, false);
+    }
+
+    public static boolean maybeUnlockChoice(ServerPlayerEntity player) {
+        if (player == null) {
+            return false;
+        }
+        initIfNeeded(player);
+        NbtCompound nbt = root(player);
+        if (nbt.getBoolean(KEY_CHOICE_UNLOCKED, false)) {
+            return false;
+        }
+        if (assassinPoints(player) < CHOICE_POINTS) {
+            return false;
+        }
+        nbt.putBoolean(KEY_CHOICE_UNLOCKED, true);
+        return true;
+    }
+
+    public static void sendChoicePrompt(ServerPlayerEntity player) {
+        if (player == null) {
+            return;
+        }
+        player.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.choice_unlocked").formatted(net.minecraft.util.Formatting.GOLD), false);
+        player.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.choice_stay").formatted(net.minecraft.util.Formatting.RED), false);
+        player.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.choice_leave").formatted(net.minecraft.util.Formatting.GRAY), false);
     }
 
     /**

@@ -346,7 +346,7 @@ public final class SynergyRegistry {
                                     continue;
                                 }
                                 other.setOnFireFor(4);
-                                other.damage(world, player.getDamageSources().magic(), 6.0f);
+                                other.damage(world, player.getDamageSources().indirectMagic(player, player), 6.0f);
                             }
                         }
                     }
@@ -497,7 +497,7 @@ public final class SynergyRegistry {
                                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 120, 2));
                                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, 200, 2));
                             } else {
-                                other.damage(world, player.getDamageSources().magic(), 8.0f);
+                                other.damage(world, player.getDamageSources().indirectMagic(player, player), 8.0f);
                                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.WITHER, 100, 1));
                             }
                         }
@@ -619,7 +619,7 @@ public final class SynergyRegistry {
                             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) continue;
                             other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 120, 3));
                             other.addStatusEffect(new StatusEffectInstance(StatusEffects.WITHER, 100, 1));
-                            other.damage(world, player.getDamageSources().magic(), 5.0f);
+                            other.damage(world, player.getDamageSources().indirectMagic(player, player), 5.0f);
                         }
                     }
                 }
@@ -643,7 +643,7 @@ public final class SynergyRegistry {
                             if (other == player) continue;
                             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) continue;
                             other.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 60, 0));
-                            other.damage(world, player.getDamageSources().magic(), 3.0f);
+                            other.damage(world, player.getDamageSources().indirectMagic(player, player), 3.0f);
                         }
                     }
                 }
@@ -670,7 +670,7 @@ public final class SynergyRegistry {
                             Vec3d dir = new Vec3d(other.getX() - player.getX(), 0.0, other.getZ() - player.getZ()).normalize();
                             other.addVelocity(dir.x * 1.1, 0.4, dir.z * 1.1);
                             other.velocityDirty = true;
-                            other.damage(world, player.getDamageSources().magic(), 4.0f);
+                            other.damage(world, player.getDamageSources().indirectMagic(player, player), 4.0f);
                         }
                     }
                 }
@@ -809,7 +809,7 @@ public final class SynergyRegistry {
                             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) continue;
                             other.addVelocity(0.0, 1.2, 0.0);
                             other.velocityDirty = true;
-                            other.damage(world, player.getDamageSources().magic(), 6.0f);
+                            other.damage(world, player.getDamageSources().indirectMagic(player, player), 6.0f);
                         }
                     }
                 }
@@ -883,7 +883,7 @@ public final class SynergyRegistry {
                         for (LivingEntity other : getNearbyLiving(player, 8)) {
                             if (other == player) continue;
                             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) continue;
-                            other.damage(world, player.getDamageSources().magic(), 5.0f);
+                            other.damage(world, player.getDamageSources().indirectMagic(player, player), 5.0f);
                             other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 100, 1));
                         }
                     }
@@ -933,7 +933,7 @@ public final class SynergyRegistry {
                                 other.heal(4.0f);
                                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, 160, 1));
                             } else {
-                                other.damage(world, player.getDamageSources().magic(), 6.0f);
+                                other.damage(world, player.getDamageSources().indirectMagic(player, player), 6.0f);
                                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.WITHER, 80, 0));
                             }
                         }
@@ -957,7 +957,7 @@ public final class SynergyRegistry {
                         for (LivingEntity other : getNearbyLiving(player, 8)) {
                             if (other == player) continue;
                             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) continue;
-                            other.damage(world, player.getDamageSources().magic(), 7.0f);
+                            other.damage(world, player.getDamageSources().indirectMagic(player, player), 7.0f);
                             other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 100, 1));
                         }
                         world.spawnParticles(ParticleTypes.CRIT, player.getX(), player.getY() + 1, player.getZ(), 30, 1.0, 0.4, 1.0, 0.2);
@@ -1027,7 +1027,7 @@ public final class SynergyRegistry {
                         for (LivingEntity other : getNearbyLiving(player, 7)) {
                             if (other == player) continue;
                             if (other instanceof ServerPlayerEntity otherPlayer && GemTrust.isTrusted(player, otherPlayer)) continue;
-                            other.damage(world, player.getDamageSources().magic(), 6.0f);
+                            other.damage(world, player.getDamageSources().indirectMagic(player, player), 6.0f);
                             other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 80, 2));
                         }
                     }

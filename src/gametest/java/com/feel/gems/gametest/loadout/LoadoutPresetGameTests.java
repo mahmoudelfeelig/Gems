@@ -25,7 +25,10 @@ public final class LoadoutPresetGameTests {
         GemPlayerState.setEnergy(player, 6);
 
         List<Identifier> abilities = GemRegistry.definition(GemId.FIRE).abilities();
-        List<Identifier> customOrder = abilities.size() > 1 ? List.of(abilities.get(1), abilities.get(0)) : abilities;
+        List<Identifier> customOrder = new java.util.ArrayList<>(abilities);
+        if (customOrder.size() > 1) {
+            java.util.Collections.swap(customOrder, 0, 1);
+        }
         LoadoutManager.saveAbilityOrder(player, GemId.FIRE, customOrder);
         LoadoutManager.saveHudLayout(player, new GemLoadout.HudLayout(GemLoadout.HudPosition.BOTTOM_RIGHT, false, false, true));
         GemPlayerState.setPassivesEnabled(player, false);

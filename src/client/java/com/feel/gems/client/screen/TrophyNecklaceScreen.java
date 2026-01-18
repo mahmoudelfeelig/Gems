@@ -56,8 +56,7 @@ public final class TrophyNecklaceScreen extends GemsScreenBase {
             PassiveEntry entry = passives.get(i);
             boolean stolen = entry.stolen();
 
-            String prefix = stolen ? "\u2714 " : "";
-            Text label = Text.literal(prefix + entry.name()).formatted(stolen ? Formatting.GREEN : Formatting.WHITE);
+            Text label = Text.literal(entry.name()).formatted(stolen ? Formatting.GREEN : Formatting.WHITE);
 
             Identifier id = entry.id();
             ButtonWidget btn = ButtonWidget.builder(label, b -> toggle(id, stolen))

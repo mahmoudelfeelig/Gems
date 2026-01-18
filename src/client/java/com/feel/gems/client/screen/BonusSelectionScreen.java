@@ -19,6 +19,10 @@ import net.minecraft.util.Formatting;
  * Client UI for selecting bonus abilities and passives at energy 10.
  */
 public final class BonusSelectionScreen extends GemsScreenBase {
+    private static boolean lastShowingAbilities = true;
+    private static int lastPageAbilities = 0;
+    private static int lastPagePassives = 0;
+
     private final List<BonusEntry> abilities;
     private final List<BonusEntry> passives;
     private final int maxAbilities;
@@ -36,6 +40,8 @@ public final class BonusSelectionScreen extends GemsScreenBase {
         this.passives = new ArrayList<>(payload.passives());
         this.maxAbilities = payload.maxAbilities();
         this.maxPassives = payload.maxPassives();
+        this.showingAbilities = lastShowingAbilities;
+        this.page = showingAbilities ? lastPageAbilities : lastPagePassives;
     }
     
     @Override
@@ -68,6 +74,7 @@ public final class BonusSelectionScreen extends GemsScreenBase {
         
         int totalPg = totalPages(currentList.size(), ENTRIES_PER_PAGE);
         page = clampPage(page, totalPg);
+        cachePage();
         
         int start = page * ENTRIES_PER_PAGE;
         int end = Math.min(currentList.size(), start + ENTRIES_PER_PAGE);
@@ -142,7 +149,8 @@ public final class BonusSelectionScreen extends GemsScreenBase {
     private void switchTab(boolean toAbilities) {
         if (showingAbilities != toAbilities) {
             showingAbilities = toAbilities;
-            page = 0;
+            page = showingAbilities ? lastPageAbilities : lastPagePassives;
+            lastShowingAbilities = showingAbilities;
             rebuild();
         }
     }
@@ -151,7 +159,17 @@ public final class BonusSelectionScreen extends GemsScreenBase {
         List<BonusEntry> currentList = showingAbilities ? abilities : passives;
         int maxPage = Math.max(0, (currentList.size() - 1) / ENTRIES_PER_PAGE);
         page = Math.max(0, Math.min(maxPage, page + delta));
+        cachePage();
         rebuild();
+    }
+
+    private void cachePage() {
+        lastShowingAbilities = showingAbilities;
+        if (showingAbilities) {
+            lastPageAbilities = page;
+        } else {
+            lastPagePassives = page;
+        }
     }
     
     private void toggleClaim(BonusEntry entry) {

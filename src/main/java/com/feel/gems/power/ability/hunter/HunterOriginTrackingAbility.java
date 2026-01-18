@@ -1,7 +1,9 @@
 package com.feel.gems.power.ability.hunter;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.legendary.LegendaryPlayerTracker;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.power.runtime.AbilityRuntime;
@@ -55,9 +57,16 @@ public final class HunterOriginTrackingAbility implements GemAbility {
             player.sendMessage(Text.translatable("gems.ability.hunter.origin.own_item"), true);
             return false;
         }
-        var target = player.getEntityWorld().getServer().getPlayerManager().getPlayer(firstOwner);
-        if (target == null) {
-            // Show offline message with name if available
+        var server = player.getEntityWorld().getServer();
+        if (server == null) {
+            return false;
+        }
+        if (SpySystem.hidesTracking(server, firstOwner)) {
+            player.sendMessage(Text.translatable("gems.tracking.hidden"), true);
+            return false;
+        }
+        LegendaryPlayerTracker.Snapshot snapshot = LegendaryPlayerTracker.snapshot(server, firstOwner);
+        if (snapshot == null) {
             String name = AbilityRuntime.getFirstOwnerName(stack);
             if (name != null && !name.isEmpty()) {
                 player.sendMessage(Text.translatable("gems.ability.hunter.origin.owner_offline_named", name), true);
@@ -71,7 +80,7 @@ public final class HunterOriginTrackingAbility implements GemAbility {
         AbilityRuntime.startBounty(player, firstOwner, GemsBalance.v().hunter().originTrackingDurationTicks());
         AbilityFeedback.sound(player, SoundEvents.ENTITY_FOX_SNIFF, 0.8F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.GLOW, 15, 0.3D);
-        player.sendMessage(Text.translatable("gems.ability.hunter.origin.tracking", target.getName().getString()), true);
+        player.sendMessage(Text.translatable("gems.ability.hunter.origin.tracking", snapshot.name()), true);
         return true;
     }
 }

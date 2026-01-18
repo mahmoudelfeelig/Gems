@@ -13,6 +13,7 @@
 - Slot counts, rarity tiers, roll weights, and magnitudes are configurable.
 - Inscriptions roll a rarity and magnitude on craft, then grant passive buffs while the legendary item is equipped or held.
 - Apply inscriptions by holding the legendary item in your other hand and right-clicking the inscription.
+- Use the augment/inscription screen (default U) while holding a legendary item to view or remove inscriptions.
 
 ## Items
 
@@ -23,16 +24,16 @@
 - Supreme set: helmet (Night Vision + Water Breathing), chestplate (Strength I), leggings (Fire Resistance), boots (Speed I), full set (Resistance III); stronger effects override temporarily.
 - Blood Oath Blade: gains +1 Sharpness per unique player kill, capped at Sharpness X.
 - Demolition Blade: right-click to arm a demolition charge on a targeted block or entity; cooldown.
-- Hunter's Sight Bow: aim assist toward your last hit target (player or mob) within 50 blocks and line of sight.
+- Hunter's Sight Bow: aim assist toward your last hit target (player or mob) within 50 blocks and line of sight; if none, aims toward the closest target in your line of sight.
 - Third-Strike Blade: every 3rd crit within a 5s chain window deals bonus damage.
 - Vampiric Edge: each crit heals 1 heart.
-- Gem Seer: right-click to open a selection screen of all online players; choose one to view their active gem, energy level, and owned gems. No cooldown and not consumed.
+- Gem Seer: right-click to open a selection screen of all known players (online or offline); choose one to view their active gem, energy level, and owned gems. No cooldown and not consumed.
 - Challenger's Gauntlet: right-click a player to challenge them to a duel; both players are teleported to a small arena, winner gets energy; loser loses energy.
   - Requires both players to be in the same dimension and not already in a gauntlet duel; on duel end, both players are returned to where they were challenged.
 - Duelist's Rapier: parry window on right-click; successful parry grants guaranteed crit on next hit.
 - Experience Blade: consume XP to gain Sharpness (10 levels -> Sharpness II, 20 -> IV, 30 -> VI, max Sharpness XX at 100 levels). Enchantment persists until death.
 - Reversal Mirror: right-click to activate for 5s; all incoming damage is reflected back to the attacker.
-- Hunter's Trophy Necklace: right-click a player (or kill a player while wearing it) to open a passive-steal menu; steal multiple passives (up to 10) and keep them permanently (persists across death/logout and gem swaps).
+- Hunter's Trophy Necklace: right-click a player (or kill a player while wearing it) to open a passive-steal menu; steal multiple passives (up to 10) and keep them across death/logout and gem swaps (the victim can recover stolen passives by killing you, even if they were unselected).
 - Gladiator's Mark: brand a player; both you and the marked player deal 50% more damage to each other for 60s.
 - Soul Shackle: link yourself to an enemy; damage you take is split between you both for 10s.
 - Chrono Charm: while carried, all gem and bonus ability cooldowns are reduced by 50%.

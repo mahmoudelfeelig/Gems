@@ -14,6 +14,7 @@ import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.gem.wealth.EnchantmentAmplification;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.legendary.LegendaryPlayerTracker;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
@@ -110,6 +111,8 @@ public final class AbilityRuntime {
     private static final String CUSTOM_DATA_KEY_OWNER_NAME = "gemsOwnerName";
     private static final String CUSTOM_DATA_KEY_FIRST_OWNER = "gemsFirstOwner";
     private static final String CUSTOM_DATA_KEY_FIRST_OWNER_NAME = "gemsFirstOwnerName";
+    private static final String CUSTOM_DATA_KEY_PREV_OWNER = "gemsPrevOwner";
+    private static final String CUSTOM_DATA_KEY_PREV_OWNER_NAME = "gemsPrevOwnerName";
 
     private AbilityRuntime() {
     }
@@ -437,6 +440,14 @@ public final class AbilityRuntime {
             return;
         }
         NbtComponent.set(DataComponentTypes.CUSTOM_DATA, stack, nbt -> {
+            UUID current = GemsNbt.getUuid(nbt, CUSTOM_DATA_KEY_OWNER);
+            if (current != null && !current.equals(owner)) {
+                GemsNbt.putUuid(nbt, CUSTOM_DATA_KEY_PREV_OWNER, current);
+                String currentName = nbt.getString(CUSTOM_DATA_KEY_OWNER_NAME, "");
+                if (!currentName.isEmpty()) {
+                    nbt.putString(CUSTOM_DATA_KEY_PREV_OWNER_NAME, currentName);
+                }
+            }
             GemsNbt.putUuid(nbt, CUSTOM_DATA_KEY_OWNER, owner);
             if (ownerName != null && !ownerName.isEmpty()) {
                 nbt.putString(CUSTOM_DATA_KEY_OWNER_NAME, ownerName);
@@ -486,6 +497,17 @@ public final class AbilityRuntime {
     }
 
     /**
+     * Gets the PREVIOUS owner UUID from an item, if available.
+     */
+    public static UUID getPreviousOwner(ItemStack stack) {
+        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (custom == null) {
+            return null;
+        }
+        return GemsNbt.getUuid(custom.copyNbt(), CUSTOM_DATA_KEY_PREV_OWNER);
+    }
+
+    /**
      * Gets the FIRST owner name stored on an item, if available.
      */
     public static String getFirstOwnerName(ItemStack stack) {
@@ -498,6 +520,21 @@ public final class AbilityRuntime {
             return null;
         }
         return nbt.getString(CUSTOM_DATA_KEY_FIRST_OWNER_NAME).orElse(null);
+    }
+
+    /**
+     * Gets the PREVIOUS owner name stored on an item, if available.
+     */
+    public static String getPreviousOwnerName(ItemStack stack) {
+        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (custom == null) {
+            return null;
+        }
+        NbtCompound nbt = custom.copyNbt();
+        if (!nbt.contains(CUSTOM_DATA_KEY_PREV_OWNER_NAME)) {
+            return null;
+        }
+        return nbt.getString(CUSTOM_DATA_KEY_PREV_OWNER_NAME).orElse(null);
     }
 
     private static java.util.List<UUID> readUuidList(NbtCompound nbt, String key) {
@@ -1075,17 +1112,37 @@ public final class AbilityRuntime {
         if (targetUuid == null) {
             return;
         }
-        ServerPlayerEntity target = hunter.getEntityWorld().getServer().getPlayerManager().getPlayer(targetUuid);
-        if (target == null) {
+        MinecraftServer server = hunter.getEntityWorld().getServer();
+        if (server == null) {
+            return;
+        }
+        if (com.feel.gems.power.gem.spy.SpySystem.hidesTracking(server, targetUuid)) {
+            nbt.remove(KEY_BOUNTY_UNTIL);
+            nbt.remove(KEY_BOUNTY_TARGET);
+            hunter.sendMessage(Text.translatable("gems.tracking.hidden"), true);
+            return;
+        }
+        ServerPlayerEntity target = server.getPlayerManager().getPlayer(targetUuid);
+        if (target != null) {
+            double dist = Math.sqrt(hunter.squaredDistanceTo(target));
+            hunter.sendMessage(Text.translatable("gems.bounty.tracking", target.getName().getString(), (int) dist), true);
+            return;
+        }
+
+        LegendaryPlayerTracker.Snapshot snapshot = LegendaryPlayerTracker.snapshot(server, targetUuid);
+        if (snapshot == null || snapshot.pos() == null || snapshot.dimension() == null) {
             hunter.sendMessage(Text.translatable("gems.bounty.target_offline"), true);
             return;
         }
-        double dist = Math.sqrt(hunter.squaredDistanceTo(target));
-        if (GemPowers.isPassiveActive(target, PowerIds.SPY_FALSE_SIGNATURE)) {
-            double factor = 0.5D + (hunter.getRandom().nextDouble() * 1.0D);
-            dist *= factor;
-        }
-        hunter.sendMessage(Text.translatable("gems.bounty.tracking", target.getName().getString(), (int) dist), true);
+        BlockPos pos = snapshot.pos();
+        hunter.sendMessage(Text.translatable(
+                "gems.bounty.last_seen",
+                snapshot.name(),
+                String.valueOf(pos.getX()),
+                String.valueOf(pos.getY()),
+                String.valueOf(pos.getZ()),
+                snapshot.dimension().toString()
+        ), true);
     }
 
     private static void tickAmplificationCleanup(ServerPlayerEntity player, long now) {
@@ -1191,7 +1248,7 @@ public final class AbilityRuntime {
             }
 
             if (decay > 0.0F && horse.getEntityWorld() instanceof ServerWorld horseWorld) {
-                horse.damage(horseWorld, player.getDamageSources().magic(), decay);
+                horse.damage(horseWorld, player.getDamageSources().indirectMagic(player, player), decay);
                 AbilityFeedback.burstAt(horseWorld, horse.getEntityPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.SMOKE, 1, 0.12D);
             }
 

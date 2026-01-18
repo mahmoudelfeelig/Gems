@@ -21,7 +21,7 @@ public final class SpyStealAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "After observing an ability enough times, steal it permanently (until you switch gems).";
+        return "Spend 4 observations to steal the selected ability (consumes the observations).";
     }
 
     @Override
@@ -34,4 +34,3 @@ public final class SpyStealAbility implements GemAbility {
         return SpySystem.stealLastSeen(player);
     }
 }
-

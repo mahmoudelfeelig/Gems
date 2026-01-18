@@ -6,6 +6,7 @@ import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.ActivateAbilityPayload;
 import com.feel.gems.net.ActivateBonusAbilityPayload;
 import com.feel.gems.net.AugmentOpenRequestPayload;
+import com.feel.gems.net.InscriptionOpenRequestPayload;
 import com.feel.gems.net.BonusSelectionOpenRequestPayload;
 import com.feel.gems.net.FluxChargePayload;
 import com.feel.gems.net.LoadoutOpenRequestPayload;
@@ -13,8 +14,11 @@ import com.feel.gems.net.PrismSelectionOpenRequestPayload;
 import com.feel.gems.net.SpyObservedOpenRequestPayload;
 import com.feel.gems.net.SoulReleasePayload;
 import com.feel.gems.net.SummonerLoadoutOpenRequestPayload;
+import com.feel.gems.net.TitleSelectionOpenRequestPayload;
 import com.feel.gems.net.TrophyNecklaceOpenRequestPayload;
 import com.feel.gems.client.screen.GuidebookScreen;
+import com.feel.gems.item.GemItem;
+import com.feel.gems.legendary.LegendaryItem;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
@@ -40,6 +44,7 @@ public final class GemsKeybinds {
     private static KeyBinding LOADOUT_PRESETS_KEY;
     private static KeyBinding AUGMENT_SCREEN_KEY;
     private static KeyBinding GUIDEBOOK_KEY;
+    private static KeyBinding TITLE_SCREEN_KEY;
     private static KeyBinding TOGGLE_CONTROL_MODE_KEY;
 
     private GemsKeybinds() {
@@ -82,6 +87,9 @@ public final class GemsKeybinds {
 
         // Guidebook keybind (tilde by default)
         GUIDEBOOK_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.guidebook", GLFW.GLFW_KEY_GRAVE_ACCENT, CATEGORY));
+
+        // Title selection screen keybind (M by default)
+        TITLE_SCREEN_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.title_screen", GLFW.GLFW_KEY_M, CATEGORY));
 
         // Toggle control mode keybind (unbound by default - user can assign)
         TOGGLE_CONTROL_MODE_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.toggle_control_mode", GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
@@ -171,6 +179,13 @@ public final class GemsKeybinds {
         if (GUIDEBOOK_KEY != null && client.currentScreen == null) {
             while (GUIDEBOOK_KEY.wasPressed()) {
                 GuidebookScreen.open(client);
+            }
+        }
+
+        // Title selection screen key
+        if (TITLE_SCREEN_KEY != null && client.currentScreen == null) {
+            while (TITLE_SCREEN_KEY.wasPressed()) {
+                openTitleSelectionScreen(client);
             }
         }
 
@@ -269,6 +284,14 @@ public final class GemsKeybinds {
         ClientPlayNetworking.send(SpyObservedOpenRequestPayload.INSTANCE);
     }
 
+    private static void openTitleSelectionScreen(MinecraftClient client) {
+        if (client.getNetworkHandler() == null) {
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
+            return;
+        }
+        ClientPlayNetworking.send(TitleSelectionOpenRequestPayload.INSTANCE);
+    }
+
     private static void openLoadoutPresetsScreen(MinecraftClient client) {
         if (client.getNetworkHandler() == null) {
             sendActionBar(client, Text.translatable("gems.client.not_connected"));
@@ -286,11 +309,22 @@ public final class GemsKeybinds {
             sendActionBar(client, Text.translatable("gems.client.not_connected"));
             return;
         }
-        if (!ClientGemState.isInitialized()) {
-            sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
+        if (client.player == null) {
             return;
         }
-        ClientPlayNetworking.send(new AugmentOpenRequestPayload(ClientGemState.activeGem()));
+        boolean mainHandGem = client.player.getMainHandStack().getItem() instanceof GemItem;
+        boolean offHandGem = client.player.getOffHandStack().getItem() instanceof GemItem;
+        if (mainHandGem || offHandGem) {
+            ClientPlayNetworking.send(new AugmentOpenRequestPayload(mainHandGem));
+            return;
+        }
+        boolean mainHandLegendary = client.player.getMainHandStack().getItem() instanceof LegendaryItem;
+        boolean offHandLegendary = client.player.getOffHandStack().getItem() instanceof LegendaryItem;
+        if (mainHandLegendary || offHandLegendary) {
+            ClientPlayNetworking.send(new InscriptionOpenRequestPayload(mainHandLegendary));
+            return;
+        }
+        sendActionBar(client, Text.translatable("gems.augment.need_gem_or_legendary"));
     }
 
     private static void toggleControlMode(MinecraftClient client) {

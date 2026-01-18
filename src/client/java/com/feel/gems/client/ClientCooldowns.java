@@ -41,7 +41,7 @@ public final class ClientCooldowns {
         lastUsedAbility = null;
     }
 
-    public static void applySnapshot(GemId gem, java.util.List<Integer> remainingAbilityCooldownTicks) {
+    public static void applySnapshot(GemId gem, List<Integer> remainingAbilityCooldownTicks, List<Integer> maxCooldownTicks) {
         clearIfGemChanged(gem);
         END_TICKS.clear();
 
@@ -52,8 +52,7 @@ public final class ClientCooldowns {
         }
         long now = world.getTime();
 
-        GemDefinition def = GemRegistry.definition(gem);
-        List<Identifier> abilities = def.abilities();
+        List<Identifier> abilities = orderedAbilities(gem);
         int n = Math.min(abilities.size(), remainingAbilityCooldownTicks.size());
         for (int i = 0; i < n; i++) {
             int remaining = remainingAbilityCooldownTicks.get(i);
@@ -61,6 +60,18 @@ public final class ClientCooldowns {
                 continue;
             }
             END_TICKS.put(abilities.get(i), now + remaining);
+        }
+
+        if (maxCooldownTicks != null && !maxCooldownTicks.isEmpty()) {
+            int m = Math.min(abilities.size(), maxCooldownTicks.size());
+            for (int i = 0; i < m; i++) {
+                int maxTicks = maxCooldownTicks.get(i);
+                if (maxTicks > 0) {
+                    LAST_COOLDOWN_TICKS.put(abilities.get(i), maxTicks);
+                } else {
+                    LAST_COOLDOWN_TICKS.remove(abilities.get(i));
+                }
+            }
         }
     }
 
@@ -77,8 +88,7 @@ public final class ClientCooldowns {
         }
         long now = world.getTime();
 
-        GemDefinition def = GemRegistry.definition(gem);
-        List<Identifier> abilities = def.abilities();
+        List<Identifier> abilities = orderedAbilities(gem);
         if (abilityIndex < 0 || abilityIndex >= abilities.size()) {
             return;
         }
@@ -120,5 +130,14 @@ public final class ClientCooldowns {
 
     public static boolean isLastUsed(GemId gem, Identifier abilityId) {
         return activeGem == gem && abilityId != null && abilityId.equals(lastUsedAbility);
+    }
+
+    private static List<Identifier> orderedAbilities(GemId gem) {
+        List<Identifier> order = ClientAbilityOrder.getOrder(gem);
+        if (!order.isEmpty()) {
+            return order;
+        }
+        GemDefinition def = GemRegistry.definition(gem);
+        return def.abilities();
     }
 }

@@ -7,20 +7,22 @@ Passives and abilities are gated by energy. See the Progression section for deta
 - Craftable items that add modifiers to gem abilities/passives.
 - Augments require a player head and unique ingredients.
 - Gems have up to 4 augment slots (default), with 3 rarity tiers (default).
+- Augments are stored on the gem item itself, so two copies of the same gem can have different augments.
 - Rarity affects strength/roll ranges; conflicts prevent incompatible combos.
 - Slot counts, rarity tiers, roll weights, and magnitudes are configurable.
-- Apply a gem augment by right-clicking while the augment is in your hand.
+- Apply a gem augment by right-clicking while the augment is in your hand and the gem is in your other hand.
+- Use the augment screen (default U) while holding a gem to view or remove augments on that specific item.
 - Each augment rolls a rarity on craft; the rolled rarity scales its strength.
 
 ## Gems
 
 ### Astra Gem
 
-Passives:
+**Passives:**
 - Soul Capture: store the most recently killed mob for later release.
 - Soul Healing: heal on capture or release.
 
-Abilities:
+**Abilities:**
 - Shadow Anchor: set an anchor and return to it within a short window.
 - Dimensional Void: suppress enemy gem abilities and passives in a radius (players only).
 - Astral Daggers: fire a ranged dagger volley.
@@ -32,12 +34,12 @@ Abilities:
 
 ### Fire Gem
 
-Passives:
+**Passives:**
 - Fire Resistance.
 - Auto-smelt eligible block drops.
 - Auto-enchant Fire Aspect on melee weapons.
 
-Abilities:
+**Abilities:**
 - Cosy Campfire: regen aura for allies.
 - Heat Haze Zone: allies gain Fire Resistance; enemies get Mining Fatigue + Weakness.
 - Fireball: charge and launch an explosive fireball (charge decays unless on obsidian).
@@ -45,7 +47,7 @@ Abilities:
 
 ### Flux Gem
 
-Passives:
+**Passives:**
 - Charge Storage: consume valuables to charge up to 200%.
 - Ally Inversion: Flux Beam repairs trusted allies' armor instead of damaging them.
 - Overcharge Ramp: above 100% charge, ramps to 200% while dealing self-damage.
@@ -53,7 +55,7 @@ Passives:
 - Flux Conductivity: taking damage converts some of it into charge.
 - Flux Insulation: at high charge, incoming damage is reduced.
 
-Abilities:
+**Abilities:**
 - Flux Beam: long-range beam; damage and armor shred scale with charge.
 - Static Burst: AOE burst from recent damage taken.
 - Flux Surge: spend charge for a speed/resistance burst and a close-range shockwave.
@@ -61,11 +63,11 @@ Abilities:
 
 ### Life Gem
 
-Passives:
+**Passives:**
 - Auto-enchant Unbreaking on eligible gear.
 - Double Saturation from food.
 
-Abilities:
+**Abilities:**
 - Vitality Vortex: adaptive pulse based on surroundings (Aquatic, Infernal, Sculk, Verdant, End, Default).
 - Health Drain: siphon health from a target to heal yourself.
 - Life Swap: swap health with a target; requires at least 3 hearts to cast (configurable).
@@ -74,14 +76,14 @@ Abilities:
 
 ### Puff Gem
 
-Passives:
+**Passives:**
 - Fall damage immunity.
 - Auto-enchant Power and Punch on bows.
 - Sculk silence.
 - Crop-trample immunity.
 - Windborne: while airborne, gain Slow Falling.
 
-Abilities:
+**Abilities:**
 - Double Jump: midair jump reset.
 - Dash: fast dash that damages enemies you pass through.
 - Breezy Bash: uppercut; impact damage if they land soon.
@@ -90,12 +92,12 @@ Abilities:
 
 ### Speed Gem
 
-Passives:
+**Passives:**
 - Speed I and Haste I.
 - Momentum: abilities scale with your speed at cast time.
 - Frictionless Steps: reduced slowdown from cobweb, honey, and powder snow.
 
-Abilities:
+**Abilities:**
 - Arc Shot: lightning arc that can chain multiple targets.
 - Speed Storm: field that buffs allies and slows enemies.
 - Terminal Velocity: short Speed/Haste burst.
@@ -105,26 +107,26 @@ Abilities:
 
 ### Strength Gem
 
-Passives:
+**Passives:**
 - Strength I.
 - Auto-enchant Sharpness III.
 - Adrenaline: gain brief Resistance when critically low.
 
-Abilities:
+**Abilities:**
 - Nullify: remove active effects from enemies in a radius.
 - Frailer: apply Weakness to a target.
-- Bounty Hunting: consume an item to track its owner temporarily.
+- Bounty Hunting: consume an item to track its owner temporarily (falls back to the previous owner if you're the last owner; works with offline targets using last-known data).
 - Chad Strength: every Nth hit deals bonus damage.
 
 ### Wealth Gem
 
-Passives:
+**Passives:**
 - Auto-enchant Mending, Fortune, and Looting.
 - Luck and Hero of the Village V.
 - Durability chip and armor mend on hit.
 - Double Debris from furnaces.
 
-Abilities:
+**Abilities:**
 - Pockets: extra inventory (rows configurable in balance).
 - Fumble: disable offhand use and eating for enemies.
 - Hotbar Lock: lock an enemy to their current hotbar slot.
@@ -133,12 +135,12 @@ Abilities:
 
 ### Terror Gem
 
-Passives:
+**Passives:**
 - Dread Aura: nearby untrusted players get Darkness.
 - Fearless: cleanse Blindness and Darkness on the holder.
 - Blood Price: on player kill, gain a short Strength/Resistance burst.
 
-Abilities:
+**Abilities:**
 - Rig: trap a block; any use, break, step, or block update triggers an explosion (five primed TNT, fuse configurable).
 - Remote Charge: arm a block within 10s, then detonate from anywhere within 1 minute (has a cooldown).
 - Panic Ring: spawn primed TNT around you.
@@ -147,21 +149,21 @@ Abilities:
 
 ### Summoner Gem
 
-Passives:
+**Passives:**
 - Summoner's Bond: summons do not target you or trusted players.
 - Commander's Mark: hits mark a target; summons prioritize and gain temporary Strength.
 - Soulbound Minions: summons despawn on death or logout.
 - Familiar's Blessing: summons spawn with bonus health.
 
-Abilities:
+**Abilities:**
 - Summon 1-5: spawn the configured loadouts while staying under the active summon point cap. Summons drop no loot or XP.
 - Recall: despawn all active summons.
 - Summon slots share a global cooldown.
 
-Summoner UI:
-- Open the loadout editor with Gems Modifier + the hotbar key after Recall (default Alt + 7).
+**Summoner UI:**
+- Open the loadout editor with Gems Modifier + the hotbar key after the last ability slot (default Alt + 7) while using Summoner.
 
-Summoned/controlled AI priority (Summoner, Astra Soul Release, Hypno Staff):
+**Summoned/controlled AI priority** (Summoner, Astra Soul Release, Hypno Staff):
 - Summoner only: Commander's Mark target overrides all other priorities.
 - Otherwise: target the last entity you attacked (player or mob) within command range.
 - If none: target whoever last attacked you or is currently hostile toward you.
@@ -170,12 +172,12 @@ Summoned/controlled AI priority (Summoner, Astra Soul Release, Hypno Staff):
 
 ### Space Gem
 
-Passives:
+**Passives:**
 - Lunar Scaling: damage and self-healing scale with moon phase.
 - Low Gravity: minor slow falling and no fall damage while active.
 - Starshield: reduced projectile damage outdoors at night.
 
-Abilities:
+**Abilities:**
 - Orbital Laser (Damage): strike the block you're looking at with a damage beam.
 - Orbital Laser (Mining): strike the block you're looking at with a mining beam.
 - Gravity Field: lighten trusted allies and weigh down enemies.
@@ -184,12 +186,12 @@ Abilities:
 
 ### Reaper Gem
 
-Passives:
+**Passives:**
 - Rot Eater: no negative effects from rotten flesh/spider eyes.
 - Undead Ward: reduced damage from undead mobs.
 - Harvest: brief regen on mob kills.
 
-Abilities:
+**Abilities:**
 - Grave Steed: summon a saddled skeleton horse that decays over time.
 - Withering Strikes: melee hits apply Wither temporarily.
 - Death Oath: choose a target; you take damage over time but deal bonus damage to them.
@@ -200,14 +202,14 @@ Abilities:
 
 ### Pillager Gem
 
-Passives:
+**Passives:**
 - Raider's Training: faster projectiles.
 - Shieldbreaker: melee hits can disable shields without an axe (untrusted players).
 - Illager Discipline: resistance burst at low health (cooldown).
 - Crossbow Mastery: auto-applies Quick Charge II to crossbows.
 - Raider's Stride: minor Speed while active.
 
-Abilities:
+**Abilities:**
 - Fangs: evoker-fangs line at a target zone.
 - Ravage: heavy knockback hit.
 - Vindicator Break: melee buff that also disables shields.
@@ -217,43 +219,43 @@ Abilities:
 
 ### Spy Gem
 
-Passives:
+**Passives:**
 - Stillness Cloak: stand still to become invisible with no particles.
 - Silent Step: no sculk triggers.
-- False Signature: harder to track with mark/track abilities.
+- False Signature: blocks tracking from tracker/mark abilities and tracking items while Spy is your active gem.
 - Backstab: attacking from behind deals bonus damage.
 - Quick Hands: minor Haste.
 
-Abilities:
-- Mimic Form: after a recent mob kill, gain invisibility + bonus health + speed.
-- Echo: replay the last observed ability in front of you.
-- Steal: after enough observation, steal an ability; the victim only recovers it if you swap gems or they kill you.
+**Abilities:**
+- Mimic Form: after a recent mob kill, gain invisibility + bonus health/attack + speed scaled to that mob.
+- Echo: replay an observed ability; consumes 1 observation.
+- Steal: after observing 4 times, steal an ability; consumes 4 observations. The victim only recovers it if you swap gems or they kill you (recovery does not require them to re-select it).
 - Smoke Bomb: blind/slow nearby enemies and briefly cloak you.
 - Stolen Cast: cast a stolen ability; sneak to cycle.
 - Skinshift: steal a targeted player's appearance and name (including chat display) for a short time; the target cannot chat while the effect is active.
 
-Observed menu:
-- Tracks observed abilities and counts; choose which observed ability Echo/Steal will use.
+**Observed menu:**
+- Tracks observed abilities and counts; choose which observed ability Echo/Steal will use. Observations do not expire but are cleared on death.
 
 ### Beacon Gem
 
-Passives:
+**Passives:**
 - Beacon Core: regen pulses for trusted allies; slows untrusted players.
 - Stabilize: reduces negative effects on trusted allies; hinders enemies with fatigue.
 - Rally: casting a beacon aura grants trusted allies brief Absorption.
 
-Abilities:
+**Abilities:**
 - Moving auras (toggle): Speed, Haste, Resistance, Jump Boost, Strength, Regeneration (only one active).
 - Aura pulses buff trusted allies and apply Slowness/Weakness to untrusted players in range.
 
 ### Air Gem
 
-Passives:
+**Passives:**
 - Windburst Mace (Breach IV, Wind Burst III, Mending, Unbreaking III, Fire Aspect II).
 - Aerial Guard: reduced damage and knockback while holding the mace.
 - Wind Shear: mace strikes add extra knockback and a short slow.
 
-Abilities:
+**Abilities:**
 - Wind Jump: wind-charge style high jump.
 - Gale Slam: empower your next mace slam with a stronger wind burst.
 - Crosswind: cutting gust forward that knocks back and slows enemies.

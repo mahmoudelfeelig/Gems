@@ -9,8 +9,14 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.world.World;
+import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.net.GemStateSync;
 
 public final class DuelistMirrorMatchRuntime {
+    private static final String LOGOUT_PENALTY_KEY = "duelist_mirror_match_logout_penalty";
+
     private DuelistMirrorMatchRuntime() {
     }
 
@@ -28,8 +34,10 @@ public final class DuelistMirrorMatchRuntime {
             return;
         }
         if (!DuelistMirrorMatchAbility.isInDuel(player)) {
-            clear(player, true);
-            return;
+            String partnerStr = PlayerStateManager.getPersistent(player, DuelistMirrorMatchAbility.DUEL_PARTNER_KEY);
+            if (partnerStr != null && !partnerStr.isEmpty()) {
+                clear(player, false);
+            }
         }
     }
 
@@ -44,9 +52,6 @@ public final class DuelistMirrorMatchRuntime {
         MinecraftServer server = player.getEntityWorld().getServer();
         UUID partner = partnerUuid(player);
 
-        // Save spawn position before clearing for teleport
-        BlockPos spawnPos = DuelistMirrorMatchAbility.getSavedSpawnPosition(player);
-
         // Remove the barrier cage before clearing state
         removeCageIfPresent(player);
 
@@ -54,9 +59,8 @@ public final class DuelistMirrorMatchRuntime {
         syncDisguise(player, null);
 
         // Teleport winner back to spawn
-        if (teleportBack && spawnPos != null && player.getEntityWorld() instanceof ServerWorld world) {
-            player.teleport(world, spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5,
-                java.util.Set.of(), player.getYaw(), player.getPitch(), true);
+        if (teleportBack && server != null) {
+            teleportToRespawn(server, player);
         }
 
         // Ensure the partner's disguise is also cleared for all viewers, even if the partner is offline.
@@ -80,8 +84,23 @@ public final class DuelistMirrorMatchRuntime {
         if (!DuelistMirrorMatchAbility.isInDuel(player)) {
             return;
         }
-        // Clear without teleport - player died
-        clear(player, false);
+        MinecraftServer server = player.getEntityWorld().getServer();
+        UUID partner = partnerUuid(player);
+        removeCageIfPresent(player);
+
+        DuelistMirrorMatchAbility.clearDuel(player);
+        syncDisguise(player, null);
+
+        if (server != null && partner != null) {
+            ServerPlayerEntity partnerPlayer = server.getPlayerManager().getPlayer(partner);
+            if (partnerPlayer != null) {
+                DuelistMirrorMatchAbility.clearDuel(partnerPlayer);
+                syncDisguise(partnerPlayer, null);
+                teleportToRespawn(server, partnerPlayer);
+            } else {
+                clearDisguiseForAllViewers(server, partner);
+            }
+        }
     }
 
     /**
@@ -105,17 +124,15 @@ public final class DuelistMirrorMatchRuntime {
         
         // Clear the disconnecting player (they can't be teleported since they're disconnecting)
         DuelistMirrorMatchAbility.clearDuel(player);
+        markLogoutPenalty(player);
         syncDisguise(player, null);
+        clearDisguiseForAllViewers(server, player.getUuid());
         
         // Teleport partner back to their saved spawn
         if (partnerUuid != null) {
             ServerPlayerEntity partner = server.getPlayerManager().getPlayer(partnerUuid);
             if (partner != null) {
-                BlockPos partnerSpawn = DuelistMirrorMatchAbility.getSavedSpawnPosition(partner);
-                if (partnerSpawn != null && partner.getEntityWorld() instanceof ServerWorld partnerWorld) {
-                    partner.teleport(partnerWorld, partnerSpawn.getX() + 0.5, partnerSpawn.getY(), partnerSpawn.getZ() + 0.5,
-                        java.util.Set.of(), partner.getYaw(), partner.getPitch(), true);
-                }
+                teleportToRespawn(server, partner);
                 DuelistMirrorMatchAbility.clearDuel(partner);
                 syncDisguise(partner, null);
             } else {
@@ -161,5 +178,39 @@ public final class DuelistMirrorMatchRuntime {
         for (ServerPlayerEntity viewer : server.getPlayerManager().getPlayerList()) {
             ServerPlayNetworking.send(viewer, payload);
         }
+    }
+
+    public static void applyLogoutPenalty(ServerPlayerEntity player) {
+        String flag = PlayerStateManager.getPersistent(player, LOGOUT_PENALTY_KEY);
+        if (!"true".equals(flag)) {
+            return;
+        }
+        PlayerStateManager.clearPersistent(player, LOGOUT_PENALTY_KEY);
+        GemPlayerState.addEnergy(player, -2);
+        GemPlayerState.addMaxHearts(player, -2);
+        GemPlayerState.applyMaxHearts(player);
+        GemStateSync.send(player);
+    }
+
+    private static void markLogoutPenalty(ServerPlayerEntity player) {
+        PlayerStateManager.setPersistent(player, LOGOUT_PENALTY_KEY, "true");
+    }
+
+    private static void teleportToRespawn(MinecraftServer server, ServerPlayerEntity player) {
+        var respawn = player.getRespawn();
+        var spawnPoint = respawn == null ? null : respawn.respawnData();
+        RegistryKey<World> respawnKey = spawnPoint == null ? null : spawnPoint.getDimension();
+        BlockPos respawnPos = spawnPoint == null ? null : spawnPoint.getPos();
+        if (respawnKey == null || respawnPos == null) {
+            ServerWorld overworld = server.getOverworld();
+            respawnKey = World.OVERWORLD;
+            respawnPos = overworld.getSpawnPoint().getPos();
+        }
+        ServerWorld world = server.getWorld(respawnKey);
+        if (world == null) {
+            world = server.getOverworld();
+        }
+        player.teleport(world, respawnPos.getX() + 0.5, respawnPos.getY(), respawnPos.getZ() + 0.5,
+                java.util.Set.of(), player.getYaw(), player.getPitch(), true);
     }
 }

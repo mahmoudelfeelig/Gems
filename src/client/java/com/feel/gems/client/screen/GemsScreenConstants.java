@@ -34,9 +34,9 @@ public final class GemsScreenConstants {
     public static final int NAV_MARGIN = 50;
 
     // Colors
-    public static final int COLOR_WHITE = 0xFFFFFF;
-    public static final int COLOR_GRAY = 0xA0A0A0;
-    public static final int COLOR_DARK_GRAY = 0x606060;
+    public static final int COLOR_WHITE = 0xFFFFFFFF;
+    public static final int COLOR_GRAY = 0xFFA0A0A0;
+    public static final int COLOR_DARK_GRAY = 0xFF606060;
     public static final int COLOR_PANEL_BG = 0xAA101010;
     public static final int COLOR_PANEL_BORDER = 0x44FFFFFF;
 

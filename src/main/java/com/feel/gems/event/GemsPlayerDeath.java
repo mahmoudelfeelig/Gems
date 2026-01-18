@@ -21,6 +21,7 @@ import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.stats.GemsStats;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.entity.Entity;
@@ -57,8 +58,8 @@ public final class GemsPlayerDeath {
         int assassinTriggerHearts = Math.max(GemPlayerState.minMaxHearts(), com.feel.gems.config.GemsBalance.v().systems().assassinTriggerHearts());
         boolean victimAtAssassinTrigger = !victimWasAssassin && victimHeartsBefore <= assassinTriggerHearts;
 
-        Entity attacker = source.getAttacker();
-        if (attacker instanceof ServerPlayerEntity killer && killer != victim) {
+        ServerPlayerEntity killer = resolveKiller(victim, source);
+        if (killer != null && killer != victim) {
             GemPlayerState.initIfNeeded(killer);
             AssassinState.initIfNeeded(killer);
             LeaderboardTracker.incrementKills(killer);
@@ -93,6 +94,9 @@ public final class GemsPlayerDeath {
 
                 // Assassin-vs-Assassin: killer takes the victim's accumulated assassin points.
                 AssassinState.transferAssassinPoints(victim, killer);
+                if (AssassinState.maybeUnlockChoice(killer)) {
+                    AssassinState.sendChoicePrompt(killer);
+                }
 
                 int after = AssassinState.addAssassinHearts(victim, -loss);
                 if (gain > 0) {
@@ -110,7 +114,7 @@ public final class GemsPlayerDeath {
             }
         }
 
-        GemsStats.recordPlayerDeath(victim, attacker instanceof ServerPlayerEntity killer ? killer : null, victimWasAssassin, victimAtAssassinTrigger);
+        GemsStats.recordPlayerDeath(victim, killer, victimWasAssassin, victimAtAssassinTrigger);
 
         if (!victimWasAssassin) {
             if (victimAtAssassinTrigger) {
@@ -141,5 +145,28 @@ public final class GemsPlayerDeath {
 
         // Sentinel intervention should not persist through death.
         SentinelInterventionRuntime.cleanup(victim.getEntityWorld().getServer(), victim);
+    }
+
+    @Nullable
+    private static ServerPlayerEntity resolveKiller(ServerPlayerEntity victim, @Nullable DamageSource source) {
+        if (source == null) {
+            return null;
+        }
+        Entity attacker = source.getAttacker();
+        if (attacker instanceof ServerPlayerEntity player) {
+            return player;
+        }
+        Entity direct = source.getSource();
+        if (direct instanceof ServerPlayerEntity player) {
+            return player;
+        }
+        if (direct instanceof ProjectileEntity projectile && projectile.getOwner() instanceof ServerPlayerEntity player) {
+            return player;
+        }
+        Entity last = victim.getAttacker();
+        if (last instanceof ServerPlayerEntity player) {
+            return player;
+        }
+        return null;
     }
 }

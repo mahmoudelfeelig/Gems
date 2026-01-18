@@ -1,8 +1,23 @@
 package com.feel.gems.client.screen;
 
-import com.feel.gems.screen.GemSeerScreenHandler;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.feel.gems.client.screen.GemsScreenConstants.BUTTON_HEIGHT;
+import static com.feel.gems.client.screen.GemsScreenConstants.CLOSE_BUTTON_WIDTH;
+import static com.feel.gems.client.screen.GemsScreenConstants.COLOR_GRAY;
+import static com.feel.gems.client.screen.GemsScreenConstants.COLOR_WHITE;
+import static com.feel.gems.client.screen.GemsScreenConstants.CONTENT_START_Y;
+import static com.feel.gems.client.screen.GemsScreenConstants.ENTRIES_PER_PAGE;
+import static com.feel.gems.client.screen.GemsScreenConstants.NAV_BUTTON_WIDTH;
+import static com.feel.gems.client.screen.GemsScreenConstants.SPACING;
+import static com.feel.gems.client.screen.GemsScreenConstants.SUBTITLE_Y;
+import static com.feel.gems.client.screen.GemsScreenConstants.TITLE_Y;
+import static com.feel.gems.client.screen.GemsScreenConstants.closeButtonY;
+import static com.feel.gems.client.screen.GemsScreenConstants.navButtonY;
+import static com.feel.gems.client.screen.GemsScreenConstants.panelWidth;
+import com.feel.gems.screen.GemSeerScreenHandler;
+
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -17,31 +32,17 @@ import net.minecraft.util.Formatting;
 public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
     private static final Text TITLE = Text.translatable("gems.screen.gem_seer.title").formatted(Formatting.GOLD);
     private static final Text HINT = Text.translatable("gems.screen.gem_seer.hint");
-
-    private static final int BUTTON_HEIGHT = 20;
-    private static final int ROW_EXTRA_HEIGHT = 12;
-    private static final int ROW_GAP = 4;
-    private static final int ROW_HEIGHT = BUTTON_HEIGHT + ROW_EXTRA_HEIGHT + ROW_GAP;
+    private static final int ROW_HEIGHT = BUTTON_HEIGHT + SPACING;
 
     private final List<Row> visibleRows = new ArrayList<>();
     private int page = 0;
-    private int entriesPerPage = 6;
-
-    private int panelLeft;
-    private int panelRight;
-    private int panelTop;
-    private int panelBottom;
-    private int titleY;
-    private int hintY;
-    private int listX;
-    private int listY;
-    private int listWidth;
+    private int entriesPerPage = ENTRIES_PER_PAGE;
 
     public GemSeerScreen(GemSeerScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, TITLE);
     }
 
-    private record Row(GemSeerScreenHandler.PlayerInfo info, ButtonWidget button, int ownedLineY) {
+    private record Row(GemSeerScreenHandler.PlayerInfo info, ButtonWidget button) {
     }
 
     @Override
@@ -55,69 +56,45 @@ public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
         visibleRows.clear();
 
         int centerX = this.width / 2;
-        int panelWidth = Math.min(340, this.width - 32);
-
-        titleY = 24;
-        hintY = 40;
-
-        panelLeft = centerX - (panelWidth / 2);
-        panelRight = centerX + (panelWidth / 2);
-        panelTop = 18;
-        panelBottom = this.height - 18;
-
-        int bottomY = panelBottom - 44;
-        int listTop = hintY + 22;
-        int availableListHeight = Math.max(ROW_HEIGHT, bottomY - listTop - 10);
-        entriesPerPage = Math.max(1, Math.min(10, availableListHeight / ROW_HEIGHT));
+        int panelW = panelWidth(this.width);
+        int entryX = centerX - panelW / 2;
+        int listY = CONTENT_START_Y;
+        entriesPerPage = ENTRIES_PER_PAGE;
 
         List<GemSeerScreenHandler.PlayerInfo> players = handler.getPlayerInfos();
-
-        listX = panelLeft + 12;
-        listWidth = panelWidth - 24;
-        listY = listTop;
+        int maxPage = players.isEmpty() ? 0 : Math.max(0, (players.size() - 1) / entriesPerPage);
+        page = Math.max(0, Math.min(maxPage, page));
 
         if (players.isEmpty()) {
             addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.gem_seer.no_players").formatted(Formatting.GRAY), btn -> {
-            }).dimensions(listX, listY, listWidth, BUTTON_HEIGHT).build()).active = false;
+            }).dimensions(entryX, listY, panelW, BUTTON_HEIGHT).build()).active = false;
+        } else {
+            int start = page * entriesPerPage;
+            int end = Math.min(players.size(), start + entriesPerPage);
 
-            addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.close"), btn -> close())
-                    .dimensions(centerX - 70, bottomY + BUTTON_HEIGHT + 6, 140, BUTTON_HEIGHT)
-                    .build());
-            return;
+            int y = listY;
+            for (int i = start; i < end; i++) {
+                GemSeerScreenHandler.PlayerInfo info = players.get(i);
+
+                Text label = Text.literal(info.name()).formatted(info.online() ? Formatting.GREEN : Formatting.GRAY);
+
+                int buttonId = i;
+                ButtonWidget button = ButtonWidget.builder(label, btn -> select(buttonId))
+                        .dimensions(entryX, y, panelW, BUTTON_HEIGHT)
+                        .build();
+                addDrawableChild(button);
+                visibleRows.add(new Row(info, button));
+
+                y += ROW_HEIGHT;
+            }
         }
 
-        int maxPage = Math.max(0, (players.size() - 1) / entriesPerPage);
-        page = Math.max(0, Math.min(maxPage, page));
-
-        int start = page * entriesPerPage;
-        int end = Math.min(players.size(), start + entriesPerPage);
-
-        int y = listY;
-        for (int i = start; i < end; i++) {
-            GemSeerScreenHandler.PlayerInfo info = players.get(i);
-
-            Text label = Text.literal(info.name()).formatted(Formatting.WHITE)
-                    .append(Text.literal(" - ").formatted(Formatting.GRAY))
-                    .append(Text.literal(GemSeerScreenHandler.formatGemName(info.activeGem()))
-                            .formatted(GemSeerScreenHandler.gemColor(info.activeGem())))
-                    .append(Text.literal(" [" + info.energy() + "/10]").formatted(GemSeerScreenHandler.energyColor(info.energy())));
-
-            int buttonId = i;
-            ButtonWidget button = ButtonWidget.builder(label, btn -> select(buttonId))
-                    .dimensions(listX, y, listWidth, BUTTON_HEIGHT)
-                    .build();
-            addDrawableChild(button);
-            visibleRows.add(new Row(info, button, y + BUTTON_HEIGHT + 2));
-
-            y += ROW_HEIGHT;
-        }
-
-        int smallWidth = 70;
+        int navY = navButtonY(this.height);
         ButtonWidget prev = ButtonWidget.builder(Text.translatable("gems.screen.button.prev"), btn -> changePage(-1))
-                .dimensions(centerX - smallWidth - 8, bottomY, smallWidth, BUTTON_HEIGHT)
+                .dimensions(centerX - NAV_BUTTON_WIDTH - SPACING, navY, NAV_BUTTON_WIDTH, BUTTON_HEIGHT)
                 .build();
         ButtonWidget next = ButtonWidget.builder(Text.translatable("gems.screen.button.next"), btn -> changePage(1))
-                .dimensions(centerX + 8, bottomY, smallWidth, BUTTON_HEIGHT)
+                .dimensions(centerX + SPACING, navY, NAV_BUTTON_WIDTH, BUTTON_HEIGHT)
                 .build();
         prev.active = page > 0;
         next.active = (page + 1) * entriesPerPage < players.size();
@@ -125,7 +102,7 @@ public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
         addDrawableChild(next);
 
         addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.close"), btn -> close())
-                .dimensions(centerX - 70, bottomY + BUTTON_HEIGHT + 6, 140, BUTTON_HEIGHT)
+                .dimensions(centerX - CLOSE_BUTTON_WIDTH / 2, closeButtonY(this.height), CLOSE_BUTTON_WIDTH, BUTTON_HEIGHT)
                 .build());
     }
 
@@ -153,9 +130,7 @@ public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
 
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        context.fill(panelLeft, panelTop, panelRight, panelBottom, 0xB0000000);
-        context.fill(panelLeft, panelTop, panelRight, panelTop + 1, 0x33FFFFFF);
-        context.fill(panelLeft, panelBottom - 1, panelRight, panelBottom, 0x22111111);
+        // No custom panel background; keep the same transparent look as Tracker Compass.
     }
 
     @Override
@@ -164,24 +139,14 @@ public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
         this.drawMouseoverTooltip(context, mouseX, mouseY);
 
         int centerX = this.width / 2;
-        context.drawCenteredTextWithShadow(this.textRenderer, TITLE, centerX, titleY, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, TITLE, centerX, TITLE_Y, COLOR_WHITE);
 
         List<GemSeerScreenHandler.PlayerInfo> players = handler.getPlayerInfos();
         if (players.isEmpty()) {
             return;
         }
 
-        context.drawCenteredTextWithShadow(this.textRenderer, HINT, centerX, hintY, 0xA0A0A0);
-        int maxPage = Math.max(0, (players.size() - 1) / entriesPerPage) + 1;
-        context.drawCenteredTextWithShadow(this.textRenderer, "Page " + (page + 1) + " / " + maxPage, centerX, hintY + 10, 0x808080);
-
-        for (Row row : visibleRows) {
-            String ownedRaw = formatOwnedGems(row.info);
-            String ownedTruncated = truncateToWidth(ownedRaw, listWidth - 8);
-            Text ownedLine = Text.translatable("gems.screen.gem_seer.owned_gems").formatted(Formatting.GRAY)
-                    .append(Text.literal(ownedTruncated).formatted(Formatting.WHITE));
-            context.drawTextWithShadow(this.textRenderer, ownedLine, listX + 4, row.ownedLineY, 0xA0A0A0);
-        }
+        context.drawCenteredTextWithShadow(this.textRenderer, HINT, centerX, SUBTITLE_Y, COLOR_GRAY);
 
         Row hovered = getHoveredRow(mouseX, mouseY);
         if (hovered != null) {
@@ -225,18 +190,4 @@ public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
         return sb.toString();
     }
 
-    private String truncateToWidth(String text, int maxWidth) {
-        if (this.textRenderer.getWidth(text) <= maxWidth) {
-            return text;
-        }
-        final String ellipsis = "...";
-        int ellipsisWidth = this.textRenderer.getWidth(ellipsis);
-        int allowed = Math.max(0, maxWidth - ellipsisWidth);
-
-        int end = text.length();
-        while (end > 0 && this.textRenderer.getWidth(text.substring(0, end)) > allowed) {
-            end--;
-        }
-        return (end <= 0) ? ellipsis : text.substring(0, end) + ellipsis;
-    }
 }

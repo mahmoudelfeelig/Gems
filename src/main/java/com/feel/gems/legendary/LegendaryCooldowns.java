@@ -2,10 +2,15 @@ package com.feel.gems.legendary;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.item.ModItems;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public final class LegendaryCooldowns {
+    private static final Map<UUID, Integer> LAST_CHARM_COUNTS = new ConcurrentHashMap<>();
+
     private LegendaryCooldowns() {
     }
 
@@ -45,5 +50,20 @@ public final class LegendaryCooldowns {
 
     public static boolean hasChronoCharm(ServerPlayerEntity player) {
         return countChronoCharms(player) > 0;
+    }
+
+    public static boolean updateCharmCount(ServerPlayerEntity player) {
+        if (player == null) {
+            return false;
+        }
+        int count = countChronoCharms(player);
+        Integer last = LAST_CHARM_COUNTS.put(player.getUuid(), count);
+        return last == null || last != count;
+    }
+
+    public static void clearCache(UUID playerId) {
+        if (playerId != null) {
+            LAST_CHARM_COUNTS.remove(playerId);
+        }
     }
 }

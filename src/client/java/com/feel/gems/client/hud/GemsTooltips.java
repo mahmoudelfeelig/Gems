@@ -67,20 +67,24 @@ public final class GemsTooltips {
         GemId gem = item.gemId();
         GemDefinition def = GemRegistry.definition(gem);
 
-        lines.add(Text.translatable("gems.tooltip.passives").formatted(Formatting.GRAY));
-        for (Identifier id : def.passives()) {
-            GemPassive passive = ModPassives.get(id);
-            String name = passive != null ? passive.name() : id.toString();
-            String desc = passive != null ? passive.description() : "";
-            lines.add(Text.literal(" - " + name + (desc.isEmpty() ? "" : ": " + desc)).formatted(Formatting.DARK_GRAY));
-        }
+        if (gem == GemId.PRISM || gem == GemId.CHAOS) {
+            appendDynamicSections(gem, def, lines);
+        } else {
+            Formatting headerColor = Formatting.LIGHT_PURPLE;
+            Formatting abilityColor = Formatting.AQUA;
+            Formatting passiveColor = Formatting.GREEN;
 
-        lines.add(Text.translatable("gems.tooltip.abilities").formatted(Formatting.GRAY));
-        for (Identifier id : def.abilities()) {
-            GemAbility ability = ModAbilities.get(id);
-            String name = ability != null ? ability.name() : id.toString();
-            String desc = ability != null ? ability.description() : "";
-            lines.add(Text.literal(" - " + name + (desc.isEmpty() ? "" : ": " + desc)).formatted(Formatting.DARK_GRAY));
+            lines.add(Text.translatable("gems.tooltip.passives").formatted(headerColor));
+            for (Identifier id : def.passives()) {
+                GemPassive passive = ModPassives.get(id);
+                appendEntry(lines, passiveColor, passive != null ? passive.name() : id.toString(), passive != null ? passive.description() : "");
+            }
+
+            lines.add(Text.translatable("gems.tooltip.abilities").formatted(headerColor));
+            for (Identifier id : def.abilities()) {
+                GemAbility ability = ModAbilities.get(id);
+                appendEntry(lines, abilityColor, ability != null ? ability.name() : id.toString(), ability != null ? ability.description() : "");
+            }
         }
 
         if (gem == GemId.FLUX) {
@@ -99,56 +103,83 @@ public final class GemsTooltips {
             lines.add(Text.literal(" - Enchanted diamond tool/armor: +" + flux.chargeEnchantedDiamondItem() + "%").formatted(Formatting.DARK_AQUA));
         }
 
-        // Prism gem: show selected abilities from client state
+    }
+
+    private static void appendDynamicSections(GemId gem, GemDefinition def, List<Text> lines) {
+        Formatting headerColor = Formatting.LIGHT_PURPLE;
+        Formatting abilityColor = Formatting.AQUA;
+        Formatting passiveColor = Formatting.GREEN;
+
+        lines.add(Text.translatable("gems.tooltip.passives").formatted(headerColor));
+        boolean anyPassives = false;
+
+        for (Identifier id : def.passives()) {
+            GemPassive passive = ModPassives.get(id);
+            appendEntry(lines, passiveColor, passive != null ? passive.name() : id.toString(), passive != null ? passive.description() : "");
+            anyPassives = true;
+        }
+
         if (gem == GemId.PRISM) {
-            List<ClientPrismState.PrismAbilityEntry> abilities = ClientPrismState.getAbilities();
-            if (!abilities.isEmpty()) {
-                lines.add(Text.empty());
-                lines.add(Text.translatable("gems.item.prism.selected_abilities").formatted(Formatting.LIGHT_PURPLE));
-                for (ClientPrismState.PrismAbilityEntry entry : abilities) {
-                    lines.add(Text.literal("  • " + entry.name()).formatted(Formatting.AQUA));
-                    GemAbility ability = ModAbilities.get(entry.id());
-                    String desc = ability != null ? ability.description() : "";
-                    if (desc != null && !desc.isEmpty()) {
-                        lines.add(Text.literal("     " + desc).formatted(Formatting.DARK_GRAY));
-                    }
+            for (ClientPrismState.PrismPassiveEntry entry : ClientPrismState.getPassives()) {
+                GemPassive passive = ModPassives.get(entry.id());
+                appendEntry(lines, passiveColor, entry.name(), passive != null ? passive.description() : "");
+                anyPassives = true;
+            }
+        } else if (gem == GemId.CHAOS) {
+            for (int i = 0; i < ClientChaosState.slotCount(); i++) {
+                ClientChaosState.SlotState slot = ClientChaosState.getSlot(i);
+                if (!slot.isActive()) {
+                    continue;
                 }
-            } else {
-                lines.add(Text.empty());
-                lines.add(Text.translatable("gems.item.prism.no_selection").formatted(Formatting.GRAY));
+                String name = slot.passiveName();
+                GemPassive passive = slot.passiveId() != null ? ModPassives.get(slot.passiveId()) : null;
+                appendEntry(lines, passiveColor, name, passive != null ? passive.description() : "");
+                anyPassives = true;
             }
         }
 
-        // Chaos gem: show rolled abilities and passives from client state
-        if (gem == GemId.CHAOS) {
-            if (ClientChaosState.hasAnyActiveSlot()) {
-                lines.add(Text.empty());
-                lines.add(Text.translatable("gems.item.chaos.active_slots").formatted(Formatting.LIGHT_PURPLE));
-                for (int i = 0; i < ClientChaosState.slotCount(); i++) {
-                    ClientChaosState.SlotState slot = ClientChaosState.getSlot(i);
-                    if (slot.isActive()) {
-                        lines.add(Text.literal("  " + (i + 1) + ": " + slot.abilityName()).formatted(Formatting.AQUA));
-                        if (slot.abilityId() != null) {
-                            GemAbility ability = ModAbilities.get(slot.abilityId());
-                            String desc = ability != null ? ability.description() : "";
-                            if (desc != null && !desc.isEmpty()) {
-                                lines.add(Text.literal("     " + desc).formatted(Formatting.DARK_GRAY));
-                            }
-                        }
-                        lines.add(Text.literal("     ↳ " + slot.passiveName()).formatted(Formatting.GREEN));
-                        if (slot.passiveId() != null) {
-                            GemPassive passive = ModPassives.get(slot.passiveId());
-                            String desc = passive != null ? passive.description() : "";
-                            if (desc != null && !desc.isEmpty()) {
-                                lines.add(Text.literal("        " + desc).formatted(Formatting.DARK_GRAY));
-                            }
-                        }
-                    }
+        if (!anyPassives) {
+            lines.add(Text.translatable("gems.item.prism.no_selection").formatted(Formatting.GRAY));
+        }
+
+        lines.add(Text.translatable("gems.tooltip.abilities").formatted(headerColor));
+        boolean anyAbilities = false;
+
+        for (Identifier id : def.abilities()) {
+            GemAbility ability = ModAbilities.get(id);
+            appendEntry(lines, abilityColor, ability != null ? ability.name() : id.toString(), ability != null ? ability.description() : "");
+            anyAbilities = true;
+        }
+
+        if (gem == GemId.PRISM) {
+            for (ClientPrismState.PrismAbilityEntry entry : ClientPrismState.getAbilities()) {
+                GemAbility ability = ModAbilities.get(entry.id());
+                appendEntry(lines, abilityColor, entry.name(), ability != null ? ability.description() : "");
+                anyAbilities = true;
+            }
+        } else if (gem == GemId.CHAOS) {
+            for (int i = 0; i < ClientChaosState.slotCount(); i++) {
+                ClientChaosState.SlotState slot = ClientChaosState.getSlot(i);
+                if (!slot.isActive()) {
+                    continue;
                 }
-            } else {
-                lines.add(Text.empty());
-                lines.add(Text.translatable("gems.item.chaos.no_active_slots").formatted(Formatting.GRAY));
+                String name = slot.abilityName();
+                GemAbility ability = slot.abilityId() != null ? ModAbilities.get(slot.abilityId()) : null;
+                appendEntry(lines, abilityColor, name, ability != null ? ability.description() : "");
+                anyAbilities = true;
             }
         }
+
+        if (!anyAbilities) {
+            lines.add(Text.translatable("gems.item.prism.no_selection").formatted(Formatting.GRAY));
+        }
+    }
+
+    private static void appendEntry(List<Text> lines, Formatting color, String name, String desc) {
+        if (name == null || name.isBlank()) {
+            return;
+        }
+        String suffix = desc != null && !desc.isBlank() ? ": " + desc : "";
+        lines.add(Text.literal(" - " + name + suffix).formatted(color == null ? Formatting.DARK_GRAY : color));
     }
 }

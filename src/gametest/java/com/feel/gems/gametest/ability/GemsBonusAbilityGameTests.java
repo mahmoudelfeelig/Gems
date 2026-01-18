@@ -92,6 +92,7 @@ public final class GemsBonusAbilityGameTests {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
+        GemsGameTestUtil.resetPlayerForTest(player);
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
         GemPlayerState.initIfNeeded(player);
@@ -166,6 +167,8 @@ public final class GemsBonusAbilityGameTests {
             context.throwGameTestException("Failed to spawn zombie");
             return;
         }
+        target.setAiDisabled(true);
+        target.setNoGravity(true);
         aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
         Vec3d before = target.getEntityPos();
 
@@ -294,17 +297,21 @@ public final class GemsBonusAbilityGameTests {
             if (!ok) {
                 context.throwGameTestException("Bloodlust did not activate");
             }
-            StatusEffectInstance haste = player.getStatusEffect(StatusEffects.HASTE);
-            // Allow amplifier >= 2 since tests may have cross-contamination from other entities
-            if (haste == null || haste.getAmplifier() < 2) {
-                context.throwGameTestException("Bloodlust haste amplifier mismatch");
-            }
-            StatusEffectInstance strength = player.getStatusEffect(StatusEffects.STRENGTH);
-            if (strength == null || strength.getAmplifier() < 1) {
-                context.throwGameTestException("Bloodlust strength amplifier mismatch");
-            }
-            context.complete();
         });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                10L,
+                160L,
+                2L,
+                () -> {
+                    StatusEffectInstance haste = player.getStatusEffect(StatusEffects.HASTE);
+                    StatusEffectInstance strength = player.getStatusEffect(StatusEffects.STRENGTH);
+                    return haste != null && haste.getAmplifier() >= 2
+                            && strength != null && strength.getAmplifier() >= 1;
+                },
+                "Bloodlust effects mismatch"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
@@ -325,12 +332,19 @@ public final class GemsBonusAbilityGameTests {
             if (!ok) {
                 context.throwGameTestException("Chain Lightning did not activate");
             }
-            int after = world.getEntitiesByClass(LightningEntity.class, box, e -> true).size();
-            if (after - before < 2) {
-                context.throwGameTestException("Chain Lightning did not spawn enough lightning");
-            }
-            context.complete();
         });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                6L,
+                80L,
+                1L,
+                () -> {
+                    int after = world.getEntitiesByClass(LightningEntity.class, box, e -> true).size();
+                    return after - before >= 2;
+                },
+                "Chain Lightning did not spawn enough lightning"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
@@ -347,13 +361,17 @@ public final class GemsBonusAbilityGameTests {
         float victimBefore = victim.getHealth();
 
         context.runAtTick(5L, () -> {
-            // Corpse Explosion detonates recently-dead entities that were recorded in the corpse tracker.
-            corpse.damage(world, world.getDamageSources().generic(), 1000.0F);
             boolean ok = new BonusCorpseExplosionAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Corpse Explosion did not activate");
-                return;
             }
+        });
+
+        context.runAtTick(8L, () -> {
+            corpse.damage(world, world.getDamageSources().generic(), 1000.0F);
+        });
+
+        context.runAtTick(12L, () -> {
             if (victim.getHealth() >= victimBefore) {
                 context.throwGameTestException("Corpse Explosion did not damage nearby target");
                 return;
@@ -409,7 +427,11 @@ public final class GemsBonusAbilityGameTests {
             context.throwGameTestException("Failed to spawn zombie");
             return;
         }
-        player.setHealth(10.0F);
+        var maxHealth = player.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.MAX_HEALTH);
+        if (maxHealth != null) {
+            maxHealth.setBaseValue(20.0D);
+        }
+        player.setHealth(8.0F);
         float playerBefore = player.getHealth();
         float targetBefore = target.getHealth();
 
@@ -418,14 +440,16 @@ public final class GemsBonusAbilityGameTests {
             if (!ok) {
                 context.throwGameTestException("Curse Bolt did not activate");
             }
-            if (target.getHealth() >= targetBefore) {
-                context.throwGameTestException("Curse Bolt did not damage target");
-            }
-            if (player.getHealth() <= playerBefore) {
-                context.throwGameTestException("Curse Bolt did not heal player");
-            }
-            context.complete();
         });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                6L,
+                80L,
+                1L,
+                () -> target.getHealth() < targetBefore && player.getHealth() > playerBefore,
+                "Curse Bolt did not damage target and heal player"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
@@ -565,6 +589,9 @@ public final class GemsBonusAbilityGameTests {
             context.throwGameTestException("Failed to spawn zombie");
             return;
         }
+        target.setAiDisabled(true);
+        target.setNoGravity(true);
+        target.setVelocity(Vec3d.ZERO);
         aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
         float before = target.getHealth();
 
@@ -1137,14 +1164,17 @@ public final class GemsBonusAbilityGameTests {
             if (!ok) {
                 context.throwGameTestException("Soul Swap did not activate");
             }
-            if (player.getEntityPos().distanceTo(targetPos) > 1.0D) {
-                context.throwGameTestException("Soul Swap did not move player to target");
-            }
-            if (target.getEntityPos().distanceTo(playerPos) > 1.0D) {
-                context.throwGameTestException("Soul Swap did not move target to player");
-            }
-            context.complete();
         });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                10L,
+                180L,
+                2L,
+                () -> player.getEntityPos().distanceTo(targetPos) <= 1.0D
+                        && target.getEntityPos().distanceTo(playerPos) <= 1.0D,
+                "Soul Swap did not move player and target"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)

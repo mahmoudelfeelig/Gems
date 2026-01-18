@@ -2,9 +2,11 @@ package com.feel.gems.mastery;
 
 import com.feel.gems.core.GemId;
 import net.minecraft.particle.ParticleEffect;
+import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Formatting;
 
 /**
  * Handles mastery aura particle effects.
@@ -22,10 +24,6 @@ public final class MasteryAuraRuntime {
      */
     public static void tick(ServerPlayerEntity player) {
         MasteryReward aura = GemMastery.getSelectedAuraReward(player);
-        if (aura == null) {
-            return;
-        }
-
         if (!(player.getEntityWorld() instanceof ServerWorld world)) {
             return;
         }
@@ -33,7 +31,12 @@ public final class MasteryAuraRuntime {
         double posY = player.getY() + 1.0;
         double posZ = player.getZ();
 
-        ParticleEffect particle = getParticleForAura(aura);
+        ParticleEffect particle;
+        if (aura != null) {
+            particle = getParticleForAura(aura);
+        } else {
+            particle = getParticleForTitle(player);
+        }
         if (particle == null) {
             return;
         }
@@ -55,6 +58,15 @@ public final class MasteryAuraRuntime {
                     0.0
             );
         }
+    }
+
+    private static ParticleEffect getParticleForTitle(ServerPlayerEntity player) {
+        Formatting color = TitleDisplay.titleColor(player);
+        Integer rgb = color == null ? null : color.getColorValue();
+        if (rgb == null) {
+            return null;
+        }
+        return new DustParticleEffect(rgb, 1.0F);
     }
 
     private static ParticleEffect getParticleForAura(MasteryReward aura) {

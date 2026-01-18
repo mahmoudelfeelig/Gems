@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,8 +17,12 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.resource.Resource;
 import net.minecraft.text.OrderedText;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Formatting;
 
 /**
  * In-game guidebook for player-facing docs.
@@ -119,7 +124,20 @@ public final class GuidebookScreen extends GemsScreenBase {
         DocEntry entry = entries.get(selectedIndex);
         GuideDoc doc = loadDoc(entry);
         int contentWidth = width - LEFT_WIDTH - 60;
-        wrappedLines = this.textRenderer.wrapLines(Text.literal(doc.body()), Math.max(120, contentWidth));
+        int wrapWidth = Math.max(120, contentWidth);
+        List<OrderedText> lines = new ArrayList<>();
+        List<Text> rawLines = doc.lines();
+        if (rawLines == null || rawLines.isEmpty()) {
+            rawLines = List.of(Text.literal("(No content)"));
+        }
+        for (Text raw : rawLines) {
+            if (raw == null || raw.getString().isEmpty()) {
+                lines.add(OrderedText.EMPTY);
+                continue;
+            }
+            lines.addAll(this.textRenderer.wrapLines(raw, wrapWidth));
+        }
+        wrappedLines = lines;
     }
 
     private int linesPerPage() {
@@ -170,7 +188,7 @@ public final class GuidebookScreen extends GemsScreenBase {
     private GuideDoc readDoc(DocEntry entry) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client == null || client.getResourceManager() == null) {
-            return new GuideDoc(entry.defaultTitle(), "Guidebook data unavailable.");
+            return new GuideDoc(entry.defaultTitle(), List.of(Text.literal("Guidebook data unavailable.")));
         }
         Identifier id = Identifier.of("gems", "guidebook/" + entry.resourcePath());
         try {
@@ -185,7 +203,7 @@ public final class GuidebookScreen extends GemsScreenBase {
                 return parseDoc(entry.defaultTitle(), raw.toString());
             }
         } catch (IOException e) {
-            return new GuideDoc(entry.defaultTitle(), "Missing guidebook entry: " + entry.resourcePath());
+            return new GuideDoc(entry.defaultTitle(), List.of(Text.literal("Missing guidebook entry: " + entry.resourcePath())));
         }
     }
 
@@ -193,7 +211,7 @@ public final class GuidebookScreen extends GemsScreenBase {
         String normalized = raw.replace("\r\n", "\n").replace("\r", "\n");
         String[] lines = normalized.split("\n", -1);
         String title = null;
-        StringBuilder body = new StringBuilder();
+        List<Text> body = new ArrayList<>();
         for (String line : lines) {
             String trimmed = line.trim();
             if (title == null && trimmed.startsWith("#")) {
@@ -203,29 +221,129 @@ public final class GuidebookScreen extends GemsScreenBase {
                 }
             }
             if (trimmed.startsWith("#")) {
-                line = trimmed.replaceFirst("^#+\\s*", "");
+                int level = 0;
+                while (level < trimmed.length() && trimmed.charAt(level) == '#') {
+                    level++;
+                }
+                String heading = trimmed.replaceFirst("^#+\\s*", "").trim();
+                if (!heading.isEmpty()) {
+                    body.add(formatHeading(level, heading));
+                }
+                continue;
             }
-            if (line.startsWith("- ")) {
-                line = "• " + line.substring(2);
+            if (trimmed.isEmpty()) {
+                body.add(Text.empty());
+                continue;
+            }
+            if (trimmed.startsWith("- ")) {
+                line = "• " + trimmed.substring(2);
             }
             line = LINK_PATTERN.matcher(line).replaceAll("$1");
-            line = line.replace("**", "")
-                    .replace("__", "")
-                    .replace("*", "")
-                    .replace("_", "")
-                    .replace("`", "");
-            body.append(line).append("\n");
+            body.add(parseInline(line));
         }
-        String bodyText = body.toString().trim();
-        if (bodyText.isEmpty()) {
-            bodyText = "(No content)";
+        if (body.isEmpty()) {
+            body = List.of(Text.literal("(No content)"));
         }
-        return new GuideDoc(title != null && !title.isEmpty() ? title : fallbackTitle, bodyText);
+        return new GuideDoc(title != null && !title.isEmpty() ? title : fallbackTitle, body);
+    }
+
+    private static Text formatHeading(int level, String text) {
+        Formatting color = switch (level) {
+            case 1 -> Formatting.GOLD;
+            case 2 -> Formatting.YELLOW;
+            case 3 -> Formatting.AQUA;
+            default -> Formatting.GRAY;
+        };
+        return Text.literal(text).formatted(Formatting.BOLD, color);
+    }
+
+    private static Text parseInline(String raw) {
+        MutableText out = Text.empty();
+        StringBuilder buf = new StringBuilder();
+        boolean bold = false;
+        boolean italic = false;
+        boolean underline = false;
+        boolean code = false;
+        TextColor color = null;
+
+        int i = 0;
+        while (i < raw.length()) {
+            char c = raw.charAt(i);
+            if (c == '\\' && i + 1 < raw.length()) {
+                buf.append(raw.charAt(i + 1));
+                i += 2;
+                continue;
+            }
+            if (raw.startsWith("{/}", i)) {
+                flush(buf, out, styleFor(bold, italic, underline, code, color));
+                color = null;
+                i += 3;
+                continue;
+            }
+            if (raw.startsWith("{#", i) && i + 8 < raw.length() && raw.charAt(i + 8) == '}') {
+                String hex = raw.substring(i + 2, i + 8);
+                try {
+                    int rgb = Integer.parseInt(hex, 16);
+                    flush(buf, out, styleFor(bold, italic, underline, code, color));
+                    color = TextColor.fromRgb(rgb);
+                    i += 9;
+                    continue;
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            if (raw.startsWith("**", i)) {
+                flush(buf, out, styleFor(bold, italic, underline, code, color));
+                bold = !bold;
+                i += 2;
+                continue;
+            }
+            if (raw.startsWith("__", i)) {
+                flush(buf, out, styleFor(bold, italic, underline, code, color));
+                underline = !underline;
+                i += 2;
+                continue;
+            }
+            if (c == '*') {
+                flush(buf, out, styleFor(bold, italic, underline, code, color));
+                italic = !italic;
+                i += 1;
+                continue;
+            }
+            if (c == '`') {
+                flush(buf, out, styleFor(bold, italic, underline, code, color));
+                code = !code;
+                i += 1;
+                continue;
+            }
+            buf.append(c);
+            i += 1;
+        }
+        flush(buf, out, styleFor(bold, italic, underline, code, color));
+        return out;
+    }
+
+    private static void flush(StringBuilder buf, MutableText out, Style style) {
+        if (buf.length() == 0) {
+            return;
+        }
+        out.append(Text.literal(buf.toString()).setStyle(style));
+        buf.setLength(0);
+    }
+
+    private static Style styleFor(boolean bold, boolean italic, boolean underline, boolean code, TextColor color) {
+        Style style = Style.EMPTY.withBold(bold).withItalic(italic).withUnderline(underline);
+        if (color != null) {
+            return style.withColor(color);
+        }
+        if (code) {
+            return style.withColor(Formatting.GRAY);
+        }
+        return style;
     }
 
     private record DocEntry(String id, String defaultTitle, String resourcePath) {
     }
 
-    private record GuideDoc(String title, String body) {
+    private record GuideDoc(String title, List<Text> lines) {
     }
 }

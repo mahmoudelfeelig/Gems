@@ -85,6 +85,14 @@ public final class GemMastery {
     }
 
     /**
+     * Check if the selected title is forced (admin override).
+     */
+    public static boolean isSelectedTitleForced(ServerPlayerEntity player) {
+        NbtCompound mastery = getMasteryRoot(player);
+        return mastery.getBoolean(KEY_SELECTED_TITLE_OVERRIDE, false);
+    }
+
+    /**
      * Get the player's selected title reward, or null if none/invalid.
      */
     public static MasteryReward getSelectedTitleReward(ServerPlayerEntity player) {
@@ -186,7 +194,7 @@ public final class GemMastery {
     /**
      * Extract the gem from a reward id (e.g., "astra_master" -> ASTRA).
      */
-    private static GemId gemFromRewardId(String rewardId) {
+    public static GemId gemFromRewardId(String rewardId) {
         if (rewardId == null || rewardId.isEmpty()) {
             return null;
         }

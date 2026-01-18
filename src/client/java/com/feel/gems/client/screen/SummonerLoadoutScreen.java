@@ -269,7 +269,7 @@ public final class SummonerLoadoutScreen extends GemsScreenBase {
         }
 
         void renderLabels(DrawContext context, net.minecraft.client.font.TextRenderer font) {
-            context.drawTextWithShadow(font, title, baseX, baseY - 12, 0xFFFFFF);
+            context.drawTextWithShadow(font, title, baseX, baseY - 12, 0xFFFFFFFF);
         }
 
         void applyEntries(List<SummonerLoadouts.Entry> entries) {

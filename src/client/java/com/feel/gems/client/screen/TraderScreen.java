@@ -124,7 +124,7 @@ public final class TraderScreen extends HandledScreen<TraderScreenHandler> {
         this.drawMouseoverTooltip(context, mouseX, mouseY);
 
         int centerX = this.width / 2;
-        context.drawCenteredTextWithShadow(this.textRenderer, getTitle(), centerX, titleY, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, getTitle(), centerX, titleY, 0xFFFFFFFF);
         int textY = hintY;
         for (var line : hintLines) {
             context.drawCenteredTextWithShadow(this.textRenderer, line, centerX, textY, 0xA0A0A0);

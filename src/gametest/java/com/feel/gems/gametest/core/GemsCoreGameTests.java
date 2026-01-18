@@ -137,7 +137,7 @@ public final class GemsCoreGameTests {
 
             int remaining = GemAbilityCooldowns.remainingTicks(player, PowerIds.AIR_DASH, now);
             RegistryByteBuf buf = new RegistryByteBuf(Unpooled.buffer(), world.getRegistryManager());
-            CooldownSnapshotPayload payload = new CooldownSnapshotPayload(GemId.AIR.ordinal(), java.util.List.of(remaining));
+            CooldownSnapshotPayload payload = new CooldownSnapshotPayload(GemId.AIR.ordinal(), java.util.List.of(remaining), java.util.List.of(remaining));
             CooldownSnapshotPayload.CODEC.encode(buf, payload);
             buf.readerIndex(0);
             CooldownSnapshotPayload decoded = CooldownSnapshotPayload.CODEC.decode(buf);

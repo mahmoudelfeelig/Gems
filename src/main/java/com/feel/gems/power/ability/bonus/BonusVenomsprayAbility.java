@@ -60,7 +60,7 @@ public final class BonusVenomsprayAbility implements GemAbility {
         // Sound effect
         player.playSound(SoundEvents.ENTITY_LLAMA_SPIT, 1.0f, 0.8f);
         
-        DamageSource damageSource = world.getDamageSources().magic();
+        DamageSource damageSource = player.getDamageSources().indirectMagic(player, player);
         
         world.getOtherEntities(player, area, e -> e instanceof LivingEntity)
                 .forEach(e -> {

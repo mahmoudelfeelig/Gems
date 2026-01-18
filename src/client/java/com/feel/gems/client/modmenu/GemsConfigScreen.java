@@ -4,9 +4,15 @@ import com.feel.gems.client.GemsClientConfig;
 import com.feel.gems.client.GemsClientConfigManager;
 import com.feel.gems.config.GemsBalanceConfig;
 import com.feel.gems.config.GemsConfigManager;
+import com.feel.gems.config.GemsDisablesConfig;
+import com.feel.gems.config.GemsDisablesConfigManager;
 import com.feel.gems.net.ClientPassiveTogglePayload;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import net.minecraft.client.MinecraftClient;
@@ -32,6 +38,9 @@ public final class GemsConfigScreen extends Screen {
     private boolean canEdit = false;
     private GemsClientConfig clientCfg;
     private boolean clientDirty = false;
+    private GemsDisablesConfig disablesCfg;
+    private String disablesLoadError = null;
+    private boolean disablesDirty = false;
 
     private Category category = Category.GENERAL;
     private Section section = Section.VISUAL;
@@ -72,6 +81,10 @@ public final class GemsConfigScreen extends Screen {
         this.canEdit = canEditConfig();
         this.clientCfg = GemsClientConfigManager.loadOrCreate();
         this.clientDirty = false;
+        var disablesResult = GemsDisablesConfigManager.loadOrCreateForUi();
+        this.disablesCfg = disablesResult.config() != null ? disablesResult.config() : new GemsDisablesConfig();
+        this.disablesLoadError = disablesResult.error();
+        this.disablesDirty = false;
         this.validation.reset();
     }
 
@@ -195,6 +208,12 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += ROW_H;
                 y = addDoubleRow("Controlled follow speed", y, labelX, labelW, fieldX, fieldW, () -> cfg.systems.controlledFollowSpeed, v -> cfg.systems.controlledFollowSpeed = v, 0.0D, 3.0D);
                 logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addStringRow("Mob blacklist (comma-separated ids)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinList(cfg.mobBlacklist),
+                        v -> cfg.mobBlacklist = parseList(v));
+                logicalY += ROW_H;
             }
             case BONUS_POOL -> {
                 y = addIntRow("Max bonus abilities", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.maxBonusAbilities, v -> cfg.bonusPool.maxBonusAbilities = v, 0, 10);
@@ -210,6 +229,498 @@ public final class GemsConfigScreen extends Screen {
                 y = addFloatRow("Ability damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.bonusAbilityDamageMultiplier, v -> cfg.bonusPool.bonusAbilityDamageMultiplier = v, 0.1F, 10.0F);
                 logicalY += ROW_H;
                 y = addFloatRow("Passive effect multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.bonusPassiveEffectMultiplier, v -> cfg.bonusPool.bonusPassiveEffectMultiplier = v, 0.1F, 10.0F);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addNoteRow("Bonus abilities", y, labelX, labelW);
+                logicalY += ROW_H;
+                y = addIntRow("Thunderstrike cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.thunderstrikeCooldownSeconds, v -> cfg.bonusPool.thunderstrikeCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Thunderstrike damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.thunderstrikeDamage, v -> cfg.bonusPool.thunderstrikeDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Thunderstrike range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.thunderstrikeRangeBlocks, v -> cfg.bonusPool.thunderstrikeRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Frostbite cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.frostbiteCooldownSeconds, v -> cfg.bonusPool.frostbiteCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Frostbite damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.frostbiteDamage, v -> cfg.bonusPool.frostbiteDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Frostbite Freeze seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.frostbiteFreezeSeconds, v -> cfg.bonusPool.frostbiteFreezeSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Frostbite range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.frostbiteRangeBlocks, v -> cfg.bonusPool.frostbiteRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Earthshatter cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.earthshatterCooldownSeconds, v -> cfg.bonusPool.earthshatterCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Earthshatter damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.earthshatterDamage, v -> cfg.bonusPool.earthshatterDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Earthshatter radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.earthshatterRadiusBlocks, v -> cfg.bonusPool.earthshatterRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Shadowstep cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.shadowstepCooldownSeconds, v -> cfg.bonusPool.shadowstepCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Shadowstep distance blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.shadowstepDistanceBlocks, v -> cfg.bonusPool.shadowstepDistanceBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Radiant Burst cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.radiantBurstCooldownSeconds, v -> cfg.bonusPool.radiantBurstCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Radiant Burst damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.radiantBurstDamage, v -> cfg.bonusPool.radiantBurstDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Radiant Burst radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.radiantBurstRadiusBlocks, v -> cfg.bonusPool.radiantBurstRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Radiant Burst Blind seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.radiantBurstBlindSeconds, v -> cfg.bonusPool.radiantBurstBlindSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Venomspray cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.venomsprayCooldownSeconds, v -> cfg.bonusPool.venomsprayCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Venomspray Poison seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.venomsprayPoisonSeconds, v -> cfg.bonusPool.venomsprayPoisonSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Venomspray Cone Angle Degrees", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.venomsprayConeAngleDegrees, v -> cfg.bonusPool.venomsprayConeAngleDegrees = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Venomspray range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.venomsprayRangeBlocks, v -> cfg.bonusPool.venomsprayRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Timewarp cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.timewarpCooldownSeconds, v -> cfg.bonusPool.timewarpCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Timewarp duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.timewarpDurationSeconds, v -> cfg.bonusPool.timewarpDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Timewarp radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.timewarpRadiusBlocks, v -> cfg.bonusPool.timewarpRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Timewarp Slowness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.timewarpSlownessAmplifier, v -> cfg.bonusPool.timewarpSlownessAmplifier = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Decoy Trap cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.decoyTrapCooldownSeconds, v -> cfg.bonusPool.decoyTrapCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Decoy Trap Explosion damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.decoyTrapExplosionDamage, v -> cfg.bonusPool.decoyTrapExplosionDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Decoy Trap Arm Time seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.decoyTrapArmTimeSeconds, v -> cfg.bonusPool.decoyTrapArmTimeSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Decoy Trap max Active", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.decoyTrapMaxActive, v -> cfg.bonusPool.decoyTrapMaxActive = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Decoy Trap Despawn seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.decoyTrapDespawnSeconds, v -> cfg.bonusPool.decoyTrapDespawnSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Gravity Well cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.gravityWellCooldownSeconds, v -> cfg.bonusPool.gravityWellCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Gravity Well duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.gravityWellDurationSeconds, v -> cfg.bonusPool.gravityWellDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Gravity Well radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.gravityWellRadiusBlocks, v -> cfg.bonusPool.gravityWellRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Gravity Well Pull strength", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.gravityWellPullStrength, v -> cfg.bonusPool.gravityWellPullStrength = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Chain Lightning cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.chainLightningCooldownSeconds, v -> cfg.bonusPool.chainLightningCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Chain Lightning damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.chainLightningDamage, v -> cfg.bonusPool.chainLightningDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Chain Lightning max Bounces", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.chainLightningMaxBounces, v -> cfg.bonusPool.chainLightningMaxBounces = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Chain Lightning Bounce range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.chainLightningBounceRangeBlocks, v -> cfg.bonusPool.chainLightningBounceRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Magma Pool cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.magmaPoolCooldownSeconds, v -> cfg.bonusPool.magmaPoolCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Magma Pool damage per Second", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.magmaPoolDamagePerSecond, v -> cfg.bonusPool.magmaPoolDamagePerSecond = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Magma Pool duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.magmaPoolDurationSeconds, v -> cfg.bonusPool.magmaPoolDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Magma Pool radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.magmaPoolRadiusBlocks, v -> cfg.bonusPool.magmaPoolRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Ice Wall cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.iceWallCooldownSeconds, v -> cfg.bonusPool.iceWallCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Ice Wall duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.iceWallDurationSeconds, v -> cfg.bonusPool.iceWallDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Ice Wall Width blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.iceWallWidthBlocks, v -> cfg.bonusPool.iceWallWidthBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Ice Wall Height blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.iceWallHeightBlocks, v -> cfg.bonusPool.iceWallHeightBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Wind Slash cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.windSlashCooldownSeconds, v -> cfg.bonusPool.windSlashCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Wind Slash damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.windSlashDamage, v -> cfg.bonusPool.windSlashDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Wind Slash range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.windSlashRangeBlocks, v -> cfg.bonusPool.windSlashRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Curse Bolt cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.curseBoltCooldownSeconds, v -> cfg.bonusPool.curseBoltCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Curse Bolt damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.curseBoltDamage, v -> cfg.bonusPool.curseBoltDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Curse Bolt Effect duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.curseBoltEffectDurationSeconds, v -> cfg.bonusPool.curseBoltEffectDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Berserker Rage cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.berserkerRageCooldownSeconds, v -> cfg.bonusPool.berserkerRageCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Berserker Rage duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.berserkerRageDurationSeconds, v -> cfg.bonusPool.berserkerRageDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Berserker Rage damage boost percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.berserkerRageDamageBoostPercent, v -> cfg.bonusPool.berserkerRageDamageBoostPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Berserker Rage damage Taken boost percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.berserkerRageDamageTakenBoostPercent, v -> cfg.bonusPool.berserkerRageDamageTakenBoostPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Ethereal Step cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.etherealStepCooldownSeconds, v -> cfg.bonusPool.etherealStepCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Ethereal Step distance blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.etherealStepDistanceBlocks, v -> cfg.bonusPool.etherealStepDistanceBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Arcane Missiles cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.arcaneMissilesCooldownSeconds, v -> cfg.bonusPool.arcaneMissilesCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Arcane Missiles damage per Missile", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.arcaneMissilesDamagePerMissile, v -> cfg.bonusPool.arcaneMissilesDamagePerMissile = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Arcane Missiles count", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.arcaneMissilesCount, v -> cfg.bonusPool.arcaneMissilesCount = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Life Tap cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.lifeTapCooldownSeconds, v -> cfg.bonusPool.lifeTapCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Life Tap health Cost", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.lifeTapHealthCost, v -> cfg.bonusPool.lifeTapHealthCost = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Life Tap cooldown reduction percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.lifeTapCooldownReductionPercent, v -> cfg.bonusPool.lifeTapCooldownReductionPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Doom Bolt cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.doomBoltCooldownSeconds, v -> cfg.bonusPool.doomBoltCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Doom Bolt damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.doomBoltDamage, v -> cfg.bonusPool.doomBoltDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Doom Bolt Velocity", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.doomBoltVelocity, v -> cfg.bonusPool.doomBoltVelocity = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Sanctuary cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.sanctuaryCooldownSeconds, v -> cfg.bonusPool.sanctuaryCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Sanctuary duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.sanctuaryDurationSeconds, v -> cfg.bonusPool.sanctuaryDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Sanctuary radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.sanctuaryRadiusBlocks, v -> cfg.bonusPool.sanctuaryRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Spectral Chains cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.spectralChainsCooldownSeconds, v -> cfg.bonusPool.spectralChainsCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Spectral Chains duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.spectralChainsDurationSeconds, v -> cfg.bonusPool.spectralChainsDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Spectral Chains range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.spectralChainsRangeBlocks, v -> cfg.bonusPool.spectralChainsRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Void Rift cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.voidRiftCooldownSeconds, v -> cfg.bonusPool.voidRiftCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Void Rift damage per Second", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.voidRiftDamagePerSecond, v -> cfg.bonusPool.voidRiftDamagePerSecond = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Void Rift duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.voidRiftDurationSeconds, v -> cfg.bonusPool.voidRiftDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Void Rift radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.voidRiftRadiusBlocks, v -> cfg.bonusPool.voidRiftRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Inferno Dash cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.infernoDashCooldownSeconds, v -> cfg.bonusPool.infernoDashCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Inferno Dash damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.infernoDashDamage, v -> cfg.bonusPool.infernoDashDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Inferno Dash distance blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.infernoDashDistanceBlocks, v -> cfg.bonusPool.infernoDashDistanceBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Inferno Dash Fire duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.infernoDashFireDurationSeconds, v -> cfg.bonusPool.infernoDashFireDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Tidal Wave cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.tidalWaveCooldownSeconds, v -> cfg.bonusPool.tidalWaveCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Tidal Wave damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.tidalWaveDamage, v -> cfg.bonusPool.tidalWaveDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Tidal Wave range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.tidalWaveRangeBlocks, v -> cfg.bonusPool.tidalWaveRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Tidal Wave Slow seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.tidalWaveSlowSeconds, v -> cfg.bonusPool.tidalWaveSlowSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Starfall cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.starfallCooldownSeconds, v -> cfg.bonusPool.starfallCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Starfall damage per Hit", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.starfallDamagePerHit, v -> cfg.bonusPool.starfallDamagePerHit = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Starfall Meteor count", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.starfallMeteorCount, v -> cfg.bonusPool.starfallMeteorCount = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Starfall radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.starfallRadiusBlocks, v -> cfg.bonusPool.starfallRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Bloodlust cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.bloodlustCooldownSeconds, v -> cfg.bonusPool.bloodlustCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Bloodlust duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.bloodlustDurationSeconds, v -> cfg.bonusPool.bloodlustDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Bloodlust Attack Speed per Kill", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.bloodlustAttackSpeedPerKill, v -> cfg.bonusPool.bloodlustAttackSpeedPerKill = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Bloodlust max Stacks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.bloodlustMaxStacks, v -> cfg.bonusPool.bloodlustMaxStacks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Crystal Cage cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.crystalCageCooldownSeconds, v -> cfg.bonusPool.crystalCageCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Crystal Cage duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.crystalCageDurationSeconds, v -> cfg.bonusPool.crystalCageDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Crystal Cage range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.crystalCageRangeBlocks, v -> cfg.bonusPool.crystalCageRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Phantasm cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.phantasmCooldownSeconds, v -> cfg.bonusPool.phantasmCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Phantasm duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.phantasmDurationSeconds, v -> cfg.bonusPool.phantasmDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Phantasm Explosion damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.phantasmExplosionDamage, v -> cfg.bonusPool.phantasmExplosionDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Sonic Boom cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.sonicBoomCooldownSeconds, v -> cfg.bonusPool.sonicBoomCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Sonic Boom damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.sonicBoomDamage, v -> cfg.bonusPool.sonicBoomDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Sonic Boom radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.sonicBoomRadiusBlocks, v -> cfg.bonusPool.sonicBoomRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Sonic Boom Knockback strength", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.sonicBoomKnockbackStrength, v -> cfg.bonusPool.sonicBoomKnockbackStrength = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Vampiric Touch cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.vampiricTouchCooldownSeconds, v -> cfg.bonusPool.vampiricTouchCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Vampiric Touch damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.vampiricTouchDamage, v -> cfg.bonusPool.vampiricTouchDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Vampiric Touch Heal percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.vampiricTouchHealPercent, v -> cfg.bonusPool.vampiricTouchHealPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Blinding Flash cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.blindingFlashCooldownSeconds, v -> cfg.bonusPool.blindingFlashCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Blinding Flash Blind seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.blindingFlashBlindSeconds, v -> cfg.bonusPool.blindingFlashBlindSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Blinding Flash radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.blindingFlashRadiusBlocks, v -> cfg.bonusPool.blindingFlashRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Storm Call cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.stormCallCooldownSeconds, v -> cfg.bonusPool.stormCallCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Storm Call damage per Strike", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.stormCallDamagePerStrike, v -> cfg.bonusPool.stormCallDamagePerStrike = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Storm Call duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.stormCallDurationSeconds, v -> cfg.bonusPool.stormCallDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Storm Call radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.stormCallRadiusBlocks, v -> cfg.bonusPool.stormCallRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Storm Call Strikes per Second", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.stormCallStrikesPerSecond, v -> cfg.bonusPool.stormCallStrikesPerSecond = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Quicksand cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.quicksandCooldownSeconds, v -> cfg.bonusPool.quicksandCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Quicksand duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.quicksandDurationSeconds, v -> cfg.bonusPool.quicksandDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Quicksand radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.quicksandRadiusBlocks, v -> cfg.bonusPool.quicksandRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Quicksand Slowness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.quicksandSlownessAmplifier, v -> cfg.bonusPool.quicksandSlownessAmplifier = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Searing Light cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.searingLightCooldownSeconds, v -> cfg.bonusPool.searingLightCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Searing Light damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.searingLightDamage, v -> cfg.bonusPool.searingLightDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Searing Light Undead Bonus damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.searingLightUndeadBonusDamage, v -> cfg.bonusPool.searingLightUndeadBonusDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Searing Light range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.searingLightRangeBlocks, v -> cfg.bonusPool.searingLightRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Spectral Blade cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.spectralBladeCooldownSeconds, v -> cfg.bonusPool.spectralBladeCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Spectral Blade damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.spectralBladeDamage, v -> cfg.bonusPool.spectralBladeDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Spectral Blade duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.spectralBladeDurationSeconds, v -> cfg.bonusPool.spectralBladeDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Nether Portal cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.netherPortalCooldownSeconds, v -> cfg.bonusPool.netherPortalCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Nether Portal distance blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.netherPortalDistanceBlocks, v -> cfg.bonusPool.netherPortalDistanceBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Entangle cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.entangleCooldownSeconds, v -> cfg.bonusPool.entangleCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Entangle duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.entangleDurationSeconds, v -> cfg.bonusPool.entangleDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Entangle radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.entangleRadiusBlocks, v -> cfg.bonusPool.entangleRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Mind Spike cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.mindSpikeCooldownSeconds, v -> cfg.bonusPool.mindSpikeCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Mind Spike damage per Second", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.mindSpikeDamagePerSecond, v -> cfg.bonusPool.mindSpikeDamagePerSecond = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Mind Spike duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.mindSpikeDurationSeconds, v -> cfg.bonusPool.mindSpikeDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Mind Spike range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.mindSpikeRangeBlocks, v -> cfg.bonusPool.mindSpikeRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Seismic Slam cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.seismicSlamCooldownSeconds, v -> cfg.bonusPool.seismicSlamCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Seismic Slam damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.seismicSlamDamage, v -> cfg.bonusPool.seismicSlamDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Seismic Slam radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.seismicSlamRadiusBlocks, v -> cfg.bonusPool.seismicSlamRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Seismic Slam Knockup strength", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.seismicSlamKnockupStrength, v -> cfg.bonusPool.seismicSlamKnockupStrength = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Icicle Barrage cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.icicleBarrageCooldownSeconds, v -> cfg.bonusPool.icicleBarrageCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Icicle Barrage damage per Icicle", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.icicleBarrageDamagePerIcicle, v -> cfg.bonusPool.icicleBarrageDamagePerIcicle = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Icicle Barrage count", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.icicleBarrageCount, v -> cfg.bonusPool.icicleBarrageCount = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Icicle Barrage range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.icicleBarrageRangeBlocks, v -> cfg.bonusPool.icicleBarrageRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Banishment cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.banishmentCooldownSeconds, v -> cfg.bonusPool.banishmentCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Banishment distance blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.banishmentDistanceBlocks, v -> cfg.bonusPool.banishmentDistanceBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Banishment range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.banishmentRangeBlocks, v -> cfg.bonusPool.banishmentRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Corpse Explosion cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.corpseExplosionCooldownSeconds, v -> cfg.bonusPool.corpseExplosionCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Corpse Explosion damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.corpseExplosionDamage, v -> cfg.bonusPool.corpseExplosionDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Corpse Explosion radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.corpseExplosionRadiusBlocks, v -> cfg.bonusPool.corpseExplosionRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Corpse Explosion Corpse range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.corpseExplosionCorpseRangeBlocks, v -> cfg.bonusPool.corpseExplosionCorpseRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Corpse Explosion Mark duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.corpseExplosionMarkDurationSeconds, v -> cfg.bonusPool.corpseExplosionMarkDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Soul Swap cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.soulSwapCooldownSeconds, v -> cfg.bonusPool.soulSwapCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Soul Swap range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.soulSwapRangeBlocks, v -> cfg.bonusPool.soulSwapRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Mark Of Death cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.markOfDeathCooldownSeconds, v -> cfg.bonusPool.markOfDeathCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Mark Of Death duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.markOfDeathDurationSeconds, v -> cfg.bonusPool.markOfDeathDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Mark Of Death Bonus damage percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.markOfDeathBonusDamagePercent, v -> cfg.bonusPool.markOfDeathBonusDamagePercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Mark Of Death range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.markOfDeathRangeBlocks, v -> cfg.bonusPool.markOfDeathRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Iron Maiden cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.ironMaidenCooldownSeconds, v -> cfg.bonusPool.ironMaidenCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Iron Maiden duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.ironMaidenDurationSeconds, v -> cfg.bonusPool.ironMaidenDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Iron Maiden Reflect percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.ironMaidenReflectPercent, v -> cfg.bonusPool.ironMaidenReflectPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Warp Strike cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.warpStrikeCooldownSeconds, v -> cfg.bonusPool.warpStrikeCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Warp Strike damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.warpStrikeDamage, v -> cfg.bonusPool.warpStrikeDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Warp Strike range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.warpStrikeRangeBlocks, v -> cfg.bonusPool.warpStrikeRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Vortex Strike cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.vortexStrikeCooldownSeconds, v -> cfg.bonusPool.vortexStrikeCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Vortex Strike damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.vortexStrikeDamage, v -> cfg.bonusPool.vortexStrikeDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Vortex Strike radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.vortexStrikeRadiusBlocks, v -> cfg.bonusPool.vortexStrikeRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Vortex Strike Pull strength", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.vortexStrikePullStrength, v -> cfg.bonusPool.vortexStrikePullStrength = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Plague Cloud cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.plagueCloudCooldownSeconds, v -> cfg.bonusPool.plagueCloudCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Plague Cloud duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.plagueCloudDurationSeconds, v -> cfg.bonusPool.plagueCloudDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Plague Cloud Poison amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.plagueCloudPoisonAmplifier, v -> cfg.bonusPool.plagueCloudPoisonAmplifier = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Plague Cloud Weakness amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.plagueCloudWeaknessAmplifier, v -> cfg.bonusPool.plagueCloudWeaknessAmplifier = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Overcharge cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.overchargeCooldownSeconds, v -> cfg.bonusPool.overchargeCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Overcharge damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.overchargeDamageMultiplier, v -> cfg.bonusPool.overchargeDamageMultiplier = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Overcharge health Cost", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.overchargeHealthCost, v -> cfg.bonusPool.overchargeHealthCost = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Overcharge duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.overchargeDurationSeconds, v -> cfg.bonusPool.overchargeDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Gravity Crush cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.gravityCrushCooldownSeconds, v -> cfg.bonusPool.gravityCrushCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Gravity Crush damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.gravityCrushDamage, v -> cfg.bonusPool.gravityCrushDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Gravity Crush Root duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.gravityCrushRootDurationSeconds, v -> cfg.bonusPool.gravityCrushRootDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Gravity Crush range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.gravityCrushRangeBlocks, v -> cfg.bonusPool.gravityCrushRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addNoteRow("Bonus passives", y, labelX, labelW);
+                logicalY += ROW_H;
+                y = addFloatRow("Thorns Aura damage percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.thornsAuraDamagePercent, v -> cfg.bonusPool.thornsAuraDamagePercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Lifesteal percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.lifestealPercent, v -> cfg.bonusPool.lifestealPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Dodge chance percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.dodgeChancePercent, v -> cfg.bonusPool.dodgeChancePercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Critical Strike Bonus damage percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.criticalStrikeBonusDamagePercent, v -> cfg.bonusPool.criticalStrikeBonusDamagePercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Critical Strike chance Bonus", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.criticalStrikeChanceBonus, v -> cfg.bonusPool.criticalStrikeChanceBonus = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Mana Shield xp per damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.manaShieldXpPerDamage, v -> cfg.bonusPool.manaShieldXpPerDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Regeneration boost amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.regenerationBoostAmplifier, v -> cfg.bonusPool.regenerationBoostAmplifier = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Damage reduction percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.damageReductionPercent, v -> cfg.bonusPool.damageReductionPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Attack Speed boost percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.attackSpeedBoostPercent, v -> cfg.bonusPool.attackSpeedBoostPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Reach Extend blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.reachExtendBlocks, v -> cfg.bonusPool.reachExtendBlocks = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Impact Absorb percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.impactAbsorbPercent, v -> cfg.bonusPool.impactAbsorbPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Impact Absorb max absorption", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.impactAbsorbMaxAbsorption, v -> cfg.bonusPool.impactAbsorbMaxAbsorption = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Adrenaline Surge duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.adrenalineSurgeDurationSeconds, v -> cfg.bonusPool.adrenalineSurgeDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Adrenaline Surge cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.adrenalineSurgeCooldownSeconds, v -> cfg.bonusPool.adrenalineSurgeCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Intimidate damage reduction percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.intimidateDamageReductionPercent, v -> cfg.bonusPool.intimidateDamageReductionPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Intimidate radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.intimidateRadiusBlocks, v -> cfg.bonusPool.intimidateRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Evasive Roll cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.evasiveRollCooldownSeconds, v -> cfg.bonusPool.evasiveRollCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Evasive Roll distance blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.evasiveRollDistanceBlocks, v -> cfg.bonusPool.evasiveRollDistanceBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Combat Meditate heal per Second", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.combatMeditateHealPerSecond, v -> cfg.bonusPool.combatMeditateHealPerSecond = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Combat Meditate Delay seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.combatMeditateDelaySeconds, v -> cfg.bonusPool.combatMeditateDelaySeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Weapon Mastery Bonus damage", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.weaponMasteryBonusDamage, v -> cfg.bonusPool.weaponMasteryBonusDamage = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Culling Blade Threshold percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.cullingBladeThresholdPercent, v -> cfg.bonusPool.cullingBladeThresholdPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Thick Skin Projectile reduction percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.thickSkinProjectileReductionPercent, v -> cfg.bonusPool.thickSkinProjectileReductionPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Xp boost percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.xpBoostPercent, v -> cfg.bonusPool.xpBoostPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Hunger Resist reduction percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.hungerResistReductionPercent, v -> cfg.bonusPool.hungerResistReductionPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addBoolRow("Poison Immunity Full", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.poisonImmunityFull, v -> cfg.bonusPool.poisonImmunityFull = v);
+                logicalY += ROW_H;
+                y = addIntRow("Second Wind cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.secondWindCooldownSeconds, v -> cfg.bonusPool.secondWindCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Second Wind heal Amount", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.secondWindHealAmount, v -> cfg.bonusPool.secondWindHealAmount = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Echo Strike chance percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.echoStrikeChancePercent, v -> cfg.bonusPool.echoStrikeChancePercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Chain Breaker duration reduction percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.chainBreakerDurationReductionPercent, v -> cfg.bonusPool.chainBreakerDurationReductionPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Stone Skin Flat reduction", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.stoneSkinFlatReduction, v -> cfg.bonusPool.stoneSkinFlatReduction = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Arcane Barrier cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.arcaneBarrierCooldownSeconds, v -> cfg.bonusPool.arcaneBarrierCooldownSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Arcane Barrier Absorb Amount", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.arcaneBarrierAbsorbAmount, v -> cfg.bonusPool.arcaneBarrierAbsorbAmount = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Predator Sense Threshold percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.predatorSenseThresholdPercent, v -> cfg.bonusPool.predatorSenseThresholdPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Predator Sense range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.predatorSenseRangeBlocks, v -> cfg.bonusPool.predatorSenseRangeBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Battle Medic heal per Second", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.battleMedicHealPerSecond, v -> cfg.bonusPool.battleMedicHealPerSecond = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Battle Medic radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.battleMedicRadiusBlocks, v -> cfg.bonusPool.battleMedicRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Last Stand Threshold percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.lastStandThresholdPercent, v -> cfg.bonusPool.lastStandThresholdPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Last Stand damage boost percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.lastStandDamageBoostPercent, v -> cfg.bonusPool.lastStandDamageBoostPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Executioner Threshold percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.executionerThresholdPercent, v -> cfg.bonusPool.executionerThresholdPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Executioner Bonus damage percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.executionerBonusDamagePercent, v -> cfg.bonusPool.executionerBonusDamagePercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Bloodthirst heal On Kill", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.bloodthirstHealOnKill, v -> cfg.bonusPool.bloodthirstHealOnKill = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addBoolRow("Steel Resolve Full Knockback Immunity", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.steelResolveFullKnockbackImmunity, v -> cfg.bonusPool.steelResolveFullKnockbackImmunity = v);
+                logicalY += ROW_H;
+                y = addFloatRow("Elemental Harmony reduction percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.elementalHarmonyReductionPercent, v -> cfg.bonusPool.elementalHarmonyReductionPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Treasure Hunter Drop boost percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.treasureHunterDropBoostPercent, v -> cfg.bonusPool.treasureHunterDropBoostPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Counter Strike damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.counterStrikeDamageMultiplier, v -> cfg.bonusPool.counterStrikeDamageMultiplier = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Counter Strike window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.counterStrikeWindowSeconds, v -> cfg.bonusPool.counterStrikeWindowSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Bulwark Block Effectiveness boost percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.bulwarkBlockEffectivenessBoostPercent, v -> cfg.bonusPool.bulwarkBlockEffectivenessBoostPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Quick Recovery Debuff reduction percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.quickRecoveryDebuffReductionPercent, v -> cfg.bonusPool.quickRecoveryDebuffReductionPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Overfowing Vitality Bonus hearts", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.overfowingVitalityBonusHearts, v -> cfg.bonusPool.overfowingVitalityBonusHearts = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Magnetic Pull range multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.magneticPullRangeMultiplier, v -> cfg.bonusPool.magneticPullRangeMultiplier = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Vengeance Buff duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.vengeanceBuffDurationSeconds, v -> cfg.bonusPool.vengeanceBuffDurationSeconds = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Vengeance damage boost percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.vengeanceDamageBoostPercent, v -> cfg.bonusPool.vengeanceDamageBoostPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Nemesis Bonus damage percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.nemesisBonusDamagePercent, v -> cfg.bonusPool.nemesisBonusDamagePercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Hunters Instinct Crit boost percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.huntersInstinctCritBoostPercent, v -> cfg.bonusPool.huntersInstinctCritBoostPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Berserker Blood max Attack Speed boost", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.berserkerBloodMaxAttackSpeedBoost, v -> cfg.bonusPool.berserkerBloodMaxAttackSpeedBoost = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Opportunist Backstab Bonus percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.opportunistBackstabBonusPercent, v -> cfg.bonusPool.opportunistBackstabBonusPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Ironclad armor boost percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.ironcladArmorBoostPercent, v -> cfg.bonusPool.ironcladArmorBoostPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Mist Form Phase chance percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.mistFormPhaseChancePercent, v -> cfg.bonusPool.mistFormPhaseChancePercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("War Cry radius blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.warCryRadiusBlocks, v -> cfg.bonusPool.warCryRadiusBlocks = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("War Cry strength duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.warCryStrengthDurationSeconds, v -> cfg.bonusPool.warCryStrengthDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addIntRow("Siphon Soul Regen duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.siphonSoulRegenDurationSeconds, v -> cfg.bonusPool.siphonSoulRegenDurationSeconds = v, 0, 10000);
+                logicalY += ROW_H;
+                y = addFloatRow("Unbreakable Durability reduction percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.unbreakableDurabilityReductionPercent, v -> cfg.bonusPool.unbreakableDurabilityReductionPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Focused Mind cooldown reduction percent", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.focusedMindCooldownReductionPercent, v -> cfg.bonusPool.focusedMindCooldownReductionPercent = v, 0.0F, 1000.0F);
+                logicalY += ROW_H;
+                y = addIntRow("Sixth Sense warning range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.bonusPool.sixthSenseWarningRangeBlocks, v -> cfg.bonusPool.sixthSenseWarningRangeBlocks = v, 0, 10000);
                 logicalY += ROW_H;
             }
             case ASTRA -> {
@@ -545,6 +1056,10 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += ROW_H;
                 y = addIntRow("Frictionless speed amplifier", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.frictionlessSpeedAmplifier, v -> cfg.speed.frictionlessSpeedAmplifier = v, 0, 10);
                 logicalY += ROW_H;
+                y = addIntRow("Auto-step cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.autoStepCooldownSeconds, v -> cfg.speed.autoStepCooldownSeconds = v, 0, 120);
+                logicalY += ROW_H;
+                y = addDoubleRow("Auto-step height bonus", y, labelX, labelW, fieldX, fieldW, () -> cfg.speed.autoStepHeightBonus, v -> cfg.speed.autoStepHeightBonus = v, 0.0D, 2.0D);
+                logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;
                 // Abilities
@@ -793,9 +1308,29 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;
-                y = addNoteRow("Edit summon costs/loadouts in balance.json", y, labelX, labelW);
+                y = addStringRow("Summon costs (id=points, comma-separated)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinIntMap(cfg.summoner.costs),
+                        v -> cfg.summoner.costs = parseIntMap(v));
                 logicalY += ROW_H;
-                y = addNoteRow("Edit mob blacklist in balance.json", y, labelX, labelW);
+                y = addStringRow("Slot 1 loadout (id=count, comma-separated)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinSummonSpecs(cfg.summoner.slot1),
+                        v -> cfg.summoner.slot1 = parseSummonSpecs(v));
+                logicalY += ROW_H;
+                y = addStringRow("Slot 2 loadout (id=count, comma-separated)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinSummonSpecs(cfg.summoner.slot2),
+                        v -> cfg.summoner.slot2 = parseSummonSpecs(v));
+                logicalY += ROW_H;
+                y = addStringRow("Slot 3 loadout (id=count, comma-separated)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinSummonSpecs(cfg.summoner.slot3),
+                        v -> cfg.summoner.slot3 = parseSummonSpecs(v));
+                logicalY += ROW_H;
+                y = addStringRow("Slot 4 loadout (id=count, comma-separated)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinSummonSpecs(cfg.summoner.slot4),
+                        v -> cfg.summoner.slot4 = parseSummonSpecs(v));
+                logicalY += ROW_H;
+                y = addStringRow("Slot 5 loadout (id=count, comma-separated)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinSummonSpecs(cfg.summoner.slot5),
+                        v -> cfg.summoner.slot5 = parseSummonSpecs(v));
                 logicalY += ROW_H;
             }
             case SPACE -> {
@@ -808,6 +1343,8 @@ public final class GemsConfigScreen extends Screen {
                 y = spacer(y);
                 logicalY += 8;
                 y = addIntRow("Orbital Laser cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.orbitalLaserCooldownSeconds, v -> cfg.space.orbitalLaserCooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addIntRow("Orbital Laser mining cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.orbitalLaserMiningCooldownSeconds, v -> cfg.space.orbitalLaserMiningCooldownSeconds = v, 0, 3600);
                 logicalY += ROW_H;
                 y = addIntRow("Orbital Laser range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.space.orbitalLaserRangeBlocks, v -> cfg.space.orbitalLaserRangeBlocks = v, 0, 256);
                 logicalY += ROW_H;
@@ -1628,7 +2165,91 @@ public final class GemsConfigScreen extends Screen {
                 logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;
-                y = addNoteRow("Edit recipe gem requirements in balance.json", y, labelX, labelW);
+                y = addStringRow("Recipe gem requirements (recipe=gem, comma-separated)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinMap(cfg.legendary.recipeGemRequirements),
+                        v -> cfg.legendary.recipeGemRequirements = parseMap(v));
+                logicalY += ROW_H;
+            }
+            case MASTERY -> {
+                y = addBoolRow("Enabled", y, labelX, labelW, fieldX, fieldW, () -> cfg.mastery.enabled, v -> cfg.mastery.enabled = v);
+                logicalY += ROW_H;
+                y = addBoolRow("Show aura particles", y, labelX, labelW, fieldX, fieldW, () -> cfg.mastery.showAuraParticles, v -> cfg.mastery.showAuraParticles = v);
+                logicalY += ROW_H;
+            }
+            case RIVALRY -> {
+                y = addBoolRow("Enabled", y, labelX, labelW, fieldX, fieldW, () -> cfg.rivalry.enabled, v -> cfg.rivalry.enabled = v);
+                logicalY += ROW_H;
+                y = addDoubleRow("Damage multiplier", y, labelX, labelW, fieldX, fieldW, () -> cfg.rivalry.damageMultiplier, v -> cfg.rivalry.damageMultiplier = v, 0.0D, 10.0D);
+                logicalY += ROW_H;
+                y = addBoolRow("Show in HUD", y, labelX, labelW, fieldX, fieldW, () -> cfg.rivalry.showInHud, v -> cfg.rivalry.showInHud = v);
+                logicalY += ROW_H;
+            }
+            case LOADOUTS -> {
+                y = addBoolRow("Enabled", y, labelX, labelW, fieldX, fieldW, () -> cfg.loadouts.enabled, v -> cfg.loadouts.enabled = v);
+                logicalY += ROW_H;
+                y = addIntRow("Unlock energy", y, labelX, labelW, fieldX, fieldW, () -> cfg.loadouts.unlockEnergy, v -> cfg.loadouts.unlockEnergy = v, 0, 10);
+                logicalY += ROW_H;
+                y = addIntRow("Max presets per gem", y, labelX, labelW, fieldX, fieldW, () -> cfg.loadouts.maxPresetsPerGem, v -> cfg.loadouts.maxPresetsPerGem = v, 0, 20);
+                logicalY += ROW_H;
+            }
+            case SYNERGIES -> {
+                y = addBoolRow("Enabled", y, labelX, labelW, fieldX, fieldW, () -> cfg.synergies.enabled, v -> cfg.synergies.enabled = v);
+                logicalY += ROW_H;
+                y = addIntRow("Window seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.synergies.windowSeconds, v -> cfg.synergies.windowSeconds = v, 0, 60);
+                logicalY += ROW_H;
+                y = addIntRow("Cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.synergies.cooldownSeconds, v -> cfg.synergies.cooldownSeconds = v, 0, 3600);
+                logicalY += ROW_H;
+                y = addBoolRow("Show notifications", y, labelX, labelW, fieldX, fieldW, () -> cfg.synergies.showNotifications, v -> cfg.synergies.showNotifications = v);
+                logicalY += ROW_H;
+            }
+            case AUGMENTS -> {
+                y = addIntRow("Gem max slots", y, labelX, labelW, fieldX, fieldW, () -> cfg.augments.gemMaxSlots, v -> cfg.augments.gemMaxSlots = v, 0, 16);
+                logicalY += ROW_H;
+                y = addIntRow("Legendary max slots", y, labelX, labelW, fieldX, fieldW, () -> cfg.augments.legendaryMaxSlots, v -> cfg.augments.legendaryMaxSlots = v, 0, 16);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addIntRow("Rarity common weight", y, labelX, labelW, fieldX, fieldW, () -> cfg.augments.rarityCommonWeight, v -> cfg.augments.rarityCommonWeight = v, 0, 1000);
+                logicalY += ROW_H;
+                y = addIntRow("Rarity rare weight", y, labelX, labelW, fieldX, fieldW, () -> cfg.augments.rarityRareWeight, v -> cfg.augments.rarityRareWeight = v, 0, 1000);
+                logicalY += ROW_H;
+                y = addIntRow("Rarity epic weight", y, labelX, labelW, fieldX, fieldW, () -> cfg.augments.rarityEpicWeight, v -> cfg.augments.rarityEpicWeight = v, 0, 1000);
+                logicalY += ROW_H;
+                y = spacer(y);
+                logicalY += 8;
+                y = addFloatRow("Common magnitude min", y, labelX, labelW, fieldX, fieldW, () -> cfg.augments.commonMagnitudeMin, v -> cfg.augments.commonMagnitudeMin = v, 0.0F, 10.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Common magnitude max", y, labelX, labelW, fieldX, fieldW, () -> cfg.augments.commonMagnitudeMax, v -> cfg.augments.commonMagnitudeMax = v, 0.0F, 10.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Rare magnitude min", y, labelX, labelW, fieldX, fieldW, () -> cfg.augments.rareMagnitudeMin, v -> cfg.augments.rareMagnitudeMin = v, 0.0F, 10.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Rare magnitude max", y, labelX, labelW, fieldX, fieldW, () -> cfg.augments.rareMagnitudeMax, v -> cfg.augments.rareMagnitudeMax = v, 0.0F, 10.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Epic magnitude min", y, labelX, labelW, fieldX, fieldW, () -> cfg.augments.epicMagnitudeMin, v -> cfg.augments.epicMagnitudeMin = v, 0.0F, 10.0F);
+                logicalY += ROW_H;
+                y = addFloatRow("Epic magnitude max", y, labelX, labelW, fieldX, fieldW, () -> cfg.augments.epicMagnitudeMax, v -> cfg.augments.epicMagnitudeMax = v, 0.0F, 10.0F);
+                logicalY += ROW_H;
+            }
+            case DISABLES -> {
+                y = addDisablesStringRow("Disabled gems (comma-separated)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinList(disablesCfg.disabledGems),
+                        v -> disablesCfg.disabledGems = parseList(v));
+                logicalY += ROW_H;
+                y = addDisablesStringRow("Disabled abilities (comma-separated)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinList(disablesCfg.disabledAbilities),
+                        v -> disablesCfg.disabledAbilities = parseList(v));
+                logicalY += ROW_H;
+                y = addDisablesStringRow("Disabled passives (comma-separated)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinList(disablesCfg.disabledPassives),
+                        v -> disablesCfg.disabledPassives = parseList(v));
+                logicalY += ROW_H;
+                y = addDisablesStringRow("Disabled bonus abilities (comma-separated)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinList(disablesCfg.disabledBonusAbilities),
+                        v -> disablesCfg.disabledBonusAbilities = parseList(v));
+                logicalY += ROW_H;
+                y = addDisablesStringRow("Disabled bonus passives (comma-separated)", y, labelX, labelW, fieldX, fieldW,
+                        () -> joinList(disablesCfg.disabledBonusPassives),
+                        v -> disablesCfg.disabledBonusPassives = parseList(v));
                 logicalY += ROW_H;
             }
         }
@@ -1661,12 +2282,14 @@ public final class GemsConfigScreen extends Screen {
         ButtonWidget resetAllButton = addDrawableChild(ButtonWidget.builder(Text.literal("Reset all"), b -> {
             cfg = normalize(new GemsBalanceConfig());
             dirty = true;
+            disablesCfg = new GemsDisablesConfig();
+            disablesDirty = true;
             rebuild();
         }).dimensions(footerX + 136, footerY, 110, 20).build());
-        ButtonWidget copyPathButton = addDrawableChild(ButtonWidget.builder(Text.literal("Copy config path"), b -> {
+        ButtonWidget copyPathButton = addDrawableChild(ButtonWidget.builder(Text.literal("Copy config paths"), b -> {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client != null) {
-                client.keyboard.setClipboard(balancePath().toString());
+                client.keyboard.setClipboard("Balance: " + balancePath() + "\nDisables: " + disablesPath());
             }
         }).dimensions(footerX + 252, footerY, 140, 20).build());
 
@@ -1675,8 +2298,8 @@ public final class GemsConfigScreen extends Screen {
         ButtonWidget dumpButton = addDrawableChild(ButtonWidget.builder(Text.literal("Dump effective"), b -> ClientCommandSender.sendCommand("gems dumpBalance")).dimensions(footerX, footerY, 130, 20).build());
         ButtonWidget doneButton = addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> close()).dimensions(footerX + 136, footerY, 110, 20).build());
 
-        saveButton.active = (canEdit && dirty && validation.isValid()) || clientDirty;
-        saveReloadButton.active = canEdit && dirty && validation.isValid();
+        saveButton.active = (canEdit && (dirty || disablesDirty) && validation.isValid()) || clientDirty;
+        saveReloadButton.active = canEdit && (dirty || disablesDirty) && validation.isValid();
         resetSectionButton.active = canEdit;
         resetAllButton.active = canEdit;
         dumpButton.active = canEdit;
@@ -1689,17 +2312,18 @@ public final class GemsConfigScreen extends Screen {
 
     private void updateButtonState() {
         if (saveButton != null) {
-            saveButton.active = (canEdit && dirty && validation.isValid()) || clientDirty;
+            saveButton.active = (canEdit && (dirty || disablesDirty) && validation.isValid()) || clientDirty;
         }
         if (saveReloadButton != null) {
-            saveReloadButton.active = canEdit && dirty && validation.isValid();
+            saveReloadButton.active = canEdit && (dirty || disablesDirty) && validation.isValid();
         }
     }
 
     private void save(boolean reload) {
         boolean saveServer = dirty && canEdit && validation.isValid();
+        boolean saveDisables = disablesDirty && canEdit;
         boolean saveClient = clientDirty;
-        if (!saveServer && !saveClient) {
+        if (!saveServer && !saveDisables && !saveClient) {
             return;
         }
         if (saveServer) {
@@ -1707,6 +2331,13 @@ public final class GemsConfigScreen extends Screen {
             dirty = false;
             if (reload) {
                 ClientCommandSender.sendCommand("gems reloadBalance");
+            }
+        }
+        if (saveDisables) {
+            GemsDisablesConfigManager.writeDisablesForUi(disablesCfg);
+            disablesDirty = false;
+            if (reload) {
+                ClientCommandSender.sendCommand("gems reloadDisables");
             }
         }
         if (saveClient) {
@@ -1756,8 +2387,18 @@ public final class GemsConfigScreen extends Screen {
             case SENTINEL -> cfg.sentinel = new GemsBalanceConfig.Sentinel();
             case TRICKSTER -> cfg.trickster = new GemsBalanceConfig.Trickster();
             case LEGENDARY -> cfg.legendary = new GemsBalanceConfig.Legendary();
+            case BONUS_POOL -> cfg.bonusPool = new GemsBalanceConfig.BonusPool();
+            case MASTERY -> cfg.mastery = new GemsBalanceConfig.Mastery();
+            case RIVALRY -> cfg.rivalry = new GemsBalanceConfig.Rivalry();
+            case LOADOUTS -> cfg.loadouts = new GemsBalanceConfig.Loadouts();
+            case SYNERGIES -> cfg.synergies = new GemsBalanceConfig.Synergies();
+            case AUGMENTS -> cfg.augments = new GemsBalanceConfig.Augments();
+            case DISABLES -> {
+                disablesCfg = new GemsDisablesConfig();
+                disablesDirty = true;
+            }
         }
-        if (section != Section.CLIENT) {
+        if (section != Section.CLIENT && section != Section.DISABLES) {
             dirty = true;
         }
     }
@@ -1842,6 +2483,21 @@ public final class GemsConfigScreen extends Screen {
         field.setChangedListener(s -> {
             setter.accept(s);
             dirty = true;
+            updateButtonState();
+        });
+        addDrawableChild(field);
+        return y + ROW_H;
+    }
+
+    private int addDisablesStringRow(String label, int y, int labelX, int labelW, int fieldX, int fieldW, Supplier<String> getter, Consumer<String> setter) {
+        addDrawableChild(ButtonWidget.builder(Text.literal(label), b -> {
+        }).dimensions(labelX, y, labelW, 20).build()).active = false;
+        TextFieldWidget field = new TextFieldWidget(this.textRenderer, fieldX, y, fieldW, 20, Text.empty());
+        field.setText(getter.get());
+        field.setEditable(canEdit);
+        field.setChangedListener(s -> {
+            setter.accept(s);
+            disablesDirty = true;
             updateButtonState();
         });
         addDrawableChild(field);
@@ -1960,8 +2616,181 @@ public final class GemsConfigScreen extends Screen {
         return s.substring(0, Math.max(1, end));
     }
 
+    private static String joinList(List<String> values) {
+        if (values == null || values.isEmpty()) {
+            return "";
+        }
+        StringBuilder out = new StringBuilder();
+        for (String value : values) {
+            if (value == null) {
+                continue;
+            }
+            String trimmed = value.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            if (out.length() > 0) {
+                out.append(", ");
+            }
+            out.append(trimmed);
+        }
+        return out.toString();
+    }
+
+    private static List<String> parseList(String value) {
+        if (value == null || value.isBlank()) {
+            return List.of();
+        }
+        List<String> out = new ArrayList<>();
+        for (String part : value.split(",")) {
+            String trimmed = part.trim();
+            if (!trimmed.isEmpty()) {
+                out.add(trimmed);
+            }
+        }
+        return out;
+    }
+
+    private static String joinMap(Map<String, String> map) {
+        if (map == null || map.isEmpty()) {
+            return "";
+        }
+        StringBuilder out = new StringBuilder();
+        for (Map.Entry<String, String> entry : new TreeMap<>(map).entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (key == null || key.isBlank() || value == null || value.isBlank()) {
+                continue;
+            }
+            if (out.length() > 0) {
+                out.append(", ");
+            }
+            out.append(key.trim()).append('=').append(value.trim());
+        }
+        return out.toString();
+    }
+
+    private static Map<String, String> parseMap(String value) {
+        Map<String, String> out = new TreeMap<>();
+        if (value == null || value.isBlank()) {
+            return out;
+        }
+        for (String part : value.split(",")) {
+            String trimmed = part.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            int idx = trimmed.indexOf('=');
+            if (idx <= 0 || idx == trimmed.length() - 1) {
+                continue;
+            }
+            String key = trimmed.substring(0, idx).trim();
+            String val = trimmed.substring(idx + 1).trim();
+            if (!key.isEmpty() && !val.isEmpty()) {
+                out.put(key, val);
+            }
+        }
+        return out;
+    }
+
+    private static String joinIntMap(Map<String, Integer> map) {
+        if (map == null || map.isEmpty()) {
+            return "";
+        }
+        StringBuilder out = new StringBuilder();
+        for (Map.Entry<String, Integer> entry : new TreeMap<>(map).entrySet()) {
+            String key = entry.getKey();
+            Integer value = entry.getValue();
+            if (key == null || key.isBlank() || value == null) {
+                continue;
+            }
+            if (out.length() > 0) {
+                out.append(", ");
+            }
+            out.append(key.trim()).append('=').append(value);
+        }
+        return out.toString();
+    }
+
+    private static Map<String, Integer> parseIntMap(String value) {
+        Map<String, Integer> out = new TreeMap<>();
+        if (value == null || value.isBlank()) {
+            return out;
+        }
+        for (String part : value.split(",")) {
+            String trimmed = part.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            int idx = trimmed.indexOf('=');
+            if (idx <= 0 || idx == trimmed.length() - 1) {
+                continue;
+            }
+            String key = trimmed.substring(0, idx).trim();
+            String val = trimmed.substring(idx + 1).trim();
+            if (key.isEmpty() || val.isEmpty()) {
+                continue;
+            }
+            Integer parsed = tryParseInt(val);
+            if (parsed == null) {
+                continue;
+            }
+            out.put(key, Math.max(0, parsed));
+        }
+        return out;
+    }
+
+    private static String joinSummonSpecs(List<GemsBalanceConfig.Summoner.SummonSpec> specs) {
+        if (specs == null || specs.isEmpty()) {
+            return "";
+        }
+        StringBuilder out = new StringBuilder();
+        for (GemsBalanceConfig.Summoner.SummonSpec spec : specs) {
+            if (spec == null || spec.entityId == null || spec.entityId.isBlank()) {
+                continue;
+            }
+            if (out.length() > 0) {
+                out.append(", ");
+            }
+            out.append(spec.entityId.trim()).append('=').append(Math.max(1, spec.count));
+        }
+        return out.toString();
+    }
+
+    private static List<GemsBalanceConfig.Summoner.SummonSpec> parseSummonSpecs(String value) {
+        if (value == null || value.isBlank()) {
+            return List.of();
+        }
+        List<GemsBalanceConfig.Summoner.SummonSpec> out = new ArrayList<>();
+        for (String part : value.split(",")) {
+            String trimmed = part.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            String id = trimmed;
+            int count = 1;
+            int idx = trimmed.indexOf('=');
+            if (idx > 0) {
+                id = trimmed.substring(0, idx).trim();
+                String rawCount = trimmed.substring(idx + 1).trim();
+                Integer parsed = tryParseInt(rawCount);
+                if (parsed != null) {
+                    count = Math.max(1, parsed);
+                }
+            }
+            if (!id.isEmpty()) {
+                out.add(new GemsBalanceConfig.Summoner.SummonSpec(id, count));
+            }
+        }
+        return out;
+    }
+
     private static Path balancePath() {
         return GemsConfigManager.balancePathForUi();
+    }
+
+    private static Path disablesPath() {
+        return GemsDisablesConfigManager.disablesPathForUi();
     }
 
     @Override
@@ -2000,20 +2829,25 @@ public final class GemsConfigScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         int centerX = this.width / 2;
-        context.drawCenteredTextWithShadow(textRenderer, this.title, centerX, 18, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(textRenderer, this.title, centerX, 18, 0xFFFFFFFF);
 
-        String path = balancePath().toString();
-        context.drawCenteredTextWithShadow(textRenderer, Text.literal(path), centerX, 32, 0xA0A0A0);
+        String balancePath = "Balance: " + balancePath().toString();
+        String disablesPath = "Disables: " + disablesPath().toString();
+        context.drawCenteredTextWithShadow(textRenderer, Text.literal(balancePath), centerX, 32, 0xA0A0A0);
+        context.drawCenteredTextWithShadow(textRenderer, Text.literal(disablesPath), centerX, 44, 0xA0A0A0);
 
         if (loadError != null) {
             context.drawCenteredTextWithShadow(textRenderer, Text.literal(loadError), centerX, this.height - 18, 0xFF5555);
+        }
+        if (disablesLoadError != null) {
+            context.drawCenteredTextWithShadow(textRenderer, Text.literal(disablesLoadError), centerX, this.height - 30, 0xFF5555);
         }
 
         if (!canEdit) {
             context.drawCenteredTextWithShadow(textRenderer, Text.literal("Config edits require op permissions on multiplayer servers."), centerX, this.height - 56, 0xFFAA00);
         } else if (!validation.isValid()) {
             context.drawCenteredTextWithShadow(textRenderer, Text.literal("Fix invalid values to enable Save."), centerX, this.height - 42, 0xFF5555);
-        } else if (dirty) {
+        } else if (dirty || disablesDirty) {
             context.drawCenteredTextWithShadow(textRenderer, Text.literal("Unsaved changes."), centerX, this.height - 42, 0xFFFF55);
         }
     }
@@ -2046,6 +2880,12 @@ public final class GemsConfigScreen extends Screen {
         SYSTEMS("Systems", Category.GENERAL),
         BONUS_POOL("Bonus Pool", Category.GENERAL),
         LEGENDARY("Legendary", Category.GENERAL),
+        MASTERY("Mastery", Category.GENERAL),
+        RIVALRY("Rivalry", Category.GENERAL),
+        LOADOUTS("Loadouts", Category.GENERAL),
+        SYNERGIES("Synergies", Category.GENERAL),
+        AUGMENTS("Augments", Category.GENERAL),
+        DISABLES("Disables", Category.GENERAL),
         // Elemental
         ASTRA("Astra", Category.ELEMENTAL),
         FIRE("Fire", Category.ELEMENTAL),
@@ -2169,6 +3009,21 @@ public final class GemsConfigScreen extends Screen {
         }
         if (cfg.bonusPool == null) {
             cfg.bonusPool = new GemsBalanceConfig.BonusPool();
+        }
+        if (cfg.mastery == null) {
+            cfg.mastery = new GemsBalanceConfig.Mastery();
+        }
+        if (cfg.rivalry == null) {
+            cfg.rivalry = new GemsBalanceConfig.Rivalry();
+        }
+        if (cfg.loadouts == null) {
+            cfg.loadouts = new GemsBalanceConfig.Loadouts();
+        }
+        if (cfg.synergies == null) {
+            cfg.synergies = new GemsBalanceConfig.Synergies();
+        }
+        if (cfg.augments == null) {
+            cfg.augments = new GemsBalanceConfig.Augments();
         }
         return cfg;
     }

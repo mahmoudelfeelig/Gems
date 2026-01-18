@@ -67,21 +67,16 @@ public final class GemsAstraGameTests {
 
         context.runAtTick(5L, () -> zombie.damage(world, player.getDamageSources().playerAttack(player), 50.0F));
 
-        context.runAtTick(20L, () -> {
-            if (!SoulSystem.hasSoul(player)) {
-                context.throwGameTestException("Soul Capture did not store a soul");
-                return;
-            }
-            if (SoulSystem.soulType(player).isEmpty()) {
-                context.throwGameTestException("Soul type was not stored");
-                return;
-            }
-            if (player.getHealth() <= before) {
-                context.throwGameTestException("Soul Healing did not heal the player");
-                return;
-            }
-            context.complete();
-        });
+        GemsGameTestUtil.assertEventually(
+                context,
+                10L,
+                120L,
+                1L,
+                () -> SoulSystem.hasSoul(player)
+                        && !SoulSystem.soulType(player).isEmpty()
+                        && player.getHealth() > before,
+                "Soul Capture did not store a soul or heal the player"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 220)

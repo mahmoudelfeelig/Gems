@@ -57,6 +57,15 @@ public abstract class SculkSensorSilentStepMixin {
 
         @Override
         public void accept(ServerWorld world, BlockPos pos, RegistryEntry<GameEvent> event, Entity entity, Entity sourceEntity, float distance) {
+            if (sourceEntity instanceof ServerPlayerEntity player) {
+                if (GemPowers.isPassiveActive(player, PowerIds.SCULK_SILENCE) || GemPowers.isPassiveActive(player, PowerIds.SPY_SILENT_STEP)) {
+                    return;
+                }
+            } else if (entity instanceof ServerPlayerEntity player) {
+                if (GemPowers.isPassiveActive(player, PowerIds.SCULK_SILENCE) || GemPowers.isPassiveActive(player, PowerIds.SPY_SILENT_STEP)) {
+                    return;
+                }
+            }
             delegate.accept(world, pos, event, entity, sourceEntity, distance);
         }
 

@@ -163,7 +163,7 @@ public final class HuntersTrophyNecklaceItem extends Item implements LegendaryIt
             list.add(NbtString.of(id.toString()));
         }
         data.put(KEY_STOLEN_PASSIVES, list);
-        removeStolenSource(data, passiveId);
+        // Preserve stolen-from mapping so victims can recover on kill even if the passive is unselected.
         GemPassive passive = ModPassives.get(passiveId);
         if (passive != null) {
             passive.remove(player);
@@ -205,6 +205,24 @@ public final class HuntersTrophyNecklaceItem extends Item implements LegendaryIt
         }
         NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         return GemsNbt.getUuid(data, KEY_LAST_TARGET_UUID);
+    }
+
+    public static boolean wasLastOffered(ServerPlayerEntity player, Identifier passiveId) {
+        if (player == null || passiveId == null) {
+            return false;
+        }
+        NbtCompound data = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        NbtList offeredList = data.getList(KEY_LAST_OFFERED).orElse(null);
+        if (offeredList == null || offeredList.isEmpty()) {
+            return false;
+        }
+        String raw = passiveId.toString();
+        for (int i = 0; i < offeredList.size(); i++) {
+            if (raw.equals(offeredList.getString(i, ""))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -309,6 +327,7 @@ public final class HuntersTrophyNecklaceItem extends Item implements LegendaryIt
         }
 
         GemPowers.sync(killer);
+        GemPowers.sync(thief);
     }
 
     private static void removeStolenSource(NbtCompound data, Identifier passiveId) {

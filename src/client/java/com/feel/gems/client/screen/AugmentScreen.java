@@ -2,8 +2,6 @@ package com.feel.gems.client.screen;
 
 import static com.feel.gems.client.screen.GemsScreenConstants.*;
 
-import com.feel.gems.core.GemId;
-import com.feel.gems.net.AugmentOpenRequestPayload;
 import com.feel.gems.net.AugmentRemovePayload;
 import com.feel.gems.net.AugmentScreenPayload;
 import com.feel.gems.net.AugmentScreenPayload.AugmentEntry;
@@ -53,7 +51,7 @@ public final class AugmentScreen extends GemsScreenBase {
         panelTop = 18;
         panelBottom = height - 36;
 
-        int totalRows = Math.max(payload.maxSlots(), payload.augments().size());
+        int totalRows = Math.max(1, Math.max(payload.maxSlots(), payload.augments().size()));
         int totalPages = totalPages(totalRows, ENTRIES_PER_PAGE);
         page = clampPage(page, totalPages);
 
@@ -89,14 +87,6 @@ public final class AugmentScreen extends GemsScreenBase {
                     .build());
         }
 
-        addDrawableChild(ButtonWidget.builder(Text.literal("<"), b -> requestGem(offsetGem(-1)))
-                .dimensions(panelLeft + 8, panelTop + 4, 20, BUTTON_HEIGHT)
-                .build());
-
-        addDrawableChild(ButtonWidget.builder(Text.literal(">"), b -> requestGem(offsetGem(1)))
-                .dimensions(panelLeft + 34, panelTop + 4, 20, BUTTON_HEIGHT)
-                .build());
-
         addCloseButton();
     }
 
@@ -106,39 +96,7 @@ public final class AugmentScreen extends GemsScreenBase {
     }
 
     private void removeAugment(int index) {
-        ClientPlayNetworking.send(new AugmentRemovePayload(payload.gemId(), index));
-    }
-
-    private void requestGem(GemId gem) {
-        ClientPlayNetworking.send(new AugmentOpenRequestPayload(gem));
-    }
-
-    private GemId offsetGem(int delta) {
-        GemId current = parseGem(payload.gemId());
-        if (current == null) {
-            return GemId.ASTRA;
-        }
-        GemId[] gems = GemId.values();
-        int index = 0;
-        for (int i = 0; i < gems.length; i++) {
-            if (gems[i] == current) {
-                index = i;
-                break;
-            }
-        }
-        int next = (index + delta + gems.length) % gems.length;
-        return gems[next];
-    }
-
-    private static GemId parseGem(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return null;
-        }
-        try {
-            return GemId.valueOf(raw);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        ClientPlayNetworking.send(new AugmentRemovePayload(payload.mainHand(), index));
     }
 
     @Override
@@ -147,14 +105,18 @@ public final class AugmentScreen extends GemsScreenBase {
         drawPanel(context, panelLeft, panelTop, panelRight, panelBottom);
         renderBase(context);
 
-        String gemLabel = Text.translatable("gems.screen.augment.gem", payload.gemId()).getString();
+        String gemName = resolveGemName(payload.gemId());
+        String handLabel = payload.mainHand()
+                ? Text.translatable("gems.screen.augment.hand.main").getString()
+                : Text.translatable("gems.screen.augment.hand.off").getString();
+        String gemLabel = Text.translatable("gems.screen.augment.gem", gemName + " (" + handLabel + ")").getString();
         context.drawCenteredTextWithShadow(textRenderer, gemLabel, width / 2, SUBTITLE_Y, COLOR_GRAY);
 
         int slotsUsed = payload.augments().size();
         String slotLabel = Text.translatable("gems.screen.augment.slots", slotsUsed, payload.maxSlots()).getString();
         context.drawCenteredTextWithShadow(textRenderer, slotLabel, width / 2, SUBTITLE_Y + 12, COLOR_DARK_GRAY);
 
-        int totalRows = Math.max(payload.maxSlots(), payload.augments().size());
+        int totalRows = Math.max(1, Math.max(payload.maxSlots(), payload.augments().size()));
         int startIndex = page * ENTRIES_PER_PAGE;
         int endIndex = Math.min(startIndex + ENTRIES_PER_PAGE, totalRows);
 
@@ -200,6 +162,14 @@ public final class AugmentScreen extends GemsScreenBase {
             case "EPIC" -> Formatting.LIGHT_PURPLE;
             default -> Formatting.WHITE;
         };
+    }
+
+    private String resolveGemName(String rawGemId) {
+        if (rawGemId == null || rawGemId.isBlank()) {
+            return "?";
+        }
+        String key = "item.gems." + rawGemId.toLowerCase() + "_gem";
+        return Text.translatable(key).getString();
     }
 
     private String trimText(String text, int width) {

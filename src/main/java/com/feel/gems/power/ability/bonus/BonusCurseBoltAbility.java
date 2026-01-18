@@ -45,7 +45,7 @@ public final class BonusCurseBoltAbility implements GemAbility {
                 e -> e != player && !(e instanceof ServerPlayerEntity) && e.isAlive()
         )) {
             float before = living.getHealth();
-            living.damage(world, world.getDamageSources().magic(), 4.0F);
+            living.damage(world, player.getDamageSources().indirectMagic(player, player), 4.0F);
             float dealt = Math.max(0.0F, before - living.getHealth());
             if (dealt > 0.0F) {
                 totalDrain += dealt * 0.5F;

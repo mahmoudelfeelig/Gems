@@ -26,6 +26,9 @@ public abstract class LivingEntitySummonDeathMixin {
         if (!SummonerSummons.isSummon(mob)) {
             return;
         }
+        if (mob.getCommandTags().contains("gems_spectral_blade")) {
+            return;
+        }
         UUID ownerUuid = SummonerSummons.ownerUuid(mob);
         if (ownerUuid == null) {
             return;

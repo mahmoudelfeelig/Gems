@@ -12,7 +12,8 @@ import net.minecraft.util.Identifier;
  * S2C: syncs the Prism player's selected abilities to the client for HUD display.
  */
 public record PrismAbilitiesSyncPayload(
-        List<PrismAbilityInfo> abilities
+    List<PrismAbilityInfo> abilities,
+    List<PrismPassiveInfo> passives
 ) implements CustomPayload {
     
     public record PrismAbilityInfo(
@@ -20,6 +21,11 @@ public record PrismAbilitiesSyncPayload(
             String name,
             int remainingCooldownTicks
     ) {}
+
+        public record PrismPassiveInfo(
+            Identifier id,
+            String name
+        ) {}
 
     public static final Id<PrismAbilitiesSyncPayload> ID = 
             new Id<>(Identifier.of(GemsMod.MOD_ID, "prism_abilities_sync"));
@@ -41,6 +47,11 @@ public record PrismAbilitiesSyncPayload(
             buf.writeString(info.name(), 128);
             buf.writeVarInt(info.remainingCooldownTicks());
         }
+        buf.writeVarInt(payload.passives.size());
+        for (PrismPassiveInfo info : payload.passives) {
+            buf.writeIdentifier(info.id());
+            buf.writeString(info.name(), 128);
+        }
     }
 
     private static PrismAbilitiesSyncPayload read(RegistryByteBuf buf) {
@@ -52,6 +63,13 @@ public record PrismAbilitiesSyncPayload(
             int cooldown = buf.readVarInt();
             abilities.add(new PrismAbilityInfo(id, name, cooldown));
         }
-        return new PrismAbilitiesSyncPayload(abilities);
+        int passiveSize = buf.readVarInt();
+        List<PrismPassiveInfo> passives = new ArrayList<>(passiveSize);
+        for (int i = 0; i < passiveSize; i++) {
+            Identifier id = buf.readIdentifier();
+            String name = buf.readString(128);
+            passives.add(new PrismPassiveInfo(id, name));
+        }
+        return new PrismAbilitiesSyncPayload(abilities, passives);
     }
 }

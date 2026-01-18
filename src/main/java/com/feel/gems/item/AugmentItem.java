@@ -5,9 +5,7 @@ import com.feel.gems.augment.AugmentInstance;
 import com.feel.gems.augment.AugmentRegistry;
 import com.feel.gems.augment.AugmentRuntime;
 import com.feel.gems.augment.AugmentTarget;
-import com.feel.gems.core.GemId;
 import com.feel.gems.legendary.LegendaryItem;
-import com.feel.gems.state.GemPlayerState;
 import java.util.function.Consumer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -59,8 +57,12 @@ public final class AugmentItem extends Item {
         }
 
         if (def.target() == AugmentTarget.GEM) {
-            GemId gem = GemPlayerState.getActiveGem(player);
-            if (AugmentRuntime.applyGemAugment(player, gem, instance)) {
+            ItemStack target = hand == Hand.MAIN_HAND ? user.getOffHandStack() : user.getMainHandStack();
+            if (!(target.getItem() instanceof GemItem)) {
+                player.sendMessage(Text.translatable("gems.augment.need_gem").formatted(Formatting.RED), true);
+                return ActionResult.FAIL;
+            }
+            if (AugmentRuntime.applyGemAugment(player, target, instance)) {
                 consume(player, stack);
                 return ActionResult.SUCCESS;
             }

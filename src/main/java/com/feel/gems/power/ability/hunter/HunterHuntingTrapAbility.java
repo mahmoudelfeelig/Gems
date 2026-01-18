@@ -146,7 +146,11 @@ public final class HunterHuntingTrapAbility implements GemAbility {
         float damage = GemsBalance.v().hunter().huntingTrapDamage();
         int rootTicks = GemsBalance.v().hunter().huntingTrapRootTicks();
 
-        victim.damage(world, world.getDamageSources().magic(), damage);
+        if (owner != null) {
+            victim.damage(world, owner.getDamageSources().indirectMagic(owner, owner), damage);
+        } else {
+            victim.damage(world, world.getDamageSources().magic(), damage);
+        }
         // Max slowness = rooted
         if (owner != null && victim instanceof ServerPlayerEntity playerVictim) {
             // Respect Void immunity / trust for players; mobs are always valid victims.

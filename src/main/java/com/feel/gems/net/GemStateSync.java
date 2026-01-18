@@ -3,8 +3,12 @@ package com.feel.gems.net;
 import com.feel.gems.bonus.BonusClaimsState;
 import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.core.GemId;
+import com.feel.gems.loadout.GemLoadout;
+import com.feel.gems.loadout.LoadoutManager;
 import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.api.GemPassive;
 import com.feel.gems.power.registry.ModAbilities;
+import com.feel.gems.power.registry.ModPassives;
 import com.feel.gems.power.runtime.GemAbilityCooldowns;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.util.GemsTime;
@@ -34,6 +38,8 @@ public final class GemStateSync {
                 GemPlayerState.getMaxHearts(player)
         ));
 
+        sendAbilityOrderSync(player, active);
+        sendHudLayoutSync(player);
         GemCooldownSync.send(player);
         GemExtraStateSync.send(player);
         sendBonusAbilitiesSync(player);
@@ -42,6 +48,21 @@ public final class GemStateSync {
         if (active == GemId.PRISM) {
             sendPrismAbilitiesSync(player);
         }
+    }
+
+    private static void sendAbilityOrderSync(ServerPlayerEntity player, GemId active) {
+        List<Identifier> order = LoadoutManager.getAbilityOrder(player, active);
+        ServerPlayNetworking.send(player, new AbilityOrderSyncPayload(active.ordinal(), order));
+    }
+
+    private static void sendHudLayoutSync(ServerPlayerEntity player) {
+        GemLoadout.HudLayout layout = LoadoutManager.getHudLayout(player);
+        ServerPlayNetworking.send(player, new HudLayoutPayload(
+                layout.position(),
+                layout.showCooldowns(),
+                layout.showEnergy(),
+                layout.compactMode()
+        ));
     }
 
     public static void sendBonusAbilitiesSync(ServerPlayerEntity player) {
@@ -87,24 +108,32 @@ public final class GemStateSync {
         PrismSelectionsState.PrismSelection selection = prismState.getSelection(player.getUuid());
         List<Identifier> selectedAbilities = selection.gemAbilities();
         
-        if (selectedAbilities.isEmpty()) {
-            ServerPlayNetworking.send(player, new PrismAbilitiesSyncPayload(List.of()));
+        List<Identifier> selectedPassives = selection.allPassives();
+        if (selectedAbilities.isEmpty() && selectedPassives.isEmpty()) {
+            ServerPlayNetworking.send(player, new PrismAbilitiesSyncPayload(List.of(), List.of()));
             return;
         }
-        
+
         long now = GemsTime.now(player);
         List<PrismAbilitiesSyncPayload.PrismAbilityInfo> abilities = new ArrayList<>();
-        
+        List<PrismAbilitiesSyncPayload.PrismPassiveInfo> passives = new ArrayList<>();
+
         for (Identifier id : selectedAbilities) {
             GemAbility ability = ModAbilities.get(id);
             String name = ability != null ? ability.name() : id.getPath();
-            
+
             long nextAllowed = GemAbilityCooldowns.nextAllowedTick(player, id);
             int remaining = nextAllowed > now ? (int) (nextAllowed - now) : 0;
-            
+
             abilities.add(new PrismAbilitiesSyncPayload.PrismAbilityInfo(id, name, remaining));
         }
-        
-        ServerPlayNetworking.send(player, new PrismAbilitiesSyncPayload(abilities));
+
+        for (Identifier id : selectedPassives) {
+            GemPassive passive = ModPassives.get(id);
+            String name = passive != null ? passive.name() : id.getPath();
+            passives.add(new PrismAbilitiesSyncPayload.PrismPassiveInfo(id, name));
+        }
+
+        ServerPlayNetworking.send(player, new PrismAbilitiesSyncPayload(abilities, passives));
     }
 }

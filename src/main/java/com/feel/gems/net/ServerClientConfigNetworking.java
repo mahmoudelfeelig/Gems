@@ -36,6 +36,8 @@ public final class ServerClientConfigNetworking {
                 List<net.minecraft.util.Identifier> abilities = payload.abilityOrder().isEmpty()
                     ? current.abilityOrder()
                     : payload.abilityOrder();
+                List<net.minecraft.util.Identifier> available = com.feel.gems.core.GemRegistry.definition(current.gem()).abilities();
+                abilities = GemLoadout.sanitizeAbilityOrder(abilities, available);
                 GemLoadout.HudLayout hud = new GemLoadout.HudLayout(
                     payload.hudPosition(),
                     payload.showCooldowns(),
@@ -99,7 +101,8 @@ public final class ServerClientConfigNetworking {
                 int active = LoadoutManager.getActivePresetIndex(player, gem);
                 int unlock = GemsBalance.v().loadouts().unlockEnergy();
                 int maxPresets = GemsBalance.v().loadouts().maxPresetsPerGem();
-                ServerPlayNetworking.send(player, new LoadoutScreenPayload(gem, unlock, maxPresets, active, entries));
+                List<net.minecraft.util.Identifier> abilityOrder = LoadoutManager.getAbilityOrder(player, gem);
+                ServerPlayNetworking.send(player, new LoadoutScreenPayload(gem, unlock, maxPresets, active, abilityOrder, entries));
             }));
     }
 }

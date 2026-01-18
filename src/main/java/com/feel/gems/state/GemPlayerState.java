@@ -97,6 +97,7 @@
             NbtCompound data = root(player);
             GemId prev = getActiveGem(player);
             if (prev != gem && player instanceof ServerPlayerEntity sp) {
+                com.feel.gems.augment.AugmentRuntime.clearActiveGemAugments(sp);
                 if (prev == GemId.SPY && gem != GemId.SPY) {
                     com.feel.gems.power.gem.spy.SpySystem.restoreStolenFromThief(sp);
                     com.feel.gems.power.gem.spy.SpySystem.clearOnGemSwitchAway(sp);

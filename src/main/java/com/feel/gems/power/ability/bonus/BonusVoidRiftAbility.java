@@ -81,7 +81,7 @@ public final class BonusVoidRiftAbility implements GemAbility {
                         continue;
                     }
                 }
-                entity.damage(world, world.getDamageSources().magic(), rift.damagePerSecond);
+                entity.damage(world, rift.owner.getDamageSources().indirectMagic(rift.owner, rift.owner), rift.damagePerSecond);
             }
             world.spawnParticles(ParticleTypes.REVERSE_PORTAL, rift.pos.x, rift.pos.y + 0.2, rift.pos.z, 10, 0.4, 0.2, 0.4, 0.02);
         }

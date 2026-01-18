@@ -7,9 +7,11 @@ Passives and abilities are gated by energy. For progression rules, see `docs/PRO
 - Craftable items that add modifiers to gem abilities/passives.
 - Augments require a player head and unique ingredients.
 - Gems have up to 4 augment slots (default), with 3 rarity tiers (default).
+- Augments are stored on the gem item itself, so two copies of the same gem can have different augments.
 - Rarity affects strength/roll ranges; conflicts prevent incompatible combos.
 - Slot counts, rarity tiers, roll weights, and magnitudes are configurable.
-- Apply a gem augment by right-clicking while the augment is in your hand.
+- Apply a gem augment by right-clicking while the augment is in your hand and the gem is in your other hand.
+- Use the augment screen (default U) while holding a gem to view or remove augments on that specific item.
 - Each augment rolls a rarity on craft; the rolled rarity scales its strength.
 
 ## Gems
@@ -113,7 +115,7 @@ Passives:
 Abilities:
 - Nullify: remove active effects from enemies in a radius.
 - Frailer: apply Weakness to a target.
-- Bounty Hunting: consume an item to track its owner temporarily.
+- Bounty Hunting: consume an item to track its owner temporarily (falls back to the previous owner if you're the last owner; works with offline targets using last-known data).
 - Chad Strength: every Nth hit deals bonus damage.
 
 ### Wealth Gem
@@ -159,7 +161,7 @@ Abilities:
 - Summon slots share a global cooldown.
 
 Summoner UI:
-- Open the loadout editor with Gems Modifier + the hotbar key after Recall (default Alt + 7).
+- Open the loadout editor with Gems Modifier + the hotbar key after the last ability slot (default Alt + 7) while using Summoner.
 
 Summoned/controlled AI priority (Summoner, Astra Soul Release, Hypno Staff):
 - Summoner only: Commander's Mark target overrides all other priorities.
@@ -225,15 +227,15 @@ Passives:
 - Quick Hands: minor Haste.
 
 Abilities:
-- Mimic Form: after a recent mob kill, gain invisibility + bonus health + speed.
-- Echo: replay the last observed ability in front of you.
-- Steal: after enough observation, steal an ability; the victim only recovers it if you swap gems or they kill you.
+- Mimic Form: after a recent mob kill, gain invisibility + bonus health/attack + speed scaled to that mob.
+- Echo: replay an observed ability; consumes 1 observation.
+- Steal: after observing 4 times, steal an ability; consumes 4 observations. The victim only recovers it if you swap gems or they kill you (recovery does not require them to re-select it).
 - Smoke Bomb: blind/slow nearby enemies and briefly cloak you.
 - Stolen Cast: cast a stolen ability; sneak to cycle.
 - Skinshift: steal a targeted player's appearance and name (including chat display) for a short time; the target cannot chat while the effect is active.
 
 Observed menu:
-- Tracks observed abilities and counts; choose which observed ability Echo/Steal will use.
+- Tracks observed abilities and counts; choose which observed ability Echo/Steal will use. Observations do not expire but are cleared on death.
 
 ### Beacon Gem
 
@@ -317,7 +319,7 @@ Abilities:
 - Net Shot: fire a net that slows and grounds enemies (disables flight/elytra).
 - Crippling Shot: ranged attack that reduces target's movement speed by 50% for 8s.
 - Pack Tactics: nearby trusted allies deal 20% more damage to your marked target for 10s.
-- Origin Tracking: track the original owner of an item (who first crafted or found it).
+- Origin Tracking: track the original owner of an item (who first crafted or found it); works on offline targets using last-known data.
 - Six-Pack Pain: summon 6 player clones that share a health pool (120 HP total) for 10s. They attack untrusted players and hostile mobs. When hit, you get regeneration + a random buff, and the attacker gets debuffed.
 
 ### Sentinel Gem

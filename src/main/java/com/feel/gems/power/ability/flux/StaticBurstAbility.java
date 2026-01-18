@@ -68,7 +68,7 @@ public final class StaticBurstAbility implements GemAbility {
             if (other instanceof ServerPlayerEntity otherPlayer && !VoidImmunity.canBeTargeted(player, otherPlayer)) {
                 continue;
             }
-            other.damage(world, player.getDamageSources().magic(), damage);
+            other.damage(world, player.getDamageSources().indirectMagic(player, player), damage);
             AbilityFeedback.burstAt(world, other.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ELECTRIC_SPARK, 14, 0.35D);
             hits++;
         }

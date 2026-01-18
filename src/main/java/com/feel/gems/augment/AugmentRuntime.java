@@ -5,7 +5,9 @@ import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.legendary.LegendaryItem;
+import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.item.GemItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,8 @@ public final class AugmentRuntime {
     private static final String KEY_AUGMENT_ID = "id";
     private static final String KEY_AUGMENT_RARITY = "rarity";
     private static final String KEY_AUGMENT_MAG = "mag";
+    private static final String KEY_ACTIVE_GEM_AUGMENTS = "activeGemAugments";
+    private static final String KEY_ACTIVE_GEM_ID = "activeGemAugmentsId";
 
     private static final Identifier MOD_LEGENDARY_DAMAGE = Identifier.of("gems", "legendary_damage");
     private static final Identifier MOD_LEGENDARY_ATTACK_SPEED = Identifier.of("gems", "legendary_attack_speed");
@@ -78,8 +82,8 @@ public final class AugmentRuntime {
         return new AugmentInstance(augmentId, rarity, mag);
     }
 
-    public static boolean applyGemAugment(ServerPlayerEntity player, GemId gemId, AugmentInstance instance) {
-        if (gemId == null) {
+    public static boolean applyGemAugment(ServerPlayerEntity player, ItemStack target, AugmentInstance instance) {
+        if (target == null || !(target.getItem() instanceof GemItem gemItem)) {
             return false;
         }
         AugmentDefinition def = AugmentRegistry.get(instance.augmentId());
@@ -87,7 +91,7 @@ public final class AugmentRuntime {
             return false;
         }
 
-        List<AugmentInstance> current = getGemAugments(player, gemId);
+        List<AugmentInstance> current = getGemAugments(target);
         int maxSlots = GemsBalance.v().augments().gemMaxSlots();
         if (current.size() >= maxSlots) {
             player.sendMessage(Text.translatable("gems.augment.no_slots").formatted(Formatting.RED), true);
@@ -99,7 +103,11 @@ public final class AugmentRuntime {
         }
 
         current.add(instance);
-        saveGemAugments(player, gemId, current);
+        saveGemAugments(target, current);
+        if (GemPlayerState.getActiveGem(player) == gemItem.gemId()) {
+            captureActiveGemAugments(player, gemItem.gemId(), target);
+            com.feel.gems.net.GemCooldownSync.send(player);
+        }
         player.sendMessage(Text.translatable("gems.augment.applied_gem").formatted(Formatting.GREEN), true);
         return true;
     }
@@ -124,13 +132,14 @@ public final class AugmentRuntime {
         }
         current.add(instance);
         saveLegendaryAugments(target, current);
+        applyLegendaryModifiers(player);
         player.sendMessage(Text.translatable("gems.augment.applied_legendary").formatted(Formatting.GOLD), true);
         return true;
     }
 
     public static float cooldownMultiplier(ServerPlayerEntity player, GemId gemId) {
         float reduction = 0.0f;
-        for (AugmentInstance instance : getGemAugments(player, gemId)) {
+        for (AugmentInstance instance : getActiveGemAugments(player, gemId)) {
             AugmentDefinition def = AugmentRegistry.get(instance.augmentId());
             if (def == null) continue;
             for (AugmentModifier mod : def.modifiers()) {
@@ -148,8 +157,11 @@ public final class AugmentRuntime {
         if (gem.isEmpty()) {
             return 0;
         }
+        if (GemPlayerState.getActiveGem(player) != gem.get()) {
+            return 0;
+        }
         int bonus = 0;
-        for (AugmentInstance instance : getGemAugments(player, gem.get())) {
+        for (AugmentInstance instance : getActiveGemAugments(player, gem.get())) {
             AugmentDefinition def = AugmentRegistry.get(instance.augmentId());
             if (def == null) continue;
             for (AugmentModifier mod : def.modifiers()) {
@@ -234,9 +246,23 @@ public final class AugmentRuntime {
         if (conflicts == null || conflicts.isEmpty()) {
             return false;
         }
+        String defId = def.id();
         for (AugmentInstance inst : current) {
-            if (conflicts.contains(inst.augmentId())) {
-                return true;
+            String id = inst.augmentId();
+            if (id == null) {
+                continue;
+            }
+            for (String conflict : conflicts) {
+                if (conflict == null) {
+                    continue;
+                }
+                // Allow stacking the same augment/inscription type.
+                if (conflict.equals(defId) && id.equals(defId)) {
+                    continue;
+                }
+                if (conflict.equals(id)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -259,49 +285,102 @@ public final class AugmentRuntime {
         return ((GemsPersistentDataHolder) player).gems$getPersistentData();
     }
 
-    public static List<AugmentInstance> getGemAugments(ServerPlayerEntity player, GemId gemId) {
-        NbtCompound root = persistentRoot(player);
-        NbtCompound gemData = root.getCompound(KEY_GEM_AUGMENTS).orElse(new NbtCompound());
-        String key = gemId.name().toLowerCase();
-        NbtList list = gemData.getList(key).orElse(new NbtList());
+    public static List<AugmentInstance> getGemAugments(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return new ArrayList<>();
+        }
+        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (custom == null) {
+            return new ArrayList<>();
+        }
+        NbtCompound nbt = custom.copyNbt();
+        NbtList list = nbt.getList(KEY_GEM_AUGMENTS).orElse(new NbtList());
         return readList(list);
     }
 
-    public static boolean removeGemAugment(ServerPlayerEntity player, GemId gemId, int index) {
-        if (player == null || gemId == null) {
+    public static boolean removeGemAugment(ItemStack stack, int index) {
+        if (stack == null || stack.isEmpty()) {
             return false;
         }
-        List<AugmentInstance> current = getGemAugments(player, gemId);
+        List<AugmentInstance> current = getGemAugments(stack);
         if (index < 0 || index >= current.size()) {
             return false;
         }
         current.remove(index);
-        saveGemAugments(player, gemId, current);
+        saveGemAugments(stack, current);
         return true;
     }
 
-    public static void clearGemAugments(ServerPlayerEntity player, GemId gemId) {
-        if (player == null || gemId == null) {
+    public static void clearGemAugments(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
             return;
         }
-        saveGemAugments(player, gemId, List.of());
+        saveGemAugments(stack, List.of());
     }
 
-    private static void saveGemAugments(ServerPlayerEntity player, GemId gemId, List<AugmentInstance> list) {
+    private static void saveGemAugments(ItemStack stack, List<AugmentInstance> list) {
+        NbtComponent.set(DataComponentTypes.CUSTOM_DATA, stack, nbt -> nbt.put(KEY_GEM_AUGMENTS, writeList(list)));
+    }
+
+    public static void captureActiveGemAugments(ServerPlayerEntity player, GemId gemId, ItemStack stack) {
+        if (player == null || gemId == null || stack == null || stack.isEmpty()) {
+            return;
+        }
         NbtCompound root = persistentRoot(player);
-        NbtCompound gemData = root.getCompound(KEY_GEM_AUGMENTS).orElse(new NbtCompound());
-        gemData.put(gemId.name().toLowerCase(), writeList(list));
-        root.put(KEY_GEM_AUGMENTS, gemData);
+        root.putString(KEY_ACTIVE_GEM_ID, gemId.name());
+        root.put(KEY_ACTIVE_GEM_AUGMENTS, writeList(getGemAugments(stack)));
+    }
+
+    public static void clearActiveGemAugments(ServerPlayerEntity player) {
+        if (player == null) {
+            return;
+        }
+        NbtCompound root = persistentRoot(player);
+        root.remove(KEY_ACTIVE_GEM_ID);
+        root.remove(KEY_ACTIVE_GEM_AUGMENTS);
+    }
+
+    private static List<AugmentInstance> getActiveGemAugments(ServerPlayerEntity player, GemId gemId) {
+        if (player == null || gemId == null) {
+            return List.of();
+        }
+        NbtCompound root = persistentRoot(player);
+        String active = root.getString(KEY_ACTIVE_GEM_ID, "");
+        if (!gemId.name().equals(active)) {
+            return List.of();
+        }
+        NbtList list = root.getList(KEY_ACTIVE_GEM_AUGMENTS).orElse(new NbtList());
+        return readList(list);
     }
 
     public static List<AugmentInstance> getLegendaryAugments(ItemStack stack) {
         NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (custom == null) {
-            return List.of();
+            return new ArrayList<>();
         }
         NbtCompound nbt = custom.copyNbt();
         NbtList list = nbt.getList(KEY_LEGENDARY_AUGMENTS).orElse(new NbtList());
         return readList(list);
+    }
+
+    public static boolean removeLegendaryAugment(ItemStack stack, int index) {
+        if (stack == null || stack.isEmpty()) {
+            return false;
+        }
+        List<AugmentInstance> current = getLegendaryAugments(stack);
+        if (index < 0 || index >= current.size()) {
+            return false;
+        }
+        current.remove(index);
+        saveLegendaryAugments(stack, current);
+        return true;
+    }
+
+    public static void clearLegendaryAugments(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+        saveLegendaryAugments(stack, List.of());
     }
 
     private static void saveLegendaryAugments(ItemStack stack, List<AugmentInstance> list) {

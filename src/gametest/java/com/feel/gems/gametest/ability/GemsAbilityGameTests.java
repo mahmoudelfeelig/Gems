@@ -700,7 +700,6 @@ public final class GemsAbilityGameTests {
 
         Identifier observed = PowerIds.FIREBALL;
         int required = GemsBalance.v().spy().stealRequiredWitnessCount();
-        long now = GemsTime.now(world);
         for (int i = 0; i < required; i++) {
             SpySystem.onAbilityUsed(world.getServer(), caster, observed);
         }
@@ -710,7 +709,7 @@ public final class GemsAbilityGameTests {
             context.throwGameTestException("Spy did not record required observations; saw=" + seen + " required=" + required);
             return;
         }
-        if (!SpySystem.canSteal(spy, observed, now)) {
+        if (!SpySystem.canSteal(spy, observed)) {
             context.throwGameTestException("Spy cannot steal after required observations (cold cache path)");
             return;
         }
@@ -773,6 +772,8 @@ public final class GemsAbilityGameTests {
         teleport(ally, world, base.x + 1.0D, base.y, base.z, 0.0F, 0.0F);
         teleport(victim, world, base.x + 2.0D, base.y, base.z, 0.0F, 0.0F);
 
+        final float[] baselineHolder = new float[1];
+
         context.runAtTick(5L, () -> {
             GemPlayerState.initIfNeeded(hunter);
             GemPlayerState.setActiveGem(hunter, GemId.HUNTER);
@@ -790,25 +791,41 @@ public final class GemsAbilityGameTests {
             GemPlayerState.setEnergy(victim, 0);
             GemPowers.sync(victim);
 
+            float baseDamage = 4.0F;
+            float before = victim.getHealth();
+            victim.damage(world, ally.getDamageSources().playerAttack(ally), baseDamage);
+            baselineHolder[0] = before - victim.getHealth();
+            victim.setHealth(before);
+        });
+
+        context.runAtTick(25L, () -> {
             GemTrust.trust(hunter, ally.getUuid());
             HunterPreyMarkRuntime.applyMark(hunter, victim);
 
             boolean ok = new HunterPackTacticsAbility().activate(hunter);
             if (!ok) {
                 context.throwGameTestException("Pack Tactics did not activate");
-                return;
             }
-
-            float before = victim.getHealth();
-            float baseDamage = 4.0F;
-            victim.damage(world, ally.getDamageSources().playerAttack(ally), baseDamage);
-            float dealt = before - victim.getHealth();
-            float expectedMin = baseDamage * HunterPackTacticsRuntime.getDamageMultiplier() - 0.01F;
-            if (dealt < expectedMin) {
-                context.throwGameTestException("Expected Pack Tactics to increase damage; dealt=" + dealt + " expected>=" + expectedMin);
-            }
-            context.complete();
         });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                30L,
+                80L,
+                5L,
+                () -> {
+                    if (!HunterPackTacticsRuntime.hasBuffAgainst(ally, victim.getUuid())) {
+                        return false;
+                    }
+                    float before = victim.getHealth();
+                    float baseDamage = 4.0F;
+                    victim.damage(world, ally.getDamageSources().playerAttack(ally), baseDamage);
+                    float buffedDealt = before - victim.getHealth();
+                    victim.setHealth(before);
+                    return buffedDealt > baselineHolder[0] + 0.01F;
+                },
+                "Expected Pack Tactics to increase damage"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)

@@ -6,6 +6,7 @@ import com.feel.gems.item.legendary.HunterSightBowItem;
 import com.feel.gems.item.legendary.GladiatorsMarkItem;
 import com.feel.gems.item.legendary.ReversalMirrorItem;
 import com.feel.gems.item.legendary.SoulShackleItem;
+import com.feel.gems.item.legendary.ThirdStrikeBladeItem;
 import com.feel.gems.power.ability.bonus.BonusBerserkerRageAbility;
 import com.feel.gems.power.ability.bonus.BonusIronMaidenAbility;
 import com.feel.gems.power.ability.bonus.BonusMarkOfDeathAbility;
@@ -136,6 +137,12 @@ public abstract class LivingEntityDamageScalingMixin {
             HunterSightBowItem.recordHit(playerAttacker, self);
         }
         if (attacker instanceof ServerPlayerEntity playerAttacker) {
+            if (!source.isIn(DamageTypeTags.IS_PROJECTILE)) {
+                float thirdStrikeBonus = ThirdStrikeBladeItem.consumeQueuedBonus(playerAttacker);
+                if (thirdStrikeBonus > 0.0F) {
+                    scaled += thirdStrikeBonus;
+                }
+            }
             // Duelist's Rapier: consume guaranteed crit on the next melee hit (avoid extra hit + invulnerability issues).
             if (playerAttacker.getMainHandStack().isOf(com.feel.gems.item.ModItems.DUELISTS_RAPIER)
                     && !source.isIn(DamageTypeTags.IS_PROJECTILE)

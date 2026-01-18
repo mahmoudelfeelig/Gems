@@ -2,6 +2,7 @@ package com.feel.gems.mixin;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.item.ModItems;
+import com.feel.gems.item.legendary.ThirdStrikeBladeItem;
 import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.util.GemsTime;
 import net.minecraft.entity.Entity;
@@ -20,9 +21,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityLegendaryCritMixin {
-    private static final String KEY_THIRD_STRIKE_COUNT = "legendaryThirdStrikeCount";
-    private static final String KEY_THIRD_STRIKE_LAST = "legendaryThirdStrikeLast";
-
     @Inject(method = "attack", at = @At("HEAD"))
     private void gems$legendaryCriticals(Entity target, CallbackInfo ci) {
         PlayerEntity self = (PlayerEntity) (Object) this;
@@ -38,23 +36,7 @@ public abstract class PlayerEntityLegendaryCritMixin {
         }
 
         if (attacker.getMainHandStack().isOf(ModItems.THIRD_STRIKE_BLADE)) {
-            long now = GemsTime.now(attacker);
-            var data = ((com.feel.gems.state.GemsPersistentDataHolder) attacker).gems$getPersistentData();
-            long last = data.getLong(KEY_THIRD_STRIKE_LAST, 0L);
-            int window = GemsBalance.v().legendary().thirdStrikeWindowTicks();
-            int count = data.getInt(KEY_THIRD_STRIKE_COUNT, 0);
-            if (window > 0 && now - last > window) {
-                count = 0;
-            }
-            count += 1;
-            data.putInt(KEY_THIRD_STRIKE_COUNT, count);
-            data.putLong(KEY_THIRD_STRIKE_LAST, now);
-            if (count % 3 == 0 && living.isAlive()) {
-                float bonus = GemsBalance.v().legendary().thirdStrikeBonusDamage();
-                if (bonus > 0.0F) {
-                    living.damage(attacker.getEntityWorld(), attacker.getDamageSources().playerAttack(attacker), bonus);
-                }
-            }
+            ThirdStrikeBladeItem.recordCriticalHit(attacker);
         }
 
         if (attacker.getMainHandStack().isOf(ModItems.VAMPIRIC_EDGE)) {

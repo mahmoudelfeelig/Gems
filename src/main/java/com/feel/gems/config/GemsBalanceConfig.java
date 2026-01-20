@@ -253,6 +253,7 @@ public final class GemsBalanceConfig {
         public int lifeSwapCooldownSeconds = 45;
         public int lifeSwapRangeBlocks = 24;
         public float lifeSwapMinHearts = 3.0F;
+        public int lifeSwapReswapSeconds = 15;
 
         public int lifeCircleCooldownSeconds = 60;
         public int lifeCircleDurationSeconds = 12;
@@ -260,7 +261,7 @@ public final class GemsBalanceConfig {
         public double lifeCircleMaxHealthDelta = 8.0D;
 
         public int heartLockCooldownSeconds = 45;
-        public int heartLockDurationSeconds = 6;
+        public int heartLockDurationSeconds = 4;
         public int heartLockRangeBlocks = 20;
     }
 
@@ -382,7 +383,7 @@ public final class GemsBalanceConfig {
         public int richRushCooldownSeconds = 9 * 60;
         public int richRushDurationSeconds = 3 * 60;
 
-        public int pocketsRows = 1;
+        public int pocketsRows = 3;
     }
 
     public static final class Terror {
@@ -1528,6 +1529,69 @@ public final class GemsBalanceConfig {
          * Whether to show synergy trigger notifications in chat/action bar.
          */
         public boolean showNotifications = true;
+
+        /**
+         * Per-synergy overrides (window/cooldown/enable). Leave empty to use defaults.
+         */
+        public java.util.List<SynergyEntry> entries = defaultSynergyEntries();
+
+        public static final class SynergyEntry {
+            public String id = "";
+            public boolean enabled = true;
+            public int windowSeconds = 0;
+            public int cooldownSeconds = 0;
+
+            public SynergyEntry() {
+            }
+
+            public SynergyEntry(String id, boolean enabled, int windowSeconds, int cooldownSeconds) {
+                this.id = id;
+                this.enabled = enabled;
+                this.windowSeconds = windowSeconds;
+                this.cooldownSeconds = cooldownSeconds;
+            }
+        }
+
+        public static java.util.List<SynergyEntry> defaultSynergyEntries() {
+            java.util.List<SynergyEntry> list = new java.util.ArrayList<>();
+            list.add(new SynergyEntry("alpha_swarm", true, 3, 45));
+            list.add(new SynergyEntry("blood_convergence", true, 3, 60));
+            list.add(new SynergyEntry("bulwark_riposte", true, 3, 45));
+            list.add(new SynergyEntry("celestial_stride", true, 3, 45));
+            list.add(new SynergyEntry("cyclone", true, 3, 30));
+            list.add(new SynergyEntry("ember_chain", true, 3, 45));
+            list.add(new SynergyEntry("ghostline", true, 3, 45));
+            list.add(new SynergyEntry("gravity_weave", true, 3, 45));
+            list.add(new SynergyEntry("guardians_challenge", true, 3, 30));
+            list.add(new SynergyEntry("harvest_tide", true, 3, 60));
+            list.add(new SynergyEntry("ion_burst", true, 3, 45));
+            list.add(new SynergyEntry("iron_chorus", true, 3, 60));
+            list.add(new SynergyEntry("judgment_field", true, 3, 60));
+            list.add(new SynergyEntry("mirror_heist", true, 3, 45));
+            list.add(new SynergyEntry("overclock", true, 3, 60));
+            list.add(new SynergyEntry("pack_alpha", true, 3, 30));
+            list.add(new SynergyEntry("phantom_strike", true, 3, 30));
+            list.add(new SynergyEntry("plasma_lance", true, 3, 45));
+            list.add(new SynergyEntry("plunder", true, 3, 30));
+            list.add(new SynergyEntry("predator_lunge", true, 3, 45));
+            list.add(new SynergyEntry("radiant_restoration", true, 3, 30));
+            list.add(new SynergyEntry("reality_warp", true, 3, 30));
+            list.add(new SynergyEntry("reaping_snare", true, 3, 45));
+            list.add(new SynergyEntry("sanctuary_pulse", true, 3, 60));
+            list.add(new SynergyEntry("shadow_barrage", true, 3, 45));
+            list.add(new SynergyEntry("shadow_relay", true, 3, 45));
+            list.add(new SynergyEntry("siegebreak", true, 3, 45));
+            list.add(new SynergyEntry("singularity_ignition", true, 3, 60));
+            list.add(new SynergyEntry("sonic_uppercut", true, 3, 45));
+            list.add(new SynergyEntry("soul_exchange", true, 3, 30));
+            list.add(new SynergyEntry("stellar_cataclysm", true, 3, 60));
+            list.add(new SynergyEntry("stormbreaker", true, 3, 45));
+            list.add(new SynergyEntry("thunderstorm", true, 3, 30));
+            list.add(new SynergyEntry("vacuum_reversal", true, 3, 45));
+            list.add(new SynergyEntry("warcry", true, 3, 30));
+            list.add(new SynergyEntry("warp_drive", true, 3, 30));
+            return list;
+        }
     }
 
     /**

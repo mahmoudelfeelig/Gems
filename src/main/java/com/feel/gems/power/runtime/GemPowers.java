@@ -59,7 +59,8 @@ public final class GemPowers {
             if (!raw.isEmpty()) {
                 ArrayList<Identifier> filtered = new ArrayList<>(raw.size());
                 for (Identifier id : raw) {
-                    if (!GemsDisables.isPassiveDisabledFor(player, id)) {
+                    if (!GemsDisables.isPassiveDisabledFor(player, id)
+                            && !com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
                         filtered.add(id);
                     }
                 }
@@ -139,7 +140,8 @@ public final class GemPowers {
             if (!claimed.isEmpty()) {
                 java.util.HashSet<Identifier> filtered = new java.util.HashSet<>();
                 for (Identifier id : claimed) {
-                    if (!GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                    if (!GemsDisables.isBonusPassiveDisabledFor(player, id)
+                            && !com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
                         filtered.add(id);
                     }
                 }
@@ -201,8 +203,9 @@ public final class GemPowers {
         // Filter out disabled passives
         Set<Identifier> targetPrismPassives = new HashSet<>();
         for (Identifier id : selectedPassives) {
-            if (!GemsDisables.isPassiveDisabledFor(player, id) && 
-                !GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+            if (!GemsDisables.isPassiveDisabledFor(player, id)
+                && !GemsDisables.isBonusPassiveDisabledFor(player, id)
+                && !com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
                 targetPrismPassives.add(id);
             }
         }
@@ -343,6 +346,9 @@ public final class GemPowers {
         if (AbilityRestrictions.isSuppressed(player)) {
             return false;
         }
+        if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, passiveId)) {
+            return false;
+        }
         GemId activeGem = GemPlayerState.getActiveGem(player);
         
         // Prism gem uses selected passives
@@ -468,6 +474,9 @@ public final class GemPowers {
             for (Identifier id : selectedPassives) {
                 if (!GemsDisables.isPassiveDisabledFor(player, id) && 
                     !GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                    if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
+                        continue;
+                    }
                     result.add(id);
                 }
             }
@@ -475,6 +484,9 @@ public final class GemPowers {
                 BonusClaimsState claims = BonusClaimsState.get(server);
                 for (Identifier id : claims.getPlayerPassives(player.getUuid())) {
                     if (!GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                        if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
+                            continue;
+                        }
                         result.add(id);
                     }
                 }
@@ -494,6 +506,9 @@ public final class GemPowers {
         ArrayList<Identifier> result = new ArrayList<>(allPassives.size());
         for (Identifier id : allPassives) {
             if (!GemsDisables.isPassiveDisabledFor(player, id)) {
+                if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
+                    continue;
+                }
                 result.add(id);
             }
         }
@@ -502,6 +517,9 @@ public final class GemPowers {
             if (server != null) {
                 for (Identifier id : BonusClaimsState.get(server).getPlayerPassives(player.getUuid())) {
                     if (!GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                        if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
+                            continue;
+                        }
                         result.add(id);
                     }
                 }

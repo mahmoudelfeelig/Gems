@@ -46,6 +46,7 @@ public final class GemsPayloads {
         PayloadTypeRegistry.playS2C().register(CooldownSnapshotPayload.ID, CooldownSnapshotPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(AbilityCooldownPayload.ID, AbilityCooldownPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ExtraStatePayload.ID, ExtraStatePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(StolenStatePayload.ID, StolenStatePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(AbilityOrderSyncPayload.ID, AbilityOrderSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(HudLayoutPayload.ID, HudLayoutPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(SummonerLoadoutScreenPayload.ID, SummonerLoadoutScreenPayload.CODEC);

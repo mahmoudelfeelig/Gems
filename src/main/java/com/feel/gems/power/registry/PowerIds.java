@@ -46,6 +46,7 @@ public final class PowerIds {
     public static final Identifier AUTO_ENCHANT_LOOTING = id("auto_enchant_looting");
     public static final Identifier LUCK = id("luck");
     public static final Identifier HERO_OF_THE_VILLAGE = id("hero_of_the_village");
+    public static final Identifier WEALTH_CURED_PRICES = id("wealth_cured_prices");
     public static final Identifier DURABILITY_CHIP = id("durability_chip");
     public static final Identifier ARMOR_MEND_ON_HIT = id("armor_mend_on_hit");
     public static final Identifier DOUBLE_DEBRIS = id("double_debris");

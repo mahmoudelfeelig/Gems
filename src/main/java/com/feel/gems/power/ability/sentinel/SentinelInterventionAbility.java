@@ -31,7 +31,7 @@ public final class SentinelInterventionAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Instantly teleport to a trusted ally and absorb the next hit they would take.";
+        return "Instantly teleport to a mutually trusted ally and absorb the next hit they would take.";
     }
 
     @Override
@@ -52,6 +52,7 @@ public final class SentinelInterventionAbility implements GemAbility {
         for (Entity e : world.getOtherEntities(player, box, ent -> ent instanceof ServerPlayerEntity)) {
             ServerPlayerEntity ally = (ServerPlayerEntity) e;
             if (!GemTrust.isTrusted(player, ally)) continue;
+            if (!GemTrust.isTrusted(ally, player)) continue;
             if (VoidImmunity.shouldBlockEffect(player, ally)) continue;
 
             double dist = ally.squaredDistanceTo(player);

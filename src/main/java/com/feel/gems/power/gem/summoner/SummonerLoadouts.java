@@ -17,7 +17,7 @@ import net.minecraft.util.Identifier;
 
 
 /**
- * Per-player Summoner loadouts. Server-authoritative, persisted in the player’s
+ * Per-player Summoner loadouts. Server-authoritative, persisted in the player's
  * Gems persistent NBT and sanitized against the current balance config.
  */
 public final class SummonerLoadouts {

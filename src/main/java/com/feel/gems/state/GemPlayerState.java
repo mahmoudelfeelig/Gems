@@ -6,6 +6,7 @@
     import com.feel.gems.config.GemsBalance;
     import com.feel.gems.assassin.AssassinState;
     import com.feel.gems.core.GemId;
+    import com.feel.gems.net.GemStateSync;
     import java.util.EnumSet;
     import net.minecraft.entity.attribute.EntityAttributeInstance;
     import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -173,10 +174,19 @@
         }
 
         public static int setEnergy(PlayerEntity player, int energy) {
+            int prev = getEnergy(player);
             int clamped = clamp(energy, MIN_ENERGY, getMaxEnergy(player));
             root(player).putInt(KEY_ENERGY, clamped);
             if (player instanceof ServerPlayerEntity sp) {
                 com.feel.gems.power.runtime.GemPowers.sync(sp);
+                if (GemsBalance.v().loadouts().enabled()) {
+                    int unlock = GemsBalance.v().loadouts().unlockEnergy();
+                    boolean crossed = (prev >= unlock && clamped < unlock)
+                            || (prev < unlock && clamped >= unlock);
+                    if (crossed) {
+                        GemStateSync.send(sp);
+                    }
+                }
             }
             return clamped;
         }

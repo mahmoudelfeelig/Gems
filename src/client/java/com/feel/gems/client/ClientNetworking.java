@@ -27,6 +27,7 @@ import com.feel.gems.net.PrismSelectionScreenPayload;
 import com.feel.gems.net.SpyObservedScreenPayload;
 import com.feel.gems.net.ServerDisablesPayload;
 import com.feel.gems.net.StateSyncPayload;
+import com.feel.gems.net.StolenStatePayload;
 import com.feel.gems.net.SummonerLoadoutScreenPayload;
 import com.feel.gems.net.LoadoutScreenPayload;
 import com.feel.gems.net.HudLayoutPayload;
@@ -62,6 +63,7 @@ public final class ClientNetworking {
             ClientBonusState.reset();
             ClientShadowCloneState.reset();
             ClientTricksterState.reset();
+            ClientStolenState.reset();
             ClientRivalryState.clear();
         }));
 
@@ -101,6 +103,12 @@ public final class ClientNetworking {
                         payload.fluxChargePercent(),
                         payload.hasSoul(),
                         payload.soulTypeId()
+                )));
+
+        ClientPlayNetworking.registerGlobalReceiver(StolenStatePayload.ID, (payload, context) ->
+                context.client().execute(() -> ClientStolenState.update(
+                        payload.stolenPassives(),
+                        payload.stolenAbilities()
                 )));
 
         ClientPlayNetworking.registerGlobalReceiver(AbilityOrderSyncPayload.ID, (payload, context) ->

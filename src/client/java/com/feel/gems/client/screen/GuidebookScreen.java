@@ -236,7 +236,7 @@ public final class GuidebookScreen extends GemsScreenBase {
                 continue;
             }
             if (trimmed.startsWith("- ")) {
-                line = "• " + trimmed.substring(2);
+                line = "- " + trimmed.substring(2);
             }
             line = LINK_PATTERN.matcher(line).replaceAll("$1");
             body.add(parseInline(line));

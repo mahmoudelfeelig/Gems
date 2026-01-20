@@ -106,6 +106,11 @@ public final class GemsStats {
         }
     }
 
+    public static int deaths(ServerPlayerEntity player) {
+        NbtCompound stats = statsRoot(player);
+        return stats.getInt(KEY_DEATHS, 0);
+    }
+
     public static void reset(ServerPlayerEntity player) {
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         root.remove(KEY_STATS);

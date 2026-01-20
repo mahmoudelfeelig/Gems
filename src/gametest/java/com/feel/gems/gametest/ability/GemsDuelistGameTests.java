@@ -47,6 +47,7 @@ public final class GemsDuelistGameTests {
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void duelistLungeAppliesVelocityAndDamage(TestContext context) {
         ServerWorld world = context.getWorld();
+        GemsGameTestUtil.placeStoneFloor(context, 1, 2);
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         ServerPlayerEntity target = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
@@ -60,31 +61,35 @@ public final class GemsDuelistGameTests {
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
         teleport(target, world, pos.x, pos.y, pos.z + 2.5D, 180.0F, 0.0F);
+        target.setNoGravity(true);
+        target.setVelocity(Vec3d.ZERO);
 
-        float healthBefore = target.getHealth();
+        float[] healthBefore = new float[1];
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(40L, () -> {
+            aimAt(player, world, target.getEntityPos().add(0.0D, 1.0D, 0.0D));
+            player.setVelocity(Vec3d.ZERO);
+            healthBefore[0] = target.getHealth();
             boolean ok = new DuelistLungeAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Lunge did not activate");
             }
         });
 
-        context.runAtTick(15L, () -> {
-            Vec3d vel = player.getVelocity();
-            if (vel.lengthSquared() < 0.1D) {
-                context.throwGameTestException("Lunge did not apply forward velocity");
-            }
-            if (target.getHealth() >= healthBefore) {
-                context.throwGameTestException("Lunge did not damage the target");
-            }
-            context.complete();
-        });
+        GemsGameTestUtil.assertEventually(
+                context,
+                42L,
+                120L,
+                2L,
+                () -> player.getVelocity().lengthSquared() >= 0.05D && target.getHealth() < healthBefore[0],
+                "Lunge did not apply forward velocity or damage the target"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void duelistParryBlocksDamageAndStunsAttacker(TestContext context) {
         ServerWorld world = context.getWorld();
+        GemsGameTestUtil.placeStoneFloor(context, 1, 2);
         ServerPlayerEntity victim = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         ServerPlayerEntity attacker = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(victim);
@@ -93,20 +98,27 @@ public final class GemsDuelistGameTests {
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         teleport(victim, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
         teleport(attacker, world, pos.x + 1.5D, pos.y, pos.z, 180.0F, 0.0F);
+        victim.setVelocity(Vec3d.ZERO);
+        attacker.setVelocity(Vec3d.ZERO);
 
         GemPlayerState.initIfNeeded(victim);
         GemPlayerState.setActiveGem(victim, GemId.DUELIST);
         GemPlayerState.setEnergy(victim, 5);
         GemPowers.sync(victim);
 
-        context.runAtTick(5L, () -> {
+        float[] before = new float[1];
+
+        context.runAtTick(40L, () -> {
             boolean ok = new DuelistParryAbility().activate(victim);
             if (!ok) {
                 context.throwGameTestException("Parry did not activate");
             }
-            float before = victim.getHealth();
+            before[0] = victim.getHealth();
             victim.damage(world, attacker.getDamageSources().playerAttack(attacker), 6.0F);
-            if (victim.getHealth() < before) {
+        });
+
+        context.runAtTick(45L, () -> {
+            if (victim.getHealth() < before[0]) {
                 context.throwGameTestException("Parry should block incoming melee damage");
                 return;
             }

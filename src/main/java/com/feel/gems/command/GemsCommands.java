@@ -88,10 +88,8 @@ public final class GemsCommands {
                         .then(CommandManager.literal("status")
                                 .executes(ctx -> status(ctx.getSource(), ctx.getSource().getPlayerOrThrow())))
                         .then(CommandManager.literal("assassin")
-                                .then(CommandManager.literal("stay")
-                                        .executes(ctx -> assassinStay(ctx.getSource())))
-                                .then(CommandManager.literal("leave")
-                                        .executes(ctx -> assassinLeave(ctx.getSource()))))
+                            .then(CommandManager.literal("leave")
+                                .executes(ctx -> assassinLeave(ctx.getSource()))))
                         .then(CommandManager.literal("reloadBalance")
                                 .requires(src -> src.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(2))))
                                 .executes(ctx -> reloadBalance(ctx.getSource())))
@@ -613,31 +611,6 @@ public final class GemsCommands {
         return updated > 0 ? 1 : 0;
     }
 
-    private static int assassinStay(ServerCommandSource source) {
-        ServerPlayerEntity player;
-        try {
-            player = source.getPlayerOrThrow();
-        } catch (CommandSyntaxException e) {
-            source.sendError(Text.literal("Only players can use this command."));
-            return 0;
-        }
-        AssassinState.initIfNeeded(player);
-        if (!AssassinState.isChoiceUnlocked(player)) {
-            source.sendError(Text.translatable("gems.assassin.choice_locked", AssassinState.choicePointsRequired()));
-            return 0;
-        }
-        if (AssassinState.isAssassin(player)) {
-            source.sendFeedback(() -> Text.translatable("gems.assassin.choice_already_assassin"), false);
-            return 1;
-        }
-        AssassinState.setAssassin(player, true);
-        GemPlayerState.initIfNeeded(player);
-        resync(player);
-        AssassinTeams.sync(source.getServer(), player);
-        source.sendFeedback(() -> Text.translatable("gems.assassin.choice_set_assassin"), false);
-        return 1;
-    }
-
     private static int assassinLeave(ServerCommandSource source) {
         ServerPlayerEntity player;
         try {
@@ -656,6 +629,9 @@ public final class GemsCommands {
             return 1;
         }
         AssassinState.setAssassin(player, false);
+        AssassinState.resetAssassinPoints(player);
+        GemPlayerState.setMaxHearts(player, GemPlayerState.DEFAULT_MAX_HEARTS);
+        player.setHealth(20.0f); // 10 hearts
         if (player.isSpectator()) {
             player.changeGameMode(GameMode.SURVIVAL);
         }

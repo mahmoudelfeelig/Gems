@@ -6,6 +6,7 @@ import com.feel.gems.augment.AugmentRegistry;
 import com.feel.gems.augment.AugmentRuntime;
 import com.feel.gems.augment.AugmentTarget;
 import com.feel.gems.legendary.LegendaryItem;
+import com.feel.gems.util.GemsTooltipFormat;
 import java.util.function.Consumer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -86,8 +87,7 @@ public final class AugmentItem extends Item {
         AugmentInstance instance = AugmentRuntime.getInstance(stack);
         AugmentDefinition def = AugmentRegistry.get(augmentId);
         if (def != null) {
-            tooltip.accept(Text.translatable(def.nameKey()).formatted(Formatting.GOLD));
-            tooltip.accept(Text.translatable(def.descriptionKey()).formatted(Formatting.GRAY));
+            GemsTooltipFormat.appendDescription(tooltip, Text.translatable(def.descriptionKey()));
         }
         if (instance != null) {
             tooltip.accept(Text.translatable("gems.augment.rarity", instance.rarity().name()).formatted(Formatting.DARK_GRAY));

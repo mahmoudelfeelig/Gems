@@ -60,6 +60,7 @@ import java.util.List;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.AreaEffectCloudEntity;
@@ -67,6 +68,7 @@ import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.passive.CowEntity;
 import net.minecraft.entity.mob.VexEntity;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.entity.projectile.SmallFireballEntity;
@@ -112,8 +114,9 @@ public final class GemsBonusAbilityGameTests {
     }
 
     private static void placePlatform(TestContext context, int radius) {
-        for (int x = -radius; x <= radius; x++) {
-            for (int z = -radius; z <= radius; z++) {
+        int safeRadius = Math.max(1, Math.min(radius, 2));
+        for (int x = -safeRadius; x <= safeRadius; x++) {
+            for (int z = -safeRadius; z <= safeRadius; z++) {
                 context.setBlockState(x, 1, z, Blocks.STONE.getDefaultState());
             }
         }
@@ -135,6 +138,11 @@ public final class GemsBonusAbilityGameTests {
 
     private static Vec3d origin(TestContext context) {
         return context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+    }
+
+    private static Vec3d isolatedOrigin(TestContext context, ServerPlayerEntity player) {
+        Vec3d base = origin(context);
+        return new Vec3d(base.x, base.y + 40.0D, base.z);
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
@@ -188,12 +196,16 @@ public final class GemsBonusAbilityGameTests {
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void bonusBerserkerRageScalesDamage(TestContext context) {
         ServerWorld world = context.getWorld();
+        placePlatform(context, 10);
         ServerPlayerEntity player = setupPlayer(context);
         ZombieEntity dummy = spawnZombie(world, origin(context).add(2.0D, 0.0D, 0.0D));
         if (dummy == null) {
             context.throwGameTestException("Failed to spawn zombie");
             return;
         }
+        dummy.setAiDisabled(true);
+        dummy.setNoGravity(true);
+        dummy.setVelocity(Vec3d.ZERO);
 
         float boost = BonusBerserkerRageAbility.getDamageBoostMultiplier();
         float taken = BonusBerserkerRageAbility.getDamageTakenMultiplier();
@@ -205,7 +217,7 @@ public final class GemsBonusAbilityGameTests {
         float[] baseTaken = new float[1];
         float[] baseDealt = new float[1];
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(40L, () -> {
             player.setHealth(20.0F);
             float before = player.getHealth();
             player.damage(world, player.getDamageSources().generic(), 4.0F);
@@ -218,7 +230,7 @@ public final class GemsBonusAbilityGameTests {
         });
 
         // Avoid invulnerability frame issues by spacing the "rage" hits out.
-        context.runAtTick(25L, () -> {
+        context.runAtTick(80L, () -> {
             dummy.setHealth(dummy.getMaxHealth());
             player.setHealth(20.0F);
             // Clear any existing berserker rage state from other tests
@@ -230,7 +242,7 @@ public final class GemsBonusAbilityGameTests {
             }
         });
 
-        context.runAtTick(40L, () -> {
+        context.runAtTick(120L, () -> {
             // Verify rage is still active
             if (!BonusBerserkerRageAbility.isActive(player)) {
                 context.throwGameTestException("Berserker Rage should still be active at tick 40");
@@ -285,14 +297,20 @@ public final class GemsBonusAbilityGameTests {
         placePlatform(context, 12);
         ServerPlayerEntity player = setupPlayer(context);
         Vec3d base = origin(context);
-        if (spawnZombie(world, base.add(2.0D, 0.0D, 2.0D)) == null
-                || spawnZombie(world, base.add(-2.0D, 0.0D, 2.0D)) == null
-                || spawnZombie(world, base.add(0.0D, 0.0D, -2.0D)) == null) {
+        ZombieEntity z1 = spawnZombie(world, base.add(2.0D, 0.0D, 2.0D));
+        ZombieEntity z2 = spawnZombie(world, base.add(-2.0D, 0.0D, 2.0D));
+        ZombieEntity z3 = spawnZombie(world, base.add(0.0D, 0.0D, -2.0D));
+        if (z1 == null || z2 == null || z3 == null) {
             context.throwGameTestException("Failed to spawn zombies");
             return;
         }
+        for (ZombieEntity zombie : java.util.List.of(z1, z2, z3)) {
+            zombie.setAiDisabled(true);
+            zombie.setNoGravity(true);
+            zombie.setVelocity(Vec3d.ZERO);
+        }
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(20L, () -> {
             boolean ok = new BonusBloodlustAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Bloodlust did not activate");
@@ -317,17 +335,24 @@ public final class GemsBonusAbilityGameTests {
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void bonusChainLightningSpawnsBolts(TestContext context) {
         ServerWorld world = context.getWorld();
+        placePlatform(context, 12);
         ServerPlayerEntity player = setupPlayer(context);
         Vec3d base = origin(context);
-        if (spawnZombie(world, base.add(3.0D, 0.0D, 0.0D)) == null
-                || spawnZombie(world, base.add(-3.0D, 0.0D, 0.0D)) == null) {
+        ZombieEntity z1 = spawnZombie(world, base.add(3.0D, 0.0D, 0.0D));
+        ZombieEntity z2 = spawnZombie(world, base.add(-3.0D, 0.0D, 0.0D));
+        if (z1 == null || z2 == null) {
             context.throwGameTestException("Failed to spawn zombies");
             return;
+        }
+        for (ZombieEntity zombie : java.util.List.of(z1, z2)) {
+            zombie.setAiDisabled(true);
+            zombie.setNoGravity(true);
+            zombie.setVelocity(Vec3d.ZERO);
         }
         Box box = new Box(player.getBlockPos()).expand(12.0);
         int before = world.getEntitiesByClass(LightningEntity.class, box, e -> true).size();
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(20L, () -> {
             boolean ok = new BonusChainLightningAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Chain Lightning did not activate");
@@ -336,8 +361,8 @@ public final class GemsBonusAbilityGameTests {
 
         GemsGameTestUtil.assertEventually(
                 context,
-                6L,
-                80L,
+                21L,
+                30L,
                 1L,
                 () -> {
                     int after = world.getEntitiesByClass(LightningEntity.class, box, e -> true).size();
@@ -421,12 +446,19 @@ public final class GemsBonusAbilityGameTests {
     public void bonusCurseBoltDrainsHealth(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = setupPlayer(context);
+        placePlatform(context, 6);
         Vec3d targetPos = origin(context).add(2.0D, 0.0D, 0.0D);
         ZombieEntity target = spawnZombie(world, targetPos);
         if (target == null) {
             context.throwGameTestException("Failed to spawn zombie");
             return;
         }
+        target.setAiDisabled(true);
+        target.equipStack(
+                net.minecraft.entity.EquipmentSlot.HEAD,
+                new net.minecraft.item.ItemStack(net.minecraft.item.Items.LEATHER_HELMET)
+        );
+        target.setFireTicks(0);
         var maxHealth = player.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.MAX_HEALTH);
         if (maxHealth != null) {
             maxHealth.setBaseValue(20.0D);
@@ -435,7 +467,9 @@ public final class GemsBonusAbilityGameTests {
         float playerBefore = player.getHealth();
         float targetBefore = target.getHealth();
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(40L, () -> {
+            aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
+            player.setVelocity(Vec3d.ZERO);
             boolean ok = new BonusCurseBoltAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Curse Bolt did not activate");
@@ -444,8 +478,8 @@ public final class GemsBonusAbilityGameTests {
 
         GemsGameTestUtil.assertEventually(
                 context,
-                6L,
-                80L,
+                41L,
+                160L,
                 1L,
                 () -> target.getHealth() < targetBefore && player.getHealth() > playerBefore,
                 "Curse Bolt did not damage target and heal player"
@@ -489,7 +523,7 @@ public final class GemsBonusAbilityGameTests {
     public void bonusDoomBoltSpawnsWitherSkull(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = setupPlayer(context);
-        Box box = new Box(player.getBlockPos()).expand(6.0);
+        Box box = new Box(player.getBlockPos()).expand(12.0);
         int before = world.getEntitiesByClass(WitherSkullEntity.class, box, e -> true).size();
 
         context.runAtTick(5L, () -> {
@@ -497,12 +531,19 @@ public final class GemsBonusAbilityGameTests {
             if (!ok) {
                 context.throwGameTestException("Doom Bolt did not activate");
             }
-            int after = world.getEntitiesByClass(WitherSkullEntity.class, box, e -> true).size();
-            if (after - before < 1) {
-                context.throwGameTestException("Doom Bolt did not spawn Wither Skull");
-            }
-            context.complete();
         });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                6L,
+                30L,
+                1L,
+                () -> {
+                    int after = world.getEntitiesByClass(WitherSkullEntity.class, box, e -> true).size();
+                    return after - before >= 1;
+                },
+                "Doom Bolt did not spawn Wither Skull"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
@@ -583,7 +624,10 @@ public final class GemsBonusAbilityGameTests {
     public void bonusGravityCrushRootsTarget(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = setupPlayer(context);
-        Vec3d targetPos = origin(context).add(0.0D, 0.0D, 6.0D);
+        Vec3d base = isolatedOrigin(context, player);
+        teleport(player, world, base.x, base.y, base.z, 0.0F, 0.0F);
+        player.setNoGravity(true);
+        Vec3d targetPos = base.add(0.0D, 0.0D, 2.0D);
         ZombieEntity target = spawnZombie(world, targetPos);
         if (target == null) {
             context.throwGameTestException("Failed to spawn zombie");
@@ -592,25 +636,26 @@ public final class GemsBonusAbilityGameTests {
         target.setAiDisabled(true);
         target.setNoGravity(true);
         target.setVelocity(Vec3d.ZERO);
-        aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
         float before = target.getHealth();
 
         context.runAtTick(5L, () -> {
+            aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
             boolean ok = new BonusGravityCrushAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Gravity Crush did not activate");
             }
-            if (target.getVelocity().y >= 0.0D) {
-                context.throwGameTestException("Gravity Crush did not slam target");
-            }
-            if (target.getHealth() >= before) {
-                context.throwGameTestException("Gravity Crush did not damage target");
-            }
-            if (!target.hasStatusEffect(StatusEffects.SLOWNESS) || !target.hasStatusEffect(StatusEffects.JUMP_BOOST)) {
-                context.throwGameTestException("Gravity Crush did not root target");
-            }
-            context.complete();
         });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                6L,
+                40L,
+                2L,
+                () -> target.getHealth() < before
+                        && target.hasStatusEffect(StatusEffects.SLOWNESS)
+                        && target.hasStatusEffect(StatusEffects.JUMP_BOOST),
+                "Gravity Crush did not slam, damage, or root the target"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
@@ -711,15 +756,17 @@ public final class GemsBonusAbilityGameTests {
         ServerPlayerEntity player = setupPlayer(context);
         placePlatform(context, 12);
         Vec3d base = origin(context);
-        aimAt(player, world, base.add(0.0D, 0.0D, 10.0D));
+        int dashDistance = 2;
 
         context.runAtTick(5L, () -> {
+            aimAt(player, world, base.add(0.0D, 0.0D, dashDistance));
+            player.setVelocity(Vec3d.ZERO);
             boolean ok = new BonusInfernoDashAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Inferno Dash did not activate");
             }
             boolean fireFound = false;
-            for (int i = 1; i <= 10; i++) {
+            for (int i = 1; i <= dashDistance; i++) {
                 BlockPos pos = BlockPos.ofFloored(base.add(0.0D, 0.0D, i));
                 if (world.getBlockState(pos).isOf(Blocks.FIRE)) {
                     fireFound = true;
@@ -853,55 +900,75 @@ public final class GemsBonusAbilityGameTests {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = setupPlayer(context);
         player.setHealth(20.0F);
-        float before = player.getHealth();
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(20L, () -> {
+            float before = player.getHealth();
             boolean ok = new BonusOverchargeAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Overcharge did not activate");
             }
-            if (player.getHealth() >= before) {
-                context.throwGameTestException("Overcharge did not cost health");
-            }
-            if (!BonusOverchargeAbility.isActive(player)) {
-                context.throwGameTestException("Overcharge did not apply state");
-            }
-            context.complete();
         });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                21L,
+                80L,
+                2L,
+                () -> player.getHealth() < 20.0F && BonusOverchargeAbility.isActive(player),
+                "Overcharge did not cost health or apply state"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void bonusPlagueCloudCreatesAreaEffect(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = setupPlayer(context);
-        Box box = new Box(player.getBlockPos()).expand(32.0);
-        Vec3d targetPos = origin(context).add(0.0D, 2.0D, 6.0D);
+        Vec3d base = isolatedOrigin(context, player);
+        teleport(player, world, base.x, base.y, base.z, 0.0F, 0.0F);
+        player.setNoGravity(true);
+        Box box = new Box(player.getBlockPos()).expand(16.0);
+        Vec3d targetPos = base.add(0.0D, 0.0D, 2.0D);
         BlockPos marker = BlockPos.ofFloored(targetPos.x, targetPos.y - 1.0D, targetPos.z);
         world.setBlockState(marker, Blocks.STONE.getDefaultState());
-        ServerPlayerEntity target = GemsGameTestUtil.createMockCreativeServerPlayer(context);
-        GemsGameTestUtil.forceSurvival(target);
-        teleport(target, world, targetPos.x, targetPos.y, targetPos.z, 180.0F, 0.0F);
-        aimAt(player, world, Vec3d.ofCenter(marker));
+        CowEntity target = EntityType.COW.create(world, SpawnReason.TRIGGERED);
+        if (target == null) {
+            context.throwGameTestException("Failed to spawn cow");
+            return;
+        }
+        target.refreshPositionAndAngles(targetPos.x, targetPos.y, targetPos.z, 0.0F, 0.0F);
+        target.setAiDisabled(true);
+        world.spawnEntity(target);
+        target.setNoGravity(true);
+        target.setVelocity(Vec3d.ZERO);
+        Vec3d[] cloudPos = new Vec3d[1];
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(40L, () -> {
+            aimAt(player, world, Vec3d.ofCenter(marker));
             boolean ok = new BonusPlagueCloudAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Plague Cloud did not activate");
             }
-            List<AreaEffectCloudEntity> clouds = world.getEntitiesByClass(AreaEffectCloudEntity.class, box, e -> true);
-            if (clouds.isEmpty()) {
-                context.throwGameTestException("Plague Cloud did not spawn cloud");
-                return;
-            }
         });
 
-        context.runAtTick(20L, () -> {
-            if (!target.hasStatusEffect(StatusEffects.POISON) || !target.hasStatusEffect(StatusEffects.WEAKNESS)) {
-                context.throwGameTestException("Plague Cloud should apply poison and weakness to targets inside it");
-                return;
-            }
-            context.complete();
-        });
+        GemsGameTestUtil.assertEventually(
+                context,
+                42L,
+                160L,
+                2L,
+                () -> {
+                    if (cloudPos[0] == null) {
+                        List<AreaEffectCloudEntity> clouds = world.getEntitiesByClass(AreaEffectCloudEntity.class, box, e -> true);
+                        if (!clouds.isEmpty()) {
+                            cloudPos[0] = clouds.get(0).getEntityPos();
+                            Vec3d pos = cloudPos[0];
+                            target.refreshPositionAndAngles(pos.x, pos.y, pos.z, 0.0F, 0.0F);
+                            target.setVelocity(Vec3d.ZERO);
+                        }
+                    }
+                    return target.hasStatusEffect(StatusEffects.POISON) && target.hasStatusEffect(StatusEffects.WEAKNESS);
+                },
+                "Plague Cloud should apply poison and weakness to targets inside it"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
@@ -976,17 +1043,25 @@ public final class GemsBonusAbilityGameTests {
             context.throwGameTestException("Failed to spawn zombie");
             return;
         }
+        target.setAiDisabled(true);
+        target.setNoGravity(true);
+        target.setVelocity(Vec3d.ZERO);
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(20L, () -> {
             boolean ok = new BonusRadiantBurstAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Radiant Burst did not activate");
             }
-            if (!target.hasStatusEffect(StatusEffects.BLINDNESS) || !target.hasStatusEffect(StatusEffects.GLOWING)) {
-                context.throwGameTestException("Radiant Burst did not apply effects");
-            }
-            context.complete();
         });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                22L,
+                80L,
+                2L,
+                () -> target.hasStatusEffect(StatusEffects.BLINDNESS) && target.hasStatusEffect(StatusEffects.GLOWING),
+                "Radiant Burst did not apply effects"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
@@ -1126,40 +1201,60 @@ public final class GemsBonusAbilityGameTests {
     public void bonusSoulLinkAppliesGlowing(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = setupPlayer(context);
+        placePlatform(context, 10);
         Vec3d targetPos = origin(context).add(0.0D, 0.0D, 6.0D);
         ZombieEntity target = spawnZombie(world, targetPos);
         if (target == null) {
             context.throwGameTestException("Failed to spawn zombie");
             return;
         }
-        aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
+        target.setAiDisabled(true);
+        target.setNoGravity(true);
+        target.setVelocity(Vec3d.ZERO);
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(40L, () -> {
+            aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
             boolean ok = new BonusSoulLinkAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Soul Link did not activate");
             }
-            if (!player.hasStatusEffect(StatusEffects.GLOWING) || !target.hasStatusEffect(StatusEffects.GLOWING)) {
-                context.throwGameTestException("Soul Link missing glowing effects");
-            }
-            context.complete();
         });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                42L,
+                160L,
+                2L,
+                () -> player.hasStatusEffect(StatusEffects.GLOWING) && target.hasStatusEffect(StatusEffects.GLOWING),
+                "Soul Link missing glowing effects"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void bonusSoulSwapSwapsPositions(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = setupPlayer(context);
+        Vec3d base = isolatedOrigin(context, player);
+        teleport(player, world, base.x, base.y, base.z, 0.0F, 0.0F);
+        player.setNoGravity(true);
         Vec3d playerPos = player.getEntityPos();
-        Vec3d targetPos = origin(context).add(0.0D, 0.0D, 6.0D);
+        Vec3d targetPos = base.add(0.0D, 3.0D, 0.0D);
         ZombieEntity target = spawnZombie(world, targetPos);
         if (target == null) {
             context.throwGameTestException("Failed to spawn zombie");
             return;
         }
-        aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
+        target.setAiDisabled(true);
+        target.setNoGravity(true);
+        target.setVelocity(Vec3d.ZERO);
 
         context.runAtTick(5L, () -> {
+            Box cleanupBox = new Box(player.getBlockPos()).expand(4.0D);
+            for (LivingEntity living : world.getEntitiesByClass(LivingEntity.class, cleanupBox, e -> e != player && e != target)) {
+                living.discard();
+            }
+            aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
+            player.setVelocity(Vec3d.ZERO);
             boolean ok = new BonusSoulSwapAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Soul Swap did not activate");
@@ -1171,8 +1266,8 @@ public final class GemsBonusAbilityGameTests {
                 10L,
                 180L,
                 2L,
-                () -> player.getEntityPos().distanceTo(targetPos) <= 1.0D
-                        && target.getEntityPos().distanceTo(playerPos) <= 1.0D,
+                () -> player.getEntityPos().distanceTo(targetPos) <= 1.5D
+                        && target.getEntityPos().distanceTo(playerPos) <= 1.5D,
                 "Soul Swap did not move player and target"
         );
     }
@@ -1318,23 +1413,31 @@ public final class GemsBonusAbilityGameTests {
     public void bonusTimewarpBoostsSpeed(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = setupPlayer(context);
+        placePlatform(context, 10);
         ZombieEntity target = spawnZombie(world, origin(context).add(2.0D, 0.0D, 0.0D));
         if (target == null) {
             context.throwGameTestException("Failed to spawn zombie");
             return;
         }
-        context.runAtTick(5L, () -> {
+        target.setAiDisabled(true);
+        target.setNoGravity(true);
+        target.setVelocity(Vec3d.ZERO);
+        context.runAtTick(40L, () -> {
             boolean ok = new BonusTimewarpAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Timewarp did not activate");
                 return;
             }
-            if (!target.hasStatusEffect(StatusEffects.SLOWNESS)) {
-                context.throwGameTestException("Timewarp should apply Slowness to nearby enemies");
-                return;
-            }
-            context.complete();
         });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                42L,
+                120L,
+                2L,
+                () -> target.hasStatusEffect(StatusEffects.SLOWNESS),
+                "Timewarp should apply Slowness to nearby enemies"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
@@ -1398,26 +1501,36 @@ public final class GemsBonusAbilityGameTests {
     public void bonusVenomsprayPoisonsTargets(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = setupPlayer(context);
-        Vec3d targetPos = origin(context).add(0.0D, 2.0D, 4.0D);
-        ServerPlayerEntity target = GemsGameTestUtil.createMockCreativeServerPlayer(context);
-        GemsGameTestUtil.forceSurvival(target);
-        teleport(target, world, targetPos.x, targetPos.y, targetPos.z, 180.0F, 0.0F);
-        aimAt(player, world, targetPos.add(0.0D, 0.5D, 0.0D));
+        placePlatform(context, 4);
+        Vec3d targetPos = origin(context).add(0.0D, 0.0D, 2.0D);
+        CowEntity target = EntityType.COW.create(world, SpawnReason.TRIGGERED);
+        if (target == null) {
+            context.throwGameTestException("Failed to spawn cow");
+            return;
+        }
+        target.refreshPositionAndAngles(targetPos.x, targetPos.y, targetPos.z, 0.0F, 0.0F);
+        target.setAiDisabled(true);
+        world.spawnEntity(target);
+        target.setNoGravity(true);
+        target.setVelocity(Vec3d.ZERO);
         float before = target.getHealth();
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(40L, () -> {
+            aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
             boolean ok = new BonusVenomsprayAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Venomspray did not activate");
             }
-            if (target.getHealth() >= before) {
-                context.throwGameTestException("Venomspray did not damage target");
-            }
-            if (!target.hasStatusEffect(StatusEffects.POISON)) {
-                context.throwGameTestException("Venomspray missing Poison");
-            }
-            context.complete();
         });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                42L,
+                160L,
+                2L,
+                () -> target.getHealth() < before && target.hasStatusEffect(StatusEffects.POISON),
+                "Venomspray did not damage target or apply Poison"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)

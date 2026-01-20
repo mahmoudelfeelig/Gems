@@ -59,12 +59,15 @@ public final class GemItem extends Item {
 
         if (ownerUuid != null && !ownedByPlayer) {
             ServerPlayerEntity owner = server.getPlayerManager().getPlayer(ownerUuid);
-            if (owner != null && owner.isAlive()) {
+            if (owner != null) {
                 GemPlayerState.initIfNeeded(owner);
                 if (GemPlayerState.getActiveGem(owner) == gemId) {
-                    GemOwnership.applyOwnerPenalty(owner);
+                    if (owner.isAlive()) {
+                        GemOwnership.applyOwnerPenalty(owner);
+                    }
                     player.sendMessage(Text.translatable("gems.item.gem.not_owned"), true);
-                    return ActionResult.FAIL;
+                    player.setStackInHand(hand, ItemStack.EMPTY);
+                    return ActionResult.SUCCESS.withNewHandStack(ItemStack.EMPTY);
                 }
             }
         }

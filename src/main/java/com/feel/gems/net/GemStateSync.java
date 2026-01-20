@@ -42,6 +42,7 @@ public final class GemStateSync {
         sendHudLayoutSync(player);
         GemCooldownSync.send(player);
         GemExtraStateSync.send(player);
+        StolenStateSync.send(player);
         sendBonusAbilitiesSync(player);
         
         // Send Prism abilities if the player has the Prism gem

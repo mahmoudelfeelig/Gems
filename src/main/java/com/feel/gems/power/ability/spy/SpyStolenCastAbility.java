@@ -42,7 +42,7 @@ public final class SpyStolenCastAbility implements GemAbility {
             return ok;
         }
 
-        Identifier id = SpySystem.selectedStolenAbility(player);
+        Identifier id = SpySystem.selectedStolenCastAbility(player);
         if (id == null) {
             player.sendMessage(Text.translatable("gems.ability.spy.stolen_cast.no_stolen"), true);
             return false;

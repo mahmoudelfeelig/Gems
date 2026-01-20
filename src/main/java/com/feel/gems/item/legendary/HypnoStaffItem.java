@@ -7,6 +7,7 @@ import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.power.util.Targeting;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.GemsNbt;
+import com.feel.gems.util.GemsTooltipFormat;
 import java.util.UUID;
 import java.util.function.Consumer;
 import net.minecraft.component.type.TooltipDisplayComponent;
@@ -116,7 +117,7 @@ public final class HypnoStaffItem extends Item implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.translatable("item.gems.hypno_staff.desc"));
+        GemsTooltipFormat.appendDescription(tooltip, Text.translatable("item.gems.hypno_staff.desc"));
     }
 
     private static void resetProgress(ServerPlayerEntity player) {

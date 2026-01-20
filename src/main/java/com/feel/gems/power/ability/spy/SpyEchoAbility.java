@@ -34,7 +34,7 @@ public final class SpyEchoAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        Identifier selected = SpySystem.selectedObservedAbility(player);
+        Identifier selected = SpySystem.selectedEchoAbility(player);
         Identifier last = selected != null ? selected : SpySystem.lastSeenAbility(player);
         if (last == null) {
             player.sendMessage(Text.translatable("gems.ability.spy.echo.no_observed"), true);

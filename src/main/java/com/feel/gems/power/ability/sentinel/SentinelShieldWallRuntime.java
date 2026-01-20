@@ -13,10 +13,13 @@ import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Identifier;
 import java.util.*;
 
 public final class SentinelShieldWallRuntime {
@@ -28,15 +31,33 @@ public final class SentinelShieldWallRuntime {
     private SentinelShieldWallRuntime() {}
 
     public static void createWall(ServerPlayerEntity owner, ServerWorld world, BlockPos basePos, Direction perpendicular, int width, int height, long endTime) {
+        WallData existing = ACTIVE_WALLS.remove(owner.getUuid());
+        if (existing != null) {
+            ServerWorld restoreWorld = world;
+            if (!existing.worldId.equals(world.getRegistryKey().getValue().toString())) {
+                var server = world.getServer();
+                Identifier id = Identifier.tryParse(existing.worldId);
+                if (server != null && id != null) {
+                    restoreWorld = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, id));
+                }
+            }
+            if (restoreWorld != null) {
+                restoreBlocks(restoreWorld, existing);
+            }
+        }
+
         Set<BlockPos> wallPositions = new HashSet<>();
         Map<BlockPos, BlockState> replaced = new HashMap<>();
         for (int w = -width / 2; w <= width / 2; w++) {
             for (int h = 0; h < height; h++) {
                 BlockPos pos = basePos.offset(perpendicular, w).up(h);
                 wallPositions.add(pos);
-                BlockState existing = world.getBlockState(pos);
-                if (existing.isAir() || existing.isReplaceable()) {
-                    replaced.put(pos, existing);
+                BlockState atPos = world.getBlockState(pos);
+                if (atPos.isOf(Blocks.BARRIER)) {
+                    replaced.put(pos, Blocks.AIR.getDefaultState());
+                    world.setBlockState(pos, Blocks.BARRIER.getDefaultState());
+                } else if (atPos.isAir() || atPos.isReplaceable()) {
+                    replaced.put(pos, atPos);
                     world.setBlockState(pos, Blocks.BARRIER.getDefaultState());
                 }
             }

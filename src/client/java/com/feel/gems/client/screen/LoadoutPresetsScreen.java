@@ -334,7 +334,7 @@ public final class LoadoutPresetsScreen extends GemsScreenBase {
     }
 
     private LoadoutScreenPayload.Preset getActivePreset() {
-        if (payload.presets().isEmpty()) {
+        if (payload.presets().isEmpty() || payload.activeIndex() < 0) {
             return null;
         }
         int idx = Math.max(0, Math.min(payload.activeIndex(), payload.presets().size() - 1));

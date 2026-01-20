@@ -9,10 +9,17 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 /**
- * Server -> Client payload containing observed Spy abilities and counts.
+ * Server -> Client payload containing observed Spy abilities, stolen abilities, and selections.
  */
-public record SpyObservedScreenPayload(List<ObservedEntry> observed, Identifier selectedId) implements CustomPayload {
+public record SpyObservedScreenPayload(
+        List<ObservedEntry> observed,
+        List<StolenEntry> stolen,
+        Identifier selectedEchoId,
+        Identifier selectedStealId,
+        Identifier selectedStolenCastId
+) implements CustomPayload {
     public record ObservedEntry(Identifier id, String name, int count, boolean canEcho, boolean canSteal) {}
+    public record StolenEntry(Identifier id, String name) {}
 
     public static final Id<SpyObservedScreenPayload> ID =
             new Id<>(Identifier.of(GemsMod.MOD_ID, "spy_observed_screen"));
@@ -36,12 +43,14 @@ public record SpyObservedScreenPayload(List<ObservedEntry> observed, Identifier 
             buf.writeBoolean(entry.canEcho());
             buf.writeBoolean(entry.canSteal());
         }
-        if (payload.selectedId != null) {
-            buf.writeBoolean(true);
-            buf.writeIdentifier(payload.selectedId);
-        } else {
-            buf.writeBoolean(false);
+        buf.writeVarInt(payload.stolen.size());
+        for (StolenEntry entry : payload.stolen) {
+            buf.writeIdentifier(entry.id());
+            buf.writeString(entry.name());
         }
+        writeOptional(buf, payload.selectedEchoId);
+        writeOptional(buf, payload.selectedStealId);
+        writeOptional(buf, payload.selectedStolenCastId);
     }
 
     private static SpyObservedScreenPayload read(RegistryByteBuf buf) {
@@ -55,10 +64,32 @@ public record SpyObservedScreenPayload(List<ObservedEntry> observed, Identifier 
             boolean canSteal = buf.readBoolean();
             observed.add(new ObservedEntry(id, name, witnessed, canEcho, canSteal));
         }
-        Identifier selectedId = null;
-        if (buf.readBoolean()) {
-            selectedId = buf.readIdentifier();
+        int stolenCount = buf.readVarInt();
+        List<StolenEntry> stolen = new ArrayList<>(stolenCount);
+        for (int i = 0; i < stolenCount; i++) {
+            Identifier id = buf.readIdentifier();
+            String name = buf.readString();
+            stolen.add(new StolenEntry(id, name));
         }
-        return new SpyObservedScreenPayload(observed, selectedId);
+        Identifier selectedEchoId = readOptional(buf);
+        Identifier selectedStealId = readOptional(buf);
+        Identifier selectedStolenCastId = readOptional(buf);
+        return new SpyObservedScreenPayload(observed, stolen, selectedEchoId, selectedStealId, selectedStolenCastId);
+    }
+
+    private static void writeOptional(RegistryByteBuf buf, Identifier id) {
+        if (id != null) {
+            buf.writeBoolean(true);
+            buf.writeIdentifier(id);
+        } else {
+            buf.writeBoolean(false);
+        }
+    }
+
+    private static Identifier readOptional(RegistryByteBuf buf) {
+        if (buf.readBoolean()) {
+            return buf.readIdentifier();
+        }
+        return null;
     }
 }

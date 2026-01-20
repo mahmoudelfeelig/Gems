@@ -5,6 +5,7 @@ import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.GemsNbt;
 import com.feel.gems.util.GemsTime;
+import com.feel.gems.util.GemsTooltipFormat;
 import com.feel.gems.power.util.Targeting;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -58,7 +59,7 @@ public final class HunterSightBowItem extends BowItem implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.translatable("item.gems.hunters_sight_bow.desc"));
+        GemsTooltipFormat.appendDescription(tooltip, Text.translatable("item.gems.hunters_sight_bow.desc"));
     }
 
     public static void recordHit(net.minecraft.server.network.ServerPlayerEntity attacker, LivingEntity target) {

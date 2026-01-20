@@ -5,6 +5,7 @@ import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.state.GemsPersistentDataHolder;
+import com.feel.gems.util.GemsTooltipFormat;
 import net.minecraft.entity.player.PlayerEntity;
 import java.util.function.Consumer;
 import net.minecraft.component.type.TooltipDisplayComponent;
@@ -66,7 +67,7 @@ public final class RecallRelicItem extends Item implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.translatable("item.gems.recall_relic.desc"));
+        GemsTooltipFormat.appendDescription(tooltip, Text.translatable("item.gems.recall_relic.desc"));
     }
 
     public static void ensureForceload(ServerPlayerEntity player) {

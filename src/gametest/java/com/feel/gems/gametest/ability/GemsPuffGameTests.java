@@ -34,6 +34,11 @@ public final class GemsPuffGameTests {
         player.teleport(world, x, y, z, EnumSet.noneOf(PositionFlag.class), yaw, pitch, false);
     }
 
+    private static Vec3d isolatedBase(TestContext context) {
+        Vec3d base = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        return new Vec3d(base.x, base.y + 40.0D, base.z);
+    }
+
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void puffDoubleJumpLaunchesPlayer(TestContext context) {
         ServerWorld world = context.getWorld();
@@ -355,23 +360,26 @@ public final class GemsPuffGameTests {
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
 
-        context.setBlockState(0, 1, 0, Blocks.SCULK_SENSOR.getDefaultState());
-        BlockPos pos = BlockPos.ofFloored(context.getAbsolute(new Vec3d(0.0D, 1.0D, 0.0D)));
+        Vec3d base = isolatedBase(context);
+        BlockPos pos = BlockPos.ofFloored(base.x, base.y - 1.0D, base.z);
+        world.setBlockState(pos.down(), Blocks.STONE.getDefaultState());
+        world.setBlockState(pos, Blocks.SCULK_SENSOR.getDefaultState());
         SculkSensorBlockEntity sensor = (SculkSensorBlockEntity) world.getBlockEntity(pos);
         if (sensor == null) {
             context.throwGameTestException("Failed to create sculk sensor block entity");
             return;
         }
 
-        Vec3d playerPos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 2.5D));
+        Vec3d playerPos = base.add(0.0D, 0.0D, 2.0D);
         teleport(player, world, playerPos.x, playerPos.y, playerPos.z, 0.0F, 0.0F);
+        player.setNoGravity(true);
 
         GemPlayerState.initIfNeeded(player);
         GemPlayerState.setActiveGem(player, GemId.PUFF);
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(10L, () -> {
             world.emitGameEvent(GameEvent.STEP, player.getEntityPos(), GameEvent.Emitter.of(player));
         });
         GemsGameTestUtil.assertStaysTrue(

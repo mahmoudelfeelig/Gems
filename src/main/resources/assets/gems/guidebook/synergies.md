@@ -1,45 +1,138 @@
 # Synergies
 
-Synergies trigger when multiple gems (or specific abilities) are cast within a short window (default 3 seconds). This works across **mutually trusted** allies and also for multi-gem players (Prism). Synergy effects are unique bonuses with their own cooldowns (default 30 seconds). A brief HUD message (about 3 seconds) appears on trigger.
+Synergies trigger when multiple gems (or specific abilities) are cast within a short window (default 3 seconds). This works across **mutually trusted** allies and also for multi-gem players (Prism). Each synergy has its own cooldown (configurable in `synergies.entries`).
 
-## Gem-Based Synergies (any ability from each gem)
+## Air Gem
 
-- Thunderstorm (Fire + Flux): Lightning strikes your target location.
-- Soul Exchange (Life + Reaper): Participants swap health percentages.
-- Warp Drive (Speed + Space): Teleport forward with massive speed boost.
-- Warcry (Strength + Terror): Gain strength and resistance; enemies suffer fear effects.
-- Phantom Strike (Spy + Astra): Invisibility with bonus damage and speed.
-- Radiant Restoration (Beacon + Life): Massive healing and regeneration for allies.
-- Cyclone (Air + Puff): Vortex that pulls and launches enemies.
-- Pack Alpha (Summoner + Hunter): Strength boost and night vision for the hunt.
-- Plunder (Pillager + Wealth): Massive luck boost for better drops.
-- Guardian’s Challenge (Duelist + Sentinel): Massive defense; enemies become visible.
-- Reality Warp (Trickster + Chaos): Random effects on all nearby players.
+- Celestial Stride (Gravity Field + Air Dash): Cooldown 45s.
+- Cyclone (Air + Puff): Cooldown 30s.
+- Ion Burst (Flux Discharge + Crosswind): Cooldown 45s.
 
-## Ability-Combo Synergies (specific abilities required)
+## Astra Gem
 
-- Plasma Lance (Fireball + Flux Beam): Piercing plasma corridor with explosions.
-- Stellar Cataclysm (Meteor Shower + Orbital Laser): Fire rain and lightning impact.
-- Gravity Weave (Gravity Field + Slipstream): Allies surge forward; enemies are pulled and slowed.
-- Shadow Relay (Smoke Bomb + Glitch Step): Blink behind a nearby enemy and cripple them.
-- Blood Convergence (Blood Charge + Life Circle): Drain foes and supercharge allies.
-- Singularity Ignition (Fireball + Black Hole): Pull and incinerate enemies.
-- Ion Burst (Flux Discharge + Crosswind): Thunderous shockwave.
-- Sanctuary Pulse (Vitality Vortex + Beacon Regen Aura): Cleanse and massive heal.
-- Reaping Snare (Scythe Sweep + Net Shot): Root and wither.
-- Ghostline (Afterimage + Smoke Bomb): Cloaked assault.
-- Bulwark Riposte (Parry + Shield Wall): Shockwave counter.
-- Alpha Swarm (Summon Slot 1 + Call the Pack): Pack frenzy.
-- Siegebreak (Breach Charge + Warhorn): Blast and debuff.
-- Overclock (Flux Surge + Tempo Shift): Burst cooldowns for allies.
-- Vacuum Reversal (White Hole + Gust): Blast enemies away.
-- Sonic Uppercut (Breezy Bash + Terminal Velocity): Launch and slam.
-- Judgment Field (Orbital Laser + Lockdown): Mark and slow enemies.
-- Ember Chain (Heat Haze + Remote Charge): Burning suppression.
-- Shadow Barrage (Shadow Clone + Astral Daggers): Arcane barrage.
-- Mirror Heist (Skinshift + Mirage): Confuse and vanish.
-- Harvest Tide (Health Drain + Retribution): Drain and shield.
-- Stormbreaker (Flux Beam + Vindicator Break): Armor crack.
-- Celestial Stride (Gravity Field + Air Dash): Warp stride.
-- Iron Chorus (Beacon Resistance Aura + Rally Cry): Team fortification.
-- Predator Lunge (Pounce + Lunge): Predatory strike.
+- Phantom Strike (Spy + Astra): Cooldown 30s.
+- Shadow Barrage (Shadow Clone + Astral Daggers): Cooldown 45s.
+
+## Beacon Gem
+
+- Iron Chorus (Beacon Resistance Aura + Rally Cry): Cooldown 60s.
+- Radiant Restoration (Beacon + Life): Cooldown 30s.
+- Sanctuary Pulse (Vitality Vortex + Beacon Regen Aura): Cooldown 60s.
+
+## Chaos Gem
+
+- Reality Warp (Trickster + Chaos): Cooldown 30s.
+
+## Duelist Gem
+
+- Bulwark Riposte (Parry + Shield Wall): Cooldown 45s.
+- Guardian's Challenge (Duelist + Sentinel): Cooldown 30s.
+- Predator Lunge (Pounce + Lunge): Cooldown 45s.
+
+## Fire Gem
+
+- Ember Chain (Heat Haze + Remote Charge): Cooldown 45s.
+- Plasma Lance (Fireball + Flux Beam): Cooldown 45s.
+- Singularity Ignition (Fireball + Black Hole): Cooldown 60s.
+- Stellar Cataclysm (Meteor Shower + Orbital Laser): Cooldown 60s.
+- Thunderstorm (Fire + Flux): Cooldown 30s.
+
+## Flux Gem
+
+- Ion Burst (Flux Discharge + Crosswind): Cooldown 45s.
+- Overclock (Flux Surge + Tempo Shift): Cooldown 60s.
+- Plasma Lance (Fireball + Flux Beam): Cooldown 45s.
+- Stormbreaker (Flux Beam + Vindicator Break): Cooldown 45s.
+- Thunderstorm (Fire + Flux): Cooldown 30s.
+
+## Hunter Gem
+
+- Alpha Swarm (Summon Slot 1 + Call the Pack): Cooldown 45s.
+- Pack Alpha (Summoner + Hunter): Cooldown 30s.
+- Predator Lunge (Pounce + Lunge): Cooldown 45s.
+- Reaping Snare (Scythe Sweep + Net Shot): Cooldown 45s.
+
+## Life Gem
+
+- Blood Convergence (Blood Charge + Life Circle): Cooldown 60s.
+- Harvest Tide (Health Drain + Retribution): Cooldown 60s.
+- Radiant Restoration (Beacon + Life): Cooldown 30s.
+- Sanctuary Pulse (Vitality Vortex + Beacon Regen Aura): Cooldown 60s.
+- Soul Exchange (Life + Reaper): Cooldown 30s.
+
+## Pillager Gem
+
+- Plunder (Pillager + Wealth): Cooldown 30s.
+- Siegebreak (Breach Charge + Warhorn): Cooldown 45s.
+- Stormbreaker (Flux Beam + Vindicator Break): Cooldown 45s.
+
+## Puff Gem
+
+- Cyclone (Air + Puff): Cooldown 30s.
+- Sonic Uppercut (Breezy Bash + Terminal Velocity): Cooldown 45s.
+- Vacuum Reversal (White Hole + Gust): Cooldown 45s.
+
+## Reaper Gem
+
+- Blood Convergence (Blood Charge + Life Circle): Cooldown 60s.
+- Harvest Tide (Health Drain + Retribution): Cooldown 60s.
+- Reaping Snare (Scythe Sweep + Net Shot): Cooldown 45s.
+- Shadow Barrage (Shadow Clone + Astral Daggers): Cooldown 45s.
+- Soul Exchange (Life + Reaper): Cooldown 30s.
+
+## Sentinel Gem
+
+- Bulwark Riposte (Parry + Shield Wall): Cooldown 45s.
+- Guardian's Challenge (Duelist + Sentinel): Cooldown 30s.
+- Iron Chorus (Beacon Resistance Aura + Rally Cry): Cooldown 60s.
+- Judgment Field (Orbital Laser + Lockdown): Cooldown 60s.
+
+## Space Gem
+
+- Celestial Stride (Gravity Field + Air Dash): Cooldown 45s.
+- Gravity Weave (Gravity Field + Slipstream): Cooldown 45s.
+- Judgment Field (Orbital Laser + Lockdown): Cooldown 60s.
+- Singularity Ignition (Fireball + Black Hole): Cooldown 60s.
+- Stellar Cataclysm (Meteor Shower + Orbital Laser): Cooldown 60s.
+- Vacuum Reversal (White Hole + Gust): Cooldown 45s.
+- Warp Drive (Speed + Space): Cooldown 30s.
+
+## Speed Gem
+
+- Ghostline (Afterimage + Smoke Bomb): Cooldown 45s.
+- Gravity Weave (Gravity Field + Slipstream): Cooldown 45s.
+- Overclock (Flux Surge + Tempo Shift): Cooldown 60s.
+- Sonic Uppercut (Breezy Bash + Terminal Velocity): Cooldown 45s.
+- Warp Drive (Speed + Space): Cooldown 30s.
+
+## Spy Gem
+
+- Ghostline (Afterimage + Smoke Bomb): Cooldown 45s.
+- Mirror Heist (Skinshift + Mirage): Cooldown 45s.
+- Phantom Strike (Spy + Astra): Cooldown 30s.
+- Shadow Relay (Smoke Bomb + Glitch Step): Cooldown 45s.
+
+## Strength Gem
+
+- Warcry (Strength + Terror): Cooldown 30s.
+
+## Summoner Gem
+
+- Alpha Swarm (Summon Slot 1 + Call the Pack): Cooldown 45s.
+- Pack Alpha (Summoner + Hunter): Cooldown 30s.
+
+## Terror Gem
+
+- Ember Chain (Heat Haze + Remote Charge): Cooldown 45s.
+- Siegebreak (Breach Charge + Warhorn): Cooldown 45s.
+- Warcry (Strength + Terror): Cooldown 30s.
+
+## Trickster Gem
+
+- Mirror Heist (Skinshift + Mirage): Cooldown 45s.
+- Reality Warp (Trickster + Chaos): Cooldown 30s.
+- Shadow Relay (Smoke Bomb + Glitch Step): Cooldown 45s.
+
+## Wealth Gem
+
+- Plunder (Pillager + Wealth): Cooldown 30s.

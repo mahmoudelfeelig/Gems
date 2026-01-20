@@ -52,16 +52,20 @@ public final class SpySystem {
     private static final String KEY_DEATHS = "gemsDeathCount";
 
     private static final String KEY_LAST_KILLED_TYPE = "spyLastKilledType";
+    private static final String KEY_LAST_KILLED_MAX_HEALTH = "spyLastKilledMaxHealth";
+    private static final String KEY_LAST_KILLED_ATTACK = "spyLastKilledAttack";
 
     private static final String KEY_LAST_SEEN_ABILITY = "spyLastSeenAbility";
     private static final String KEY_LAST_SEEN_AT = "spyLastSeenAt";
     private static final String KEY_LAST_SEEN_CASTER = "spyLastSeenCaster";
     private static final String KEY_LAST_SEEN_CASTER_ENTITY_ID = "spyLastSeenCasterEntityId";
     private static final String KEY_OBSERVED = "spyObserved";
-    private static final String KEY_OBSERVED_SELECTED = "spyObservedSelected";
+    private static final String KEY_OBSERVED_ECHO_SELECTED = "spyObservedEchoSelected";
+    private static final String KEY_OBSERVED_STEAL_SELECTED = "spyObservedStealSelected";
 
     private static final String KEY_STOLEN = "spyStolen";
     private static final String KEY_STOLEN_SELECTED = "spyStolenSelected";
+    private static final String KEY_STOLEN_CAST_SELECTED = "spyStolenCastSelected";
     private static final String KEY_STOLEN_BY = "spyStolenBy";
 
     private static final String KEY_MIMIC_UNTIL = "spyMimicUntil";
@@ -107,7 +111,8 @@ public final class SpySystem {
         nbt.remove(KEY_LAST_SEEN_CASTER);
         nbt.remove(KEY_LAST_SEEN_CASTER_ENTITY_ID);
         nbt.remove(KEY_OBSERVED);
-        nbt.remove(KEY_OBSERVED_SELECTED);
+        nbt.remove(KEY_OBSERVED_ECHO_SELECTED);
+        nbt.remove(KEY_OBSERVED_STEAL_SELECTED);
     }
 
     public static int deaths(ServerPlayerEntity player) {
@@ -126,6 +131,13 @@ public final class SpySystem {
             return;
         }
         persistent(killer).putString(KEY_LAST_KILLED_TYPE, id.toString());
+        persistent(killer).putFloat(KEY_LAST_KILLED_MAX_HEALTH, killed.getMaxHealth());
+        double attack = 0.0D;
+        EntityAttributeInstance attr = killed.getAttributeInstance(EntityAttributes.ATTACK_DAMAGE);
+        if (attr != null) {
+            attack = attr.getValue();
+        }
+        persistent(killer).putFloat(KEY_LAST_KILLED_ATTACK, (float) Math.max(0.0D, attack));
     }
 
     public static Identifier lastKilledType(ServerPlayerEntity player) {
@@ -291,14 +303,6 @@ public final class SpySystem {
         return list;
     }
 
-    public static Identifier selectedObservedAbility(ServerPlayerEntity player) {
-        String raw = persistent(player).getString(KEY_OBSERVED_SELECTED, "");
-        if (raw.isEmpty()) {
-            return null;
-        }
-        return Identifier.tryParse(raw);
-    }
-
     public static boolean selectObservedAbility(ServerPlayerEntity player, Identifier abilityId) {
         if (abilityId == null) {
             return false;
@@ -307,12 +311,63 @@ public final class SpySystem {
         if (observed == null) {
             return false;
         }
-        boolean canEcho = canEcho(player, abilityId);
-        boolean canSteal = canSteal(player, abilityId);
-        if (!canEcho && !canSteal) {
+        persistent(player).putString(KEY_OBSERVED_ECHO_SELECTED, abilityId.toString());
+        return true;
+    }
+
+    public static Identifier selectedEchoAbility(ServerPlayerEntity player) {
+        Identifier id = Identifier.tryParse(persistent(player).getString(KEY_OBSERVED_ECHO_SELECTED, ""));
+        if (id == null || !canEcho(player, id)) {
+            return null;
+        }
+        return id;
+    }
+
+    public static Identifier selectedStealAbility(ServerPlayerEntity player) {
+        Identifier id = Identifier.tryParse(persistent(player).getString(KEY_OBSERVED_STEAL_SELECTED, ""));
+        if (id == null || !canSteal(player, id) || isAbilityStolen(player, id)) {
+            return null;
+        }
+        return id;
+    }
+
+    public static Identifier selectedStolenCastAbility(ServerPlayerEntity player) {
+        Identifier id = Identifier.tryParse(persistent(player).getString(KEY_STOLEN_CAST_SELECTED, ""));
+        if (id != null && isAbilityStolen(player, id)) {
+            return id;
+        }
+        Identifier fallback = selectedStolenAbility(player);
+        if (fallback != null && isAbilityStolen(player, fallback)) {
+            return fallback;
+        }
+        return null;
+    }
+
+    public static boolean selectEchoAbility(ServerPlayerEntity player, Identifier abilityId) {
+        if (abilityId == null || !canEcho(player, abilityId)) {
             return false;
         }
-        persistent(player).putString(KEY_OBSERVED_SELECTED, abilityId.toString());
+        persistent(player).putString(KEY_OBSERVED_ECHO_SELECTED, abilityId.toString());
+        return true;
+    }
+
+    public static boolean selectStealAbility(ServerPlayerEntity player, Identifier abilityId) {
+        if (abilityId == null || !canSteal(player, abilityId) || isAbilityStolen(player, abilityId)) {
+            return false;
+        }
+        persistent(player).putString(KEY_OBSERVED_STEAL_SELECTED, abilityId.toString());
+        return true;
+    }
+
+    public static boolean selectStolenCastAbility(ServerPlayerEntity player, Identifier abilityId) {
+        if (abilityId == null || !isAbilityStolen(player, abilityId)) {
+            return false;
+        }
+        persistent(player).putString(KEY_STOLEN_CAST_SELECTED, abilityId.toString());
+        int idx = stolenIndex(player, abilityId);
+        if (idx >= 0) {
+            persistent(player).putInt(KEY_STOLEN_SELECTED, idx);
+        }
         return true;
     }
 
@@ -386,6 +441,7 @@ public final class SpySystem {
             return false;
         }
         int remaining = count - amount;
+        int required = GemsBalance.v().spy().stealRequiredWitnessCount();
         if (remaining <= 0) {
             observed.remove(key);
             if (observed.isEmpty()) {
@@ -393,19 +449,25 @@ public final class SpySystem {
             } else {
                 nbt.put(KEY_OBSERVED, observed);
             }
-            if (key.equals(nbt.getString(KEY_OBSERVED_SELECTED, ""))) {
-                nbt.remove(KEY_OBSERVED_SELECTED);
+            if (key.equals(nbt.getString(KEY_OBSERVED_ECHO_SELECTED, ""))) {
+                nbt.remove(KEY_OBSERVED_ECHO_SELECTED);
+            }
+            if (key.equals(nbt.getString(KEY_OBSERVED_STEAL_SELECTED, ""))) {
+                nbt.remove(KEY_OBSERVED_STEAL_SELECTED);
             }
         } else {
             rec.putInt("count", remaining);
             observed.put(key, rec);
             nbt.put(KEY_OBSERVED, observed);
+            if (remaining < required && key.equals(nbt.getString(KEY_OBSERVED_STEAL_SELECTED, ""))) {
+                nbt.remove(KEY_OBSERVED_STEAL_SELECTED);
+            }
         }
         return true;
     }
 
     public static boolean stealLastSeen(ServerPlayerEntity spy) {
-        Identifier abilityId = selectedObservedAbility(spy);
+        Identifier abilityId = selectedStealAbility(spy);
         if (abilityId == null) {
             abilityId = lastSeenAbility(spy);
         }
@@ -417,7 +479,7 @@ public final class SpySystem {
             spy.sendMessage(Text.translatable("gems.message.ability_disabled_server"), true);
             return false;
         }
-        if (!canSteal(spy, abilityId)) {
+        if (!canSteal(spy, abilityId) || isAbilityStolen(spy, abilityId)) {
             spy.sendMessage(Text.translatable("gems.spy.not_enough_observation"), true);
             return false;
         }
@@ -441,6 +503,9 @@ public final class SpySystem {
         nbt.put(KEY_STOLEN, list);
         if (nbt.getInt(KEY_STOLEN_SELECTED, -1) < 0) {
             nbt.putInt(KEY_STOLEN_SELECTED, 0);
+        }
+        if (nbt.getString(KEY_STOLEN_CAST_SELECTED, "").isEmpty()) {
+            nbt.putString(KEY_STOLEN_CAST_SELECTED, raw);
         }
 
         ServerPlayerEntity victim = null;
@@ -470,6 +535,7 @@ public final class SpySystem {
 
         AbilityFeedback.sound(spy, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 0.8F, 1.3F);
         consumeObservedCount(spy, abilityId, GemsBalance.v().spy().stealRequiredWitnessCount());
+        com.feel.gems.net.StolenStateSync.send(spy);
         spy.sendMessage(Text.translatable("gems.spy.stole_ability", raw), true);
         return true;
     }
@@ -488,6 +554,25 @@ public final class SpySystem {
         return Identifier.tryParse(list.getString(idx, ""));
     }
 
+    public static List<Identifier> getStolenAbilities(ServerPlayerEntity player) {
+        if (player == null) {
+            return List.of();
+        }
+        NbtCompound nbt = persistent(player);
+        NbtList list = nbt.getList(KEY_STOLEN).orElse(null);
+        if (list == null || list.isEmpty()) {
+            return List.of();
+        }
+        List<Identifier> out = new ArrayList<>(list.size());
+        for (int i = 0; i < list.size(); i++) {
+            Identifier id = Identifier.tryParse(list.getString(i, ""));
+            if (id != null) {
+                out.add(id);
+            }
+        }
+        return out;
+    }
+
     public static boolean cycleStolen(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
         NbtList list = nbt.getList(KEY_STOLEN).orElse(null);
@@ -501,6 +586,7 @@ public final class SpySystem {
         nbt.putInt(KEY_STOLEN_SELECTED, next);
         Identifier selected = Identifier.tryParse(list.getString(next, ""));
         if (selected != null) {
+            nbt.putString(KEY_STOLEN_CAST_SELECTED, selected.toString());
             player.sendMessage(Text.translatable("gems.spy.selected_stolen", selected.toString()), true);
         }
         return true;
@@ -510,10 +596,13 @@ public final class SpySystem {
         NbtCompound nbt = persistent(player);
         nbt.remove(KEY_STOLEN);
         nbt.remove(KEY_STOLEN_SELECTED);
-        nbt.remove(KEY_OBSERVED_SELECTED);
+        nbt.remove(KEY_STOLEN_CAST_SELECTED);
+        nbt.remove(KEY_OBSERVED_ECHO_SELECTED);
+        nbt.remove(KEY_OBSERVED_STEAL_SELECTED);
         clearMimicForm(player);
         clearSkinshift(player);
         ACTIVE_SPIES.remove(player.getUuid());
+        com.feel.gems.net.StolenStateSync.send(player);
     }
 
     public static void restoreStolenFromThief(ServerPlayerEntity thief) {
@@ -540,6 +629,8 @@ public final class SpySystem {
             removeStolenAbility(victim, abilityId);
             addStolenAbility(killer, abilityId);
         }
+        com.feel.gems.net.StolenStateSync.send(killer);
+        com.feel.gems.net.StolenStateSync.send(victim);
     }
 
     public static void startMimicForm(ServerPlayerEntity player, int durationTicks) {
@@ -553,7 +644,7 @@ public final class SpySystem {
 
         float baseBonusHp = GemsBalance.v().spy().mimicFormBonusMaxHealth();
         float speedMult = GemsBalance.v().spy().mimicFormSpeedMultiplier();
-        MimicBonuses bonuses = mimicBonuses(lastKilled, baseBonusHp);
+        MimicBonuses bonuses = mimicBonuses(player, lastKilled, baseBonusHp);
         float bonusHp = bonuses.bonusHealth();
         float bonusAttack = bonuses.bonusAttack();
 
@@ -820,9 +911,22 @@ public final class SpySystem {
         }
     }
 
-    private static MimicBonuses mimicBonuses(Identifier entityId, float baseBonusHp) {
+    private static MimicBonuses mimicBonuses(ServerPlayerEntity player, Identifier entityId, float baseBonusHp) {
         if (entityId == null) {
             return new MimicBonuses(Math.max(0.0F, baseBonusHp), 0.0F);
+        }
+        float recordedHealth = persistent(player).getFloat(KEY_LAST_KILLED_MAX_HEALTH, 0.0F);
+        float recordedAttack = persistent(player).getFloat(KEY_LAST_KILLED_ATTACK, 0.0F);
+        if (recordedHealth > 0.0F) {
+            double baseHealth = recordedHealth;
+            double baseAttack = Math.max(0.0D, recordedAttack);
+            double healthScale = baseHealth / 20.0D;
+            float minHealth = Math.max(0.0F, baseBonusHp * 0.25F);
+            float maxHealth = Math.max(minHealth, baseBonusHp * 6.0F);
+            float scaledHealth = (float) (baseBonusHp * Math.max(0.1D, healthScale));
+            float bonusHealth = MathHelper.clamp(scaledHealth, minHealth, maxHealth);
+            float bonusAttack = (float) Math.max(0.0D, Math.min(baseAttack * 0.5D, 10.0D));
+            return new MimicBonuses(bonusHealth, bonusAttack);
         }
         EntityType<?> type = Registries.ENTITY_TYPE.get(entityId);
         if (type == null || !LivingEntity.class.isAssignableFrom(type.getBaseClass())) {
@@ -838,11 +942,12 @@ public final class SpySystem {
         double baseAttack = attrs.has(EntityAttributes.ATTACK_DAMAGE)
                 ? attrs.getBaseValue(EntityAttributes.ATTACK_DAMAGE)
                 : 0.0D;
-        float scaledHealth = (float) (baseHealth * 0.2D);
-        float minHealth = Math.max(0.0F, baseBonusHp);
-        float maxHealth = Math.max(minHealth, baseBonusHp * 4.0F);
+        double healthScale = baseHealth / 20.0D;
+        float minHealth = Math.max(0.0F, baseBonusHp * 0.25F);
+        float maxHealth = Math.max(minHealth, baseBonusHp * 6.0F);
+        float scaledHealth = (float) (baseBonusHp * Math.max(0.1D, healthScale));
         float bonusHealth = MathHelper.clamp(scaledHealth, minHealth, maxHealth);
-        float bonusAttack = (float) Math.max(0.0D, Math.min(baseAttack * 0.35D, 8.0D));
+        float bonusAttack = (float) Math.max(0.0D, Math.min(baseAttack * 0.5D, 10.0D));
         return new MimicBonuses(bonusHealth, bonusAttack);
     }
 
@@ -1017,6 +1122,9 @@ public final class SpySystem {
         if (nbt.getInt(KEY_STOLEN_SELECTED, -1) < 0) {
             nbt.putInt(KEY_STOLEN_SELECTED, 0);
         }
+        if (nbt.getString(KEY_STOLEN_CAST_SELECTED, "").isEmpty()) {
+            nbt.putString(KEY_STOLEN_CAST_SELECTED, raw);
+        }
     }
 
     private static void removeStolenAbility(ServerPlayerEntity player, Identifier abilityId) {
@@ -1047,6 +1155,7 @@ public final class SpySystem {
         if (next.isEmpty()) {
             nbt.remove(KEY_STOLEN);
             nbt.remove(KEY_STOLEN_SELECTED);
+            nbt.remove(KEY_STOLEN_CAST_SELECTED);
             return;
         }
         nbt.put(KEY_STOLEN, next);
@@ -1058,6 +1167,50 @@ public final class SpySystem {
             selected = 0;
         }
         nbt.putInt(KEY_STOLEN_SELECTED, selected);
+        if (raw.equals(nbt.getString(KEY_STOLEN_CAST_SELECTED, ""))) {
+            Identifier nextId = Identifier.tryParse(next.getString(selected, ""));
+            if (nextId != null) {
+                nbt.putString(KEY_STOLEN_CAST_SELECTED, nextId.toString());
+            } else {
+                nbt.remove(KEY_STOLEN_CAST_SELECTED);
+            }
+        }
+    }
+
+    private static boolean isAbilityStolen(ServerPlayerEntity player, Identifier abilityId) {
+        if (player == null || abilityId == null) {
+            return false;
+        }
+        NbtCompound nbt = persistent(player);
+        NbtList list = nbt.getList(KEY_STOLEN).orElse(null);
+        if (list == null || list.isEmpty()) {
+            return false;
+        }
+        String raw = abilityId.toString();
+        for (int i = 0; i < list.size(); i++) {
+            if (raw.equals(list.getString(i, ""))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int stolenIndex(ServerPlayerEntity player, Identifier abilityId) {
+        if (player == null || abilityId == null) {
+            return -1;
+        }
+        NbtCompound nbt = persistent(player);
+        NbtList list = nbt.getList(KEY_STOLEN).orElse(null);
+        if (list == null || list.isEmpty()) {
+            return -1;
+        }
+        String raw = abilityId.toString();
+        for (int i = 0; i < list.size(); i++) {
+            if (raw.equals(list.getString(i, ""))) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private static NbtCompound persistent(ServerPlayerEntity player) {

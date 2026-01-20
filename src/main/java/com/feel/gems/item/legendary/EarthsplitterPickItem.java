@@ -3,6 +3,7 @@ package com.feel.gems.item.legendary;
 import com.feel.gems.GemsMod;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
+import com.feel.gems.util.GemsTooltipFormat;
 import java.util.function.Consumer;
 import net.minecraft.block.BlockState;
 import net.minecraft.component.type.TooltipDisplayComponent;
@@ -117,7 +118,7 @@ public final class EarthsplitterPickItem extends Item implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.translatable("item.gems.earthsplitter_pick.desc"));
+        GemsTooltipFormat.appendDescription(tooltip, Text.translatable("item.gems.earthsplitter_pick.desc"));
     }
 
     private static RegistryEntry<Enchantment> resolveSilkTouch(ServerPlayerEntity player) {

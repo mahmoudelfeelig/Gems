@@ -5,6 +5,7 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.util.GemsTime;
+import com.feel.gems.util.GemsTooltipFormat;
 import java.util.function.Consumer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ToolMaterial;
@@ -35,7 +36,7 @@ public final class ThirdStrikeBladeItem extends Item implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.translatable("item.gems.third_strike_blade.desc"));
+        GemsTooltipFormat.appendDescription(tooltip, Text.translatable("item.gems.third_strike_blade.desc"));
     }
 
     public static void recordCriticalHit(ServerPlayerEntity attacker) {

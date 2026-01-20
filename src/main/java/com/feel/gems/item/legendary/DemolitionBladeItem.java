@@ -5,6 +5,7 @@ import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.power.util.Targeting;
+import com.feel.gems.util.GemsTooltipFormat;
 import java.util.function.Consumer;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
@@ -85,6 +86,6 @@ public final class DemolitionBladeItem extends Item implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.translatable("item.gems.demolition_blade.desc"));
+        GemsTooltipFormat.appendDescription(tooltip, Text.translatable("item.gems.demolition_blade.desc"));
     }
 }

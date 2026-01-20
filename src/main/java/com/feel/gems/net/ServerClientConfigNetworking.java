@@ -51,8 +51,12 @@ public final class ServerClientConfigNetworking {
                     payload.passivesEnabled(),
                     hud
                 );
-                    LoadoutManager.savePreset(player, loadout);
-                    GemStateSync.send(player);
+                    int index = LoadoutManager.savePreset(player, loadout);
+                    if (index >= 0) {
+                        LoadoutManager.applyLoadout(player, loadout);
+                        LoadoutManager.setActivePresetIndex(player, loadout.gem(), index);
+                        GemStateSync.send(player);
+                    }
                 }));
 
         ServerPlayNetworking.registerGlobalReceiver(LoadoutLoadPayload.ID, (payload, context) ->

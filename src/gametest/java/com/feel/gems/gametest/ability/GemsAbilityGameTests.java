@@ -856,6 +856,7 @@ public final class GemsAbilityGameTests {
         GemPowers.sync(ally);
 
         GemTrust.trust(sentinel, ally.getUuid());
+        GemTrust.trust(ally, sentinel.getUuid());
 
         context.runAtTick(5L, () -> {
             boolean ok = new SentinelInterventionAbility().activate(sentinel);

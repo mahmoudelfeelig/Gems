@@ -7,6 +7,7 @@
     "BlockAutoSmeltMixin",
     "ExplosiveProjectileRangeLimitMixin",
     "ExplosiveProjectileTrailMixin",
+    "EnchantmentHelperAmplificationMixin",
     "PersistentProjectileEntityRaidersTrainingMixin",
     "PersistentProjectileEntityLegendaryHitMixin",
     "PersistentProjectileEntityHunterAimMixin",
@@ -56,6 +57,7 @@
     "PlayerEntityXpBoostMixin",
     "PlayerEntityHungerResistMixin",
     "ServerPlayerEntityTitleMixin",
+    "VillagerEntityWealthDiscountMixin",
     "MobEntitySoulTargetingMixin",
     "MobEntityHeartLockMixin",
     "MobEntitySummonerLifetimeMixin",
@@ -70,7 +72,8 @@
     "ServerPlayNetworkHandlerHotbarLockMixin",
     "ServerPlayerInteractionManagerRestrictionsMixin",
     "accessor.MobEntitySelectorsAccessor",
-    "accessor.CraftingScreenHandlerAccessor"
+    "accessor.CraftingScreenHandlerAccessor",
+    "accessor.TradeOfferAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

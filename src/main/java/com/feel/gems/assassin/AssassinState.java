@@ -136,6 +136,15 @@ public final class AssassinState {
         }
     }
 
+    public static void resetAssassinPoints(ServerPlayerEntity player) {
+        initIfNeeded(player);
+        NbtCompound nbt = root(player);
+        nbt.putInt(KEY_A_NORMAL_KILLS, 0);
+        nbt.putInt(KEY_A_FINAL_KILLS, 0);
+        nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
+        nbt.putInt(KEY_A_FINAL_KILLS_VS_NON, 0);
+    }
+
     public static int setAssassinHearts(ServerPlayerEntity player, int hearts) {
         initIfNeeded(player);
         int clamped = clamp(hearts, 0, maxHearts());
@@ -230,7 +239,6 @@ public final class AssassinState {
             return;
         }
         player.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.choice_unlocked").formatted(net.minecraft.util.Formatting.GOLD), false);
-        player.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.choice_stay").formatted(net.minecraft.util.Formatting.RED), false);
         player.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.choice_leave").formatted(net.minecraft.util.Formatting.GRAY), false);
     }
 

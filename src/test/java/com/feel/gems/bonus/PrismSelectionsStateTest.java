@@ -102,17 +102,19 @@ public class PrismSelectionsStateTest {
     @Test
     void canAddBonusAbility() {
         boolean success = state.addBonusAbility(player1, PowerIds.BONUS_THUNDERSTRIKE);
-        assertTrue(success, "Should be able to add bonus ability");
-        
+        assertTrue(success, "Should be able to add valid bonus ability");
+
         var selection = state.getSelection(player1);
         assertTrue(selection.bonusAbilities().contains(PowerIds.BONUS_THUNDERSTRIKE));
+        assertEquals(1, selection.bonusAbilities().size());
+        assertEquals(1, selection.totalAbilities());
     }
 
     @Test
     void canAddMaxTwoBonusAbilities() {
         assertTrue(state.addBonusAbility(player1, PowerIds.BONUS_THUNDERSTRIKE));
         assertTrue(state.addBonusAbility(player1, PowerIds.BONUS_FROSTBITE));
-        
+
         boolean third = state.addBonusAbility(player1, PowerIds.BONUS_EARTHSHATTER);
         assertFalse(third, "Should not be able to add more than 2 bonus abilities");
         assertEquals(2, state.getSelection(player1).bonusAbilities().size());
@@ -126,10 +128,9 @@ public class PrismSelectionsStateTest {
 
     @Test
     void cannotAddDuplicateBonusAbility() {
-        state.addBonusAbility(player1, PowerIds.BONUS_THUNDERSTRIKE);
-        
-        boolean duplicate = state.addBonusAbility(player1, PowerIds.BONUS_THUNDERSTRIKE);
-        assertFalse(duplicate, "Should not be able to add duplicate bonus ability");
+        assertTrue(state.addBonusAbility(player1, PowerIds.BONUS_THUNDERSTRIKE));
+
+        assertFalse(state.addBonusAbility(player1, PowerIds.BONUS_THUNDERSTRIKE));
         assertEquals(1, state.getSelection(player1).bonusAbilities().size());
     }
 
@@ -170,17 +171,19 @@ public class PrismSelectionsStateTest {
     @Test
     void canAddBonusPassive() {
         boolean success = state.addBonusPassive(player1, PowerIds.BONUS_THORNS_AURA);
-        assertTrue(success, "Should be able to add bonus passive");
-        
+        assertTrue(success, "Should be able to add valid bonus passive");
+
         var selection = state.getSelection(player1);
         assertTrue(selection.bonusPassives().contains(PowerIds.BONUS_THORNS_AURA));
+        assertEquals(1, selection.bonusPassives().size());
+        assertEquals(1, selection.totalPassives());
     }
 
     @Test
     void canAddMaxTwoBonusPassives() {
         assertTrue(state.addBonusPassive(player1, PowerIds.BONUS_THORNS_AURA));
         assertTrue(state.addBonusPassive(player1, PowerIds.BONUS_LIFESTEAL));
-        
+
         boolean third = state.addBonusPassive(player1, PowerIds.BONUS_DODGE_CHANCE);
         assertFalse(third, "Should not be able to add more than 2 bonus passives");
         assertEquals(2, state.getSelection(player1).bonusPassives().size());
@@ -196,13 +199,12 @@ public class PrismSelectionsStateTest {
 
     @Test
     void maxTotalAbilitiesIsFive() {
-        // 3 gem abilities + 2 bonus abilities = 5 total
         assertTrue(state.addGemAbility(player1, PowerIds.AIR_DASH));
         assertTrue(state.addGemAbility(player1, PowerIds.FIREBALL));
         assertTrue(state.addGemAbility(player1, PowerIds.FLUX_BEAM));
         assertTrue(state.addBonusAbility(player1, PowerIds.BONUS_THUNDERSTRIKE));
         assertTrue(state.addBonusAbility(player1, PowerIds.BONUS_FROSTBITE));
-        
+
         var selection = state.getSelection(player1);
         assertEquals(5, selection.totalAbilities());
         assertEquals(5, selection.allAbilities().size());
@@ -210,13 +212,12 @@ public class PrismSelectionsStateTest {
 
     @Test
     void maxTotalPassivesIsFive() {
-        // 3 gem passives + 2 bonus passives = 5 total
         assertTrue(state.addGemPassive(player1, PowerIds.FIRE_RESISTANCE));
         assertTrue(state.addGemPassive(player1, PowerIds.FALL_DAMAGE_IMMUNITY));
         assertTrue(state.addGemPassive(player1, PowerIds.AUTO_SMELT));
         assertTrue(state.addBonusPassive(player1, PowerIds.BONUS_THORNS_AURA));
         assertTrue(state.addBonusPassive(player1, PowerIds.BONUS_LIFESTEAL));
-        
+
         var selection = state.getSelection(player1);
         assertEquals(5, selection.totalPassives());
         assertEquals(5, selection.allPassives().size());
@@ -227,9 +228,7 @@ public class PrismSelectionsStateTest {
     @Test
     void clearSelectionsRemovesAllForPlayer() {
         state.addGemAbility(player1, PowerIds.AIR_DASH);
-        state.addBonusAbility(player1, PowerIds.BONUS_THUNDERSTRIKE);
         state.addGemPassive(player1, PowerIds.FIRE_RESISTANCE);
-        state.addBonusPassive(player1, PowerIds.BONUS_THORNS_AURA);
         
         state.clearSelections(player1);
         

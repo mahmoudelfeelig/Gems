@@ -54,7 +54,7 @@ public final class HealthDrainAbility implements GemAbility {
         }
 
         float amount = GemsBalance.v().life().healthDrainAmount();
-        target.damage(player.getEntityWorld(), player.getDamageSources().magic(), amount);
+        target.damage(player.getEntityWorld(), player.getDamageSources().indirectMagic(player, player), amount);
         player.heal(amount);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 0.7F, 1.4F);
         AbilityFeedback.burst(player, ParticleTypes.HEART, 10, 0.25D);

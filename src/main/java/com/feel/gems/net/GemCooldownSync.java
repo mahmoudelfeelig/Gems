@@ -1,8 +1,10 @@
 package com.feel.gems.net;
 
-import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
-import com.feel.gems.core.GemRegistry;
+import com.feel.gems.loadout.LoadoutManager;
+import com.feel.gems.power.api.GemAbility;
+import com.feel.gems.power.registry.ModAbilities;
+import com.feel.gems.power.runtime.GemAbilities;
 import com.feel.gems.power.runtime.GemAbilityCooldowns;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.util.GemsTime;
@@ -23,16 +25,23 @@ public final class GemCooldownSync {
         GemPlayerState.initIfNeeded(player);
 
         GemId active = GemPlayerState.getActiveGem(player);
-        GemDefinition def = GemRegistry.definition(active);
-        List<Identifier> abilities = def.abilities();
+        List<Identifier> abilities = LoadoutManager.getAbilityOrder(player, active);
 
         long now = GemsTime.now(player);
+
         List<Integer> remaining = new ArrayList<>(abilities.size());
+        List<Integer> maxCooldowns = new ArrayList<>(abilities.size());
         for (int i = 0; i < abilities.size(); i++) {
             Identifier id = abilities.get(i);
-            remaining.add(GemAbilityCooldowns.remainingTicks(player, id, now));
+            int rawRemaining = GemAbilityCooldowns.remainingTicks(player, id, now);
+            remaining.add(rawRemaining);
+
+            GemAbility ability = ModAbilities.get(id);
+            int baseCooldown = ability != null ? Math.max(0, ability.cooldownTicks()) : 0;
+            int adjusted = GemAbilities.adjustedCooldownTicks(player, active, baseCooldown);
+            maxCooldowns.add(adjusted);
         }
 
-        ServerPlayNetworking.send(player, new CooldownSnapshotPayload(active.ordinal(), remaining));
+        ServerPlayNetworking.send(player, new CooldownSnapshotPayload(active.ordinal(), remaining, maxCooldowns));
     }
 }

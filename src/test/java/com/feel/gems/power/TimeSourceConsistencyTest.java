@@ -1,7 +1,7 @@
 package com.feel.gems.power;
 
 import com.feel.gems.net.ServerAbilityNetworking;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.trade.GemTrading;
 import com.feel.gems.trust.GemTrust;
@@ -24,7 +24,7 @@ public class TimeSourceConsistencyTest {
     @Test
     void powerAndNetCodeDoesNotUsePerWorldTime() throws IOException {
         List<Path> roots = List.of(
-                packageRoot(SpyMimicSystem.class),
+                packageRoot(SpySystem.class),
             packageRoot(ServerAbilityNetworking.class),
             packageRoot(GemPlayerState.class),
             packageRoot(GemTrading.class),

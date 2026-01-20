@@ -17,6 +17,20 @@ public final class ClientDisguiseState {
     private ClientDisguiseState() {
     }
 
+    private static UUID removeDisguise(UUID playerId) {
+        if (playerId == null) {
+            return null;
+        }
+        return DISGUISES.remove(playerId);
+    }
+
+    private static void restoreDisguise(UUID playerId, UUID target) {
+        if (playerId == null || target == null) {
+            return;
+        }
+        DISGUISES.put(playerId, target);
+    }
+
     public static void update(UUID player, Optional<UUID> target) {
         if (player == null) {
             return;
@@ -44,14 +58,26 @@ public final class ClientDisguiseState {
             return null;
         }
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.getNetworkHandler() == null) {
+        if (client == null || client.getNetworkHandler() == null) {
             return null;
         }
-        PlayerListEntry entry = client.getNetworkHandler().getPlayerListEntry(target);
-        if (entry == null) {
+        // Avoid recursion if both players are disguised as each other (e.g., Mirror Match).
+        UUID removed = removeDisguise(target);
+        try {
+            PlayerListEntry entry = client.getNetworkHandler().getPlayerListEntry(target);
+            if (entry != null) {
+                return entry.getSkinTextures();
+            }
+            if (client.world != null) {
+                var entity = client.world.getPlayerByUuid(target);
+                if (entity instanceof AbstractClientPlayerEntity targetPlayer) {
+                    return targetPlayer.getSkin();
+                }
+            }
             return null;
+        } finally {
+            restoreDisguise(target, removed);
         }
-        return entry.getSkinTextures();
     }
 
     public static Text overrideName(AbstractClientPlayerEntity player) {

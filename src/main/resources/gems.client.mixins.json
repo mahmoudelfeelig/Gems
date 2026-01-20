@@ -7,9 +7,10 @@
     "KeyboardHotbarAbilityMixin",
     "KeyboardInputTricksterMixin",
     "accessor.InputAccessor",
-    "AbstractClientPlayerEntitySkinMixin",
     "AbstractClientPlayerEntityNameMixin",
-    "PlayerListEntrySkinshiftNameMixin"
+    "PlayerListEntrySkinshiftNameMixin",
+    "PlayerListEntrySkinshiftSkinMixin",
+    "AbstractClientPlayerEntitySkinshiftSkinMixin"
   ],
   "injectors": {
     "defaultRequire": 1

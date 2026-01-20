@@ -5,6 +5,7 @@ import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.legendary.LegendaryPlayerTracker;
 import com.feel.gems.net.TrackerCompassScreenPayload;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.util.GemsNbt;
 import com.feel.gems.util.GemsTime;
 import java.util.ArrayList;
@@ -87,7 +88,13 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
         if (now - last < refresh) {
             return;
         }
-        updateTrackingData(stack, player.getEntityWorld().getServer(), target, now);
+        MinecraftServer server = player.getEntityWorld().getServer();
+        if (SpySystem.hidesTracking(server, target)) {
+            clearTarget(stack);
+            player.sendMessage(Text.translatable("gems.tracking.hidden"), true);
+            return;
+        }
+        updateTrackingData(stack, server, target, now);
     }
 
     @Override
@@ -160,6 +167,10 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
             player.sendMessage(Text.translatable("gems.item.tracker_compass.unknown_player", name), true);
             return;
         }
+        if (SpySystem.hidesTracking(server, snapshot.uuid())) {
+            player.sendMessage(Text.translatable("gems.tracking.hidden"), true);
+            return;
+        }
         applyTarget(player, stack, snapshot.uuid(), snapshot.name());
     }
 
@@ -180,6 +191,10 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
         LegendaryPlayerTracker.Snapshot snapshot = LegendaryPlayerTracker.snapshot(server, uuid);
         if (snapshot == null) {
             player.sendMessage(Text.translatable("gems.item.tracker_compass.unknown_player_track"), true);
+            return;
+        }
+        if (SpySystem.hidesTracking(server, uuid)) {
+            player.sendMessage(Text.translatable("gems.tracking.hidden"), true);
             return;
         }
         applyTarget(player, stack, uuid, snapshot.name());
@@ -204,6 +219,9 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
         profiles.sort(java.util.Comparator.comparing(p -> p.name().toLowerCase(java.util.Locale.ROOT)));
         List<TrackerCompassScreenPayload.Entry> entries = new ArrayList<>(profiles.size());
         for (LegendaryPlayerTracker.Snapshot profile : profiles) {
+            if (SpySystem.hidesTracking(server, profile.uuid())) {
+                continue;
+            }
             boolean online = server.getPlayerManager().getPlayer(profile.uuid()) != null;
             entries.add(new TrackerCompassScreenPayload.Entry(profile.uuid(), profile.name(), online));
         }

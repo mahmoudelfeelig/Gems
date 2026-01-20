@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+    "category": "misc",
+
+  "pattern": [
+    " P ",
+    "HNB",
+    " M "
+  ],
+  "key": {
+    "P": "minecraft:phantom_membrane",
+    "H": "minecraft:player_head",
+    "N": "minecraft:nether_star",
+    "B": "minecraft:blaze_powder",
+    "M": "minecraft:magma_cream"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:gem_augment_persistence"
+  }
+}

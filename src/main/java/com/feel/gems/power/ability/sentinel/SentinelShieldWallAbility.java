@@ -57,7 +57,7 @@ public final class SentinelShieldWallAbility implements GemAbility {
         PlayerStateManager.setPersistent(player, WALL_END_KEY, String.valueOf(endTime));
 
         // Store wall position data for runtime checks
-        SentinelShieldWallRuntime.createWall(player, basePos, perpendicular, width, height, endTime);
+        SentinelShieldWallRuntime.createWall(player, world, basePos, perpendicular, width, height, endTime);
 
         // Visual effect - particle wall
         for (int w = -width / 2; w <= width / 2; w++) {

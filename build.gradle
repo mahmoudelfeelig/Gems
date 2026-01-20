@@ -43,6 +43,13 @@ configurations.configureEach {
     }
 }
 
+sourceSets {
+    gametest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+
 loom {
     splitEnvironmentSourceSets()
 
@@ -50,13 +57,8 @@ loom {
         useLegacyMixinAp = true
         add sourceSets.main, "gems-refmap.json"
         add sourceSets.client, "client-gems-refmap.json"
-    }
-}
-
-sourceSets {
-    gametest {
-        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
-        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+        add sourceSets.test, "gems-test-refmap.json"
+        add sourceSets.gametest, "gems-gametest-refmap.json"
     }
 }
 
@@ -71,6 +73,12 @@ loom {
             vmArg "-Dfabric-api.gametest=1"
             vmArg "-Dfabric-api.gametest.command=false"
             vmArg "-Dfabric-api.gametest.report-file=${project.buildDir}/reports/gametest.xml"
+            // Run tests with only 1 structure per row to maximize spacing between parallel tests
+            vmArg "-Dfabric-api.gametest.structures-per-row=1"
+            // Run only one test batch at a time
+            vmArg "-Dfabric-api.gametest.batch-size=1"
+            // Extra delay before completing tests (used by GemsGameTestUtil)
+            vmArg "-Dgems.gametest.complete-delay=20"
             programArg "nogui"
         }
     }
@@ -139,6 +147,8 @@ tasks.register("gametest") {
 tasks.register("prepareGametestRunDir") {
     def runDir = layout.projectDirectory.dir("run/gametest")
 
+    // Don't track state for this task to avoid lock file issues
+    doNotTrackState("Run directory may have active lock files from previous runs.")
     outputs.dir(runDir)
 
     doLast {

@@ -2,8 +2,10 @@ package com.feel.gems.item;
 
 import com.feel.gems.core.GemId;
 import com.feel.gems.net.GemStateSync;
+import com.feel.gems.augment.AugmentRuntime;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
+import java.util.UUID;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -42,7 +44,8 @@ public final class GemItem extends Item {
         GemPlayerState.initIfNeeded(player);
         GemOwnership.ensureOwner(stack, player); // tag immediately so stale/no-owner items belong to the clicker
 
-        boolean ownedByPlayer = GemOwnership.isOwnedBy(stack, player.getUuid());
+        UUID ownerUuid = GemOwnership.ownerUuid(stack);
+        boolean ownedByPlayer = ownerUuid != null && ownerUuid.equals(player.getUuid());
         if (GemOwnership.isInvalidForEpoch(server, stack)) {
             if (ownedByPlayer) {
                 // Refresh epoch for your own stale gem so it can still be activated (common when carrying multiple gems across deaths).
@@ -54,34 +57,33 @@ public final class GemItem extends Item {
             }
         }
 
-        // Gem items are only valid for gems you currently own (prevents re-activating traded-away gems).
-        if (!GemPlayerState.getOwnedGems(player).contains(gemId)) {
-            // Creative mode: grant the gem on first use so testing is easy.
-            if (player.isCreative()) {
-                GemPlayerState.addOwnedGem(player, gemId);
-            } else if (ownedByPlayer) {
-                player.setStackInHand(hand, ItemStack.EMPTY);
-                return ActionResult.SUCCESS.withNewHandStack(ItemStack.EMPTY);
-            } else {
-                player.sendMessage(Text.translatable("gems.item.gem.not_owned"), true);
-                return ActionResult.FAIL;
-            }
-        }
-
-        var ownerUuid = GemOwnership.ownerUuid(stack);
-        if (ownerUuid != null && !ownerUuid.equals(player.getUuid())) {
+        if (ownerUuid != null && !ownedByPlayer) {
             ServerPlayerEntity owner = server.getPlayerManager().getPlayer(ownerUuid);
             if (owner != null && owner.isAlive()) {
                 GemPlayerState.initIfNeeded(owner);
-                if (GemPlayerState.getOwnedGems(owner).contains(gemId)) {
+                if (GemPlayerState.getActiveGem(owner) == gemId) {
                     GemOwnership.applyOwnerPenalty(owner);
+                    player.sendMessage(Text.translatable("gems.item.gem.not_owned"), true);
+                    return ActionResult.FAIL;
                 }
+            }
+        }
+
+        boolean ownsGem = GemPlayerState.getOwnedGems(player).contains(gemId);
+        if (!ownsGem) {
+            if (player.isCreative()) {
+                GemPlayerState.addOwnedGem(player, gemId);
+                ownsGem = true;
             } else {
-                // Owner offline: skip penalties (avoids punitive side-effects for stale/traded-away items).
+                // Claim the gem from the item so non-active drops behave like vanilla loot.
+                GemPlayerState.addOwnedGem(player, gemId);
+                GemOwnership.tagOwned(stack, player.getUuid(), GemPlayerState.getGemEpoch(player));
+                ownsGem = true;
             }
         }
 
         GemPlayerState.setActiveGem(player, gemId);
+        AugmentRuntime.captureActiveGemAugments(player, gemId, stack);
         GemPowers.sync(player);
         GemStateSync.send(player);
         GemItemGlint.sync(player);

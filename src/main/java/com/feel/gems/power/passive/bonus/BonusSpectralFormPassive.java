@@ -6,8 +6,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 /**
- * Spectral Form - Become semi-transparent; mobs have 20% chance to lose aggro.
- * Implementation via tick handler for mob AI manipulation.
+ * Mist Form - Chance to phase through attacks.
+ * Implementation via damage hook.
  */
 public final class BonusSpectralFormPassive implements GemPassive {
     @Override
@@ -17,17 +17,17 @@ public final class BonusSpectralFormPassive implements GemPassive {
 
     @Override
     public String name() {
-        return "Spectral Form";
+        return "Mist Form";
     }
 
     @Override
     public String description() {
-        return "Become semi-transparent. Mobs have 20% chance to lose aggro each second.";
+        return "10% chance to phase through attacks.";
     }
 
     @Override
     public void apply(ServerPlayerEntity player) {
-        // Marker passive - implemented via tick handler
+        // Marker passive - implemented via damage hooks
     }
 
     @Override

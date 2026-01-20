@@ -13,7 +13,6 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 
 import java.util.List;
 
@@ -65,13 +64,14 @@ public final class BonusVortexStrikeAbility implements GemAbility {
                     continue;
                 }
             }
-            // Pull toward player
-            Vec3d pullDir = player.getEntityPos().subtract(entity.getEntityPos()).normalize().multiply(PULL_STRENGTH);
-            entity.setVelocity(entity.getVelocity().add(pullDir.x, 0.1, pullDir.z));
-            entity.velocityDirty = true;
+            // Deal damage (avoid vanilla melee knockback fighting the pull).
+            entity.damage(world, player.getDamageSources().indirectMagic(player, player), DAMAGE);
 
-            // Deal damage
-            entity.damage(world, world.getDamageSources().playerAttack(player), DAMAGE);
+            // Pull toward player.
+            Vec3d pullDir = player.getEntityPos().subtract(entity.getEntityPos()).normalize().multiply(PULL_STRENGTH);
+            Vec3d vel = entity.getVelocity().add(pullDir.x, 0.1, pullDir.z);
+            entity.setVelocity(vel);
+            entity.velocityDirty = true;
         }
 
         // Spinning particle effect

@@ -15,7 +15,7 @@ Optional:
 
 1. Install Fabric Loader and Fabric API on your server.
 2. Put `gems-<version>.jar` in your server `mods/` folder.
-3. Start the server once to generate configs under `config/gems/`.
+3. Start the server once using the command `java -Xmx2G -jar fabric-server-mc.1.21.11-loader.0.18.4-launcher.1.1.1.jar` to generate configs under `config/gems/`.
 
 ## Config files
 
@@ -47,8 +47,18 @@ For config keys, units, and safety clamps, see `balance.md`.
   - `/gems admin setEnergy <players> <energy>`
   - `/gems admin setHearts <player> <hearts>`
   - `/gems admin giveItem <player> <itemId>`
+  - `/gems admin giveAllGems <players>`
+  - `/gems admin clearGems <players>`
+  - `/gems admin cooldowns <players> <disabled>`
+  - `/gems admin legendaryCooldowns <players> <disabled>`
+  - `/gems admin stats show <players>`
+  - `/gems admin stats reset <players>`
 - Testing helpers:
   - `/gems admin cast <player> <slot>`
+  - `/gems admin perf reset`
+  - `/gems admin perf snapshot [windowTicks]`
+  - `/gems admin stress start <players> <seconds> <periodTicks> <mode> <cycleGems> <forceEnergy10>`
+  - `/gems admin stress stop <players>`
 
 ## Performance tips
 

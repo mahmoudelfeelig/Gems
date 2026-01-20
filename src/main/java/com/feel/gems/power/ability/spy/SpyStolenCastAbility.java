@@ -5,7 +5,7 @@ import com.feel.gems.config.GemsDisables;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.power.registry.PowerIds;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.spy.SpySystem;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -29,20 +29,20 @@ public final class SpyStolenCastAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return GemsBalance.v().spyMimic().stolenCastCooldownTicks();
+        return GemsBalance.v().spy().stolenCastCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
         if (player.isSneaking()) {
-            boolean ok = SpyMimicSystem.cycleStolen(player);
+            boolean ok = SpySystem.cycleStolen(player);
             if (!ok) {
                 player.sendMessage(Text.translatable("gems.ability.spy.stolen_cast.no_stolen"), true);
             }
             return ok;
         }
 
-        Identifier id = SpyMimicSystem.selectedStolenAbility(player);
+        Identifier id = SpySystem.selectedStolenAbility(player);
         if (id == null) {
             player.sendMessage(Text.translatable("gems.ability.spy.stolen_cast.no_stolen"), true);
             return false;

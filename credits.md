@@ -10,7 +10,7 @@ This project uses (or is inspired by) the following third-party assets:
 - https://kanomwan.itch.io/kw-16x16-gems-icon?download (gems)
 - https://karsiori.itch.io/free-pixel-art-gem-pack (gem trader + energy upgrade + gem purchase)
 - https://skristi.itch.io/heart-and-health-bars (heart item)
-- https://snoopethduckduck.itch.io/things (compass)
+- https://snoopethduckduck.itch.io/things (compass + augments + inscriptions)
 
 ## Weapons
 

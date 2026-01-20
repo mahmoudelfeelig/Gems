@@ -11,9 +11,13 @@ import net.minecraft.util.Identifier;
 
 
 /**
- * S2C: sends a snapshot of remaining cooldown ticks for the player's active gem abilities.
+ * S2C: sends a snapshot of remaining cooldown ticks and max cooldowns for the player's active gem abilities.
  */
-public record CooldownSnapshotPayload(int activeGemOrdinal, java.util.List<Integer> remainingAbilityCooldownTicks) implements CustomPayload {
+public record CooldownSnapshotPayload(
+        int activeGemOrdinal,
+        java.util.List<Integer> remainingAbilityCooldownTicks,
+        java.util.List<Integer> maxAbilityCooldownTicks
+) implements CustomPayload {
     public static final Id<CooldownSnapshotPayload> ID = new Id<>(Identifier.of(GemsMod.MOD_ID, "cooldown_snapshot"));
 
     public static final PacketCodec<RegistryByteBuf, CooldownSnapshotPayload> CODEC = PacketCodec.tuple(
@@ -21,6 +25,8 @@ public record CooldownSnapshotPayload(int activeGemOrdinal, java.util.List<Integ
             CooldownSnapshotPayload::activeGemOrdinal,
             PacketCodecs.collection((int size) -> (java.util.List<Integer>) new java.util.ArrayList<Integer>(size), PacketCodecs.VAR_INT).cast(),
             CooldownSnapshotPayload::remainingAbilityCooldownTicks,
+            PacketCodecs.collection((int size) -> (java.util.List<Integer>) new java.util.ArrayList<Integer>(size), PacketCodecs.VAR_INT).cast(),
+            CooldownSnapshotPayload::maxAbilityCooldownTicks,
             CooldownSnapshotPayload::new
     );
 

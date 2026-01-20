@@ -14,6 +14,7 @@ import com.feel.gems.power.gem.summoner.SummonerSummons;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.gem.wealth.EnchantmentAmplification;
 import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.legendary.LegendaryPlayerTracker;
 import com.feel.gems.state.GemPlayerState;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.trust.GemTrust;
@@ -100,12 +101,18 @@ public final class AbilityRuntime {
     private static final String KEY_REAPER_OATH_TARGET = "reaperDeathOathTarget";
     private static final String KEY_REAPER_STEED_UNTIL = "reaperGraveSteedUntil";
     private static final String KEY_REAPER_STEED_UUID = "reaperGraveSteedUuid";
+    private static final String KEY_REAPER_STEED_LIST = "reaperGraveSteedList";
     private static final String KEY_REAPER_CLONE_UNTIL = "reaperShadowCloneUntil";
     private static final String KEY_REAPER_CLONE_UUIDS = "reaperShadowCloneUuids";
     private static final String KEY_REAPER_RETRIBUTION_UNTIL = "reaperRetributionUntil";
 
     private static final String CUSTOM_DATA_KEY_AMPLIFY = "gemsAmplify";
     private static final String CUSTOM_DATA_KEY_OWNER = "gemsOwner";
+    private static final String CUSTOM_DATA_KEY_OWNER_NAME = "gemsOwnerName";
+    private static final String CUSTOM_DATA_KEY_FIRST_OWNER = "gemsFirstOwner";
+    private static final String CUSTOM_DATA_KEY_FIRST_OWNER_NAME = "gemsFirstOwnerName";
+    private static final String CUSTOM_DATA_KEY_PREV_OWNER = "gemsPrevOwner";
+    private static final String CUSTOM_DATA_KEY_PREV_OWNER_NAME = "gemsPrevOwnerName";
 
     private AbilityRuntime() {
     }
@@ -262,8 +269,13 @@ public final class AbilityRuntime {
             return;
         }
         NbtCompound nbt = persistent(player);
-        nbt.putLong(KEY_REAPER_STEED_UNTIL, GemsTime.now(player) + durationTicks);
-        GemsNbt.putUuid(nbt, KEY_REAPER_STEED_UUID, steedUuid);
+        long until = GemsTime.now(player) + durationTicks;
+        NbtList list = nbt.getList(KEY_REAPER_STEED_LIST).orElse(new NbtList());
+        NbtCompound entry = new NbtCompound();
+        GemsNbt.putUuid(entry, "uuid", steedUuid);
+        entry.putLong("until", until);
+        list.add(entry);
+        nbt.put(KEY_REAPER_STEED_LIST, list);
     }
 
     public static void startReaperShadowClone(ServerPlayerEntity player, java.util.List<UUID> cloneUuids, int durationTicks) {
@@ -419,12 +431,110 @@ public final class AbilityRuntime {
         NbtComponent.set(DataComponentTypes.CUSTOM_DATA, stack, nbt -> GemsNbt.putUuid(nbt, CUSTOM_DATA_KEY_OWNER, owner));
     }
 
+    /**
+     * Sets owner UUID and name on an item (for display purposes).
+     * Also sets first owner if not already set.
+     */
+    public static void setOwnerWithName(ItemStack stack, UUID owner, String ownerName) {
+        if (stack.isEmpty()) {
+            return;
+        }
+        NbtComponent.set(DataComponentTypes.CUSTOM_DATA, stack, nbt -> {
+            UUID current = GemsNbt.getUuid(nbt, CUSTOM_DATA_KEY_OWNER);
+            if (current != null && !current.equals(owner)) {
+                GemsNbt.putUuid(nbt, CUSTOM_DATA_KEY_PREV_OWNER, current);
+                String currentName = nbt.getString(CUSTOM_DATA_KEY_OWNER_NAME, "");
+                if (!currentName.isEmpty()) {
+                    nbt.putString(CUSTOM_DATA_KEY_PREV_OWNER_NAME, currentName);
+                }
+            }
+            GemsNbt.putUuid(nbt, CUSTOM_DATA_KEY_OWNER, owner);
+            if (ownerName != null && !ownerName.isEmpty()) {
+                nbt.putString(CUSTOM_DATA_KEY_OWNER_NAME, ownerName);
+            }
+            // Set first owner only if not already set
+            if (!GemsNbt.containsUuid(nbt, CUSTOM_DATA_KEY_FIRST_OWNER)) {
+                GemsNbt.putUuid(nbt, CUSTOM_DATA_KEY_FIRST_OWNER, owner);
+                if (ownerName != null && !ownerName.isEmpty()) {
+                    nbt.putString(CUSTOM_DATA_KEY_FIRST_OWNER_NAME, ownerName);
+                }
+            }
+        });
+    }
+
     public static UUID getOwner(ItemStack stack) {
         NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (custom == null) {
             return null;
         }
         return GemsNbt.getUuid(custom.copyNbt(), CUSTOM_DATA_KEY_OWNER);
+    }
+
+    /**
+     * Gets the owner name stored on an item, if available.
+     */
+    public static String getOwnerName(ItemStack stack) {
+        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (custom == null) {
+            return null;
+        }
+        NbtCompound nbt = custom.copyNbt();
+        if (!nbt.contains(CUSTOM_DATA_KEY_OWNER_NAME)) {
+            return null;
+        }
+        return nbt.getString(CUSTOM_DATA_KEY_OWNER_NAME).orElse(null);
+    }
+
+    /**
+     * Gets the FIRST owner UUID from an item (the original crafter/finder).
+     */
+    public static UUID getFirstOwner(ItemStack stack) {
+        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (custom == null) {
+            return null;
+        }
+        return GemsNbt.getUuid(custom.copyNbt(), CUSTOM_DATA_KEY_FIRST_OWNER);
+    }
+
+    /**
+     * Gets the PREVIOUS owner UUID from an item, if available.
+     */
+    public static UUID getPreviousOwner(ItemStack stack) {
+        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (custom == null) {
+            return null;
+        }
+        return GemsNbt.getUuid(custom.copyNbt(), CUSTOM_DATA_KEY_PREV_OWNER);
+    }
+
+    /**
+     * Gets the FIRST owner name stored on an item, if available.
+     */
+    public static String getFirstOwnerName(ItemStack stack) {
+        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (custom == null) {
+            return null;
+        }
+        NbtCompound nbt = custom.copyNbt();
+        if (!nbt.contains(CUSTOM_DATA_KEY_FIRST_OWNER_NAME)) {
+            return null;
+        }
+        return nbt.getString(CUSTOM_DATA_KEY_FIRST_OWNER_NAME).orElse(null);
+    }
+
+    /**
+     * Gets the PREVIOUS owner name stored on an item, if available.
+     */
+    public static String getPreviousOwnerName(ItemStack stack) {
+        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (custom == null) {
+            return null;
+        }
+        NbtCompound nbt = custom.copyNbt();
+        if (!nbt.contains(CUSTOM_DATA_KEY_PREV_OWNER_NAME)) {
+            return null;
+        }
+        return nbt.getString(CUSTOM_DATA_KEY_PREV_OWNER_NAME).orElse(null);
     }
 
     private static java.util.List<UUID> readUuidList(NbtCompound nbt, String key) {
@@ -506,9 +616,6 @@ public final class AbilityRuntime {
         NbtCompound nbt = persistent(player);
         if (nbt.getLong(KEY_SPEED_STORM_UNTIL, 0L) <= now) {
             return;
-        }
-        if ((now % 3) != 0) {
-            return; // reduce scan frequency while keeping activation reliable
         }
         if (!(player.getEntityWorld() instanceof ServerWorld world)) {
             return;
@@ -1005,13 +1112,37 @@ public final class AbilityRuntime {
         if (targetUuid == null) {
             return;
         }
-        ServerPlayerEntity target = hunter.getEntityWorld().getServer().getPlayerManager().getPlayer(targetUuid);
-        if (target == null) {
+        MinecraftServer server = hunter.getEntityWorld().getServer();
+        if (server == null) {
+            return;
+        }
+        if (com.feel.gems.power.gem.spy.SpySystem.hidesTracking(server, targetUuid)) {
+            nbt.remove(KEY_BOUNTY_UNTIL);
+            nbt.remove(KEY_BOUNTY_TARGET);
+            hunter.sendMessage(Text.translatable("gems.tracking.hidden"), true);
+            return;
+        }
+        ServerPlayerEntity target = server.getPlayerManager().getPlayer(targetUuid);
+        if (target != null) {
+            double dist = Math.sqrt(hunter.squaredDistanceTo(target));
+            hunter.sendMessage(Text.translatable("gems.bounty.tracking", target.getName().getString(), (int) dist), true);
+            return;
+        }
+
+        LegendaryPlayerTracker.Snapshot snapshot = LegendaryPlayerTracker.snapshot(server, targetUuid);
+        if (snapshot == null || snapshot.pos() == null || snapshot.dimension() == null) {
             hunter.sendMessage(Text.translatable("gems.bounty.target_offline"), true);
             return;
         }
-        double dist = Math.sqrt(hunter.squaredDistanceTo(target));
-        hunter.sendMessage(Text.translatable("gems.bounty.tracking", target.getName().getString(), (int) dist), true);
+        BlockPos pos = snapshot.pos();
+        hunter.sendMessage(Text.translatable(
+                "gems.bounty.last_seen",
+                snapshot.name(),
+                String.valueOf(pos.getX()),
+                String.valueOf(pos.getY()),
+                String.valueOf(pos.getZ()),
+                snapshot.dimension().toString()
+        ), true);
     }
 
     private static void tickAmplificationCleanup(ServerPlayerEntity player, long now) {
@@ -1063,8 +1194,25 @@ public final class AbilityRuntime {
 
     private static void tickReaperGraveSteed(ServerPlayerEntity player, long now) {
         NbtCompound nbt = persistent(player);
-        long until = nbt.getLong(KEY_REAPER_STEED_UNTIL, 0L);
-        if (until <= 0) {
+        NbtList list = nbt.getList(KEY_REAPER_STEED_LIST).orElse(null);
+
+        // Migrate legacy single-steed data if present
+        if ((list == null || list.isEmpty())) {
+            long legacyUntil = nbt.getLong(KEY_REAPER_STEED_UNTIL, 0L);
+            UUID legacyUuid = GemsNbt.getUuid(nbt, KEY_REAPER_STEED_UUID);
+            if (legacyUntil > 0 && legacyUuid != null) {
+                list = new NbtList();
+                NbtCompound entry = new NbtCompound();
+                GemsNbt.putUuid(entry, "uuid", legacyUuid);
+                entry.putLong("until", legacyUntil);
+                list.add(entry);
+                nbt.put(KEY_REAPER_STEED_LIST, list);
+            }
+            nbt.remove(KEY_REAPER_STEED_UNTIL);
+            nbt.remove(KEY_REAPER_STEED_UUID);
+        }
+
+        if (list == null || list.isEmpty()) {
             return;
         }
 
@@ -1075,29 +1223,42 @@ public final class AbilityRuntime {
             return;
         }
 
-        UUID steedUuid = GemsNbt.getUuid(nbt, KEY_REAPER_STEED_UUID);
-        if (steedUuid == null) {
-            nbt.remove(KEY_REAPER_STEED_UNTIL);
-            return;
-        }
-        var e = SummonerSummons.findEntity(server, steedUuid);
-        if (!(e instanceof net.minecraft.entity.mob.SkeletonHorseEntity horse) || !horse.isAlive()) {
-            nbt.remove(KEY_REAPER_STEED_UNTIL);
-            nbt.remove(KEY_REAPER_STEED_UUID);
-            return;
-        }
-
-        if (now >= until) {
-            horse.discard();
-            nbt.remove(KEY_REAPER_STEED_UNTIL);
-            nbt.remove(KEY_REAPER_STEED_UUID);
-            return;
-        }
-
+        NbtList updated = new NbtList();
         float decay = GemsBalance.v().reaper().graveSteedDecayDamagePerSecond();
-        if (decay > 0.0F && horse.getEntityWorld() instanceof ServerWorld horseWorld) {
-            horse.damage(horseWorld, player.getDamageSources().magic(), decay);
-            AbilityFeedback.burstAt(horseWorld, horse.getEntityPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.SMOKE, 1, 0.12D);
+        for (int i = 0; i < list.size(); i++) {
+            NbtCompound entry = list.getCompound(i).orElse(null);
+            if (entry == null) {
+                continue;
+            }
+            UUID steedUuid = GemsNbt.getUuid(entry, "uuid");
+            long until = entry.getLong("until", 0L);
+            if (steedUuid == null || until <= 0) {
+                continue;
+            }
+            var e = SummonerSummons.findEntity(server, steedUuid);
+            if (!(e instanceof net.minecraft.entity.mob.SkeletonHorseEntity horse) || !horse.isAlive()) {
+                continue;
+            }
+
+            horse.hurtTime = 0;
+
+            if (now >= until) {
+                horse.discard();
+                continue;
+            }
+
+            if (decay > 0.0F && horse.getEntityWorld() instanceof ServerWorld horseWorld) {
+                horse.damage(horseWorld, player.getDamageSources().indirectMagic(player, player), decay);
+                AbilityFeedback.burstAt(horseWorld, horse.getEntityPos().add(0.0D, 1.0D, 0.0D), net.minecraft.particle.ParticleTypes.SMOKE, 1, 0.12D);
+            }
+
+            updated.add(entry);
+        }
+
+        if (updated.isEmpty()) {
+            nbt.remove(KEY_REAPER_STEED_LIST);
+        } else {
+            nbt.put(KEY_REAPER_STEED_LIST, updated);
         }
     }
 

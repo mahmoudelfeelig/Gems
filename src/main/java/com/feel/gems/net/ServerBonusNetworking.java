@@ -7,6 +7,8 @@ import com.feel.gems.power.api.GemPassive;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.power.registry.ModPassives;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.net.GemCooldownSync;
+import com.feel.gems.net.GemStateSync;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -165,6 +167,9 @@ public final class ServerBonusNetworking {
             }
         }
         
+        GemCooldownSync.send(player);
+        GemStateSync.sendBonusAbilitiesSync(player);
+
         // Refresh the screen
         openEditor(player);
     }

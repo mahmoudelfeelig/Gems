@@ -68,7 +68,7 @@ public final class BonusGravityCrushAbility implements GemAbility {
         target.velocityDirty = true;
 
         // Deal damage
-        target.damage(world, world.getDamageSources().magic(), DAMAGE);
+        target.damage(world, player.getDamageSources().indirectMagic(player, player), DAMAGE);
 
         // Root effect
         target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, ROOT_DURATION, 127, false, false, true));

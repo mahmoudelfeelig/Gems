@@ -1,6 +1,7 @@
 package com.feel.gems.net;
 
 import com.feel.gems.bonus.BonusPoolRegistry;
+import com.feel.gems.bonus.BonusClaimsState;
 import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
@@ -10,6 +11,7 @@ import com.feel.gems.power.api.GemPassive;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.power.registry.ModPassives;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.net.GemCooldownSync;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -18,6 +20,7 @@ import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -25,8 +28,8 @@ import java.util.UUID;
  */
 public final class ServerPrismNetworking {
     private static final int MAX_GEM_ABILITIES = 3;
-    private static final int MAX_BONUS_ABILITIES = 2;
     private static final int MAX_GEM_PASSIVES = 3;
+    private static final int MAX_BONUS_ABILITIES = 2;
     private static final int MAX_BONUS_PASSIVES = 2;
 
     private ServerPrismNetworking() {
@@ -62,6 +65,10 @@ public final class ServerPrismNetworking {
         UUID playerId = player.getUuid();
         PrismSelectionsState.PrismSelection selection = prismState.getSelection(playerId);
 
+        BonusClaimsState bonusClaims = BonusClaimsState.get(server);
+        Set<Identifier> claimedBonusAbilities = bonusClaims.getPlayerAbilities(playerId);
+        Set<Identifier> claimedBonusPassives = bonusClaims.getPlayerPassives(playerId);
+
         // Build gem abilities list (from all normal gems except Void, Chaos, Prism)
         List<PrismSelectionScreenPayload.PowerEntry> gemAbilities = new ArrayList<>();
         for (GemId gemId : GemId.values()) {
@@ -81,7 +88,9 @@ public final class ServerPrismNetworking {
                             abilityId,
                             ability.name(),
                             ability.description(),
-                            gemName
+                            gemName,
+                            true,
+                            false
                     ));
                 }
             } catch (Exception ignored) {
@@ -93,11 +102,15 @@ public final class ServerPrismNetworking {
         for (Identifier abilityId : BonusPoolRegistry.BONUS_ABILITIES) {
             GemAbility ability = ModAbilities.get(abilityId);
             if (ability == null) continue;
+            boolean claimed = claimedBonusAbilities.contains(abilityId);
+            boolean available = claimed || bonusClaims.isAbilityAvailable(abilityId);
             bonusAbilities.add(new PrismSelectionScreenPayload.PowerEntry(
                     abilityId,
                     ability.name(),
                     ability.description(),
-                    "Bonus"
+                    "Bonus",
+                    available,
+                    claimed
             ));
         }
 
@@ -120,7 +133,9 @@ public final class ServerPrismNetworking {
                             passiveId,
                             passive.name(),
                             passive.description(),
-                            gemName
+                            gemName,
+                            true,
+                            false
                     ));
                 }
             } catch (Exception ignored) {
@@ -132,11 +147,15 @@ public final class ServerPrismNetworking {
         for (Identifier passiveId : BonusPoolRegistry.BONUS_PASSIVES) {
             GemPassive passive = ModPassives.get(passiveId);
             if (passive == null) continue;
+            boolean claimed = claimedBonusPassives.contains(passiveId);
+            boolean available = claimed || bonusClaims.isPassiveAvailable(passiveId);
             bonusPassives.add(new PrismSelectionScreenPayload.PowerEntry(
                     passiveId,
                     passive.name(),
                     passive.description(),
-                    "Bonus"
+                    "Bonus",
+                    available,
+                    claimed
             ));
         }
 
@@ -146,9 +165,9 @@ public final class ServerPrismNetworking {
                 gemPassives,
                 bonusPassives,
                 selection.gemAbilities(),
-                selection.bonusAbilities(),
+                claimedBonusAbilities.stream().sorted().toList(),
                 selection.gemPassives(),
-                selection.bonusPassives(),
+                claimedBonusPassives.stream().sorted().toList(),
                 MAX_GEM_ABILITIES,
                 MAX_BONUS_ABILITIES,
                 MAX_GEM_PASSIVES,
@@ -175,63 +194,84 @@ public final class ServerPrismNetworking {
         if (server == null) return;
 
         PrismSelectionsState prismState = PrismSelectionsState.get(server);
+        BonusClaimsState bonusClaims = BonusClaimsState.get(server);
         UUID playerId = player.getUuid();
         Identifier powerId = payload.powerId();
+
+        boolean idIsBonus = payload.isAbility()
+                ? BonusPoolRegistry.isBonusAbility(powerId)
+                : BonusPoolRegistry.isBonusPassive(powerId);
+        boolean effectiveBonus = payload.isBonus() || idIsBonus;
 
         if (payload.claim()) {
             boolean success;
             String name;
             if (payload.isAbility()) {
-                if (payload.isBonus()) {
-                    success = prismState.addBonusAbility(playerId, powerId);
+                if (effectiveBonus) {
+                    success = bonusClaims.claimAbility(playerId, powerId);
                 } else {
                     success = prismState.addGemAbility(playerId, powerId);
                 }
                 GemAbility ability = ModAbilities.get(powerId);
                 name = ability != null ? ability.name() : powerId.toString();
                 if (success) {
-                    player.sendMessage(Text.translatable("gems.prism.selected_ability", name), false);
+                    String key = effectiveBonus ? "gems.bonus.claimed_ability" : "gems.prism.selected_ability";
+                    player.sendMessage(Text.translatable(key, name), false);
                 } else {
-                    player.sendMessage(Text.translatable("gems.prism.cannot_select_ability"), true);
+                    String key = effectiveBonus ? "gems.bonus.cannot_claim_ability" : "gems.prism.cannot_select_ability";
+                    player.sendMessage(Text.translatable(key), true);
                 }
             } else {
-                if (payload.isBonus()) {
-                    success = prismState.addBonusPassive(playerId, powerId);
+                if (effectiveBonus) {
+                    success = bonusClaims.claimPassive(playerId, powerId);
                 } else {
                     success = prismState.addGemPassive(playerId, powerId);
                 }
                 GemPassive passive = ModPassives.get(powerId);
                 name = passive != null ? passive.name() : powerId.toString();
                 if (success) {
-                    player.sendMessage(Text.translatable("gems.prism.selected_passive", name), false);
-                    // Apply the passive immediately
-                    if (passive != null) {
-                        passive.apply(player);
-                    }
+                    String key = effectiveBonus ? "gems.bonus.claimed_passive" : "gems.prism.selected_passive";
+                    player.sendMessage(Text.translatable(key, name), false);
+                    // Apply the passive immediately (bonus and prism selections).
+                    if (passive != null) passive.apply(player);
                 } else {
-                    player.sendMessage(Text.translatable("gems.prism.cannot_select_passive"), true);
+                    String key = effectiveBonus ? "gems.bonus.cannot_claim_passive" : "gems.prism.cannot_select_passive";
+                    player.sendMessage(Text.translatable(key), true);
                 }
             }
         } else {
             // Releasing
             if (payload.isAbility()) {
-                prismState.removeAbility(playerId, powerId);
-                GemAbility ability = ModAbilities.get(powerId);
-                String name = ability != null ? ability.name() : powerId.toString();
-                player.sendMessage(Text.translatable("gems.prism.released_ability", name), false);
-            } else {
-                // Remove passive effect first
-                GemPassive passive = ModPassives.get(powerId);
-                if (passive != null) {
-                    passive.remove(player);
+                if (effectiveBonus) {
+                    bonusClaims.releaseAbility(playerId, powerId);
+                    GemAbility ability = ModAbilities.get(powerId);
+                    String name = ability != null ? ability.name() : powerId.toString();
+                    player.sendMessage(Text.translatable("gems.bonus.released_ability", name), false);
+                } else {
+                    prismState.removeAbility(playerId, powerId);
+                    GemAbility ability = ModAbilities.get(powerId);
+                    String name = ability != null ? ability.name() : powerId.toString();
+                    player.sendMessage(Text.translatable("gems.prism.released_ability", name), false);
                 }
-                prismState.removePassive(playerId, powerId);
-                String name = passive != null ? passive.name() : powerId.toString();
-                player.sendMessage(Text.translatable("gems.prism.released_passive", name), false);
+            } else {
+                GemPassive passive = ModPassives.get(powerId);
+                if (passive != null) passive.remove(player);
+                if (effectiveBonus) {
+                    bonusClaims.releasePassive(playerId, powerId);
+                    String name = passive != null ? passive.name() : powerId.toString();
+                    player.sendMessage(Text.translatable("gems.bonus.released_passive", name), false);
+                } else {
+                    prismState.removePassive(playerId, powerId);
+                    String name = passive != null ? passive.name() : powerId.toString();
+                    player.sendMessage(Text.translatable("gems.prism.released_passive", name), false);
+                }
             }
         }
 
         GemStateSync.sendPrismAbilitiesSync(player);
+        GemStateSync.sendBonusAbilitiesSync(player);
+        GemCooldownSync.send(player);
+        com.feel.gems.power.runtime.GemPowers.sync(player);
 
         // Refresh the screen
         openEditor(player);

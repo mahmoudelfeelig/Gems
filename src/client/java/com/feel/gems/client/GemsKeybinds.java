@@ -5,12 +5,20 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.net.ActivateAbilityPayload;
 import com.feel.gems.net.ActivateBonusAbilityPayload;
+import com.feel.gems.net.AugmentOpenRequestPayload;
+import com.feel.gems.net.InscriptionOpenRequestPayload;
 import com.feel.gems.net.BonusSelectionOpenRequestPayload;
 import com.feel.gems.net.FluxChargePayload;
+import com.feel.gems.net.LoadoutOpenRequestPayload;
 import com.feel.gems.net.PrismSelectionOpenRequestPayload;
 import com.feel.gems.net.SpyObservedOpenRequestPayload;
 import com.feel.gems.net.SoulReleasePayload;
 import com.feel.gems.net.SummonerLoadoutOpenRequestPayload;
+import com.feel.gems.net.TitleSelectionOpenRequestPayload;
+import com.feel.gems.net.TrophyNecklaceOpenRequestPayload;
+import com.feel.gems.client.screen.GuidebookScreen;
+import com.feel.gems.item.GemItem;
+import com.feel.gems.legendary.LegendaryItem;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
@@ -32,6 +40,12 @@ public final class GemsKeybinds {
     private static KeyBinding[] BONUS_ABILITY_KEYS;
     private static KeyBinding BONUS_SCREEN_KEY;
     private static KeyBinding SPY_OBSERVED_SCREEN_KEY;
+    private static KeyBinding TROPHY_NECKLACE_SCREEN_KEY;
+    private static KeyBinding LOADOUT_PRESETS_KEY;
+    private static KeyBinding AUGMENT_SCREEN_KEY;
+    private static KeyBinding GUIDEBOOK_KEY;
+    private static KeyBinding TITLE_SCREEN_KEY;
+    private static KeyBinding TOGGLE_CONTROL_MODE_KEY;
 
     private GemsKeybinds() {
     }
@@ -61,6 +75,24 @@ public final class GemsKeybinds {
 
         // Spy observed abilities screen keybind (O by default)
         SPY_OBSERVED_SCREEN_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.spy_observed_screen", GLFW.GLFW_KEY_O, CATEGORY));
+
+        // Trophy Necklace screen keybind (P by default)
+        TROPHY_NECKLACE_SCREEN_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.trophy_necklace_screen", GLFW.GLFW_KEY_P, CATEGORY));
+
+        // Loadout presets screen keybind (L by default)
+        LOADOUT_PRESETS_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.loadout_presets", GLFW.GLFW_KEY_L, CATEGORY));
+
+        // Augment management screen keybind (U by default)
+        AUGMENT_SCREEN_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.augment_screen", GLFW.GLFW_KEY_U, CATEGORY));
+
+        // Guidebook keybind (tilde by default)
+        GUIDEBOOK_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.guidebook", GLFW.GLFW_KEY_GRAVE_ACCENT, CATEGORY));
+
+        // Title selection screen keybind (M by default)
+        TITLE_SCREEN_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.title_screen", GLFW.GLFW_KEY_M, CATEGORY));
+
+        // Toggle control mode keybind (unbound by default - user can assign)
+        TOGGLE_CONTROL_MODE_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.gems.toggle_control_mode", GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
     }
 
     public static boolean isModifierDown() {
@@ -119,6 +151,48 @@ public final class GemsKeybinds {
         if (SPY_OBSERVED_SCREEN_KEY != null && client.currentScreen == null) {
             while (SPY_OBSERVED_SCREEN_KEY.wasPressed()) {
                 openSpyObservedScreen(client);
+            }
+        }
+
+        // Trophy Necklace screen key
+        if (TROPHY_NECKLACE_SCREEN_KEY != null && client.currentScreen == null) {
+            while (TROPHY_NECKLACE_SCREEN_KEY.wasPressed()) {
+                openTrophyNecklaceScreen(client);
+            }
+        }
+
+        // Loadout presets screen key
+        if (LOADOUT_PRESETS_KEY != null && client.currentScreen == null) {
+            while (LOADOUT_PRESETS_KEY.wasPressed()) {
+                openLoadoutPresetsScreen(client);
+            }
+        }
+
+        // Augment screen key
+        if (AUGMENT_SCREEN_KEY != null && client.currentScreen == null) {
+            while (AUGMENT_SCREEN_KEY.wasPressed()) {
+                openAugmentScreen(client);
+            }
+        }
+
+        // Guidebook key
+        if (GUIDEBOOK_KEY != null && client.currentScreen == null) {
+            while (GUIDEBOOK_KEY.wasPressed()) {
+                GuidebookScreen.open(client);
+            }
+        }
+
+        // Title selection screen key
+        if (TITLE_SCREEN_KEY != null && client.currentScreen == null) {
+            while (TITLE_SCREEN_KEY.wasPressed()) {
+                openTitleSelectionScreen(client);
+            }
+        }
+
+        // Toggle control mode key
+        if (TOGGLE_CONTROL_MODE_KEY != null) {
+            while (TOGGLE_CONTROL_MODE_KEY.wasPressed()) {
+                toggleControlMode(client);
             }
         }
         
@@ -185,6 +259,14 @@ public final class GemsKeybinds {
         ClientPlayNetworking.send(BonusSelectionOpenRequestPayload.INSTANCE);
     }
 
+    private static void openTrophyNecklaceScreen(MinecraftClient client) {
+        if (client.getNetworkHandler() == null) {
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
+            return;
+        }
+        ClientPlayNetworking.send(TrophyNecklaceOpenRequestPayload.INSTANCE);
+    }
+
     private static void openSpyObservedScreen(MinecraftClient client) {
         if (client.getNetworkHandler() == null) {
             sendActionBar(client, Text.translatable("gems.client.not_connected"));
@@ -195,11 +277,66 @@ public final class GemsKeybinds {
             return;
         }
         GemId gem = ClientGemState.activeGem();
-        if (gem != GemId.SPY_MIMIC && gem != GemId.PRISM) {
+        if (gem != GemId.SPY && gem != GemId.PRISM) {
             sendActionBar(client, Text.translatable("gems.spy.observed.not_spy"));
             return;
         }
         ClientPlayNetworking.send(SpyObservedOpenRequestPayload.INSTANCE);
+    }
+
+    private static void openTitleSelectionScreen(MinecraftClient client) {
+        if (client.getNetworkHandler() == null) {
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
+            return;
+        }
+        ClientPlayNetworking.send(TitleSelectionOpenRequestPayload.INSTANCE);
+    }
+
+    private static void openLoadoutPresetsScreen(MinecraftClient client) {
+        if (client.getNetworkHandler() == null) {
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
+            return;
+        }
+        if (!ClientGemState.isInitialized()) {
+            sendActionBar(client, Text.translatable("gems.client.gem_state_not_synced"));
+            return;
+        }
+        ClientPlayNetworking.send(new LoadoutOpenRequestPayload(ClientGemState.activeGem()));
+    }
+
+    private static void openAugmentScreen(MinecraftClient client) {
+        if (client.getNetworkHandler() == null) {
+            sendActionBar(client, Text.translatable("gems.client.not_connected"));
+            return;
+        }
+        if (client.player == null) {
+            return;
+        }
+        boolean mainHandGem = client.player.getMainHandStack().getItem() instanceof GemItem;
+        boolean offHandGem = client.player.getOffHandStack().getItem() instanceof GemItem;
+        if (mainHandGem || offHandGem) {
+            ClientPlayNetworking.send(new AugmentOpenRequestPayload(mainHandGem));
+            return;
+        }
+        boolean mainHandLegendary = client.player.getMainHandStack().getItem() instanceof LegendaryItem;
+        boolean offHandLegendary = client.player.getOffHandStack().getItem() instanceof LegendaryItem;
+        if (mainHandLegendary || offHandLegendary) {
+            ClientPlayNetworking.send(new InscriptionOpenRequestPayload(mainHandLegendary));
+            return;
+        }
+        sendActionBar(client, Text.translatable("gems.augment.need_gem_or_legendary"));
+    }
+
+    private static void toggleControlMode(MinecraftClient client) {
+        GemsClientConfig cfg = GemsClientConfigManager.config();
+        if (cfg.controlMode == GemsClientConfig.ControlMode.CHORD) {
+            cfg.controlMode = GemsClientConfig.ControlMode.CUSTOM;
+            sendActionBar(client, Text.translatable("gems.controls.mode.custom"));
+        } else {
+            cfg.controlMode = GemsClientConfig.ControlMode.CHORD;
+            sendActionBar(client, Text.translatable("gems.controls.mode.chord"));
+        }
+        GemsClientConfigManager.save(cfg);
     }
 
     public static boolean useChordControls() {
@@ -247,10 +384,10 @@ public final class GemsKeybinds {
             return;
         }
 
-        // Chaos: has 4 independent slots (0-3), each can be rolled or used
+        // Chaos: has independent slots, each can be rolled or used
         if (ClientGemState.activeGem() == GemId.CHAOS) {
             int slotIndex = slotNumber - 1;
-            if (slotIndex < 0 || slotIndex >= ClientChaosState.SLOT_COUNT) {
+            if (slotIndex < 0 || slotIndex >= ClientChaosState.slotCount()) {
                 return;
             }
             // Server handles both rolling new abilities and using existing ones

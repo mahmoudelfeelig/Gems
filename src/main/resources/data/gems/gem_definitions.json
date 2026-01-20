@@ -93,7 +93,8 @@
         "gems:terminal_velocity",
         "gems:speed_slipstream",
         "gems:speed_afterimage",
-        "gems:speed_tempo_shift"
+        "gems:speed_tempo_shift",
+        "gems:speed_auto_step"
       ]
     },
     {
@@ -171,6 +172,7 @@
       ],
       "abilities": [
         "gems:space_orbital_laser",
+        "gems:space_orbital_laser_mining",
         "gems:space_gravity_field",
         "gems:space_black_hole",
         "gems:space_white_hole"
@@ -212,7 +214,7 @@
       ]
     },
     {
-      "id": "spy_mimic",
+      "id": "spy",
       "passives": [
         "gems:spy_stillness_cloak",
         "gems:spy_silent_step",
@@ -307,7 +309,8 @@
         "gems:hunter_net_shot",
         "gems:hunter_crippling_shot",
         "gems:hunter_pack_tactics",
-        "gems:hunter_call_the_pack"
+        "gems:hunter_call_the_pack",
+        "gems:hunter_origin_tracking"
       ]
     },
     {

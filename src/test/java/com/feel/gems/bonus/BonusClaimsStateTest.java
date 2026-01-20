@@ -198,7 +198,7 @@ public class BonusClaimsStateTest {
                 PowerIds.BONUS_THORNS_AURA, player1
         );
         
-        BonusClaimsState restored = new BonusClaimsState(abilityClaims, passiveClaims);
+        BonusClaimsState restored = new BonusClaimsState(abilityClaims, passiveClaims, Map.of());
         
         assertEquals(player1, restored.getAbilityClaimant(PowerIds.BONUS_THUNDERSTRIKE));
         assertEquals(player2, restored.getAbilityClaimant(PowerIds.BONUS_FROSTBITE));

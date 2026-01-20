@@ -78,7 +78,7 @@ public final class PowerIds {
     public static final Identifier PILLAGER_CROSSBOW_MASTERY = id("pillager_crossbow_mastery");
     public static final Identifier PILLAGER_RAIDER_STRIDE = id("pillager_raider_stride");
 
-    // Spy/Mimic (new)
+    // Spy
     public static final Identifier SPY_STILLNESS_CLOAK = id("spy_stillness_cloak");
     public static final Identifier SPY_SILENT_STEP = id("spy_silent_step");
     public static final Identifier SPY_FALSE_SIGNATURE = id("spy_false_signature");
@@ -132,6 +132,7 @@ public final class PowerIds {
     public static final Identifier SPEED_SLIPSTREAM = id("speed_slipstream");
     public static final Identifier SPEED_AFTERIMAGE = id("speed_afterimage");
     public static final Identifier SPEED_TEMPO_SHIFT = id("speed_tempo_shift");
+    public static final Identifier SPEED_AUTO_STEP = id("speed_auto_step");
 
     public static final Identifier NULLIFY = id("nullify");
     public static final Identifier FRAILER = id("frailer");
@@ -160,7 +161,9 @@ public final class PowerIds {
     public static final Identifier SUMMON_RECALL = id("summon_recall");
 
     // Space (new)
-    public static final Identifier SPACE_ORBITAL_LASER = id("space_orbital_laser");
+    // Space
+    public static final Identifier SPACE_ORBITAL_LASER = id("space_orbital_laser"); // damage (legacy id)
+    public static final Identifier SPACE_ORBITAL_LASER_MINING = id("space_orbital_laser_mining");
     public static final Identifier SPACE_GRAVITY_FIELD = id("space_gravity_field");
     public static final Identifier SPACE_BLACK_HOLE = id("space_black_hole");
     public static final Identifier SPACE_WHITE_HOLE = id("space_white_hole");
@@ -182,7 +185,7 @@ public final class PowerIds {
     public static final Identifier PILLAGER_WARHORN = id("pillager_warhorn");
     public static final Identifier PILLAGER_SNARE = id("pillager_snare");
 
-    // Spy/Mimic (new)
+    // Spy
     public static final Identifier SPY_MIMIC_FORM = id("spy_mimic_form");
     public static final Identifier SPY_ECHO = id("spy_echo");
     public static final Identifier SPY_STEAL = id("spy_steal");
@@ -236,6 +239,7 @@ public final class PowerIds {
     public static final Identifier HUNTER_CRIPPLING_SHOT = id("hunter_crippling_shot");
     public static final Identifier HUNTER_PACK_TACTICS = id("hunter_pack_tactics");
     public static final Identifier HUNTER_CALL_THE_PACK = id("hunter_call_the_pack");
+    public static final Identifier HUNTER_ORIGIN_TRACKING = id("hunter_origin_tracking");
 
     // Sentinel gem
     public static final Identifier SENTINEL_GUARDIAN_AURA = id("sentinel_guardian_aura");
@@ -288,20 +292,26 @@ public final class PowerIds {
     public static final Identifier BONUS_SANCTUARY = id("bonus_sanctuary");
     // New bonus abilities (30 more)
     public static final Identifier BONUS_SPECTRAL_CHAINS = id("bonus_spectral_chains");       // Root enemies in place with ghostly chains
+    public static final Identifier BONUS_VOID_RIFT = id("bonus_void_rift");                   // Rift that damages enemies who touch it
     public static final Identifier BONUS_SOUL_LINK = id("bonus_soul_link");                   // Link with target - damage you take is split between you
     public static final Identifier BONUS_INFERNO_DASH = id("bonus_inferno_dash");             // Dash forward leaving a trail of fire
     public static final Identifier BONUS_TIDAL_WAVE = id("bonus_tidal_wave");                 // Summon a wave that knocks back and slows enemies
     public static final Identifier BONUS_STARFALL = id("bonus_starfall");                     // Rain down small meteors in an area
     public static final Identifier BONUS_BLOODLUST = id("bonus_bloodlust");                   // Gain attack speed for each nearby enemy
     public static final Identifier BONUS_CRYSTAL_CAGE = id("bonus_crystal_cage");             // Trap target in an unbreakable crystal for 3 seconds
+    public static final Identifier BONUS_PHANTASM = id("bonus_phantasm");                     // Create a decoy that taunts and explodes
     public static final Identifier BONUS_MIRROR_IMAGE = id("bonus_mirror_image");             // Create 3 illusions of yourself that confuse enemies
     public static final Identifier BONUS_SONIC_BOOM = id("bonus_sonic_boom");                 // Emit a shockwave that deafens and staggers enemies
     public static final Identifier BONUS_VAMPIRIC_TOUCH = id("bonus_vampiric_touch");         // Drain health from touched enemy over time
+    public static final Identifier BONUS_BLINDING_FLASH = id("bonus_blinding_flash");         // Blind all nearby enemies
+    public static final Identifier BONUS_STORM_CALL = id("bonus_storm_call");                 // Lightning storm in an area
     public static final Identifier BONUS_SMOKE_SCREEN = id("bonus_smoke_screen");             // Create a smoke cloud granting invisibility inside
     public static final Identifier BONUS_THORNS_NOVA = id("bonus_thorns_nova");               // Explode thorns outward, damaging all nearby enemies
     public static final Identifier BONUS_QUICKSAND = id("bonus_quicksand");                   // Create a zone that slows and sinks enemies
     public static final Identifier BONUS_SEARING_LIGHT = id("bonus_searing_light");           // Beam of holy light that burns undead extra
     public static final Identifier BONUS_SPECTRAL_BLADE = id("bonus_spectral_blade");         // Summon a ghostly sword that attacks nearby enemies
+    public static final Identifier BONUS_NETHER_PORTAL = id("bonus_nether_portal");           // Short-range teleport through a rift
+    public static final Identifier BONUS_ENTANGLE = id("bonus_entangle");                     // Vines erupt to root enemies
     public static final Identifier BONUS_BLINK = id("bonus_blink");                           // Instant micro-teleport (5 blocks) with no cooldown indicator
     public static final Identifier BONUS_PURGE = id("bonus_purge");                           // Remove all buffs from target enemy
     public static final Identifier BONUS_MIND_SPIKE = id("bonus_mind_spike");                 // Psychic damage that also reveals enemy location
@@ -310,6 +320,8 @@ public final class PowerIds {
     public static final Identifier BONUS_BANISHMENT = id("bonus_banishment");                 // Teleport enemy far away randomly
     public static final Identifier BONUS_CORPSE_EXPLOSION = id("bonus_corpse_explosion");     // Detonate nearby corpses for AoE damage
     public static final Identifier BONUS_SOUL_SWAP = id("bonus_soul_swap");                   // Swap positions with target player/mob
+    public static final Identifier BONUS_MARK_OF_DEATH = id("bonus_mark_of_death");           // Mark target to take bonus damage
+    public static final Identifier BONUS_IRON_MAIDEN = id("bonus_iron_maiden");               // Reflect damage to attackers for duration
     public static final Identifier BONUS_VULNERABILITY = id("bonus_vulnerability");           // Reduce target's armor and resistances temporarily
     public static final Identifier BONUS_REFLECTION_WARD = id("bonus_reflection_ward");       // Next 3 projectiles are reflected back at attackers
     public static final Identifier BONUS_WARP_STRIKE = id("bonus_warp_strike");               // Teleport behind target and strike

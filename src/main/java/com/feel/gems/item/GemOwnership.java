@@ -79,6 +79,32 @@ public final class GemOwnership {
         return GemsNbt.getUuid(custom.copyNbt(), KEY_OWNER);
     }
 
+    public static void tagUnownedGems(ServerPlayerEntity player) {
+        if (player == null) {
+            return;
+        }
+        GemPlayerState.initIfNeeded(player);
+        int epoch = GemPlayerState.getGemEpoch(player);
+        for (ItemStack stack : player.getInventory().getMainStacks()) {
+            tagIfMissingOwner(stack, player, epoch);
+        }
+        tagIfMissingOwner(player.getOffHandStack(), player, epoch);
+        tagIfMissingOwner(player.getEquippedStack(net.minecraft.entity.EquipmentSlot.HEAD), player, epoch);
+        tagIfMissingOwner(player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST), player, epoch);
+        tagIfMissingOwner(player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS), player, epoch);
+        tagIfMissingOwner(player.getEquippedStack(net.minecraft.entity.EquipmentSlot.FEET), player, epoch);
+    }
+
+    private static void tagIfMissingOwner(ItemStack stack, ServerPlayerEntity player, int epoch) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof GemItem)) {
+            return;
+        }
+        if (ownerUuid(stack) != null) {
+            return;
+        }
+        tagOwned(stack, player.getUuid(), epoch);
+    }
+
     public static boolean isInvalidForEpoch(MinecraftServer server, ItemStack stack) {
         if (!(stack.getItem() instanceof GemItem)) {
             return false;
@@ -137,8 +163,8 @@ public final class GemOwnership {
     public static void applyOwnerPenalty(ServerPlayerEntity owner) {
         GemPlayerState.initIfNeeded(owner);
         GemPlayerState.addMaxHearts(owner, -2);
-        int energy = GemPlayerState.getEnergy(owner);
-        GemPlayerState.setEnergy(owner, Math.min(energy, 1));
+        // int energy = GemPlayerState.getEnergy(owner);
+        // GemPlayerState.setEnergy(owner, Math.min(energy, 1));
         GemPlayerState.applyMaxHearts(owner);
         ((com.feel.gems.state.GemsPersistentDataHolder) owner).gems$getPersistentData().putBoolean(KEY_SKIP_HEART_DROP, true);
         owner.damage(owner.getEntityWorld(), owner.getDamageSources().magic(), Float.MAX_VALUE);

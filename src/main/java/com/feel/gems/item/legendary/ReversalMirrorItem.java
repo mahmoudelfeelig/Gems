@@ -1,6 +1,8 @@
 package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.admin.GemsAdmin;
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.state.PlayerStateManager;
 import java.util.function.Consumer;
@@ -28,8 +30,6 @@ import net.minecraft.world.World;
  */
 public final class ReversalMirrorItem extends Item implements LegendaryItem {
     private static final String ACTIVE_END_KEY = "reversal_mirror_end";
-    private static final int DURATION_TICKS = 5 * 20;
-    private static final int COOLDOWN_TICKS = 60 * 20;
     private static final ThreadLocal<Boolean> REFLECTING = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     public ReversalMirrorItem(Settings settings) {
@@ -50,15 +50,19 @@ public final class ReversalMirrorItem extends Item implements LegendaryItem {
         ItemStack stack = player.getStackInHand(hand);
 
         // Check cooldown
-        if (player.getItemCooldownManager().isCoolingDown(stack)) {
+        if (player.getItemCooldownManager().isCoolingDown(stack) && !GemsAdmin.noLegendaryCooldowns(player)) {
             return ActionResult.FAIL;
         }
 
         // Activate mirror
-        long endTime = world.getTime() + DURATION_TICKS;
+        int durationTicks = GemsBalance.v().legendary().reversalMirrorDurationTicks();
+        long endTime = world.getTime() + Math.max(0, durationTicks);
         PlayerStateManager.setPersistent(player, ACTIVE_END_KEY, String.valueOf(endTime));
 
-        player.getItemCooldownManager().set(stack, COOLDOWN_TICKS);
+        int cooldownTicks = GemsBalance.v().legendary().reversalMirrorCooldownTicks();
+        if (cooldownTicks > 0 && !GemsAdmin.noLegendaryCooldowns(player)) {
+            player.getItemCooldownManager().set(stack, cooldownTicks);
+        }
         world.playSound(null, player.getX(), player.getY(), player.getZ(), 
                 SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 1.0F, 1.5F);
 

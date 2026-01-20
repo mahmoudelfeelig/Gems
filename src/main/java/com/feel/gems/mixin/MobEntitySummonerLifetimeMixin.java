@@ -25,6 +25,9 @@ public abstract class MobEntitySummonerLifetimeMixin {
         if (!SummonerSummons.isSummon(self)) {
             return;
         }
+        if (self.getCommandTags().contains("gems_spectral_blade")) {
+            return;
+        }
 
         UUID ownerUuid = SummonerSummons.ownerUuid(self);
         if (ownerUuid == null) {

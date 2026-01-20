@@ -58,6 +58,7 @@ public final class FumbleAbility implements GemAbility {
                     continue;
                 }
                 WealthFumble.apply(otherPlayer, duration);
+                otherPlayer.stopUsingItem();
             } else {
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, duration, 0, true, false, false));
                 other.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0, true, false, false));

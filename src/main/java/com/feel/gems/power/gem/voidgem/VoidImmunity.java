@@ -1,6 +1,7 @@
 package com.feel.gems.power.gem.voidgem;
 
 import com.feel.gems.core.GemId;
+import com.feel.gems.mastery.GemMastery;
 import com.feel.gems.state.GemPlayerState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -53,7 +54,12 @@ public final class VoidImmunity {
         if (sourcePlayer == targetPlayer) {
             return false; // Self-targeting abilities aren't blocked
         }
-        return hasImmunity(targetPlayer);
+        boolean blocked = hasImmunity(targetPlayer);
+        if (blocked) {
+            // Track mastery progress for Void gem when blocking an effect
+            GemMastery.incrementUsage(targetPlayer, GemId.VOID);
+        }
+        return blocked;
     }
     
     /**

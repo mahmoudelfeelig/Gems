@@ -22,7 +22,7 @@ public final class BonusXpBoostPassive implements GemPassive {
 
     @Override
     public String description() {
-        return "Gain 50% bonus XP from all sources.";
+        return "Gain 25% bonus XP from all sources.";
     }
 
     @Override

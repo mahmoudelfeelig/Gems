@@ -72,7 +72,7 @@ public final class BonusSearingLightAbility implements GemAbility {
                     damage += UNDEAD_BONUS;
                     entity.setOnFireFor(5);
                 }
-                entity.damage(world, world.getDamageSources().magic(), damage);
+                entity.damage(world, player.getDamageSources().indirectMagic(player, player), damage);
             }
         }
 

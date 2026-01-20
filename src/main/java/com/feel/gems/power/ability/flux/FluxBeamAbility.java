@@ -80,7 +80,7 @@ public final class FluxBeamAbility implements GemAbility {
         }
 
         ServerWorld world = player.getEntityWorld();
-        DamageSource source = player.getDamageSources().magic();
+        DamageSource source = player.getDamageSources().indirectMagic(player, player);
         target.damage(world, source, damage);
         if (target instanceof ServerPlayerEntity victim) {
             damageArmor(victim, durabilityDamage);

@@ -25,6 +25,9 @@ public abstract class EntitySummonDiscardMixin {
         if (!SummonerSummons.isSummon(mob)) {
             return;
         }
+        if (mob.getCommandTags().contains("gems_spectral_blade")) {
+            return;
+        }
         if (!(mob.getEntityWorld() instanceof ServerWorld world)) {
             return;
         }

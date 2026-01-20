@@ -46,6 +46,7 @@ public abstract class ItemEntityDecoyTrapMixin {
         if (!(self.getEntityWorld() instanceof ServerWorld world)) {
             return;
         }
+        BonusDecoyTrapAbility.tickTrapItem(self);
         if (this.pickupDelay > 0) {
             return;
         }

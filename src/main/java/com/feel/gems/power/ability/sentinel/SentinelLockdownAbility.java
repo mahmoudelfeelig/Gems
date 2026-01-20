@@ -28,7 +28,7 @@ public final class SentinelLockdownAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Create a zone where enemies cannot use movement abilities for 10s.";
+        return "Create a zone where enemies cannot use abilities for 10s.";
     }
 
     @Override

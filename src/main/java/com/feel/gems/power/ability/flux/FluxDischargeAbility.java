@@ -62,7 +62,7 @@ public final class FluxDischargeAbility implements GemAbility {
             if (other instanceof ServerPlayerEntity otherPlayer && !VoidImmunity.canBeTargeted(player, otherPlayer)) {
                 continue;
             }
-            other.damage(world, player.getDamageSources().magic(), damage);
+            other.damage(world, player.getDamageSources().indirectMagic(player, player), damage);
             if (knockback > 0.0D) {
                 Vec3d delta = other.getEntityPos().subtract(player.getEntityPos());
                 if (delta.lengthSquared() > 1.0E-4D) {

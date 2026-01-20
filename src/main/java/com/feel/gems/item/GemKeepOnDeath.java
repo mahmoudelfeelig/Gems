@@ -1,13 +1,14 @@
 package com.feel.gems.item;
 
+import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.core.GemId;
 import com.feel.gems.state.GemPlayerState;
-import com.feel.gems.state.GemsPersistentDataHolder;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.world.rule.GameRules;
 
 
 
@@ -22,6 +23,9 @@ public final class GemKeepOnDeath {
     }
 
     public static void stash(ServerPlayerEntity player) {
+        if (player.getEntityWorld().getGameRules().getValue(GameRules.KEEP_INVENTORY)) {
+            return;
+        }
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         root.remove(KEY_KEPT_GEMS);
 

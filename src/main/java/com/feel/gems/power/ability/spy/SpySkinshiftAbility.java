@@ -2,7 +2,7 @@ package com.feel.gems.power.ability.spy;
 
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.api.GemAbility;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.util.Targeting;
@@ -29,12 +29,12 @@ public final class SpySkinshiftAbility implements GemAbility {
 
     @Override
     public int cooldownTicks() {
-        return GemsBalance.v().spyMimic().skinshiftCooldownTicks();
+        return GemsBalance.v().spy().skinshiftCooldownTicks();
     }
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int range = GemsBalance.v().spyMimic().skinshiftRangeBlocks();
+        int range = GemsBalance.v().spy().skinshiftRangeBlocks();
         ServerPlayerEntity other = Targeting.raycastPlayer(player, range);
         if (other == null || other == player) {
             player.sendMessage(Text.translatable("gems.message.no_player_target"), true);
@@ -44,11 +44,11 @@ public final class SpySkinshiftAbility implements GemAbility {
             player.sendMessage(Text.translatable("gems.message.target_immune"), true);
             return false;
         }
-        int duration = GemsBalance.v().spyMimic().skinshiftDurationTicks();
+        int duration = GemsBalance.v().spy().skinshiftDurationTicks();
         if (duration <= 0) {
             player.sendMessage(Text.translatable("gems.ability.spy.skinshift.disabled"), true);
             return false;
         }
-        return SpyMimicSystem.startSkinshift(player, other, duration);
+        return SpySystem.startSkinshift(player, other, duration);
     }
 }

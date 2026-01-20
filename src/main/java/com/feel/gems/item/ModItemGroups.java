@@ -49,6 +49,12 @@ public final class ModItemGroups {
                             entries.add(ModItems.ENERGY_UPGRADE);
                             entries.add(ModItems.GEM_TRADER);
                             entries.add(ModItems.GEM_PURCHASE);
+                            entries.add(ModItems.GEM_AUGMENT_FOCUS);
+                            entries.add(ModItems.GEM_AUGMENT_RESONANCE);
+                            entries.add(ModItems.GEM_AUGMENT_PERSISTENCE);
+                            entries.add(ModItems.LEGENDARY_INSCRIPTION_EDGE);
+                            entries.add(ModItems.LEGENDARY_INSCRIPTION_SWIFT);
+                            entries.add(ModItems.LEGENDARY_INSCRIPTION_WARD);
                             entries.add(ModItems.TEST_DUMMY_SPAWN_EGG);
                             
                             // === LEGENDARY ITEMS ===

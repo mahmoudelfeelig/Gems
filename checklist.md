@@ -66,7 +66,7 @@ This file is the developer-facing source-of-truth for implemented gameplay mecha
 
 ## Recipes and unlocks
 
-- All recipes unlock automatically on player join.
+- All gems recipes unlock automatically on player join.
 - Recipe sources:
   - Core items + legendary items: `src/main/resources/data/gems/recipe/*.json`
   - Discount recipes: `*_discount` variants
@@ -102,7 +102,7 @@ This file is the developer-facing source-of-truth for implemented gameplay mecha
 
 ### Chaos
 
-- Chaos provides 4 independent random ability slots (tied to the Chaos Agent passive).
+- Chaos provides configurable independent random ability slots (tied to the Chaos Agent passive).
 
 ### Prism
 
@@ -144,3 +144,114 @@ This file is the developer-facing source-of-truth for implemented gameplay mecha
   - Avoid per-tick world scans when possible.
   - Cache player state and cleanly register/unregister listeners.
   - Keep abilities server-authoritative; client should be UI only.
+
+## Planned feature scope
+
+### Loadout presets
+
+- Presets unlock at **energy 6** (no new power; UI/quality-of-life unlock).
+- Presets are per-gem saved ability order + passive toggles + HUD layout.
+- Preset swaps are server-authoritative and must respect current unlocks/energy gating.
+
+### Gem augments
+
+- Augments are craftable items for both gems and legendary items.
+- Recipes must require **player heads** and otherwise use **unique ingredients**.
+- Augments apply configurable modifiers to abilities/passives with caps and conflicts.
+- All slot counts, rarity tiers, roll weights, and magnitude ranges are **configurable**.
+- Gem augments:
+  - Max slots (default **4**).
+  - Rarity tiers (default **3**).
+- Draft recipe direction (subject to balance tuning):
+  - Gem augment core: `player_head` + `echo_shard` + `nether_star` + gem-aligned ingredient.
+  - Legendary inscription core: `player_head` + `ancient_debris` + `dragon_breath` + legendary-aligned ingredient.
+  - Each augment type adds a unique catalyst (e.g., wind charge for mobility, blaze rod for fire, phantom membrane for evasion).
+  - Output is an augment item tagged with its target (gem/legendary) and modifier id.
+
+### Legendary item customization
+
+- Legendary items accept augment-style customizations (inscriptions/sockets).
+- Customizations are data-driven and capped per item.
+- All slot counts, rarity tiers, roll weights, and magnitude ranges are **configurable**.
+- Legendary customizations:
+  - Max slots (default **2**).
+  - Rarity tiers (default **3**).
+  - Two categories: **universal** (works on all legendary items) and **item-specific** (bound to a single legendary item).
+
+### Team synergies
+
+- Synergies trigger when two different gem abilities are cast within a short window.
+- Must work for multi-gem players casting their own abilities and across trusted allies.
+- Synergy triggers are event-driven (no heavy per-tick scans).
+
+### Gem mastery tracks (cosmetic)
+
+- Per-gem mastery tracks unlock **titles** and **aura particles** only.
+- Players can customize and mix unlocked titles/aura cosmetics.
+
+### Rivalry system
+
+- On spawn, assign **one target** you deal extra damage to (no “take more damage” rival).
+- Target can be trusted; cannot be yourself.
+- The bonus persists until you **kill the target**, then reroll (target may repeat).
+- Works with only 2 players online (always picks the other player).
+- Damage bonus is configurable (per-rarity or flat).
+
+## Testing coverage gaps (to reach full coverage)
+
+### Abilities (beyond smoke tests)
+
+- Summoner: slots 2-5 activation/cooldowns and point cap behavior.
+- Beacon: aura types Speed/Haste/Jump/Regeneration activation and toggling.
+- Chaos: slot roll, ability use cooldown, expiry, and passive apply/remove per slot.
+- Astra: Soul Release (capture -> release flow, blacklist, no loot/XP).
+- Duelist: Mirror Match barrier confinement behavior + skin/name copy.
+- Hunter: Origin Tracking (first-owner tracking, offline owner message).
+- Spy: Skinshift (name/skin/chat lock behavior).
+- Sentinel: Lockdown zone blocks movement abilities.
+- Trickster: Puppet Master and Mind Games effect enforcement.
+
+### Non-bonus passives (missing explicit tests)
+
+- Astra: Soul Capture, Soul Healing.
+- Fire: Fire Resistance, Auto Smelt, Auto-enchant Fire Aspect.
+- Flux: Ally Inversion, Overcharge Ramp, Capacitor, Conductivity, Insulation.
+- Life: Auto-enchant Unbreaking, Double Saturation.
+- Puff: Fall Damage Immunity, Auto-enchant Power, Auto-enchant Punch, Sculk Silence, Crop-trample Immunity, Windborne.
+- Speed: Speed I, Haste I, Frictionless Steps.
+- Strength: Strength I, Auto-enchant Sharpness, Adrenaline.
+- Wealth: Auto-enchant Mending, Auto-enchant Fortune, Auto-enchant Looting, Luck, Hero of the Village, Durability Chip, Armor Mend on Hit, Double Debris.
+- Terror: Blood Price.
+- Summoner: Bond, Commander’s Mark, Soulbound Minions, Familiar’s Blessing.
+- Space: Low Gravity, Starshield.
+- Reaper: Rot Eater, Undead Ward, Harvest.
+- Pillager: Raider’s Training, Shieldbreaker, Crossbow Mastery, Raider’s Stride.
+- Spy: Stillness Cloak, Silent Step, False Signature, Backstab, Backstep, Quick Hands.
+- Beacon: Beacon Core, Stabilize, Rally (status pulses).
+- Air: Windburst Mace, Aerial Guard, Wind Shear.
+- Chaos: Random Rotation passive.
+- Duelist: Combat Stance.
+- Hunter: Tracker’s Eye.
+- Sentinel: Fortress, Retribution Thorns.
+- Trickster: Slippery.
+
+### Legendary items (missing gametests)
+
+- Tracker Compass (tracking UI + last-known coords).
+- Recall Relic (mark/teleport/forceload lifecycle).
+- Hypno Staff (conversion window, blacklist, AI priority).
+- Earthsplitter Pick (mode toggle and block blacklist).
+- Supreme armor set (piece + full-set effects).
+- Blood Oath Blade (kill tracking, Sharpness cap).
+- Demolition Blade (charge placement + detonation).
+- Hunter’s Sight Bow (aim assist behavior).
+- Third-Strike Blade (third-crit bonus within window).
+- Vampiric Edge (crit heal).
+- Gem Seer (player selection + info display).
+- Duelist’s Rapier (parry window + guaranteed crit).
+- Experience Blade (XP -> Sharpness scaling and persistence).
+- Reversal Mirror (reflect duration + attacker damage).
+- Hunter’s Trophy Necklace (passive-steal UI + persistence).
+- Gladiator’s Mark (mutual damage amp).
+- Soul Shackle (damage split).
+- Chrono Charm (cooldown reduction + stacking + HUD sync).

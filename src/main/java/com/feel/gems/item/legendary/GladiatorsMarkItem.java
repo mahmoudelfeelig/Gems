@@ -1,6 +1,8 @@
 package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.admin.GemsAdmin;
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.power.util.Targeting;
 import com.feel.gems.state.PlayerStateManager;
@@ -27,9 +29,6 @@ import net.minecraft.world.World;
 public final class GladiatorsMarkItem extends Item implements LegendaryItem {
     private static final String MARK_TARGET_KEY = "gladiators_mark_target";
     private static final String MARK_END_KEY = "gladiators_mark_end";
-    private static final int DURATION_TICKS = 60 * 20;
-    private static final int COOLDOWN_TICKS = 120 * 20;
-    private static final float DAMAGE_MULTIPLIER = 1.5F;
 
     public GladiatorsMarkItem(Settings settings) {
         super(settings);
@@ -49,12 +48,13 @@ public final class GladiatorsMarkItem extends Item implements LegendaryItem {
         ItemStack stack = player.getStackInHand(hand);
 
         // Check cooldown
-        if (player.getItemCooldownManager().isCoolingDown(stack)) {
+        if (player.getItemCooldownManager().isCoolingDown(stack) && !GemsAdmin.noLegendaryCooldowns(player)) {
             return ActionResult.FAIL;
         }
 
         // Raycast to find target
-        ServerPlayerEntity target = Targeting.raycastPlayer(player, 20);
+        int rangeBlocks = GemsBalance.v().legendary().gladiatorsMarkRangeBlocks();
+        ServerPlayerEntity target = Targeting.raycastPlayer(player, rangeBlocks);
         if (target == null) {
             player.sendMessage(Text.translatable("gems.message.no_player_target").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
@@ -64,7 +64,8 @@ public final class GladiatorsMarkItem extends Item implements LegendaryItem {
             return ActionResult.FAIL;
         }
 
-        long endTime = world.getTime() + DURATION_TICKS;
+        int durationTicks = GemsBalance.v().legendary().gladiatorsMarkDurationTicks();
+        long endTime = world.getTime() + Math.max(0, durationTicks);
 
         // Mark both players as linked
         PlayerStateManager.setPersistent(player, MARK_TARGET_KEY, target.getUuidAsString());
@@ -73,7 +74,10 @@ public final class GladiatorsMarkItem extends Item implements LegendaryItem {
         PlayerStateManager.setPersistent(target, MARK_TARGET_KEY, player.getUuidAsString());
         PlayerStateManager.setPersistent(target, MARK_END_KEY, String.valueOf(endTime));
 
-        player.getItemCooldownManager().set(stack, COOLDOWN_TICKS);
+        int cooldownTicks = GemsBalance.v().legendary().gladiatorsMarkCooldownTicks();
+        if (cooldownTicks > 0 && !GemsAdmin.noLegendaryCooldowns(player)) {
+            player.getItemCooldownManager().set(stack, cooldownTicks);
+        }
 
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.ENTITY_WITHER_SPAWN, SoundCategory.PLAYERS, 0.5F, 1.5F);
@@ -105,7 +109,7 @@ public final class GladiatorsMarkItem extends Item implements LegendaryItem {
     }
 
     public static float getDamageMultiplier() {
-        return DAMAGE_MULTIPLIER;
+        return GemsBalance.v().legendary().gladiatorsMarkDamageMultiplier();
     }
 
     public static void clearMark(ServerPlayerEntity player) {

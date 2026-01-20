@@ -124,6 +124,9 @@ public final class BeaconSupportRuntime {
                         other.removeStatusEffect(effect.getEffectType());
                         continue;
                     }
+                    // Vanilla refuses to replace a longer-duration effect with a shorter one, so explicitly
+                    // remove then re-add to ensure the duration is reduced.
+                    other.removeStatusEffect(effect.getEffectType());
                     other.addStatusEffect(new StatusEffectInstance(
                             effect.getEffectType(),
                             remaining,

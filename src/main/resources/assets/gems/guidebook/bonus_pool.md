@@ -1,0 +1,118 @@
+# Bonus abilities and passives
+
+At energy 10/10, any gem holder can claim up to 2 bonus abilities and 2 bonus passives from a server-wide pool. Press B (default keybind) to open the selection UI:
+- Most gems: Bonus Selection screen
+- Prism: Prism Selection screen (includes bonus pool tabs)
+
+**Key mechanics:**
+- Claims are unique per player - once claimed, no other player can use that ability/passive until it is released.
+- Bonus abilities are cast using the `Bonus Ability 1` and `Bonus Ability 2` keybinds (default C and V).
+- Bonus passives are automatically applied while claimed and active.
+- Claims are released when your energy drops below 10 (you will be notified).
+- All bonus abilities have cooldowns and effects that may vary by server balance.
+
+## Bonus abilities (50)
+
+- Thunderstrike: call down a lightning bolt on a targeted location.
+- Frostbite: freeze a target in place briefly with ice damage.
+- Earthshatter: slam the ground to create a damaging shockwave.
+- Shadowstep: teleport a short distance in the direction you're facing.
+- Radiant Burst: emit a burst of holy light that damages and blinds nearby enemies.
+- Venomspray: spray poison in a cone, applying Poison to hit enemies.
+- Timewarp: briefly slow time for enemies in an area.
+- Decoy Trap: place a fake item that explodes when picked up.
+- Gravity Well: create a point that pulls enemies inward.
+- Chain Lightning: launch lightning that bounces between nearby enemies.
+- Magma Pool: create a pool of lava at the target location.
+- Ice Wall: summon a wall of ice blocks to block movement.
+- Wind Slash: send a cutting wind projectile forward.
+- Curse Bolt: fire a projectile that applies random negative effects.
+- Berserker Rage: gain massive damage boost but take increased damage.
+- Ethereal Step: short dash that passes through one wall.
+- Arcane Missiles: fire a volley of homing magic projectiles.
+- Life Tap: sacrifice health to reduce cooldowns.
+- Doom Bolt: launch a slow but devastating dark projectile.
+- Sanctuary: create a protective dome that blocks enemy projectiles.
+- Spectral Chains: bind enemies in ethereal chains that root them.
+- Void Rift: tear open a rift that damages enemies who touch it.
+- Inferno Dash: dash forward leaving a trail of fire behind you.
+- Tidal Wave: summon a wave of water that pushes and damages enemies.
+- Starfall: call down celestial projectiles on a target area.
+- Bloodlust: gain attack speed based on nearby enemies.
+- Crystal Cage: trap an enemy in an unbreakable crystal prison briefly.
+- Phantasm: create a decoy that taunts enemies and explodes on death.
+- Sonic Boom: release a soundwave that knocks back and damages enemies.
+- Vampiric Touch: drain health from touched enemy over time.
+- Blinding Flash: blind all nearby enemies with an intense flash.
+- Storm Call: summon a lightning storm in an area with random strikes.
+- Quicksand: create a zone that slows and sinks enemies.
+- Searing Light: beam of holy light that burns undead extra.
+- Spectral Blade: summon a ghostly sword that attacks nearby enemies.
+- Nether Portal: short-range teleport through a nether rift.
+- Entangle: vines erupt from ground to root enemies.
+- Mind Spike: psychic damage that also reveals enemy location.
+- Seismic Slam: ground-pound that creates shockwaves.
+- Icicle Barrage: fire a volley of piercing icicles.
+- Banishment: teleport enemy far away randomly.
+- Corpse Explosion: detonate nearby corpses for AoE damage.
+- Soul Swap: swap positions with target player/mob.
+- Mark of Death: mark target to take bonus damage from all sources.
+- Iron Maiden: enemies that hit you take reflect damage for duration.
+- Warp Strike: teleport behind target and strike.
+- Vortex Strike: spin attack that pulls enemies closer.
+- Plague Cloud: create a lingering cloud that poisons and weakens.
+- Overcharge: next ability deals double damage but costs health.
+- Gravity Crush: slam target to ground, rooting and damaging them.
+
+## Bonus passives (50)
+
+- Thorns Aura: attackers take 25% damage reflected when they hit you.
+- Lifesteal: melee attacks heal you for 10% of damage dealt.
+- Dodge Chance: 10% chance to completely avoid incoming attacks.
+- Critical Strike: +15% crit chance and +50% crit damage.
+- Mana Shield: absorb damage using XP levels (2 XP per damage).
+- Regeneration Boost: passive Regeneration I effect.
+- Damage Reduction: flat 10% reduction to all incoming damage.
+- Attack Speed: +15% melee attack speed.
+- Reach Extend: +1.5 block melee and interaction range.
+- Impact Absorb: 20% of damage taken becomes temporary absorption hearts.
+- Adrenaline Surge: gain brief Speed when taking damage.
+- Intimidate: enemies within 8 blocks deal 10% less damage.
+- Evasive Roll: when hit while sprinting, auto-dodge backward (8s cooldown).
+- Combat Meditate: standing still for 2s rapidly restores health.
+- Weapon Mastery: +1 attack damage with all weapons.
+- Culling Blade: instantly kill enemies below 10% HP on hit.
+- Thick Skin: projectiles deal 25% less damage to you.
+- XP Boost: gain 25% bonus XP from all sources.
+- Hunger Resist: 50% slower hunger depletion.
+- Poison Immunity: immune to Poison effects.
+- Second Wind: survive one killing blow per 5 minutes, restore to half health.
+- Echo Strike: 15% chance for melee attacks to hit twice.
+- Chain Breaker: break free from roots/slows 50% faster.
+- Stone Skin: flat 1 damage reduction from all sources.
+- Arcane Barrier: absorb first hit every 30s.
+- Predator Sense: enemies below 30% HP are highlighted with glowing effect through walls.
+- Battle Medic: heal nearby trusted allies 0.5 HP/sec.
+- Last Stand: deal 50% more damage when below 25% HP.
+- Executioner: deal 30% more damage to enemies below 25% HP.
+- Bloodthirst: kills restore 2 hearts.
+- Steel Resolve: immune to knockback.
+- Elemental Harmony: 25% reduced damage from fire, frost, and lightning.
+- Treasure Hunter: 20% increased rare loot drop chance.
+- Counter Strike: after blocking, next hit deals 2x damage (3s window).
+- Bulwark: blocking is 50% more effective.
+- Quick Recovery: debuff durations reduced by 30%.
+- Overflowing Vitality: +4 maximum hearts permanently.
+- Magnetic Pull: items attracted from 2x distance.
+- Vengeance: after being hit, next attack deals +50% damage (5s window).
+- Nemesis: deal 25% more damage to the last player who killed you.
+- Hunter's Instinct: +20% crit chance against fleeing enemies.
+- Berserker Blood: attack speed increases as health decreases (up to +50%).
+- Opportunist: +25% damage when attacking from behind.
+- Ironclad: armor is 25% more effective.
+- Mist Form: 10% chance to phase through attacks.
+- War Cry: killing enemies grants nearby allies Strength I for 5s.
+- Siphon Soul: killing blows grant Regeneration for 4s.
+- Unbreakable: equipment durability loss reduced by 50%.
+- Focused Mind: all ability cooldowns reduced by 15%.
+- Sixth Sense: warning particles appear when enemies target you from 15 blocks.

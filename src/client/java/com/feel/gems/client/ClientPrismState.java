@@ -14,22 +14,28 @@ import net.minecraft.util.Identifier;
  */
 public final class ClientPrismState {
     private static final List<PrismAbilityEntry> ABILITIES = new ArrayList<>();
+    private static final List<PrismPassiveEntry> PASSIVES = new ArrayList<>();
     private static final Map<Identifier, Long> COOLDOWN_END_TICKS = new HashMap<>();
+    private static final Map<Identifier, Integer> LAST_COOLDOWN_TICKS = new HashMap<>();
     private static Identifier lastUsedPrism = null;
 
     private ClientPrismState() {
     }
 
     public record PrismAbilityEntry(Identifier id, String name) {}
+    public record PrismPassiveEntry(Identifier id, String name) {}
 
     public static void reset() {
         ABILITIES.clear();
+        PASSIVES.clear();
         COOLDOWN_END_TICKS.clear();
+        LAST_COOLDOWN_TICKS.clear();
         lastUsedPrism = null;
     }
 
     public static void update(PrismAbilitiesSyncPayload payload) {
         ABILITIES.clear();
+        PASSIVES.clear();
         COOLDOWN_END_TICKS.clear();
         
         MinecraftClient client = MinecraftClient.getInstance();
@@ -41,6 +47,10 @@ public final class ClientPrismState {
             if (info.remainingCooldownTicks() > 0) {
                 COOLDOWN_END_TICKS.put(info.id(), now + info.remainingCooldownTicks());
             }
+        }
+
+        for (PrismAbilitiesSyncPayload.PrismPassiveInfo info : payload.passives()) {
+            PASSIVES.add(new PrismPassiveEntry(info.id(), info.name()));
         }
     }
 
@@ -57,11 +67,20 @@ public final class ClientPrismState {
         }
         long now = world.getTime();
         COOLDOWN_END_TICKS.put(id, now + cooldownTicks);
+        LAST_COOLDOWN_TICKS.put(id, cooldownTicks);
         lastUsedPrism = id;
+    }
+
+    public static int lastCooldownTicks(Identifier abilityId) {
+        return LAST_COOLDOWN_TICKS.getOrDefault(abilityId, 0);
     }
 
     public static List<PrismAbilityEntry> getAbilities() {
         return List.copyOf(ABILITIES);
+    }
+
+    public static List<PrismPassiveEntry> getPassives() {
+        return List.copyOf(PASSIVES);
     }
 
     public static int remainingTicks(Identifier abilityId) {

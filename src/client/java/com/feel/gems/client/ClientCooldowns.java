@@ -17,6 +17,7 @@ import net.minecraft.util.Identifier;
 
 public final class ClientCooldowns {
     private static final Map<Identifier, Long> END_TICKS = new HashMap<>();
+    private static final Map<Identifier, Integer> LAST_COOLDOWN_TICKS = new HashMap<>();
     private static GemId activeGem = null;
     private static Identifier lastUsedAbility = null;
 
@@ -26,6 +27,7 @@ public final class ClientCooldowns {
     public static void reset() {
         activeGem = null;
         END_TICKS.clear();
+        LAST_COOLDOWN_TICKS.clear();
         lastUsedAbility = null;
     }
 
@@ -35,10 +37,11 @@ public final class ClientCooldowns {
         }
         activeGem = gem;
         END_TICKS.clear();
+        LAST_COOLDOWN_TICKS.clear();
         lastUsedAbility = null;
     }
 
-    public static void applySnapshot(GemId gem, java.util.List<Integer> remainingAbilityCooldownTicks) {
+    public static void applySnapshot(GemId gem, List<Integer> remainingAbilityCooldownTicks, List<Integer> maxCooldownTicks) {
         clearIfGemChanged(gem);
         END_TICKS.clear();
 
@@ -49,8 +52,7 @@ public final class ClientCooldowns {
         }
         long now = world.getTime();
 
-        GemDefinition def = GemRegistry.definition(gem);
-        List<Identifier> abilities = def.abilities();
+        List<Identifier> abilities = orderedAbilities(gem);
         int n = Math.min(abilities.size(), remainingAbilityCooldownTicks.size());
         for (int i = 0; i < n; i++) {
             int remaining = remainingAbilityCooldownTicks.get(i);
@@ -58,6 +60,18 @@ public final class ClientCooldowns {
                 continue;
             }
             END_TICKS.put(abilities.get(i), now + remaining);
+        }
+
+        if (maxCooldownTicks != null && !maxCooldownTicks.isEmpty()) {
+            int m = Math.min(abilities.size(), maxCooldownTicks.size());
+            for (int i = 0; i < m; i++) {
+                int maxTicks = maxCooldownTicks.get(i);
+                if (maxTicks > 0) {
+                    LAST_COOLDOWN_TICKS.put(abilities.get(i), maxTicks);
+                } else {
+                    LAST_COOLDOWN_TICKS.remove(abilities.get(i));
+                }
+            }
         }
     }
 
@@ -74,14 +88,21 @@ public final class ClientCooldowns {
         }
         long now = world.getTime();
 
-        GemDefinition def = GemRegistry.definition(gem);
-        List<Identifier> abilities = def.abilities();
+        List<Identifier> abilities = orderedAbilities(gem);
         if (abilityIndex < 0 || abilityIndex >= abilities.size()) {
             return;
         }
         Identifier abilityId = abilities.get(abilityIndex);
         END_TICKS.put(abilityId, now + cooldownTicks);
+        LAST_COOLDOWN_TICKS.put(abilityId, cooldownTicks);
         lastUsedAbility = abilityId;
+    }
+
+    public static int lastCooldownTicks(GemId gem, Identifier abilityId) {
+        if (activeGem != gem) {
+            return 0;
+        }
+        return LAST_COOLDOWN_TICKS.getOrDefault(abilityId, 0);
     }
 
     public static int remainingTicks(GemId gem, Identifier abilityId) {
@@ -109,5 +130,14 @@ public final class ClientCooldowns {
 
     public static boolean isLastUsed(GemId gem, Identifier abilityId) {
         return activeGem == gem && abilityId != null && abilityId.equals(lastUsedAbility);
+    }
+
+    private static List<Identifier> orderedAbilities(GemId gem) {
+        List<Identifier> order = ClientAbilityOrder.getOrder(gem);
+        if (!order.isEmpty()) {
+            return order;
+        }
+        GemDefinition def = GemRegistry.definition(gem);
+        return def.abilities();
     }
 }

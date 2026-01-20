@@ -66,7 +66,7 @@ public final class TricksterGlitchStepAbility implements GemAbility {
             if (e instanceof ServerPlayerEntity other && !VoidImmunity.canBeTargeted(player, other)) {
                 continue;
             }
-            ((LivingEntity) e).damage(world, player.getDamageSources().magic(), afterimgDamage);
+            ((LivingEntity) e).damage(world, player.getDamageSources().indirectMagic(player, player), afterimgDamage);
         }
 
         // Visual effects

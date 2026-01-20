@@ -1,5 +1,6 @@
 package com.feel.gems.mixin;
 
+import com.feel.gems.augment.AugmentCrafting;
 import com.feel.gems.legendary.LegendaryCrafting;
 import com.feel.gems.power.runtime.AbilityRuntime;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,8 +20,9 @@ public abstract class CraftingResultSlotOwnerTagMixin {
     @Inject(method = "onTakeItem", at = @At("TAIL"))
     private void gems$tagCrafted(PlayerEntity player, ItemStack stack, CallbackInfo ci) {
         if (player instanceof ServerPlayerEntity serverPlayer) {
-            AbilityRuntime.setOwnerIfMissing(stack, serverPlayer.getUuid());
+            AbilityRuntime.setOwnerWithName(stack, serverPlayer.getUuid(), serverPlayer.getName().getString());
             LegendaryCrafting.onCrafted(serverPlayer, stack);
+            AugmentCrafting.onCrafted(serverPlayer, stack);
         }
     }
 }

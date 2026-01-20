@@ -1,6 +1,8 @@
 package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.admin.GemsAdmin;
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.power.util.Targeting;
 import com.feel.gems.state.PlayerStateManager;
@@ -27,9 +29,6 @@ import java.util.UUID;
 public final class SoulShackleItem extends Item implements LegendaryItem {
     private static final String SHACKLE_TARGET_KEY = "soul_shackle_target";
     private static final String SHACKLE_END_KEY = "soul_shackle_end";
-    private static final int DURATION_TICKS = 10 * 20;
-    private static final int COOLDOWN_TICKS = 90 * 20;
-    private static final float SPLIT_RATIO = 0.5F; // 50% of damage goes to linked target
 
     public SoulShackleItem(Settings settings) {
         super(settings);
@@ -49,12 +48,13 @@ public final class SoulShackleItem extends Item implements LegendaryItem {
         ItemStack stack = player.getStackInHand(hand);
 
         // Check cooldown
-        if (player.getItemCooldownManager().isCoolingDown(stack)) {
+        if (player.getItemCooldownManager().isCoolingDown(stack) && !GemsAdmin.noLegendaryCooldowns(player)) {
             return ActionResult.FAIL;
         }
 
         // Raycast to find target
-        ServerPlayerEntity target = Targeting.raycastPlayer(player, 15);
+        int rangeBlocks = GemsBalance.v().legendary().soulShackleRangeBlocks();
+        ServerPlayerEntity target = Targeting.raycastPlayer(player, rangeBlocks);
         if (target == null) {
             player.sendMessage(Text.translatable("gems.message.no_player_target").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
@@ -64,13 +64,17 @@ public final class SoulShackleItem extends Item implements LegendaryItem {
             return ActionResult.FAIL;
         }
 
-        long endTime = world.getTime() + DURATION_TICKS;
+        int durationTicks = GemsBalance.v().legendary().soulShackleDurationTicks();
+        long endTime = world.getTime() + Math.max(0, durationTicks);
 
         // Link player to target
         PlayerStateManager.setPersistent(player, SHACKLE_TARGET_KEY, target.getUuidAsString());
         PlayerStateManager.setPersistent(player, SHACKLE_END_KEY, String.valueOf(endTime));
 
-        player.getItemCooldownManager().set(stack, COOLDOWN_TICKS);
+        int cooldownTicks = GemsBalance.v().legendary().soulShackleCooldownTicks();
+        if (cooldownTicks > 0 && !GemsAdmin.noLegendaryCooldowns(player)) {
+            player.getItemCooldownManager().set(stack, cooldownTicks);
+        }
 
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.BLOCK_CHAIN_BREAK, SoundCategory.PLAYERS, 1.0F, 0.8F);
@@ -97,7 +101,7 @@ public final class SoulShackleItem extends Item implements LegendaryItem {
             return 0;
         }
 
-        return damage * SPLIT_RATIO;
+        return damage * GemsBalance.v().legendary().soulShackleSplitRatio();
     }
 
     public static ServerPlayerEntity getShackledTarget(ServerPlayerEntity holder) {

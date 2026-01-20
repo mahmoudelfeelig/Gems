@@ -1,22 +1,26 @@
 package com.feel.gems.power.runtime;
 
+import java.util.List;
+
 import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.config.GemsDisables;
-import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemId;
-import com.feel.gems.core.GemRegistry;
+import com.feel.gems.loadout.LoadoutManager;
 import com.feel.gems.legendary.LegendaryCooldowns;
+import com.feel.gems.mastery.GemMastery;
 import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.power.api.GemAbility;
-import com.feel.gems.power.gem.chaos.ChaosSlotRuntime;
-import com.feel.gems.power.gem.spy.SpyMimicSystem;
 import com.feel.gems.power.bonus.BonusPassiveRuntime;
+import com.feel.gems.power.gem.chaos.ChaosSlotRuntime;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.synergy.SynergyRuntime;
+import com.feel.gems.stats.GemsStats;
 import com.feel.gems.util.GemsTime;
-import java.util.List;
+
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -49,8 +53,8 @@ public final class GemAbilities {
             return;
         }
 
-        // Chaos gem uses 4 independent ability slots (0-3) and is unlocked by its passive at level 1.
-        if (gemId == GemId.CHAOS && abilityIndex >= 0 && abilityIndex < ChaosSlotRuntime.SLOT_COUNT) {
+        // Chaos gem uses independent ability slots and is unlocked by its passive at level 1.
+        if (gemId == GemId.CHAOS && abilityIndex >= 0 && abilityIndex < ChaosSlotRuntime.slotCount()) {
             ChaosSlotRuntime.activateSlot(player, abilityIndex);
             return;
         }
@@ -66,8 +70,7 @@ public final class GemAbilities {
             return;
         }
 
-        GemDefinition def = GemRegistry.definition(gemId);
-        List<Identifier> abilities = def.abilities();
+        List<Identifier> abilities = LoadoutManager.getAbilityOrder(player, gemId);
         int unlocked = new GemEnergyState(energy).unlockedAbilityCount(abilities.size());
         if (unlocked <= 0) {
             player.sendMessage(Text.translatable("gems.ability.no_abilities_unlocked"), true);
@@ -109,10 +112,19 @@ public final class GemAbilities {
             return;
         }
 
-        SpyMimicSystem.onAbilityUsed(player.getEntityWorld().getServer(), player, abilityId);
+        GemsStats.recordAbilityUse(player, abilityId);
+
+        // Track mastery progress
+        GemMastery.incrementUsage(player, gemId);
+
+        // Track for synergy combos
+        SynergyRuntime.onAbilityCast(player, gemId, abilityId);
+
+        com.feel.gems.power.gem.trickster.TricksterPassiveRuntime.applyChaosEffect(player);
+        SpySystem.onAbilityUsed(player.getEntityWorld().getServer(), player, abilityId);
 
         int cooldown = Math.max(0, ability.cooldownTicks());
-        cooldown = applyCooldownModifiers(player, cooldown);
+        cooldown = applyCooldownModifiers(player, cooldown, gemId);
         if (cooldown > 0 && !noCooldowns) {
             GemAbilityCooldowns.setNextAllowedTick(player, abilityId, now + cooldown);
             ServerPlayNetworking.send(player, new AbilityCooldownPayload(gemId.ordinal(), abilityIndex, cooldown));
@@ -126,6 +138,10 @@ public final class GemAbilities {
         return (int) Math.max(1, (ticks + 19) / 20);
     }
 
+    public static int adjustedCooldownTicks(ServerPlayerEntity player, GemId gemId, int baseTicks) {
+        return applyCooldownModifiers(player, baseTicks, gemId);
+    }
+
     /**
      * Activate a Prism gem ability from player's selections.
      */
@@ -137,7 +153,7 @@ public final class GemAbilities {
 
         PrismSelectionsState prismState = PrismSelectionsState.get(server);
         PrismSelectionsState.PrismSelection selection = prismState.getSelection(player.getUuid());
-        List<Identifier> abilities = selection.allAbilities();
+        List<Identifier> abilities = selection.gemAbilities();
 
         if (abilities.isEmpty()) {
             player.sendMessage(Text.translatable("gems.ability.no_abilities_unlocked"), true);
@@ -188,21 +204,43 @@ public final class GemAbilities {
             return;
         }
 
-        SpyMimicSystem.onAbilityUsed(server, player, abilityId);
+        GemsStats.recordAbilityUse(player, abilityId);
+
+        // Track mastery progress for Prism
+        GemMastery.incrementUsage(player, GemId.PRISM);
+
+        // Track mastery progress for the source gem (if any)
+        GemId abilityGem = ModAbilities.findGemForAbility(abilityId);
+        if (abilityGem != null && abilityGem != GemId.PRISM) {
+            GemMastery.incrementUsage(player, abilityGem);
+        }
+
+        // Track for synergy combos - find which gem this ability belongs to
+        if (abilityGem != null) {
+            SynergyRuntime.onAbilityCast(player, abilityGem, abilityId);
+        }
+
+        SpySystem.onAbilityUsed(server, player, abilityId);
 
         int cooldown = Math.max(0, ability.cooldownTicks());
-        cooldown = applyCooldownModifiers(player, cooldown);
+        GemId cooldownGem = abilityGem != null ? abilityGem : GemId.PRISM;
+        cooldown = applyCooldownModifiers(player, cooldown, cooldownGem);
         if (cooldown > 0 && !noCooldowns) {
             GemAbilityCooldowns.setNextAllowedTick(player, abilityId, now + cooldown);
             ServerPlayNetworking.send(player, new AbilityCooldownPayload(GemId.PRISM.ordinal(), abilityIndex, cooldown));
         }
     }
 
-    private static int applyCooldownModifiers(ServerPlayerEntity player, int baseTicks) {
+    private static int applyCooldownModifiers(ServerPlayerEntity player, int baseTicks, GemId gemId) {
         if (baseTicks <= 0) {
             return 0;
         }
-        float mult = BonusPassiveRuntime.getCooldownMultiplier(player) * LegendaryCooldowns.getCooldownMultiplier(player);
+        float mult = BonusPassiveRuntime.getCooldownMultiplier(player)
+                * LegendaryCooldowns.getCooldownMultiplier(player)
+                * com.feel.gems.augment.AugmentRuntime.cooldownMultiplier(player, gemId);
+        if (com.feel.gems.state.GemPlayerState.getActiveGem(player) == GemId.PRISM && gemId != GemId.PRISM) {
+            mult *= com.feel.gems.augment.AugmentRuntime.cooldownMultiplier(player, GemId.PRISM);
+        }
         int adjusted = (int) Math.ceil(baseTicks * mult);
         return Math.max(1, adjusted);
     }

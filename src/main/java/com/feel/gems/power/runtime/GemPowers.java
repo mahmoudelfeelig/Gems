@@ -30,6 +30,7 @@ public final class GemPowers {
     private static final String KEY_APPLIED_PASSIVES = "appliedPassives";
     private static final String KEY_APPLIED_BONUS_PASSIVES = "appliedBonusPassives";
     private static final String KEY_APPLIED_PRISM_PASSIVES = "appliedPrismPassives";
+    private static final String KEY_APPLIED_TROPHY_PASSIVES = "appliedTrophyPassives";
 
     private GemPowers() {
     }
@@ -45,6 +46,9 @@ public final class GemPowers {
         // Prism gem has special handling - uses selected passives instead of definition
         if (activeGem == GemId.PRISM) {
             syncPrismPassives(player, energy, passivesEnabled, suppressed);
+            // Prism can still claim and use the global bonus pool at energy 10.
+            syncBonusPassives(player, energy, passivesEnabled, suppressed);
+            syncTrophyPassives(player, energy, passivesEnabled, suppressed);
             return;
         }
 
@@ -89,6 +93,9 @@ public final class GemPowers {
 
         // Sync bonus passives (only at energy 10)
         syncBonusPassives(player, energy, passivesEnabled, suppressed);
+
+        // Sync Trophy Necklace passives (permanent stolen passives)
+        syncTrophyPassives(player, energy, passivesEnabled, suppressed);
     }
 
     /**
@@ -189,7 +196,7 @@ public final class GemPowers {
         // Get player's Prism selections
         PrismSelectionsState prismState = PrismSelectionsState.get(server);
         PrismSelectionsState.PrismSelection selection = prismState.getSelection(player.getUuid());
-        List<Identifier> selectedPassives = selection.allPassives();
+        List<Identifier> selectedPassives = selection.gemPassives();
 
         // Filter out disabled passives
         Set<Identifier> targetPrismPassives = new HashSet<>();
@@ -241,6 +248,10 @@ public final class GemPowers {
         // Prism gem uses selected passives instead of definition
         if (activeGem == GemId.PRISM) {
             maintainPrismPassives(player);
+            if (energy >= 10) {
+                maintainBonusPassives(player);
+            }
+            maintainTrophyPassives(player);
             return;
         }
         
@@ -266,6 +277,8 @@ public final class GemPowers {
         if (energy >= 10) {
             maintainBonusPassives(player);
         }
+
+        maintainTrophyPassives(player);
     }
 
     /**
@@ -277,7 +290,7 @@ public final class GemPowers {
 
         PrismSelectionsState prismState = PrismSelectionsState.get(server);
         PrismSelectionsState.PrismSelection selection = prismState.getSelection(player.getUuid());
-        List<Identifier> selectedPassives = selection.allPassives();
+        List<Identifier> selectedPassives = selection.gemPassives();
 
         for (Identifier passiveId : selectedPassives) {
             if (GemsDisables.isPassiveDisabledFor(player, passiveId) || 
@@ -334,17 +347,23 @@ public final class GemPowers {
         
         // Prism gem uses selected passives
         if (activeGem == GemId.PRISM) {
-            return isPrismPassiveActive(player, passiveId);
+            if (isPrismPassiveActive(player, passiveId)) {
+                return true;
+            }
+            if (energy >= 10 && isBonusPassiveActive(player, passiveId)) {
+                return true;
+            }
+            return isTrophyPassiveActive(player, passiveId);
         }
         
         if (GemRegistry.definition(activeGem).passives().contains(passiveId) && !GemsDisables.isPassiveDisabledFor(player, passiveId)) {
             return true;
         }
         // Check bonus passives (at energy 10)
-        if (energy >= 10) {
-            return isBonusPassiveActive(player, passiveId);
+        if (energy >= 10 && isBonusPassiveActive(player, passiveId)) {
+            return true;
         }
-        return false;
+        return isTrophyPassiveActive(player, passiveId);
     }
 
     /**
@@ -365,7 +384,7 @@ public final class GemPowers {
 
         PrismSelectionsState prismState = PrismSelectionsState.get(server);
         PrismSelectionsState.PrismSelection selection = prismState.getSelection(player.getUuid());
-        List<Identifier> selectedPassives = selection.allPassives();
+        List<Identifier> selectedPassives = selection.gemPassives();
         return selectedPassives.contains(passiveId) && 
                !GemsDisables.isPassiveDisabledFor(player, passiveId) &&
                !GemsDisables.isBonusPassiveDisabledFor(player, passiveId);
@@ -389,7 +408,35 @@ public final class GemPowers {
 
         BonusClaimsState claims = BonusClaimsState.get(server);
         Set<Identifier> playerPassives = claims.getPlayerPassives(player.getUuid());
-        return playerPassives.contains(passiveId) && !GemsDisables.isBonusPassiveDisabledFor(player, passiveId);
+        if (playerPassives.contains(passiveId) && !GemsDisables.isBonusPassiveDisabledFor(player, passiveId)) {
+            return true;
+        }
+
+        // Defensive fallback: treat already-applied bonus passives as active. This keeps gameplay consistent
+        // if the persistent claims state is temporarily out-of-sync (GameTests create many ephemeral players).
+        NbtCompound data = persistentRoot(player);
+        Set<Identifier> appliedBonus = readIdentifierSet(data, KEY_APPLIED_BONUS_PASSIVES);
+        return appliedBonus.contains(passiveId) && !GemsDisables.isBonusPassiveDisabledFor(player, passiveId);
+    }
+
+    /**
+     * Check if a Trophy Necklace stolen passive is active for a player.
+     */
+    public static boolean isTrophyPassiveActive(ServerPlayerEntity player, Identifier passiveId) {
+        if (GemPlayerState.getEnergy(player) <= 0) {
+            return false;
+        }
+        if (!GemPlayerState.arePassivesEnabled(player)) {
+            return false;
+        }
+        if (AbilityRestrictions.isSuppressed(player)) {
+            return false;
+        }
+        var stolen = com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.getStolenPassives(player);
+        if (!stolen.contains(passiveId)) {
+            return false;
+        }
+        return !GemsDisables.isPassiveDisabledFor(player, passiveId) && !GemsDisables.isBonusPassiveDisabledFor(player, passiveId);
     }
 
     /**
@@ -398,7 +445,8 @@ public final class GemPowers {
      */
     public static List<Identifier> getActivePassives(ServerPlayerEntity player) {
         GemPlayerState.initIfNeeded(player);
-        if (GemPlayerState.getEnergy(player) <= 0) {
+        int energy = GemPlayerState.getEnergy(player);
+        if (energy <= 0) {
             return List.of();
         }
         if (!GemPlayerState.arePassivesEnabled(player)) {
@@ -415,10 +463,7 @@ public final class GemPowers {
             if (server == null) return List.of();
             PrismSelectionsState prismState = PrismSelectionsState.get(server);
             PrismSelectionsState.PrismSelection selection = prismState.getSelection(player.getUuid());
-            List<Identifier> selectedPassives = selection.allPassives();
-            if (selectedPassives.isEmpty()) {
-                return List.of();
-            }
+            List<Identifier> selectedPassives = selection.gemPassives();
             ArrayList<Identifier> result = new ArrayList<>(selectedPassives.size());
             for (Identifier id : selectedPassives) {
                 if (!GemsDisables.isPassiveDisabledFor(player, id) && 
@@ -426,7 +471,20 @@ public final class GemPowers {
                     result.add(id);
                 }
             }
-            return List.copyOf(result);
+            if (energy >= 10) {
+                BonusClaimsState claims = BonusClaimsState.get(server);
+                for (Identifier id : claims.getPlayerPassives(player.getUuid())) {
+                    if (!GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                        result.add(id);
+                    }
+                }
+            }
+            for (Identifier id : com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.getStolenPassives(player)) {
+                if (!GemsDisables.isPassiveDisabledFor(player, id) && !GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                    result.add(id);
+                }
+            }
+            return result.isEmpty() ? List.of() : List.copyOf(result);
         }
         
         List<Identifier> allPassives = GemRegistry.definition(activeGem).passives();
@@ -439,7 +497,89 @@ public final class GemPowers {
                 result.add(id);
             }
         }
-        return List.copyOf(result);
+        if (energy >= 10) {
+            MinecraftServer server = player.getEntityWorld().getServer();
+            if (server != null) {
+                for (Identifier id : BonusClaimsState.get(server).getPlayerPassives(player.getUuid())) {
+                    if (!GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                        result.add(id);
+                    }
+                }
+            }
+        }
+        for (Identifier id : com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.getStolenPassives(player)) {
+            if (!GemsDisables.isPassiveDisabledFor(player, id) && !GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                result.add(id);
+            }
+        }
+        return result.isEmpty() ? List.of() : List.copyOf(result);
+    }
+
+    private static void syncTrophyPassives(ServerPlayerEntity player, int energy, boolean passivesEnabled, boolean suppressed) {
+        NbtCompound data = persistentRoot(player);
+        Set<Identifier> applied = readIdentifierSet(data, KEY_APPLIED_TROPHY_PASSIVES);
+
+        if (energy <= 0 || !passivesEnabled || suppressed) {
+            for (Identifier id : applied) {
+                GemPassive passive = ModPassives.get(id);
+                if (passive != null) {
+                    passive.remove(player);
+                }
+            }
+            writeIdentifierSet(data, KEY_APPLIED_TROPHY_PASSIVES, Set.of());
+            return;
+        }
+
+        Set<Identifier> stolen = com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.getStolenPassives(player);
+        Set<Identifier> target = Set.of();
+        if (!stolen.isEmpty()) {
+            java.util.HashSet<Identifier> filtered = new java.util.HashSet<>();
+            for (Identifier id : stolen) {
+                if (!GemsDisables.isPassiveDisabledFor(player, id) && !GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                    filtered.add(id);
+                }
+            }
+            target = Set.copyOf(filtered);
+        }
+
+        for (Identifier id : applied) {
+            if (!target.contains(id)) {
+                GemPassive passive = ModPassives.get(id);
+                if (passive != null) {
+                    passive.remove(player);
+                }
+            }
+        }
+
+        for (Identifier id : target) {
+            if (!applied.contains(id)) {
+                GemPassive passive = ModPassives.get(id);
+                if (passive != null) {
+                    passive.apply(player);
+                }
+            }
+        }
+
+        writeIdentifierSet(data, KEY_APPLIED_TROPHY_PASSIVES, target);
+    }
+
+    private static void maintainTrophyPassives(ServerPlayerEntity player) {
+        Set<Identifier> stolen = com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.getStolenPassives(player);
+        if (stolen.isEmpty()) {
+            return;
+        }
+        for (Identifier passiveId : stolen) {
+            if (GemsDisables.isPassiveDisabledFor(player, passiveId) || GemsDisables.isBonusPassiveDisabledFor(player, passiveId)) {
+                continue;
+            }
+            GemPassive passive = ModPassives.get(passiveId);
+            if (passive instanceof StatusEffectPassive) {
+                passive.apply(player);
+            }
+            if (passive instanceof GemMaintainedPassive maintained) {
+                maintained.maintain(player);
+            }
+        }
     }
 
     private static NbtCompound persistentRoot(ServerPlayerEntity player) {

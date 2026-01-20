@@ -15,6 +15,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
 
 
 
@@ -59,6 +61,16 @@ public final class ReaperGraveSteedAbility implements GemAbility {
         horse.setOwner(player);
         horse.equipStack(EquipmentSlot.SADDLE, new ItemStack(Items.SADDLE));
         horse.setTrapped(false);
+        EntityAttributeInstance speed = horse.getAttributeInstance(EntityAttributes.MOVEMENT_SPEED);
+        if (speed != null) {
+            speed.setBaseValue(0.3375D);
+        }
+        EntityAttributeInstance maxHealth = horse.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+        if (maxHealth != null) {
+            maxHealth.setBaseValue(60.0D);
+            horse.setHealth(60.0F);
+        }
+        horse.hurtTime = 0;
         world.spawnEntity(horse);
         player.startRiding(horse);
 

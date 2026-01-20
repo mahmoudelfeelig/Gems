@@ -43,6 +43,12 @@ public final class ModItems {
     public static final Item ENERGY_UPGRADE = register("energy_upgrade", settings -> new EnergyUpgradeItem(settings.maxCount(16)));
     public static final Item GEM_TRADER = register("gem_trader", settings -> new TraderItem(settings.maxCount(1)));
     public static final Item GEM_PURCHASE = register("gem_purchase", settings -> new GemPurchaseItem(settings.maxCount(1)));
+        public static final Item GEM_AUGMENT_FOCUS = register("gem_augment_focus", settings -> new AugmentItem("focus", settings));
+        public static final Item GEM_AUGMENT_RESONANCE = register("gem_augment_resonance", settings -> new AugmentItem("resonance", settings));
+        public static final Item GEM_AUGMENT_PERSISTENCE = register("gem_augment_persistence", settings -> new AugmentItem("persistence", settings));
+        public static final Item LEGENDARY_INSCRIPTION_EDGE = register("legendary_inscription_edge", settings -> new AugmentItem("edge", settings));
+        public static final Item LEGENDARY_INSCRIPTION_SWIFT = register("legendary_inscription_swift", settings -> new AugmentItem("swift", settings));
+        public static final Item LEGENDARY_INSCRIPTION_WARD = register("legendary_inscription_ward", settings -> new AugmentItem("ward", settings));
     public static final Item TEST_DUMMY_SPAWN_EGG = register("test_dummy_spawn_egg",
             settings -> new SpawnEggItem(settings.spawnEgg(com.feel.gems.entity.ModEntities.TEST_DUMMY).maxCount(64)));
 
@@ -83,7 +89,7 @@ public final class ModItems {
     public static final Item SPACE_GEM = registerGem(GemId.SPACE);
     public static final Item REAPER_GEM = registerGem(GemId.REAPER);
     public static final Item PILLAGER_GEM = registerGem(GemId.PILLAGER);
-    public static final Item SPY_MIMIC_GEM = registerGem(GemId.SPY_MIMIC);
+    public static final Item SPY_GEM = registerGem(GemId.SPY);
     public static final Item BEACON_GEM = registerGem(GemId.BEACON);
     public static final Item AIR_GEM = registerGem(GemId.AIR);
     public static final Item VOID_GEM = registerGem(GemId.VOID);
@@ -138,7 +144,7 @@ public final class ModItems {
             case SPACE -> SPACE_GEM;
             case REAPER -> REAPER_GEM;
             case PILLAGER -> PILLAGER_GEM;
-            case SPY_MIMIC -> SPY_MIMIC_GEM;
+            case SPY -> SPY_GEM;
             case BEACON -> BEACON_GEM;
             case AIR -> AIR_GEM;
             case VOID -> VOID_GEM;

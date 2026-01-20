@@ -306,7 +306,7 @@ public final class ModPassives {
                 0
         ));
 
-        // Spy/Mimic
+        // Spy
         register(new MarkerPassive(
                 PowerIds.SPY_STILLNESS_CLOAK,
                 "Stillness Cloak",
@@ -320,7 +320,7 @@ public final class ModPassives {
         register(new MarkerPassive(
                 PowerIds.SPY_FALSE_SIGNATURE,
                 "False Signature",
-                "Reduces how much information enemies can infer from your effects."
+                "Blocks tracking effects/items from revealing your location or gem info."
         ));
         register(new MarkerPassive(
                 PowerIds.SPY_BACKSTEP,

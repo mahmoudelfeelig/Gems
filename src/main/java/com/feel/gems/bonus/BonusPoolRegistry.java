@@ -14,7 +14,7 @@ public final class BonusPoolRegistry {
      * All bonus abilities that can be claimed (50 total).
      */
     public static final List<Identifier> BONUS_ABILITIES = List.of(
-            // Original 20 (with replacements for duplicates)
+            // Original 20
             PowerIds.BONUS_THUNDERSTRIKE,
             PowerIds.BONUS_FROSTBITE,
             PowerIds.BONUS_EARTHSHATTER,
@@ -22,50 +22,50 @@ public final class BonusPoolRegistry {
             PowerIds.BONUS_RADIANT_BURST,
             PowerIds.BONUS_VENOMSPRAY,
             PowerIds.BONUS_TIMEWARP,
-            PowerIds.BONUS_DECOY_TRAP,          // Was: Mirror Image (duplicate of Shadow Clone)
+            PowerIds.BONUS_DECOY_TRAP,
             PowerIds.BONUS_GRAVITY_WELL,
             PowerIds.BONUS_CHAIN_LIGHTNING,
             PowerIds.BONUS_MAGMA_POOL,
             PowerIds.BONUS_ICE_WALL,
             PowerIds.BONUS_WIND_SLASH,
-            PowerIds.BONUS_CURSE_BOLT,          // Was: Soul Drain (duplicate of Health Drain)
+            PowerIds.BONUS_CURSE_BOLT,
             PowerIds.BONUS_BERSERKER_RAGE,
-            PowerIds.BONUS_ETHEREAL_STEP,       // Was: Phase Shift (duplicate of Unbounded)
+            PowerIds.BONUS_ETHEREAL_STEP,
             PowerIds.BONUS_ARCANE_MISSILES,
             PowerIds.BONUS_LIFE_TAP,
             PowerIds.BONUS_DOOM_BOLT,
             PowerIds.BONUS_SANCTUARY,
-            // New 30 (with replacements for duplicates)
+            // New 30
             PowerIds.BONUS_SPECTRAL_CHAINS,
-            PowerIds.BONUS_SOUL_LINK,           // Was: Void Rift (duplicate of Gravity Well)
+            PowerIds.BONUS_VOID_RIFT,
             PowerIds.BONUS_INFERNO_DASH,
             PowerIds.BONUS_TIDAL_WAVE,
             PowerIds.BONUS_STARFALL,
             PowerIds.BONUS_BLOODLUST,
             PowerIds.BONUS_CRYSTAL_CAGE,
-            PowerIds.BONUS_MIRROR_IMAGE,        // Was: Phantasm (duplicate of Decoy Trap)
+            PowerIds.BONUS_PHANTASM,
             PowerIds.BONUS_SONIC_BOOM,
             PowerIds.BONUS_VAMPIRIC_TOUCH,
-            PowerIds.BONUS_SMOKE_SCREEN,        // Was: Blinding Flash (duplicate of Radiant Burst blind)
-            PowerIds.BONUS_THORNS_NOVA,         // Was: Storm Call (duplicate of Chain Lightning)
+            PowerIds.BONUS_BLINDING_FLASH,
+            PowerIds.BONUS_STORM_CALL,
             PowerIds.BONUS_QUICKSAND,
             PowerIds.BONUS_SEARING_LIGHT,
             PowerIds.BONUS_SPECTRAL_BLADE,      // Was: Shadow Clone (duplicate of Reaper's)
-            PowerIds.BONUS_BLINK,               // Was: Nether Portal (duplicate of Shadowstep)
-            PowerIds.BONUS_PURGE,               // Was: Entangle (duplicate of Spectral Chains root)
+            PowerIds.BONUS_NETHER_PORTAL,
+            PowerIds.BONUS_ENTANGLE,
             PowerIds.BONUS_MIND_SPIKE,
-            PowerIds.BONUS_TREMOR,              // Was: Seismic Slam (duplicate of Earthshatter)
+            PowerIds.BONUS_TREMOR,
             PowerIds.BONUS_ICICLE_BARRAGE,
             PowerIds.BONUS_BANISHMENT,
             PowerIds.BONUS_CORPSE_EXPLOSION,
             PowerIds.BONUS_SOUL_SWAP,
-            PowerIds.BONUS_VULNERABILITY,       // Was: Mark of Death (duplicate of Doom Bolt mark)
-            PowerIds.BONUS_REFLECTION_WARD,     // Was: Iron Maiden (similar to Thorns Aura passive)
-            PowerIds.BONUS_WARP_STRIKE,         // Was: Spirit Walk (duplicate of Unbounded)
+            PowerIds.BONUS_MARK_OF_DEATH,
+            PowerIds.BONUS_IRON_MAIDEN,
+            PowerIds.BONUS_WARP_STRIKE,
             PowerIds.BONUS_VORTEX_STRIKE,
             PowerIds.BONUS_PLAGUE_CLOUD,
             PowerIds.BONUS_OVERCHARGE,
-            PowerIds.BONUS_GRAVITY_CRUSH        // Was: Temporal Anchor (duplicate of Shadow Anchor)
+            PowerIds.BONUS_GRAVITY_CRUSH
     );
 
     /**
@@ -136,6 +136,63 @@ public final class BonusPoolRegistry {
             PowerIds.NULLIFY                  // Strength's immunity ability
     );
 
+    /**
+     * Abilities that require gem-specific state and won't work standalone for Chaos gem.
+     * These abilities depend on state accumulated by other passives.
+     */
+    public static final List<Identifier> CHAOS_ABILITY_BLACKLIST = List.of(
+            // Flux abilities require FluxCharge state
+            PowerIds.FLUX_BEAM,
+            PowerIds.FLUX_SURGE,
+            PowerIds.FLUX_DISCHARGE,
+            // Static Burst requires accumulated damage from taking hits
+            PowerIds.STATIC_BURST,
+            // Summoner abilities require loadout configuration
+            PowerIds.SUMMON_SLOT_1,
+            PowerIds.SUMMON_SLOT_2,
+            PowerIds.SUMMON_SLOT_3,
+            PowerIds.SUMMON_SLOT_4,
+            PowerIds.SUMMON_SLOT_5,
+            // Spy abilities require observed/killed state
+            PowerIds.SPY_MIMIC_FORM,  // Requires lastKilledType from SpySystem
+            PowerIds.SPY_ECHO,
+            PowerIds.SPY_STEAL,
+            PowerIds.SPY_STOLEN_CAST,
+            // Skinshift requires target player state
+            PowerIds.SPY_SKINSHIFT,
+            // Chaos/Prism/Void special mechanics
+            PowerIds.NULLIFY,
+            PowerIds.CHAOS_RANDOM_ROTATION
+    );
+
+    /**
+     * Passives that require gem-specific state and won't work standalone for Chaos gem.
+     */
+    public static final List<Identifier> CHAOS_PASSIVE_BLACKLIST = List.of(
+            // Flux passives require FluxCharge system
+            PowerIds.FLUX_CHARGE_STORAGE,  // Core flux system
+            PowerIds.FLUX_CAPACITOR,
+            PowerIds.FLUX_OVERCHARGE_RAMP,
+            PowerIds.FLUX_CONDUCTIVITY,
+            PowerIds.FLUX_INSULATION,
+            PowerIds.FLUX_ALLY_INVERSION,
+            // Summoner passives require summon system
+            PowerIds.SUMMONER_BOND,
+            PowerIds.SUMMONER_COMMANDERS_MARK,
+            PowerIds.SUMMONER_SOULBOUND,
+            PowerIds.SUMMONER_FAMILIARS_BLESSING,
+            // Spy passives that depend on spy-specific state tracking
+            PowerIds.SPY_STILLNESS_CLOAK,  // Requires position tracking state
+            PowerIds.SPY_FALSE_SIGNATURE,  // Requires spy system state
+            // Astra passives - soul system state
+            PowerIds.SOUL_CAPTURE,
+            PowerIds.SOUL_HEALING,
+            // Void immunity - too powerful
+            PowerIds.VOID_IMMUNITY,
+            // Chaos rotation - causes recursive issues
+            PowerIds.CHAOS_RANDOM_ROTATION
+    );
+
     private BonusPoolRegistry() {
     }
 
@@ -149,5 +206,13 @@ public final class BonusPoolRegistry {
 
     public static boolean isBlacklisted(Identifier id) {
         return PRISM_BLACKLIST.contains(id);
+    }
+
+    public static boolean isChaosAbilityBlacklisted(Identifier id) {
+        return CHAOS_ABILITY_BLACKLIST.contains(id);
+    }
+
+    public static boolean isChaosPassiveBlacklisted(Identifier id) {
+        return CHAOS_PASSIVE_BLACKLIST.contains(id);
     }
 }

@@ -1,19 +1,23 @@
 package com.feel.gems.client.hud;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.client.ClientAbilityOrder;
 import com.feel.gems.client.ClientAbilitySelection;
 import com.feel.gems.client.ClientBonusState;
 import com.feel.gems.client.ClientChaosState;
 import com.feel.gems.client.ClientCooldowns;
 import com.feel.gems.client.ClientExtraState;
 import com.feel.gems.client.ClientGemState;
+import com.feel.gems.client.ClientHudLayout;
 import com.feel.gems.client.ClientPrismState;
+import com.feel.gems.client.ClientRivalryState;
 import com.feel.gems.client.GemsKeybinds;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemEnergyState;
 import com.feel.gems.core.GemEnergyTier;
 import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
+import com.feel.gems.loadout.GemLoadout;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.ModAbilities;
 import java.util.List;
@@ -60,12 +64,20 @@ public final class GemsHud {
         }
 
         TextRenderer tr = client.textRenderer;
-        int x = 8;
-        int y = 8;
-        int lineHeight = tr.fontHeight + 2;
+        int screenWidth = client.getWindow().getScaledWidth();
+        int screenHeight = client.getWindow().getScaledHeight();
+        GemLoadout.HudLayout layout = ClientHudLayout.get();
+        int lineHeight = tr.fontHeight + (layout.compactMode() ? 0 : 2);
+        int margin = 8;
+        int maxLines = Math.max(1, (screenHeight - (margin * 2)) / Math.max(1, lineHeight));
+        boolean showCooldowns = layout.showCooldowns();
+        boolean showEnergy = layout.showEnergy();
+        boolean compactMode = layout.compactMode();
+        List<HudLine> lines = new java.util.ArrayList<>();
 
         if (!ClientGemState.isInitialized()) {
-            ctx.drawTextWithShadow(tr, "Gem: syncing...", x, y, opaque(0xAAAAAA));
+            addLine(lines, maxLines, line("Gem: syncing...", opaque(0xAAAAAA)));
+            drawLines(ctx, tr, lines, layout.position(), margin, lineHeight, screenWidth, screenHeight);
             return;
         }
 
@@ -73,35 +85,36 @@ public final class GemsHud {
         int energy = ClientGemState.energy();
         GemEnergyTier tier = new GemEnergyState(energy).tier();
 
-        ctx.drawTextWithShadow(tr, "Gem: " + title(gem.name()), x, y, opaque(0xFFFFFF));
-        y += lineHeight;
-        ctx.drawTextWithShadow(tr, "Energy: " + tierLabel(tier) + " (" + energy + "/10)", x, y, tierColor(tier));
-        y += lineHeight;
+        addLine(lines, maxLines, line("Gem: " + title(gem.name()), opaque(0xFFFFFF)));
+        if (showEnergy) {
+            addLine(lines, maxLines, line("Energy: " + tierLabel(tier) + " (" + energy + "/10)", tierColor(tier)));
+        }
 
         if (gem == GemId.FLUX) {
             int charge = ClientExtraState.fluxChargePercent();
             int color = charge >= 200 ? opaque(0xFF4444) : (charge >= 100 ? opaque(0x55FFFF) : opaque(0xFFFFFF));
-            ctx.drawTextWithShadow(tr, "Flux charge: " + charge + "%", x, y, color);
-            y += lineHeight;
+            addLine(lines, maxLines, line("Flux charge: " + charge + "%", color));
         }
         if (gem == GemId.ASTRA) {
             if (ClientExtraState.hasSoul()) {
                 String type = prettyEntityId(ClientExtraState.soulTypeId());
-                ctx.drawTextWithShadow(tr, "Soul: captured (" + type + ")", x, y, opaque(0x55FFFF));
+                addLine(lines, maxLines, line("Soul: captured (" + type + ")", opaque(0x55FFFF)));
             } else {
-                ctx.drawTextWithShadow(tr, "Soul: none", x, y, opaque(0xAAAAAA));
+                addLine(lines, maxLines, line("Soul: none", opaque(0xAAAAAA)));
             }
-            y += lineHeight;
+        }
+
+        // Rivalry target display
+        if (ClientRivalryState.hasRivalTarget()) {
+            addLine(lines, maxLines, line("Rival: " + ClientRivalryState.getRivalTarget(), opaque(0xFF6600)));
         }
 
         String modifier = GemsKeybinds.modifierLabel();
-        if (!modifier.isEmpty()) {
-            ctx.drawTextWithShadow(tr, "Abilities: hold " + modifier + " + [1..]", x, y, opaque(0xAAAAAA));
-            y += lineHeight;
+        if (!modifier.isEmpty() && !compactMode) {
+            addLine(lines, maxLines, line("Abilities: hold " + modifier + " + [1..]", opaque(0xAAAAAA)));
         }
 
-        GemDefinition def = GemRegistry.definition(gem);
-        List<Identifier> abilities = def.abilities();
+        List<Identifier> abilities = orderedAbilities(gem);
         int unlocked = new GemEnergyState(energy).unlockedAbilityCount(abilities.size());
         int selectedSlot = ClientAbilitySelection.slotNumber(gem);
 
@@ -111,6 +124,9 @@ public final class GemsHud {
             // - Slot 2: Flux Charge (pseudo-ability, not part of unlock/cooldown)
             // - Slot 3+: remaining abilities
             for (int i = 0; i < abilities.size(); i++) {
+                if (lines.size() >= maxLines) {
+                    break;
+                }
                 Identifier id = abilities.get(i);
                 GemAbility ability = ModAbilities.get(id);
                 String name = ability != null ? ability.name() : id.toString();
@@ -118,6 +134,10 @@ public final class GemsHud {
                 boolean isUnlocked = i < unlocked;
                 int remaining = ClientCooldowns.remainingTicks(gem, id);
                 int cooldownCostTicks = ability != null ? Math.max(0, ability.cooldownTicks()) : 0;
+                int lastCooldown = ClientCooldowns.lastCooldownTicks(gem, id);
+                if (lastCooldown > 0) {
+                    cooldownCostTicks = lastCooldown;
+                }
 
                 int slotNumber = i == 0 ? 1 : (i + 2);
                 String key = GemsKeybinds.chordSlotLabel(slotNumber);
@@ -127,7 +147,7 @@ public final class GemsHud {
                     stateSuffix = " (locked)";
                     stateColor = opaque(0x777777);
                 } else if (remaining > 0) {
-                    stateSuffix = " (" + seconds(remaining) + "s)";
+                    stateSuffix = showCooldowns ? " (" + seconds(remaining) + "s)" : "";
                     stateColor = opaque(0xFFCC33);
                 } else {
                     stateSuffix = "";
@@ -145,50 +165,37 @@ public final class GemsHud {
                 }
 
                 String base = prefix + key + " " + name;
-                int dx = x;
-                ctx.drawTextWithShadow(tr, base, dx, y, lineColor);
-                dx += tr.getWidth(base);
-
-                if (cooldownCostTicks > 0) {
-                    String cost = " [" + seconds(cooldownCostTicks) + "s]";
-                    ctx.drawTextWithShadow(tr, cost, dx, y, abilityAccentColor(id));
-                    dx += tr.getWidth(cost);
+                java.util.List<HudSegment> segments = new java.util.ArrayList<>();
+                segments.add(new HudSegment(base, lineColor));
+                if (showCooldowns && cooldownCostTicks > 0) {
+                    segments.add(new HudSegment(" [" + seconds(cooldownCostTicks) + "s]", abilityAccentColor(id)));
                 }
-
                 if (!stateSuffix.isEmpty()) {
-                    int suffixColor = remaining > 0 ? abilityAccentColor(id) : stateColor;
-                    ctx.drawTextWithShadow(tr, stateSuffix, dx, y, suffixColor);
+                    int suffixColor = remaining > 0 && showCooldowns ? abilityAccentColor(id) : stateColor;
+                    segments.add(new HudSegment(stateSuffix, suffixColor));
                 }
-                y += lineHeight;
-                if (y > client.getWindow().getScaledHeight() - lineHeight) {
-                    break;
-                }
+                addLine(lines, maxLines, new HudLine(segments));
 
                 if (i == 0) {
                     boolean selectedCharge = selectedSlot == 2;
-                    ctx.drawTextWithShadow(
-                            tr,
+                    addLine(lines, maxLines, line(
                             (selectedCharge ? "> " : "") + GemsKeybinds.chordSlotLabel(2) + " Flux Charge",
-                            x,
-                            y,
                             selectedCharge ? opaque(0x55FF55) : opaque(0x55FFFF)
-                    );
-                    y += lineHeight;
-                    if (y > client.getWindow().getScaledHeight() - lineHeight) {
-                        break;
-                    }
+                    ));
                 }
             }
         } else if (gem == GemId.CHAOS) {
-            // Chaos has 4 independent ability slots
-            for (int i = 0; i < ClientChaosState.SLOT_COUNT; i++) {
+            // Chaos has independent ability slots
+            for (int i = 0; i < ClientChaosState.slotCount(); i++) {
+                if (lines.size() >= maxLines) {
+                    break;
+                }
                 ClientChaosState.SlotState slot = ClientChaosState.getSlot(i);
                 String key = GemsKeybinds.chordSlotLabel(i + 1);
                 boolean selected = selectedSlot == (i + 1);
                 
                 if (slot.isActive()) {
                     String abilityName = slot.abilityName();
-                    String passiveName = slot.passiveName();
                     int remaining = slot.remainingSeconds();
                     int cooldown = slot.cooldownSeconds();
                     
@@ -197,46 +204,38 @@ public final class GemsHud {
                     String stateSuffix;
                     
                     if (cooldown > 0) {
-                        stateSuffix = " (CD " + cooldown + "s)";
+                        stateSuffix = showCooldowns ? " (CD " + cooldown + "s)" : "";
                         lineColor = selected ? opaque(0xFF5555) : opaque(0xFFCC33);
                     } else {
-                        stateSuffix = "";
+                        int mins = remaining / 60;
+                        int secs = remaining % 60;
+                        stateSuffix = showCooldowns ? " [" + mins + ":" + String.format("%02d", secs) + "]" : "";
                         lineColor = selected ? opaque(0x55FF55) : opaque(0xFFFFFF);
                     }
                     
                     // Line 1: Ability
                     String base = prefix + key + " " + abilityName;
-                    ctx.drawTextWithShadow(tr, base + stateSuffix, x, y, lineColor);
-                    y += lineHeight;
-                    
-                    // Line 2: Passive + remaining time
-                    int mins = remaining / 60;
-                    int secs = remaining % 60;
-                    String passiveText = "    ↳ " + passiveName + " [" + mins + ":" + String.format("%02d", secs) + "]";
-                    ctx.drawTextWithShadow(tr, passiveText, x, y, opaque(0x55FF55));
-                    y += lineHeight;
+                    addLine(lines, maxLines, line(base + stateSuffix, lineColor));
                 } else {
                     // Inactive slot - can be activated
                     String prefix = selected ? "> " : "";
-                    ctx.drawTextWithShadow(tr, prefix + key + " [Press to roll]", x, y, selected ? opaque(0xAA55FF) : opaque(0x777777));
-                    y += lineHeight;
-                }
-                
-                if (y > client.getWindow().getScaledHeight() - lineHeight * 2) {
-                    break;
+                    addLine(lines, maxLines, line(prefix + key + " [Press to roll]", selected ? opaque(0xAA55FF) : opaque(0x777777)));
                 }
             }
         } else if (gem == GemId.PRISM) {
             // Prism uses selected abilities from player's choices
             List<ClientPrismState.PrismAbilityEntry> prismAbilities = ClientPrismState.getAbilities();
             if (prismAbilities.isEmpty()) {
-                ctx.drawTextWithShadow(tr, "No abilities selected", x, y, opaque(0x777777));
-                y += lineHeight;
-                ctx.drawTextWithShadow(tr, "Press " + GemsKeybinds.bonusScreenLabel() + " to open selection", x, y, opaque(0xAAAAAA));
-                y += lineHeight;
+                addLine(lines, maxLines, line("No abilities selected", opaque(0x777777)));
+                if (!compactMode) {
+                    addLine(lines, maxLines, line("Press " + GemsKeybinds.bonusScreenLabel() + " to open selection", opaque(0xAAAAAA)));
+                }
             } else {
                 int prismUnlocked = new GemEnergyState(energy).unlockedAbilityCount(prismAbilities.size());
                 for (int i = 0; i < prismAbilities.size(); i++) {
+                    if (lines.size() >= maxLines) {
+                        break;
+                    }
                     ClientPrismState.PrismAbilityEntry entry = prismAbilities.get(i);
                     String name = entry.name();
                     Identifier id = entry.id();
@@ -245,6 +244,10 @@ public final class GemsHud {
                     int remaining = ClientPrismState.remainingTicks(id);
                     GemAbility ability = ModAbilities.get(id);
                     int cooldownCostTicks = ability != null ? Math.max(0, ability.cooldownTicks()) : 0;
+                    int lastCooldown = ClientPrismState.lastCooldownTicks(id);
+                    if (lastCooldown > 0) {
+                        cooldownCostTicks = lastCooldown;
+                    }
                     
                     String key = GemsKeybinds.chordSlotLabel(i + 1);
                     String stateSuffix;
@@ -253,7 +256,7 @@ public final class GemsHud {
                         stateSuffix = " (locked)";
                         stateColor = opaque(0x777777);
                     } else if (remaining > 0) {
-                        stateSuffix = " (" + seconds(remaining) + "s)";
+                        stateSuffix = showCooldowns ? " (" + seconds(remaining) + "s)" : "";
                         stateColor = opaque(0xFFCC33);
                     } else {
                         stateSuffix = "";
@@ -271,28 +274,23 @@ public final class GemsHud {
                     }
                     
                     String base = prefix + key + " " + name;
-                    int dx = x;
-                    ctx.drawTextWithShadow(tr, base, dx, y, lineColor);
-                    dx += tr.getWidth(base);
-                    
-                    if (cooldownCostTicks > 0) {
-                        String cost = " [" + seconds(cooldownCostTicks) + "s]";
-                        ctx.drawTextWithShadow(tr, cost, dx, y, opaque(0xAA55FF)); // Purple accent for Prism
-                        dx += tr.getWidth(cost);
+                    java.util.List<HudSegment> segments = new java.util.ArrayList<>();
+                    segments.add(new HudSegment(base, lineColor));
+                    if (showCooldowns && cooldownCostTicks > 0) {
+                        segments.add(new HudSegment(" [" + seconds(cooldownCostTicks) + "s]", opaque(0xAA55FF)));
                     }
-                    
                     if (!stateSuffix.isEmpty()) {
-                        int suffixColor = remaining > 0 ? opaque(0xAA55FF) : stateColor;
-                        ctx.drawTextWithShadow(tr, stateSuffix, dx, y, suffixColor);
+                        int suffixColor = remaining > 0 && showCooldowns ? opaque(0xAA55FF) : stateColor;
+                        segments.add(new HudSegment(stateSuffix, suffixColor));
                     }
-                    y += lineHeight;
-                    if (y > client.getWindow().getScaledHeight() - lineHeight) {
-                        break;
-                    }
+                    addLine(lines, maxLines, new HudLine(segments));
                 }
             }
         } else {
             for (int i = 0; i < abilities.size(); i++) {
+                if (lines.size() >= maxLines) {
+                    break;
+                }
                 Identifier id = abilities.get(i);
                 GemAbility ability = ModAbilities.get(id);
                 String name = ability != null ? ability.name() : id.toString();
@@ -300,6 +298,10 @@ public final class GemsHud {
                 boolean isUnlocked = i < unlocked;
                 int remaining = ClientCooldowns.remainingTicks(gem, id);
                 int cooldownCostTicks = ability != null ? Math.max(0, ability.cooldownTicks()) : 0;
+                int lastCooldown = ClientCooldowns.lastCooldownTicks(gem, id);
+                if (lastCooldown > 0) {
+                    cooldownCostTicks = lastCooldown;
+                }
 
                 String key = GemsKeybinds.chordSlotLabel(i + 1);
                 String stateSuffix;
@@ -308,7 +310,7 @@ public final class GemsHud {
                     stateSuffix = " (locked)";
                     stateColor = opaque(0x777777);
                 } else if (remaining > 0) {
-                    stateSuffix = " (" + seconds(remaining) + "s)";
+                    stateSuffix = showCooldowns ? " (" + seconds(remaining) + "s)" : "";
                     stateColor = opaque(0xFFCC33);
                 } else {
                     stateSuffix = "";
@@ -326,24 +328,16 @@ public final class GemsHud {
                 }
 
                 String base = prefix + key + " " + name;
-                int dx = x;
-                ctx.drawTextWithShadow(tr, base, dx, y, lineColor);
-                dx += tr.getWidth(base);
-
-                if (cooldownCostTicks > 0) {
-                    String cost = " [" + seconds(cooldownCostTicks) + "s]";
-                    ctx.drawTextWithShadow(tr, cost, dx, y, abilityAccentColor(id));
-                    dx += tr.getWidth(cost);
+                java.util.List<HudSegment> segments = new java.util.ArrayList<>();
+                segments.add(new HudSegment(base, lineColor));
+                if (showCooldowns && cooldownCostTicks > 0) {
+                    segments.add(new HudSegment(" [" + seconds(cooldownCostTicks) + "s]", abilityAccentColor(id)));
                 }
-
                 if (!stateSuffix.isEmpty()) {
-                    int suffixColor = remaining > 0 ? abilityAccentColor(id) : stateColor;
-                    ctx.drawTextWithShadow(tr, stateSuffix, dx, y, suffixColor);
+                    int suffixColor = remaining > 0 && showCooldowns ? abilityAccentColor(id) : stateColor;
+                    segments.add(new HudSegment(stateSuffix, suffixColor));
                 }
-                y += lineHeight;
-                if (y > client.getWindow().getScaledHeight() - lineHeight) {
-                    break;
-                }
+                addLine(lines, maxLines, new HudLine(segments));
             }
         }
 
@@ -351,28 +345,20 @@ public final class GemsHud {
             int soulSlot = abilities.size() + 1;
             if (soulSlot <= 10) {
                 boolean selected = selectedSlot == soulSlot;
-                ctx.drawTextWithShadow(
-                        tr,
+                addLine(lines, maxLines, line(
                         (selected ? "> " : "") + GemsKeybinds.chordSlotLabel(soulSlot) + " Soul Release",
-                        x,
-                        y,
                         selected ? opaque(0x55FF55) : opaque(0x55FFFF)
-                );
-                y += lineHeight;
+                ));
             }
         }
         if (gem == GemId.SUMMONER) {
             int customizeSlot = abilities.size() + 1;
             if (customizeSlot <= 10) {
                 boolean selected = selectedSlot == customizeSlot;
-                ctx.drawTextWithShadow(
-                        tr,
+                addLine(lines, maxLines, line(
                         (selected ? "> " : "") + GemsKeybinds.chordSlotLabel(customizeSlot) + " Customize",
-                        x,
-                        y,
                         selected ? opaque(0x55FF55) : opaque(0x55FFFF)
-                );
-                y += lineHeight;
+                ));
             }
         }
 
@@ -380,13 +366,22 @@ public final class GemsHud {
         if (energy >= 10) {
             List<ClientBonusState.BonusAbilityEntry> bonusAbilities = ClientBonusState.getAbilities();
             if (!bonusAbilities.isEmpty()) {
-                y += lineHeight / 2; // Small gap
-                ctx.drawTextWithShadow(tr, "--- Bonus ---", x, y, opaque(0xFFD700));
-                y += lineHeight;
+                if (!compactMode) {
+                    addLine(lines, maxLines, line("--- Bonus ---", opaque(0xFFD700)));
+                }
                 for (int i = 0; i < bonusAbilities.size() && i < 2; i++) {
+                    if (lines.size() >= maxLines) {
+                        break;
+                    }
                     ClientBonusState.BonusAbilityEntry entry = bonusAbilities.get(i);
                     int remaining = ClientBonusState.remainingTicks(entry.id());
                     boolean lastUsed = ClientBonusState.isLastUsed(entry.id());
+                    GemAbility ability = ModAbilities.get(entry.id());
+                    int cooldownCostTicks = ability != null ? Math.max(0, ability.cooldownTicks()) : 0;
+                    int lastCooldown = ClientBonusState.lastCooldownTicks(entry.id());
+                    if (lastCooldown > 0) {
+                        cooldownCostTicks = lastCooldown;
+                    }
 
                     String key = GemsKeybinds.bonusAbilityLabel(i);
                     String prefix = lastUsed && remaining > 0 ? "* " : "";
@@ -394,7 +389,7 @@ public final class GemsHud {
                     String stateSuffix;
                     
                     if (remaining > 0) {
-                        stateSuffix = " (" + seconds(remaining) + "s)";
+                        stateSuffix = showCooldowns ? " (" + seconds(remaining) + "s)" : "";
                         lineColor = lastUsed ? opaque(0x55FFFF) : opaque(0xFFCC33);
                     } else {
                         stateSuffix = "";
@@ -402,19 +397,78 @@ public final class GemsHud {
                     }
                     
                     String base = prefix + key + " " + entry.name();
-                    ctx.drawTextWithShadow(tr, base + stateSuffix, x, y, lineColor);
-                    y += lineHeight;
-                    
-                    if (y > client.getWindow().getScaledHeight() - lineHeight) {
-                        break;
+                    java.util.List<HudSegment> segments = new java.util.ArrayList<>();
+                    segments.add(new HudSegment(base, lineColor));
+                    if (showCooldowns && cooldownCostTicks > 0) {
+                        segments.add(new HudSegment(" [" + seconds(cooldownCostTicks) + "s]", abilityAccentColor(entry.id())));
                     }
+                    if (!stateSuffix.isEmpty()) {
+                        int suffixColor = remaining > 0 && showCooldowns ? abilityAccentColor(entry.id()) : lineColor;
+                        segments.add(new HudSegment(stateSuffix, suffixColor));
+                    }
+                    addLine(lines, maxLines, new HudLine(segments));
                 }
             }
         }
+
+        drawLines(ctx, tr, lines, layout.position(), margin, lineHeight, screenWidth, screenHeight);
     }
 
     private static int seconds(int remainingTicks) {
         return Math.max(1, (remainingTicks + 19) / 20);
+    }
+
+    private static List<Identifier> orderedAbilities(GemId gem) {
+        List<Identifier> order = ClientAbilityOrder.getOrder(gem);
+        if (!order.isEmpty()) {
+            return order;
+        }
+        GemDefinition def = GemRegistry.definition(gem);
+        return def.abilities();
+    }
+
+    private static boolean addLine(List<HudLine> lines, int maxLines, HudLine line) {
+        if (lines.size() >= maxLines) {
+            return false;
+        }
+        lines.add(line);
+        return true;
+    }
+
+    private static HudLine line(String text, int color) {
+        return new HudLine(java.util.List.of(new HudSegment(text, color)));
+    }
+
+    private static void drawLines(
+            DrawContext ctx,
+            TextRenderer tr,
+            List<HudLine> lines,
+            GemLoadout.HudPosition position,
+            int margin,
+            int lineHeight,
+            int screenWidth,
+            int screenHeight
+    ) {
+        boolean right = position == GemLoadout.HudPosition.TOP_RIGHT || position == GemLoadout.HudPosition.BOTTOM_RIGHT;
+        boolean bottom = position == GemLoadout.HudPosition.BOTTOM_LEFT || position == GemLoadout.HudPosition.BOTTOM_RIGHT;
+        int totalHeight = lines.size() * lineHeight;
+        int startY = bottom ? (screenHeight - margin - totalHeight) : margin;
+        if (startY < margin) {
+            startY = margin;
+        }
+        int y = startY;
+        for (HudLine line : lines) {
+            int width = 0;
+            for (HudSegment segment : line.segments()) {
+                width += tr.getWidth(segment.text());
+            }
+            int x = right ? (screenWidth - margin - width) : margin;
+            for (HudSegment segment : line.segments()) {
+                ctx.drawTextWithShadow(tr, segment.text(), x, y, segment.color());
+                x += tr.getWidth(segment.text());
+            }
+            y += lineHeight;
+        }
     }
 
     private static int tierColor(GemEnergyTier tier) {
@@ -489,5 +543,11 @@ public final class GemsHud {
         int gi = Math.max(0, Math.min(255, (int) (g * 255.0f)));
         int bi = Math.max(0, Math.min(255, (int) (b * 255.0f)));
         return (ri << 16) | (gi << 8) | bi;
+    }
+
+    private record HudSegment(String text, int color) {
+    }
+
+    private record HudLine(List<HudSegment> segments) {
     }
 }

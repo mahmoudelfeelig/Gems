@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " I ",
+    "HAD",
+    " O "
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "H": "minecraft:player_head",
+    "A": "minecraft:ancient_debris",
+    "D": "minecraft:dragon_breath",
+    "O": "minecraft:obsidian"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:legendary_inscription_ward"
+  }
+}

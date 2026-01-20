@@ -1,5 +1,8 @@
 package com.feel.gems.power.registry;
 
+import com.feel.gems.core.GemDefinition;
+import com.feel.gems.core.GemId;
+import com.feel.gems.core.GemRegistry;
 import com.feel.gems.power.ability.air.*;
 import com.feel.gems.power.ability.astra.*;
 import com.feel.gems.power.ability.beacon.*;
@@ -77,6 +80,7 @@ public final class ModAbilities {
         register(new SpeedSlipstreamAbility());
         register(new SpeedAfterimageAbility());
         register(new SpeedTempoShiftAbility());
+        register(new SpeedAutoStepAbility());
 
         // Strength
         register(new NullifyAbility());
@@ -108,6 +112,7 @@ public final class ModAbilities {
 
         // Space
         register(new SpaceOrbitalLaserAbility());
+        register(new SpaceOrbitalLaserMiningAbility());
         register(new SpaceGravityFieldAbility());
         register(new SpaceBlackHoleAbility());
         register(new SpaceWhiteHoleAbility());
@@ -129,7 +134,7 @@ public final class ModAbilities {
         register(new PillagerWarhornAbility());
         register(new PillagerSnareAbility());
 
-        // Spy/Mimic
+        // Spy
         register(new SpyMimicFormAbility());
         register(new SpyEchoAbility());
         register(new SpyStealAbility());
@@ -166,6 +171,7 @@ public final class ModAbilities {
         register(new HunterCripplingShotAbility());
         register(new HunterPackTacticsAbility());
         register(new HunterCallThePackAbility());
+        register(new HunterOriginTrackingAbility());
 
         // Sentinel
         register(new SentinelShieldWallAbility());
@@ -205,20 +211,26 @@ public final class ModAbilities {
         
         // Bonus Pool Abilities - New 30
         register(new BonusSpectralChainsAbility());
+        register(new BonusVoidRiftAbility());
         register(new BonusSoulLinkAbility());
         register(new BonusInfernoDashAbility());
         register(new BonusTidalWaveAbility());
         register(new BonusStarfallAbility());
         register(new BonusBloodlustAbility());
         register(new BonusCrystalCageAbility());
+        register(new BonusPhantasmAbility());
         register(new BonusMirrorImageAbility());
         register(new BonusSonicBoomAbility());
         register(new BonusVampiricTouchAbility());
+        register(new BonusBlindingFlashAbility());
+        register(new BonusStormCallAbility());
         register(new BonusSmokeScreenAbility());
         register(new BonusThornsNovaAbility());
         register(new BonusQuicksandAbility());
         register(new BonusSearingLightAbility());
         register(new BonusSpectralBladeAbility());
+        register(new BonusNetherPortalAbility());
+        register(new BonusEntangleAbility());
         register(new BonusBlinkAbility());
         register(new BonusPurgeAbility());
         register(new BonusMindSpikeAbility());
@@ -227,6 +239,8 @@ public final class ModAbilities {
         register(new BonusBanishmentAbility());
         register(new BonusCorpseExplosionAbility());
         register(new BonusSoulSwapAbility());
+        register(new BonusMarkOfDeathAbility());
+        register(new BonusIronMaidenAbility());
         register(new BonusVulnerabilityAbility());
         register(new BonusReflectionWardAbility());
         register(new BonusWarpStrikeAbility());
@@ -249,6 +263,37 @@ public final class ModAbilities {
 
     public static void override(GemAbility ability) {
         ABILITIES.put(ability.id(), ability);
+    }
+
+    /**
+     * Find which gem an ability belongs to.
+     * Returns null if the ability is not part of any gem (e.g., bonus pool abilities).
+     */
+    public static GemId findGemForAbility(Identifier abilityId) {
+        // Check special gems first
+        for (GemId specialGem : new GemId[]{GemId.VOID, GemId.CHAOS, GemId.PRISM}) {
+            GemDefinition def = GemRegistry.definition(specialGem);
+            if (def.abilities().contains(abilityId)) {
+                return specialGem;
+            }
+        }
+
+        // Check standard gems
+        for (GemId gemId : GemId.values()) {
+            if (gemId == GemId.VOID || gemId == GemId.CHAOS || gemId == GemId.PRISM) {
+                continue;
+            }
+            try {
+                GemDefinition def = GemRegistry.definition(gemId);
+                if (def.abilities().contains(abilityId)) {
+                    return gemId;
+                }
+            } catch (IllegalArgumentException e) {
+                // Gem not registered, skip
+            }
+        }
+
+        return null; // Not found (might be a bonus pool ability)
     }
 
     private static void register(GemAbility ability) {

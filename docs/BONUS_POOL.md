@@ -1,6 +1,8 @@
 # Bonus abilities and passives
 
-At energy 10/10, any gem holder can claim up to 2 bonus abilities and 2 bonus passives from a server-wide pool. Press B (default keybind) to open the Bonus Selection screen.
+At energy 10/10, any gem holder can claim up to 2 bonus abilities and 2 bonus passives from a server-wide pool. Press B (default keybind) to open the selection UI:
+- Most gems: Bonus Selection screen
+- Prism: Prism Selection screen (includes bonus pool tabs)
 
 Key mechanics:
 - Claims are unique per player - once claimed, no other player can use that ability/passive until it is released.

@@ -1,5 +1,20 @@
 # Changelog
 
+## V1.3 10.01.2026: New Gems, New Legendary Items, and Combat/UI Fixes
+
+- **New gems**: Void, Chaos, Prism, Duelist, Hunter, Sentinel, and Trickster.
+- **New legendary items**:
+  - **Gem Seer**: view any online player's active/owned gem info.
+  - **Chrono Charm**: cooldowns tick twice as fast while carried (gem + bonus abilities).
+  - **Reversal Mirror**: reflect incoming damage back for 5 seconds.
+  - **Experience Blade**: consume XP to upgrade Sharpness (up to XX at 100 levels).
+  - **Duelist’s Rapier**: parry window; successful parry guarantees a crit.
+  - **Hunter’s Trophy Necklace**: right-click (or kill) a player to open a passive-steal menu; steal multiple passives (up to 10) and keep them permanently (persists across gem swaps).
+  - **Gladiator’s Mark**: brand a player; both deal 50% more damage to each other for 60s.
+  - **Soul Shackle**: link to an enemy; damage you take is split between you for 10s.
+  - **Challenger’s Gauntlet**: challenge a player to a duel arena; winner gains energy.
+- **New test tool**: Test Dummy entity + spawn egg for quickly testing abilities and items.
+
 ## V1.2 28.12.2025: Legendary Items, Crafting, and System Updates
 
 - **Legendary items**: one-of-a-kind crafts with a 10-minute crafting timer, global location announcement, boss-bar progress, and drop-at-table completion.

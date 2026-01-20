@@ -1,9 +1,12 @@
 package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.state.PlayerStateManager;
 import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
@@ -15,6 +18,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ToolMaterial;
 import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -51,14 +55,18 @@ public final class ExperienceBladeItem extends Item implements LegendaryItem {
         ItemStack stack = player.getStackInHand(hand);
         int currentSharpness = getCurrentSharpness(player);
 
-        if (currentSharpness >= 20) {
+        int maxSharpness = GemsBalance.v().legendary().experienceBladeMaxSharpness();
+        int sharpnessPerTier = GemsBalance.v().legendary().experienceBladeSharpnessPerTier();
+        int xpLevelsPerTier = GemsBalance.v().legendary().experienceBladeXpLevelsPerTier();
+
+        if (currentSharpness >= maxSharpness) {
             player.sendMessage(Text.translatable("gems.item.experience_blade.max").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
         }
 
         // Calculate XP needed for next tier
-        int nextTier = (currentSharpness / 2) + 1;
-        int xpLevelsNeeded = nextTier * 10; // 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+        int nextTier = (currentSharpness / sharpnessPerTier) + 1;
+        int xpLevelsNeeded = nextTier * xpLevelsPerTier;
 
         if (player.experienceLevel < xpLevelsNeeded) {
             player.sendMessage(Text.translatable("gems.item.experience_blade.need_xp", xpLevelsNeeded, player.experienceLevel).formatted(Formatting.RED), true);
@@ -67,7 +75,7 @@ public final class ExperienceBladeItem extends Item implements LegendaryItem {
 
         // Consume XP and upgrade
         player.addExperienceLevels(-xpLevelsNeeded);
-        int newSharpness = currentSharpness + 2;
+        int newSharpness = Math.min(maxSharpness, currentSharpness + sharpnessPerTier);
         setCurrentSharpness(player, newSharpness);
 
         // Apply enchantment to the blade
@@ -112,6 +120,46 @@ public final class ExperienceBladeItem extends Item implements LegendaryItem {
 
     public static void clearSharpness(ServerPlayerEntity player) {
         PlayerStateManager.clearPersistent(player, SHARPNESS_LEVEL_KEY);
+    }
+
+    public static void clearOnDeath(ServerPlayerEntity player) {
+        clearSharpness(player);
+        RegistryEntry<Enchantment> sharpness = player.getEntityWorld().getRegistryManager()
+                .getOptionalEntry(Enchantments.SHARPNESS).orElse(null);
+        if (sharpness == null) {
+            return;
+        }
+        for (ItemStack stack : player.getInventory().getMainStacks()) {
+            if (!stack.isOf(com.feel.gems.item.ModItems.EXPERIENCE_BLADE)) {
+                continue;
+            }
+            stripSharpness(stack, sharpness, player);
+        }
+    }
+
+    private static void stripSharpness(ItemStack stack, RegistryEntry<Enchantment> sharpness, ServerPlayerEntity player) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+        ItemEnchantmentsComponent enchants = EnchantmentHelper.getEnchantments(stack);
+        if (enchants.isEmpty()) {
+            return;
+        }
+        List<RegistryEntry<Enchantment>> keepKeys = new ArrayList<>();
+        List<Integer> keepLevels = new ArrayList<>();
+        for (var entry : enchants.getEnchantmentEntries()) {
+            if (entry.getKey() == sharpness) {
+                continue;
+            }
+            keepKeys.add(entry.getKey());
+            keepLevels.add(entry.getIntValue());
+        }
+        EnchantmentHelper.set(stack, ItemEnchantmentsComponent.DEFAULT);
+        for (int i = 0; i < keepKeys.size(); i++) {
+            RegistryEntry<Enchantment> key = keepKeys.get(i);
+            int level = keepLevels.get(i);
+            EnchantmentHelper.apply(stack, builder -> builder.set(key, level));
+        }
     }
 
     private static String toRoman(int number) {

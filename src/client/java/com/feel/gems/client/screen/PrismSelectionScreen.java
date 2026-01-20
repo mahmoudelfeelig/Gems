@@ -1,11 +1,12 @@
 package com.feel.gems.client.screen;
 
+import static com.feel.gems.client.screen.GemsScreenConstants.*;
+
 import com.feel.gems.net.PrismSelectionClaimPayload;
 import com.feel.gems.net.PrismSelectionScreenPayload;
 import com.feel.gems.net.PrismSelectionScreenPayload.PowerEntry;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -17,10 +18,9 @@ import java.util.List;
 /**
  * Client UI for Prism gem ability/passive selection at energy 10.
  */
-public final class PrismSelectionScreen extends Screen {
-    private static final int ENTRIES_PER_PAGE = 8;
-    private static final int TAB_WIDTH = 90;
-    private static final int TAB_HEIGHT = 20;
+public final class PrismSelectionScreen extends GemsScreenBase {
+    private static int lastTab = 0;
+    private static final int[] lastPages = new int[4];
 
     private final List<PowerEntry> gemAbilities;
     private final List<PowerEntry> bonusAbilities;
@@ -54,6 +54,11 @@ public final class PrismSelectionScreen extends Screen {
         this.maxBonusAbilities = payload.maxBonusAbilities();
         this.maxGemPassives = payload.maxGemPassives();
         this.maxBonusPassives = payload.maxBonusPassives();
+        if (lastTab < 0 || lastTab > 3) {
+            lastTab = 0;
+        }
+        this.currentTab = lastTab;
+        this.page = lastPages[currentTab];
     }
 
     @Override
@@ -66,10 +71,11 @@ public final class PrismSelectionScreen extends Screen {
 
         int centerX = width / 2;
         int startY = 30;
+        int panelW = panelWidth(width);
 
-        // Tab buttons
+        // Tab buttons - 4 tabs
         tabButtons = new ButtonWidget[4];
-        int tabX = centerX - (TAB_WIDTH * 4 + 12) / 2;
+        int tabX = centerX - (TAB_WIDTH * 4 + TAB_GAP * 3) / 2;
 
         for (int i = 0; i < 4; i++) {
             final int tabIdx = i;
@@ -89,7 +95,7 @@ public final class PrismSelectionScreen extends Screen {
             };
 
             tabButtons[i] = ButtonWidget.builder(label.copy().append(suffix), b -> switchTab(tabIdx))
-                    .dimensions(tabX + i * (TAB_WIDTH + 4), startY, TAB_WIDTH, TAB_HEIGHT)
+                    .dimensions(tabX + i * (TAB_WIDTH + TAB_GAP), startY, TAB_WIDTH, TAB_HEIGHT)
                     .build();
             addDrawableChild(tabButtons[i]);
         }
@@ -103,14 +109,12 @@ public final class PrismSelectionScreen extends Screen {
         List<PowerEntry> entries = getCurrentEntries();
         List<Identifier> selected = getCurrentSelected();
 
-        int totalPages = Math.max(1, (entries.size() + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE);
-        if (page >= totalPages) page = totalPages - 1;
-        if (page < 0) page = 0;
+        int totalPg = totalPages(entries.size(), ENTRIES_PER_PAGE);
+        page = clampPage(page, totalPg);
+        cachePage();
 
         int entryY = startY + TAB_HEIGHT + 20;
-        int entryWidth = 300;
-        int entryHeight = 24;
-        int entryX = centerX - entryWidth / 2;
+        int entryX = centerX - panelW / 2;
 
         int start = page * ENTRIES_PER_PAGE;
         int end = Math.min(start + ENTRIES_PER_PAGE, entries.size());
@@ -118,35 +122,36 @@ public final class PrismSelectionScreen extends Screen {
         for (int i = start; i < end; i++) {
             PowerEntry entry = entries.get(i);
             boolean isSelected = selected.contains(entry.id());
-
-            String buttonText = (isSelected ? "\u2714 " : "") + entry.name() + " (" + entry.sourceName() + ")";
+            boolean isAvailable = entry.available() || isSelected;
+            String buttonText = entry.name() + " (" + entry.sourceName() + ")";
 
             final Identifier entryId = entry.id();
             ButtonWidget entryButton = ButtonWidget.builder(
-                    Text.literal(buttonText).formatted(isSelected ? Formatting.GREEN : Formatting.WHITE),
+                    Text.literal(buttonText).formatted(!isAvailable ? Formatting.RED : (isSelected ? Formatting.GREEN : Formatting.WHITE)),
                     b -> toggleEntry(entryId)
-            ).dimensions(entryX, entryY, entryWidth, entryHeight).build();
+            ).dimensions(entryX, entryY, panelW, ENTRY_HEIGHT).build();
+            entryButton.active = isAvailable;
 
             addDrawableChild(entryButton);
-            entryY += entryHeight + 4;
+            entryY += ENTRY_HEIGHT + SPACING;
         }
 
-        // Pagination (keep clear of the Done button)
-        int pageY = height - 50;
+        // Pagination
+        int navY = navButtonY(height);
         if (page > 0) {
             addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.prev"), b -> changePage(-1))
-                    .dimensions(centerX - 110, pageY, 100, 20)
+                    .dimensions(centerX - NAV_BUTTON_WIDTH - SPACING, navY, NAV_BUTTON_WIDTH, BUTTON_HEIGHT)
                     .build());
         }
-        if (page < totalPages - 1) {
+        if (page < totalPg - 1) {
             addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.next"), b -> changePage(1))
-                    .dimensions(centerX + 10, pageY, 100, 20)
+                    .dimensions(centerX + SPACING, navY, NAV_BUTTON_WIDTH, BUTTON_HEIGHT)
                     .build());
         }
 
         // Close button
-        addDrawableChild(ButtonWidget.builder(Text.translatable("gui.done"), b -> close())
-                .dimensions(centerX - 50, height - 25, 100, 20)
+        addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.button.close"), b -> close())
+                .dimensions(centerX - CLOSE_BUTTON_WIDTH / 2, closeButtonY(height), CLOSE_BUTTON_WIDTH, BUTTON_HEIGHT)
                 .build());
     }
 
@@ -182,13 +187,23 @@ public final class PrismSelectionScreen extends Screen {
 
     private void switchTab(int tab) {
         currentTab = tab;
-        page = 0;
+        page = lastPages[currentTab];
+        lastTab = currentTab;
         rebuild();
     }
 
     private void changePage(int delta) {
         page += delta;
+        cachePage();
         rebuild();
+    }
+
+    private void cachePage() {
+        if (currentTab < 0 || currentTab > 3) {
+            return;
+        }
+        lastTab = currentTab;
+        lastPages[currentTab] = page;
     }
 
     private void toggleEntry(Identifier entryId) {
@@ -196,6 +211,14 @@ public final class PrismSelectionScreen extends Screen {
         boolean isSelected = selected.contains(entryId);
         boolean isAbility = currentTab < 2;
         boolean isBonus = currentTab == 1 || currentTab == 3;
+
+        if (isBonus && !isSelected) {
+            for (PowerEntry entry : getCurrentEntries()) {
+                if (entry.id().equals(entryId) && !entry.available()) {
+                    return;
+                }
+            }
+        }
 
         if (isSelected) {
             // Release
@@ -216,34 +239,35 @@ public final class PrismSelectionScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
 
-        // Title
-        context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 10, 0xFFFFFF);
+        renderBase(context);
 
         // Page indicator
         List<PowerEntry> entries = getCurrentEntries();
-        int totalPages = Math.max(1, (entries.size() + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE);
+        int totalPg = totalPages(entries.size(), ENTRIES_PER_PAGE);
         context.drawCenteredTextWithShadow(textRenderer,
-                Text.literal("Page " + (page + 1) + "/" + totalPages),
-                width / 2, height - 65, 0xAAAAAA);
+                Text.literal("Page " + (page + 1) + "/" + totalPg),
+                width / 2, height - 65, COLOR_GRAY);
 
         // Hover tooltip
         int centerX = width / 2;
-        int entryWidth = 300;
-        int entryX = centerX - entryWidth / 2;
+        int panelW = panelWidth(width);
+        int entryX = centerX - panelW / 2;
         int startY = 30 + TAB_HEIGHT + 20;
-        int entryHeight = 24;
 
         int start = page * ENTRIES_PER_PAGE;
         int end = Math.min(start + ENTRIES_PER_PAGE, entries.size());
 
         for (int i = start; i < end; i++) {
-            int y = startY + (i - start) * (entryHeight + 4);
-            if (mouseX >= entryX && mouseX < entryX + entryWidth && mouseY >= y && mouseY < y + entryHeight) {
+            int y = startY + (i - start) * (ENTRY_HEIGHT + SPACING);
+            if (mouseX >= entryX && mouseX < entryX + panelW && mouseY >= y && mouseY < y + ENTRY_HEIGHT) {
                 PowerEntry entry = entries.get(i);
                 List<Text> tooltip = new ArrayList<>();
                 tooltip.add(Text.literal(entry.name()).formatted(Formatting.YELLOW));
                 tooltip.add(Text.literal(entry.description()).formatted(Formatting.GRAY));
                 tooltip.add(Text.literal("Source: " + entry.sourceName()).formatted(Formatting.AQUA));
+                if ((currentTab == 1 || currentTab == 3) && !entry.available() && !getCurrentSelected().contains(entry.id())) {
+                    tooltip.add(Text.translatable("gems.screen.bonus_selection.claimed_by_other").formatted(Formatting.RED));
+                }
                 context.drawTooltip(textRenderer, tooltip, mouseX, mouseY);
                 break;
             }

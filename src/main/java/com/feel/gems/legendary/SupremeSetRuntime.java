@@ -12,6 +12,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 
 public final class SupremeSetRuntime {
+    private static final int EFFECT_REFRESH_TICKS = 60;
+
     private SupremeSetRuntime() {
     }
 
@@ -38,8 +40,6 @@ public final class SupremeSetRuntime {
         }
         if (shouldHave) {
             applyIfMissingOrWeaker(player, effect, amplifier);
-        } else {
-            removeIfApplied(player, effect, amplifier);
         }
     }
 
@@ -48,20 +48,9 @@ public final class SupremeSetRuntime {
         if (current != null && current.getAmplifier() > amplifier) {
             return;
         }
-        player.addStatusEffect(new StatusEffectInstance(effect, StatusEffectInstance.INFINITE, amplifier, true, false, false));
-    }
-
-    private static void removeIfApplied(ServerPlayerEntity player, RegistryEntry<net.minecraft.entity.effect.StatusEffect> effect, int amplifier) {
-        StatusEffectInstance current = player.getStatusEffect(effect);
-        if (current == null) {
+        if (current != null && current.getAmplifier() == amplifier && current.isInfinite()) {
             return;
         }
-        if (current.getAmplifier() > amplifier) {
-            return;
-        }
-        if (current.getDuration() != StatusEffectInstance.INFINITE) {
-            return;
-        }
-        player.removeStatusEffect(effect);
+        player.addStatusEffect(new StatusEffectInstance(effect, EFFECT_REFRESH_TICKS, amplifier, true, false, false));
     }
 }

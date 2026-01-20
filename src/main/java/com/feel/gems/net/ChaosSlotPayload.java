@@ -18,6 +18,7 @@ public record ChaosSlotPayload(List<SlotData> slots) implements CustomPayload {
         String abilityName,
         String abilityId,
         String passiveName,
+        String passiveId,
         int remainingSeconds,
         int cooldownSeconds
     ) {
@@ -25,6 +26,7 @@ public record ChaosSlotPayload(List<SlotData> slots) implements CustomPayload {
             PacketCodecs.STRING, SlotData::abilityName,
             PacketCodecs.STRING, SlotData::abilityId,
             PacketCodecs.STRING, SlotData::passiveName,
+            PacketCodecs.STRING, SlotData::passiveId,
             PacketCodecs.VAR_INT, SlotData::remainingSeconds,
             PacketCodecs.VAR_INT, SlotData::cooldownSeconds,
             SlotData::new

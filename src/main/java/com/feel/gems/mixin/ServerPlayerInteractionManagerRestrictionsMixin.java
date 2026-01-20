@@ -26,6 +26,8 @@ public abstract class ServerPlayerInteractionManagerRestrictionsMixin {
     @Shadow
     @Final
     protected ServerPlayerEntity player;
+    private int gems$preUseCount = 0;
+    private boolean gems$preUseThrowable = false;
 
     @Inject(method = "tryBreakBlock", at = @At("HEAD"), cancellable = true)
     private void gems$stunBreak(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
@@ -36,6 +38,8 @@ public abstract class ServerPlayerInteractionManagerRestrictionsMixin {
 
     @Inject(method = "interactItem", at = @At("HEAD"), cancellable = true)
     private void gems$stunOrLockItem(ServerPlayerEntity player, World world, ItemStack stack, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
+        gems$preUseCount = stack.getCount();
+        gems$preUseThrowable = com.feel.gems.power.gem.trickster.TricksterPassiveRuntime.isThrowable(stack);
         if (AbilityRestrictions.isStunned(player)) {
             cir.setReturnValue(ActionResult.FAIL);
             return;
@@ -45,6 +49,19 @@ public abstract class ServerPlayerInteractionManagerRestrictionsMixin {
                 cir.setReturnValue(ActionResult.FAIL);
             }
             return;
+        }
+    }
+
+    @Inject(method = "interactItem", at = @At("RETURN"))
+    private void gems$tricksterSleightOfHand(ServerPlayerEntity player, World world, ItemStack stack, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
+        if (!gems$preUseThrowable) {
+            return;
+        }
+        if (stack.getCount() != gems$preUseCount - 1) {
+            return;
+        }
+        if (com.feel.gems.power.gem.trickster.TricksterPassiveRuntime.shouldNotConsumeThrowable(player)) {
+            stack.increment(1);
         }
     }
 

@@ -2,6 +2,18 @@
 
 Passives and abilities are gated by energy. For progression rules, see `docs/PROGRESSION.md`.
 
+## Gem augments
+
+- Craftable items that add modifiers to gem abilities/passives.
+- Augments require a player head and unique ingredients.
+- Gems have up to 4 augment slots (default), with 3 rarity tiers (default).
+- Augments are stored on the gem item itself, so two copies of the same gem can have different augments.
+- Rarity affects strength/roll ranges; conflicts prevent incompatible combos.
+- Slot counts, rarity tiers, roll weights, and magnitudes are configurable.
+- Apply a gem augment by right-clicking while the augment is in your hand and the gem is in your other hand.
+- Use the augment screen (default U) while holding a gem to view or remove augments on that specific item.
+- Each augment rolls a rarity on craft; the rolled rarity scales its strength.
+
 ## Gems
 
 ### Astra Gem
@@ -103,7 +115,7 @@ Passives:
 Abilities:
 - Nullify: remove active effects from enemies in a radius.
 - Frailer: apply Weakness to a target.
-- Bounty Hunting: consume an item to track its owner temporarily.
+- Bounty Hunting: consume an item to track its owner temporarily (falls back to the previous owner if you're the last owner; works with offline targets using last-known data).
 - Chad Strength: every Nth hit deals bonus damage.
 
 ### Wealth Gem
@@ -149,7 +161,7 @@ Abilities:
 - Summon slots share a global cooldown.
 
 Summoner UI:
-- Open the loadout editor with Gems Modifier + the hotbar key after Recall (default Alt + 7).
+- Open the loadout editor with Gems Modifier + the hotbar key after the last ability slot (default Alt + 7) while using Summoner.
 
 Summoned/controlled AI priority (Summoner, Astra Soul Release, Hypno Staff):
 - Summoner only: Commander's Mark target overrides all other priorities.
@@ -166,7 +178,8 @@ Passives:
 - Starshield: reduced projectile damage outdoors at night.
 
 Abilities:
-- Orbital Laser: strike the block you're looking at; sneak for mining mode.
+- Orbital Laser (Damage): strike the block you're looking at with a damage beam.
+- Orbital Laser (Mining): strike the block you're looking at with a mining beam.
 - Gravity Field: lighten trusted allies and weigh down enemies.
 - Black Hole: pull and damage entities in an area.
 - White Hole: push and damage entities in an area.
@@ -204,7 +217,7 @@ Abilities:
 - Warhorn: buff nearby allies and slow nearby enemies.
 - Snare Shot: mark a target with glowing and slowness.
 
-### Spy / Mimic Gem
+### Spy Gem
 
 Passives:
 - Stillness Cloak: stand still to become invisible with no particles.
@@ -214,15 +227,15 @@ Passives:
 - Quick Hands: minor Haste.
 
 Abilities:
-- Mimic Form: after a recent mob kill, gain invisibility + bonus health + speed.
-- Echo: replay the last observed ability in front of you.
-- Steal: after enough observation, steal an ability; the victim only recovers it if you swap gems or they kill you.
+- Mimic Form: after a recent mob kill, gain invisibility + bonus health/attack + speed scaled to that mob.
+- Echo: replay an observed ability; consumes 1 observation.
+- Steal: after observing 4 times, steal an ability; consumes 4 observations. The victim only recovers it if you swap gems or they kill you (recovery does not require them to re-select it).
 - Smoke Bomb: blind/slow nearby enemies and briefly cloak you.
 - Stolen Cast: cast a stolen ability; sneak to cycle.
 - Skinshift: steal a targeted player's appearance and name (including chat display) for a short time; the target cannot chat while the effect is active.
 
 Observed menu:
-- Tracks observed abilities and counts; choose which observed ability Echo/Steal will use.
+- Tracks observed abilities and counts; choose which observed ability Echo/Steal will use. Observations do not expire but are cleared on death.
 
 ### Beacon Gem
 
@@ -258,10 +271,10 @@ Abilities: None.
 ### Chaos Gem
 
 Passives:
-- Chaos Agent: grants access to 4 independent random ability slots.
+- Chaos Agent: grants access to n(4 by default) independent random ability slots.
 
 Abilities:
-- Slot 1-4 (LAlt + 1-4): each slot can be rolled independently. Press a slot key when empty to roll a random ability and passive from any other gem. The rolled ability lasts 5 minutes and can be used with a 10-second cooldown. All 4 slots operate independently.
+- Slot 1-n (LAlt + 1-n): each slot can be rolled independently. Press a slot key when empty to roll a random ability and passive from any other gem. The rolled ability lasts 5 minutes and can be used with a 10-second cooldown. All n slots operate independently.
 
 ### Prism Gem
 
@@ -270,8 +283,9 @@ Passives: None (selected at max energy).
 Abilities: None (selected at max energy).
 
 At energy 10/10, Prism players can select:
-- Up to 3 abilities from normal gems + 2 from the bonus pool (5 total).
-- Up to 3 passives from normal gems + 2 from the bonus pool (5 total).
+- Up to 3 abilities from normal gems.
+- Up to 3 passives from normal gems.
+- Bonus abilities/passives are claimed from the global bonus pool (same as other gems) and are activated via the bonus keybinds (default C/V).
 - Blacklisted powers (Void Immunity, Chaos Random Rotation, Nullify) cannot be selected.
 
 How to select:
@@ -305,6 +319,7 @@ Abilities:
 - Net Shot: fire a net that slows and grounds enemies (disables flight/elytra).
 - Crippling Shot: ranged attack that reduces target's movement speed by 50% for 8s.
 - Pack Tactics: nearby trusted allies deal 20% more damage to your marked target for 10s.
+- Origin Tracking: track the original owner of an item (who first crafted or found it); works on offline targets using last-known data.
 - Six-Pack Pain: summon 6 player clones that share a health pool (120 HP total) for 10s. They attack untrusted players and hostile mobs. When hit, you get regeneration + a random buff, and the attacker gets debuffed.
 
 ### Sentinel Gem

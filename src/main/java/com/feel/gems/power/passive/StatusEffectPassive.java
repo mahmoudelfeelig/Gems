@@ -1,5 +1,6 @@
 package com.feel.gems.power.passive;
 
+import com.feel.gems.augment.AugmentRuntime;
 import com.feel.gems.power.api.GemPassive;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -42,11 +43,13 @@ public final class StatusEffectPassive implements GemPassive {
 
     @Override
     public void apply(ServerPlayerEntity player) {
+        int bonus = AugmentRuntime.passiveAmplifierBonus(player, id);
+        int amp = Math.max(0, amplifier + bonus);
         StatusEffectInstance current = player.getStatusEffect(effect);
-        if (current != null && current.getAmplifier() == amplifier && current.isInfinite()) {
+        if (current != null && current.getAmplifier() == amp && current.isInfinite()) {
             return;
         }
-        player.addStatusEffect(new StatusEffectInstance(effect, StatusEffectInstance.INFINITE, amplifier, true, false, false));
+        player.addStatusEffect(new StatusEffectInstance(effect, StatusEffectInstance.INFINITE, amp, true, false, false));
     }
 
     @Override

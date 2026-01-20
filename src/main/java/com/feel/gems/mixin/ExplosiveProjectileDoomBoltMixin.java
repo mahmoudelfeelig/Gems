@@ -59,7 +59,11 @@ public abstract class ExplosiveProjectileDoomBoltMixin {
                     }
                 }
                 float damage = BonusDoomBoltAbility.doomBoltDamage();
-                living.damage(world, world.getDamageSources().magic(), damage);
+                if (owner != null) {
+                    living.damage(world, world.getDamageSources().indirectMagic(self, owner), damage);
+                } else {
+                    living.damage(world, world.getDamageSources().magic(), damage);
+                }
             }
         }
 

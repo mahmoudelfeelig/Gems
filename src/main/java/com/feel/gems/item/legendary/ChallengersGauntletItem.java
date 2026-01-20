@@ -1,6 +1,8 @@
 package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.admin.GemsAdmin;
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.legendary.LegendaryDuels;
 import com.feel.gems.power.util.Targeting;
@@ -30,8 +32,6 @@ import net.minecraft.world.World;
  * is handled server-side by {@link LegendaryDuels}.
  */
 public final class ChallengersGauntletItem extends Item implements LegendaryItem {
-    private static final int COOLDOWN_TICKS = 300 * 20; // 5 minutes
-
     public ChallengersGauntletItem(Settings settings) {
         super(settings);
     }
@@ -50,12 +50,13 @@ public final class ChallengersGauntletItem extends Item implements LegendaryItem
         ItemStack stack = player.getStackInHand(hand);
 
         // Check cooldown
-        if (player.getItemCooldownManager().isCoolingDown(stack)) {
+        if (player.getItemCooldownManager().isCoolingDown(stack) && !GemsAdmin.noLegendaryCooldowns(player)) {
             return ActionResult.FAIL;
         }
 
         // Raycast to find target
-        ServerPlayerEntity target = Targeting.raycastPlayer(player, 10);
+        int rangeBlocks = GemsBalance.v().legendary().challengersGauntletRangeBlocks();
+        ServerPlayerEntity target = Targeting.raycastPlayer(player, rangeBlocks);
         if (target == null) {
             player.sendMessage(Text.translatable("gems.message.no_player_target").formatted(Formatting.RED), true);
             return ActionResult.FAIL;
@@ -70,7 +71,10 @@ public final class ChallengersGauntletItem extends Item implements LegendaryItem
             return ActionResult.FAIL;
         }
 
-        player.getItemCooldownManager().set(stack, COOLDOWN_TICKS);
+        int cooldownTicks = GemsBalance.v().legendary().challengersGauntletCooldownTicks();
+        if (cooldownTicks > 0 && !GemsAdmin.noLegendaryCooldowns(player)) {
+            player.getItemCooldownManager().set(stack, cooldownTicks);
+        }
 
         // Visual effects
         ServerWorld serverWorld = player.getEntityWorld();

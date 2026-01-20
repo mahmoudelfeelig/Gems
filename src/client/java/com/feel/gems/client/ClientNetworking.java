@@ -2,12 +2,20 @@ package com.feel.gems.client;
 
 import com.feel.gems.bonus.BonusAbilityRuntime;
 import com.feel.gems.client.screen.BonusSelectionScreen;
+import com.feel.gems.client.screen.AugmentScreen;
+import com.feel.gems.client.screen.InscriptionScreen;
 import com.feel.gems.client.screen.PrismSelectionScreen;
 import com.feel.gems.client.screen.SpyObservedSelectionScreen;
 import com.feel.gems.client.screen.SummonerLoadoutScreen;
+import com.feel.gems.client.screen.LoadoutPresetsScreen;
+import com.feel.gems.client.screen.TrophyNecklaceScreen;
 import com.feel.gems.client.screen.TrackerCompassScreen;
+import com.feel.gems.client.screen.TitleSelectionScreen;
 import com.feel.gems.core.GemId;
 import com.feel.gems.net.AbilityCooldownPayload;
+import com.feel.gems.net.AbilityOrderSyncPayload;
+import com.feel.gems.net.AugmentScreenPayload;
+import com.feel.gems.net.InscriptionScreenPayload;
 import com.feel.gems.net.BonusAbilitiesSyncPayload;
 import com.feel.gems.net.BonusSelectionScreenPayload;
 import com.feel.gems.net.ChaosSlotPayload;
@@ -20,10 +28,15 @@ import com.feel.gems.net.SpyObservedScreenPayload;
 import com.feel.gems.net.ServerDisablesPayload;
 import com.feel.gems.net.StateSyncPayload;
 import com.feel.gems.net.SummonerLoadoutScreenPayload;
+import com.feel.gems.net.LoadoutScreenPayload;
+import com.feel.gems.net.HudLayoutPayload;
+import com.feel.gems.net.TrophyNecklaceScreenPayload;
 import com.feel.gems.net.TrackerCompassScreenPayload;
+import com.feel.gems.net.TitleSelectionScreenPayload;
 import com.feel.gems.net.SpySkinshiftPayload;
 import com.feel.gems.net.TricksterControlPayload;
 import com.feel.gems.net.payloads.ShadowCloneSyncPayload;
+import com.feel.gems.net.RivalrySyncPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
@@ -41,12 +54,15 @@ public final class ClientNetworking {
             ClientCooldowns.reset();
             ClientExtraState.reset();
             ClientAbilitySelection.reset();
+            ClientAbilityOrder.reset();
+            ClientHudLayout.reset();
             ClientChaosState.reset();
             ClientDisguiseState.reset();
             ClientDisables.reset();
             ClientBonusState.reset();
             ClientShadowCloneState.reset();
             ClientTricksterState.reset();
+            ClientRivalryState.clear();
         }));
 
         ClientPlayNetworking.registerGlobalReceiver(StateSyncPayload.ID, (payload, context) ->
@@ -59,7 +75,8 @@ public final class ClientNetworking {
         ClientPlayNetworking.registerGlobalReceiver(CooldownSnapshotPayload.ID, (payload, context) ->
                 context.client().execute(() -> ClientCooldowns.applySnapshot(
                         safeGemId(payload.activeGemOrdinal()),
-                        payload.remainingAbilityCooldownTicks()
+                        payload.remainingAbilityCooldownTicks(),
+                        payload.maxAbilityCooldownTicks()
                 )));
 
         ClientPlayNetworking.registerGlobalReceiver(AbilityCooldownPayload.ID, (payload, context) ->
@@ -86,11 +103,35 @@ public final class ClientNetworking {
                         payload.soulTypeId()
                 )));
 
+        ClientPlayNetworking.registerGlobalReceiver(AbilityOrderSyncPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    GemId gem = safeGemId(payload.activeGemOrdinal());
+                    ClientAbilityOrder.setOrder(gem, payload.abilityOrder());
+                }));
+
+        ClientPlayNetworking.registerGlobalReceiver(HudLayoutPayload.ID, (payload, context) ->
+                context.client().execute(() -> ClientHudLayout.update(
+                        new com.feel.gems.loadout.GemLoadout.HudLayout(
+                                payload.position(),
+                                payload.showCooldowns(),
+                                payload.showEnergy(),
+                                payload.compactMode()
+                        )
+                )));
+
         ClientPlayNetworking.registerGlobalReceiver(SummonerLoadoutScreenPayload.ID, (payload, context) ->
                 context.client().execute(() -> {
                     MinecraftClient client = context.client();
                     if (client != null) {
                         client.setScreen(new SummonerLoadoutScreen(payload));
+                    }
+                }));
+
+        ClientPlayNetworking.registerGlobalReceiver(LoadoutScreenPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    MinecraftClient client = context.client();
+                    if (client != null) {
+                        client.setScreen(new LoadoutPresetsScreen(payload));
                     }
                 }));
 
@@ -136,6 +177,33 @@ public final class ClientNetworking {
                 context.client().execute(() -> ClientBonusState.update(payload))
         );
 
+        // Trophy Necklace screen
+        ClientPlayNetworking.registerGlobalReceiver(TrophyNecklaceScreenPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    MinecraftClient client = context.client();
+                    if (client != null) {
+                        client.setScreen(new TrophyNecklaceScreen(payload));
+                    }
+                }));
+
+        // Augment management screen
+        ClientPlayNetworking.registerGlobalReceiver(AugmentScreenPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    MinecraftClient client = context.client();
+                    if (client != null) {
+                        client.setScreen(new AugmentScreen(payload));
+                    }
+                }));
+
+        // Inscription management screen
+        ClientPlayNetworking.registerGlobalReceiver(InscriptionScreenPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    MinecraftClient client = context.client();
+                    if (client != null) {
+                        client.setScreen(new InscriptionScreen(payload));
+                    }
+                }));
+
         // Prism abilities sync (for HUD)
         ClientPlayNetworking.registerGlobalReceiver(PrismAbilitiesSyncPayload.ID, (payload, context) ->
                 context.client().execute(() -> ClientPrismState.update(payload))
@@ -163,6 +231,20 @@ public final class ClientNetworking {
                         client.setScreen(new SpyObservedSelectionScreen(payload));
                     }
                 }));
+
+        // Title selection screen
+        ClientPlayNetworking.registerGlobalReceiver(TitleSelectionScreenPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    MinecraftClient client = context.client();
+                    if (client != null) {
+                        client.setScreen(new TitleSelectionScreen(payload));
+                    }
+                }));
+
+        // Rivalry target sync (for HUD)
+        ClientPlayNetworking.registerGlobalReceiver(RivalrySyncPayload.ID, (payload, context) ->
+                context.client().execute(() -> ClientRivalryState.setRivalTarget(payload.targetName()))
+        );
     }
 
     private static GemId safeGemId(int ordinal) {

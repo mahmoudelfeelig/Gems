@@ -33,8 +33,12 @@ public final class GemsDisablesConfigManager {
         return loadInternal(true, true);
     }
 
-    static LoadResult loadOrCreateStrict() {
+    public static LoadResult loadOrCreateStrict() {
         return loadInternal(true, false);
+    }
+
+    public static LoadResult loadOrCreateForUi() {
+        return loadInternal(true, true);
     }
 
     private static LoadResult loadInternal(boolean createIfMissing, boolean fallbackToDefaults) {
@@ -65,6 +69,14 @@ public final class GemsDisablesConfigManager {
 
     static Path disablesPath() {
         return GemsConfigManager.configDir().resolve(FILE);
+    }
+
+    public static Path disablesPathForUi() {
+        return disablesPath();
+    }
+
+    public static void writeDisablesForUi(GemsDisablesConfig cfg) {
+        GemsConfigManager.write(disablesPath(), cfg);
     }
 }
 

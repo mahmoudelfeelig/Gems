@@ -97,9 +97,10 @@
             NbtCompound data = root(player);
             GemId prev = getActiveGem(player);
             if (prev != gem && player instanceof ServerPlayerEntity sp) {
-                if (prev == GemId.SPY_MIMIC && gem != GemId.SPY_MIMIC) {
-                    com.feel.gems.power.gem.spy.SpyMimicSystem.restoreStolenFromThief(sp);
-                    com.feel.gems.power.gem.spy.SpyMimicSystem.clearOnGemSwitchAway(sp);
+                com.feel.gems.augment.AugmentRuntime.clearActiveGemAugments(sp);
+                if (prev == GemId.SPY && gem != GemId.SPY) {
+                    com.feel.gems.power.gem.spy.SpySystem.restoreStolenFromThief(sp);
+                    com.feel.gems.power.gem.spy.SpySystem.clearOnGemSwitchAway(sp);
                 }
             }
             data.putString(KEY_ACTIVE_GEM, gem.name());
@@ -220,6 +221,14 @@
             return next;
         }
 
+        public static int setEnergyCapPenalty(PlayerEntity player, int penalty) {
+            NbtCompound data = root(player);
+            int clamped = clamp(penalty, 0, MAX_ENERGY);
+            data.putInt(KEY_ENERGY_CAP_PENALTY, clamped);
+            setEnergy(player, getEnergy(player));
+            return clamped;
+        }
+
         public static int getMaxHearts(PlayerEntity player) {
             NbtCompound data = root(player);
             return clamp(data.getInt(KEY_MAX_HEARTS, Math.max(DEFAULT_MAX_HEARTS, minMaxHearts())), minMaxHearts(), MAX_MAX_HEARTS);
@@ -279,6 +288,10 @@
             GemId[] values = GemId.values();
             java.util.ArrayList<GemId> allowed = new java.util.ArrayList<>(values.length);
             for (GemId gem : values) {
+                // Special gems shouldn't be randomly assigned on first join.
+                if (gem == GemId.VOID || gem == GemId.CHAOS || gem == GemId.PRISM) {
+                    continue;
+                }
                 if (!GemsDisables.isGemDisabled(gem)) {
                     allowed.add(gem);
                 }

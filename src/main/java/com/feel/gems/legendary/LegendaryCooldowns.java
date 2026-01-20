@@ -1,30 +1,69 @@
 package com.feel.gems.legendary;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.item.ModItems;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public final class LegendaryCooldowns {
+    private static final Map<UUID, Integer> LAST_CHARM_COUNTS = new ConcurrentHashMap<>();
+
     private LegendaryCooldowns() {
     }
 
+    /**
+     * Gets the cooldown multiplier for abilities. Chrono Charms stack multiplicatively.
+     * 1 charm = 0.5x (50% cooldown), 2 charms = 0.25x (25% cooldown), etc.
+     */
     public static float getCooldownMultiplier(ServerPlayerEntity player) {
         if (player == null) {
             return 1.0F;
         }
-        return hasChronoCharm(player) ? 0.5F : 1.0F;
+        int charmCount = countChronoCharms(player);
+        if (charmCount <= 0) {
+            return 1.0F;
+        }
+        float baseMultiplier = GemsBalance.v().legendary().chronoCharmCooldownMultiplier();
+        // Stack multiplicatively: 2 charms = mult^2, 3 charms = mult^3, etc.
+        return (float) Math.pow(baseMultiplier, charmCount);
     }
 
-    public static boolean hasChronoCharm(ServerPlayerEntity player) {
+    /**
+     * Counts how many Chrono Charms the player has in their inventory.
+     */
+    public static int countChronoCharms(ServerPlayerEntity player) {
         if (player == null) {
-            return false;
+            return 0;
         }
+        int count = 0;
         PlayerInventory inv = player.getInventory();
         for (int i = 0; i < inv.size(); i++) {
             if (inv.getStack(i).isOf(ModItems.CHRONO_CHARM)) {
-                return true;
+                count += inv.getStack(i).getCount();
             }
         }
-        return false;
+        return count;
+    }
+
+    public static boolean hasChronoCharm(ServerPlayerEntity player) {
+        return countChronoCharms(player) > 0;
+    }
+
+    public static boolean updateCharmCount(ServerPlayerEntity player) {
+        if (player == null) {
+            return false;
+        }
+        int count = countChronoCharms(player);
+        Integer last = LAST_CHARM_COUNTS.put(player.getUuid(), count);
+        return last == null || last != count;
+    }
+
+    public static void clearCache(UUID playerId) {
+        if (playerId != null) {
+            LAST_CHARM_COUNTS.remove(playerId);
+        }
     }
 }

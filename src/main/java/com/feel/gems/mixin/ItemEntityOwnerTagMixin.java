@@ -20,7 +20,7 @@ public abstract class ItemEntityOwnerTagMixin {
             return;
         }
         ItemEntity self = (ItemEntity) (Object) this;
-        AbilityRuntime.setOwnerIfMissing(self.getStack(), serverPlayer.getUuid());
+        AbilityRuntime.setOwnerWithName(self.getStack(), serverPlayer.getUuid(), serverPlayer.getName().getString());
     }
 }
 

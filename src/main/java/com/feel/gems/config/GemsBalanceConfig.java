@@ -26,15 +26,23 @@ public final class GemsBalanceConfig {
     public Space space = new Space();
     public Reaper reaper = new Reaper();
     public Pillager pillager = new Pillager();
-    public SpyMimic spyMimic = new SpyMimic();
+    public Spy spy = new Spy();
     public Beacon beacon = new Beacon();
     public Air air = new Air();
+    public VoidGem voidGem = new VoidGem();
+    public Chaos chaos = new Chaos();
+    public Prism prism = new Prism();
     public Duelist duelist = new Duelist();
     public Hunter hunter = new Hunter();
     public Sentinel sentinel = new Sentinel();
     public Trickster trickster = new Trickster();
     public Legendary legendary = new Legendary();
     public BonusPool bonusPool = new BonusPool();
+    public Mastery mastery = new Mastery();
+    public Rivalry rivalry = new Rivalry();
+    public Loadouts loadouts = new Loadouts();
+    public Synergies synergies = new Synergies();
+    public Augments augments = new Augments();
 
     /**
      * Universal mob blacklist for Hypno Staff, Summoner summons, and Astra soul captures.
@@ -80,6 +88,45 @@ public final class GemsBalanceConfig {
         public double controlledFollowStartBlocks = 6.0D;
         public double controlledFollowStopBlocks = 3.0D;
         public double controlledFollowSpeed = 1.1D;
+    }
+
+    /**
+     * Special gem: Void. Its primary gameplay is immunity to debuffs/negative effects.
+     */
+    public static final class VoidGem {
+        /**
+         * When true, Void players are immune to all status effects.
+         *
+         * <p>This is intentionally strong and will also block vanilla effects (potions, beacons, etc.).</p>
+         */
+        public boolean blockAllStatusEffects = true;
+    }
+
+    /**
+     * Special gem: Chaos. Provides randomized abilities/passives on a timer or per-slot basis.
+     */
+    public static final class Chaos {
+        /** How often the Chaos rotation changes (seconds). */
+        public int rotationSeconds = 300;
+        /** Cooldown between using the currently-rotated Chaos ability (seconds). */
+        public int rotationAbilityCooldownSeconds = 10;
+
+        /** Duration a Chaos slot stays active after rolling (seconds). */
+        public int slotDurationSeconds = 300;
+        /** Cooldown between uses of a rolled Chaos slot ability (seconds). */
+        public int slotAbilityCooldownSeconds = 10;
+        /** Number of Chaos slots available (1-9). */
+        public int slotCount = 6;
+    }
+
+    /**
+     * Special gem: Prism. Players select which gem abilities/passives they want to slot.
+     */
+    public static final class Prism {
+        /** Max number of selected "gem abilities" Prism can slot. */
+        public int maxGemAbilities = 3;
+        /** Max number of selected "gem passives" Prism can slot. */
+        public int maxGemPassives = 3;
     }
 
     public static final class Astra {
@@ -199,7 +246,7 @@ public final class GemsBalanceConfig {
         public int vitalityVortexVerdantThreshold = 10;
         public float vitalityVortexAllyHeal = 2.0F;
 
-        public int healthDrainCooldownSeconds = 12;
+        public int healthDrainCooldownSeconds = 45;
         public int healthDrainRangeBlocks = 20;
         public float healthDrainAmount = 6.0F;
 
@@ -252,10 +299,10 @@ public final class GemsBalanceConfig {
     }
 
     public static final class Speed {
-        public double momentumMinSpeed = 0.10D;
-        public double momentumMaxSpeed = 0.60D;
-        public float momentumMinMultiplier = 0.90F;
-        public float momentumMaxMultiplier = 1.30F;
+        public double momentumMinSpeed = 0.05D;
+        public double momentumMaxSpeed = 0.45D;
+        public float momentumMinMultiplier = 1.00F;
+        public float momentumMaxMultiplier = 2.00F;
         public int frictionlessSpeedAmplifier = 1;
 
         public int arcShotCooldownSeconds = 20;
@@ -274,8 +321,8 @@ public final class GemsBalanceConfig {
 
         public int terminalVelocityCooldownSeconds = 30;
         public int terminalVelocityDurationSeconds = 10;
-        public int terminalVelocitySpeedAmplifier = 2; // Speed III
-        public int terminalVelocityHasteAmplifier = 1; // Haste II
+        public int terminalVelocitySpeedAmplifier = 4; // Speed V
+        public int terminalVelocityHasteAmplifier = 2; // Haste III
 
         public int slipstreamCooldownSeconds = 45;
         public int slipstreamDurationSeconds = 8;
@@ -294,6 +341,9 @@ public final class GemsBalanceConfig {
         public int tempoShiftRadiusBlocks = 12;
         public int tempoShiftAllyCooldownTicksPerSecond = 10;
         public int tempoShiftEnemyCooldownTicksPerSecond = 10;
+
+        public int autoStepCooldownSeconds = 5;
+        public double autoStepHeightBonus = 0.4D;
     }
 
     public static final class Strength {
@@ -460,6 +510,7 @@ public final class GemsBalanceConfig {
 
         // Abilities
         public int orbitalLaserCooldownSeconds = 60;
+        public int orbitalLaserMiningCooldownSeconds = 60;
         public int orbitalLaserRangeBlocks = 64;
         public int orbitalLaserDelaySeconds = 1;
         public int orbitalLaserRadiusBlocks = 4;
@@ -478,14 +529,14 @@ public final class GemsBalanceConfig {
         public int blackHoleCooldownSeconds = 60;
         public int blackHoleDurationSeconds = 6;
         public int blackHoleRadiusBlocks = 10;
-        public float blackHolePullStrength = 0.25F;
-        public float blackHoleDamagePerSecond = 4.0F;
+        public float blackHolePullStrength = 1.0F;
+        public float blackHoleDamagePerSecond = 12.0F;
 
         public int whiteHoleCooldownSeconds = 60;
         public int whiteHoleDurationSeconds = 6;
         public int whiteHoleRadiusBlocks = 10;
-        public float whiteHolePushStrength = 0.30F;
-        public float whiteHoleDamagePerSecond = 3.0F;
+        public float whiteHolePushStrength = 1.0F;
+        public float whiteHoleDamagePerSecond = 9.0F;
     }
 
     public static final class Reaper {
@@ -581,7 +632,7 @@ public final class GemsBalanceConfig {
         public int snareSlownessAmplifier = 2;
     }
 
-    public static final class SpyMimic {
+    public static final class Spy {
         // Passives
         public int stillnessSeconds = 5;
         public float stillnessMoveEpsilonBlocks = 0.05F;
@@ -766,6 +817,10 @@ public final class GemsBalanceConfig {
         public int sixPackPainWideTargetRangeBlocks = 30;
         public int sixPackPainBuffDurationTicks = 200; // 10 seconds
         public int sixPackPainDebuffDurationTicks = 100; // 5 seconds
+
+        // Origin Tracking
+        public int originTrackingCooldownSeconds = 30;
+        public int originTrackingDurationSeconds = 60;
     }
 
     public static final class Sentinel {
@@ -836,6 +891,8 @@ public final class GemsBalanceConfig {
 
         public int recallCooldownSeconds = 60;
 
+        public float chronoCharmCooldownMultiplier = 0.5F;
+
         public int hypnoHoldSeconds = 3;
         public int hypnoRangeBlocks = 40;
         public int hypnoViewRangeBlocks = 10;
@@ -843,8 +900,8 @@ public final class GemsBalanceConfig {
         public int hypnoMaxControlled = 10;
         public int hypnoDurationSeconds = 0; // 0 = infinite while online
 
-        public int earthsplitterRadiusBlocks = 1;
-        public int earthsplitterTunnelLengthBlocks = 9;
+        public int earthsplitterRadiusBlocks = 4;
+        public int earthsplitterTunnelLengthBlocks = 20;
 
         public int bloodOathSharpnessCap = 10;
         public int demolitionCooldownSeconds = 5;
@@ -859,6 +916,32 @@ public final class GemsBalanceConfig {
         public int thirdStrikeWindowSeconds = 5;
         public float thirdStrikeBonusDamage = 4.0F;
         public float vampiricHealAmount = 2.0F;
+
+        public int duelistsRapierParryWindowTicks = 10;
+        public int duelistsRapierCooldownSeconds = 8;
+        public float duelistsRapierCritDamageMultiplier = 1.5F;
+
+        public int challengersGauntletCooldownSeconds = 300;
+        public int challengersGauntletRangeBlocks = 10;
+
+        public int reversalMirrorDurationSeconds = 5;
+        public int reversalMirrorCooldownSeconds = 60;
+
+        public int gladiatorsMarkDurationSeconds = 60;
+        public int gladiatorsMarkCooldownSeconds = 120;
+        public int gladiatorsMarkRangeBlocks = 20;
+        public float gladiatorsMarkDamageMultiplier = 1.5F;
+
+        public int soulShackleDurationSeconds = 10;
+        public int soulShackleCooldownSeconds = 90;
+        public int soulShackleRangeBlocks = 15;
+        public float soulShackleSplitRatio = 0.5F;
+
+        public int experienceBladeMaxSharpness = 20;
+        public int experienceBladeSharpnessPerTier = 2;
+        public int experienceBladeXpLevelsPerTier = 10;
+
+        public int trophyNecklaceMaxPassives = 10;
 
         public int supremeHelmetNightVisionAmplifier = 0;
         public int supremeHelmetWaterBreathingAmplifier = 0;
@@ -875,7 +958,7 @@ public final class GemsBalanceConfig {
 
         private static java.util.Map<String, String> defaultRecipeGemRequirements() {
             java.util.Map<String, String> map = new java.util.HashMap<>();
-            map.put("gems:tracker_compass_discount", "spy_mimic");
+            map.put("gems:tracker_compass_discount", "spy");
             map.put("gems:recall_relic_discount", "space");
             map.put("gems:hypno_staff_discount", "summoner");
             map.put("gems:earthsplitter_pick_discount", "wealth");
@@ -888,6 +971,14 @@ public final class GemsBalanceConfig {
             map.put("gems:hunters_sight_bow_discount", "puff");
             map.put("gems:third_strike_blade_discount", "strength");
             map.put("gems:vampiric_edge_discount", "life");
+            map.put("gems:duelists_rapier_discount", "duelist");
+            map.put("gems:challengers_gauntlet_discount", "duelist");
+            map.put("gems:experience_blade_discount", "wealth");
+            map.put("gems:reversal_mirror_discount", "sentinel");
+            map.put("gems:hunters_trophy_necklace_discount", "hunter");
+            map.put("gems:gladiators_mark_discount", "duelist");
+            map.put("gems:soul_shackle_discount", "reaper");
+            map.put("gems:chrono_charm_discount", "astra");
             return map;
         }
     }
@@ -952,6 +1043,8 @@ public final class GemsBalanceConfig {
         public int decoyTrapCooldownSeconds = 30;
         public float decoyTrapExplosionDamage = 6.0F;
         public int decoyTrapArmTimeSeconds = 2;
+        public int decoyTrapMaxActive = 20;
+        public int decoyTrapDespawnSeconds = 60;
 
         // Gravity Well
         public int gravityWellCooldownSeconds = 30;
@@ -990,7 +1083,7 @@ public final class GemsBalanceConfig {
         // Berserker Rage
         public int berserkerRageCooldownSeconds = 60;
         public int berserkerRageDurationSeconds = 10;
-        public float berserkerRageDamageBoostPercent = 50.0F;
+        public float berserkerRageDamageBoostPercent = 200.0F;
         public float berserkerRageDamageTakenBoostPercent = 25.0F;
 
         // Ethereal Step (was Phase Shift)
@@ -1139,6 +1232,7 @@ public final class GemsBalanceConfig {
         public float corpseExplosionDamage = 5.0F;
         public int corpseExplosionRadiusBlocks = 6;
         public int corpseExplosionCorpseRangeBlocks = 10;
+        public int corpseExplosionMarkDurationSeconds = 5;
 
         // Soul Swap
         public int soulSwapCooldownSeconds = 30;
@@ -1349,5 +1443,113 @@ public final class GemsBalanceConfig {
 
         // Sixth Sense
         public int sixthSenseWarningRangeBlocks = 15;
+    }
+
+    /**
+     * Mastery system settings (cosmetic progression).
+     */
+    public static final class Mastery {
+        /**
+         * Whether the mastery system is enabled.
+         */
+        public boolean enabled = true;
+
+        /**
+         * Whether to show aura particles for players with selected auras.
+         */
+        public boolean showAuraParticles = true;
+    }
+
+    /**
+     * Rivalry system settings.
+     */
+    public static final class Rivalry {
+        /**
+         * Whether the rivalry system is enabled.
+         */
+        public boolean enabled = true;
+
+        /**
+         * Damage multiplier when attacking your rivalry target.
+         * 1.25 = 25% bonus damage.
+         */
+        public double damageMultiplier = 1.25;
+
+        /**
+         * Whether to show the rivalry target in the HUD.
+         */
+        public boolean showInHud = true;
+    }
+
+    /**
+     * Loadout presets system settings.
+     */
+    public static final class Loadouts {
+        /**
+         * Whether the loadout presets system is enabled.
+         */
+        public boolean enabled = true;
+
+        /**
+         * Minimum energy level required to unlock loadout presets.
+         * Players must have this energy level or higher to save/load presets.
+         */
+        public int unlockEnergy = 6;
+
+        /**
+         * Maximum number of preset slots per gem.
+         */
+        public int maxPresetsPerGem = 5;
+    }
+
+    /**
+     * Team synergies system settings.
+     * Synergies trigger when different gem abilities are cast within a short window.
+     */
+    public static final class Synergies {
+        /**
+         * Whether the team synergies system is enabled.
+         */
+        public boolean enabled = true;
+
+        /**
+         * Time window in seconds for abilities to count as a synergy combo.
+         * Both abilities must be cast within this window.
+         */
+        public int windowSeconds = 3;
+
+        /**
+         * Cooldown in seconds before the same synergy can trigger again.
+         * This applies per-group (participants who triggered together).
+         */
+        public int cooldownSeconds = 30;
+
+        /**
+         * Whether to show synergy trigger notifications in chat/action bar.
+         */
+        public boolean showNotifications = true;
+    }
+
+    /**
+     * Augments/inscriptions configuration (slot caps, rarity weights, magnitude ranges).
+     */
+    public static final class Augments {
+        /** Max augment slots for a gem. */
+        public int gemMaxSlots = 4;
+        /** Max inscription slots for a legendary item. */
+        public int legendaryMaxSlots = 2;
+
+        /** Rarity roll weights (higher = more common). */
+        public int rarityCommonWeight = 70;
+        public int rarityRareWeight = 25;
+        public int rarityEpicWeight = 5;
+
+        /** Magnitude roll ranges (multiplies base augment values). */
+        public float commonMagnitudeMin = 0.9F;
+        public float commonMagnitudeMax = 1.1F;
+        public float rareMagnitudeMin = 1.1F;
+        public float rareMagnitudeMax = 1.3F;
+        public float epicMagnitudeMin = 1.3F;
+        public float epicMagnitudeMax = 1.6F;
     }
 }

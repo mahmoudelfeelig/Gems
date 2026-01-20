@@ -43,7 +43,7 @@ public final class HunterPackTacticsAbility implements GemAbility {
         int durationTicks = GemsBalance.v().hunter().packTacticsDurationTicks();
 
         // Need a marked target
-        ServerPlayerEntity markedTarget = HunterPreyMarkRuntime.getMarkedTarget(player);
+        var markedTarget = HunterPreyMarkRuntime.getMarkedTarget(player);
         if (markedTarget == null) {
             AbilityFeedback.sound(player, SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), 1.0F, 0.5F);
             return false;

@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.hunter;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.legendary.LegendaryPlayerTracker;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.spy.SpySystem;
@@ -77,7 +79,8 @@ public final class HunterOriginTrackingAbility implements GemAbility {
         }
 
         // Don't consume the item - origin tracking is non-destructive
-        AbilityRuntime.startBounty(player, firstOwner, GemsBalance.v().hunter().originTrackingDurationTicks());
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.HUNTER, GemsBalance.v().hunter().originTrackingDurationTicks());
+        AbilityRuntime.startBounty(player, firstOwner, duration);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_FOX_SNIFF, 0.8F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.GLOW, 15, 0.3D);
         player.sendMessage(Text.translatable("gems.ability.hunter.origin.tracking", snapshot.name()), true);

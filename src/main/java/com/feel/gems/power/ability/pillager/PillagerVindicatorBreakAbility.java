@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.pillager;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -40,7 +42,7 @@ public final class PillagerVindicatorBreakAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int duration = GemsBalance.v().pillager().vindicatorBreakDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.PILLAGER, GemsBalance.v().pillager().vindicatorBreakDurationTicks());
         if (duration <= 0) {
             return false;
         }

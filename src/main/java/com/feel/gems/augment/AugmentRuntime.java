@@ -152,6 +152,35 @@ public final class AugmentRuntime {
         return Math.max(0.1f, 1.0f - reduction);
     }
 
+    public static float durationMultiplier(ServerPlayerEntity player, GemId gemId) {
+        float bonus = 0.0f;
+        for (AugmentInstance instance : getActiveGemAugments(player, gemId)) {
+            AugmentDefinition def = AugmentRegistry.get(instance.augmentId());
+            if (def == null) {
+                continue;
+            }
+            for (AugmentModifier mod : def.modifiers()) {
+                if (mod.type() == AugmentModifierType.DURATION_MULTIPLIER) {
+                    bonus += mod.baseMagnitude() * instance.magnitude();
+                }
+            }
+        }
+        bonus = Math.min(bonus, 1.0f); // cap 100% increase
+        return Math.max(1.0f, 1.0f + bonus);
+    }
+
+    public static int applyDurationMultiplier(ServerPlayerEntity player, GemId gemId, int baseTicks) {
+        if (baseTicks <= 0) {
+            return 0;
+        }
+        float mult = durationMultiplier(player, gemId);
+        if (GemPlayerState.getActiveGem(player) == GemId.PRISM && gemId != GemId.PRISM) {
+            mult *= durationMultiplier(player, GemId.PRISM);
+        }
+        int adjusted = Math.round(baseTicks * mult);
+        return Math.max(1, adjusted);
+    }
+
     public static int passiveAmplifierBonus(ServerPlayerEntity player, Identifier passiveId) {
         Optional<GemId> gem = findGemForPassive(passiveId);
         if (gem.isEmpty()) {

@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.air;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -40,7 +42,7 @@ public final class AirDashAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         double velocity = GemsBalance.v().air().dashVelocity();
         double up = GemsBalance.v().air().dashUpVelocity();
-        int iFrame = GemsBalance.v().air().dashIFrameDurationTicks();
+        int iFrame = AugmentRuntime.applyDurationMultiplier(player, GemId.AIR, GemsBalance.v().air().dashIFrameDurationTicks());
         int amp = GemsBalance.v().air().dashIFrameResistanceAmplifier();
         if (velocity <= 0.0D) {
             return false;

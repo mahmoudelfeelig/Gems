@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.life;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -65,7 +67,7 @@ public final class VitalityVortexAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getEntityWorld();
         VortexMode mode = detectMode(world, player);
-        int duration = GemsBalance.v().life().vitalityVortexDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.LIFE, GemsBalance.v().life().vitalityVortexDurationTicks());
         int radius = GemsBalance.v().life().vitalityVortexRadiusBlocks();
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player)) {

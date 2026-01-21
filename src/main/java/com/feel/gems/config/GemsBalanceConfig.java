@@ -868,7 +868,7 @@ public final class GemsBalanceConfig {
         public int mirageCooldownSeconds = 30;
         public int mirageDurationSeconds = 10;
         public int mirageCloneCount = 1;
-        public int mirageRangeBlocks = 16;
+        public int mirageRangeBlocks = 64;
         public int mirageBuffDurationSeconds = 6;
         public int mirageBuffAmplifier = 0;
 

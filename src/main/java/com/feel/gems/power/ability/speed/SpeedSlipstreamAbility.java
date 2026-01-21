@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.speed;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -39,7 +41,8 @@ public final class SpeedSlipstreamAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         float momentum = SpeedMomentum.multiplier(player);
-        int duration = Math.max(1, Math.round(GemsBalance.v().speed().slipstreamDurationTicks() * momentum));
+        int baseDuration = Math.max(1, Math.round(GemsBalance.v().speed().slipstreamDurationTicks() * momentum));
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.SPEED, baseDuration);
         Vec3d dir = player.getRotationVec(1.0F);
 
         AbilityRuntime.startSpeedSlipstream(player, dir, duration, momentum);

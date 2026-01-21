@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.fire;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -36,7 +38,8 @@ public final class HeatHazeZoneAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startHeatHazeZone(player, GemsBalance.v().fire().heatHazeDurationTicks());
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.FIRE, GemsBalance.v().fire().heatHazeDurationTicks());
+        AbilityRuntime.startHeatHazeZone(player, duration);
         AbilityFeedback.sound(player, SoundEvents.ITEM_FIRECHARGE_USE, 0.9F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.FLAME, 20, 0.35D);
         player.sendMessage(Text.translatable("gems.ability.fire.heat_haze.active"), true);

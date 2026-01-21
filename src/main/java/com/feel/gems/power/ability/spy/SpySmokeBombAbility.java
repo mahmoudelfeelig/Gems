@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.spy;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -43,7 +45,7 @@ public final class SpySmokeBombAbility implements GemAbility {
             return false;
         }
         int radius = GemsBalance.v().spy().smokeBombRadiusBlocks();
-        int duration = GemsBalance.v().spy().smokeBombDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.SPY, GemsBalance.v().spy().smokeBombDurationTicks());
         if (radius <= 0 || duration <= 0) {
             return false;
         }

@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.wealth;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -35,7 +37,8 @@ public final class RichRushAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startRichRush(player, GemsBalance.v().wealth().richRushDurationTicks());
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.WEALTH, GemsBalance.v().wealth().richRushDurationTicks());
+        AbilityRuntime.startRichRush(player, duration);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_PLAYER_LEVELUP, 0.8F, 1.1F);
         AbilityFeedback.burst(player, ParticleTypes.HAPPY_VILLAGER, 14, 0.35D);
         player.sendMessage(Text.translatable("gems.ability.wealth.rich_rush.active"), true);

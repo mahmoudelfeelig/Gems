@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.space;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.gem.space.SpaceAnomalies;
@@ -33,7 +35,7 @@ public final class SpaceWhiteHoleAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int duration = GemsBalance.v().space().whiteHoleDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.SPACE, GemsBalance.v().space().whiteHoleDurationTicks());
         if (duration <= 0) {
             player.sendMessage(Text.translatable("gems.ability.space.white_hole.disabled"), true);
             return false;

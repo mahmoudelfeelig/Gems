@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.trickster;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.entity.ModEntities;
 import com.feel.gems.entity.ShadowCloneEntity;
 import com.feel.gems.net.payloads.ShadowCloneSyncPayload;
@@ -49,7 +51,7 @@ public final class TricksterMirageAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getEntityWorld();
         var cfg = GemsBalance.v().trickster();
-        int durationTicks = cfg.mirageDurationTicks();
+        int durationTicks = AugmentRuntime.applyDurationMultiplier(player, GemId.TRICKSTER, cfg.mirageDurationTicks());
         int rangeBlocks = cfg.mirageRangeBlocks();
         int enabled = cfg.mirageCloneCount();
         if (durationTicks <= 0 || enabled <= 0) {

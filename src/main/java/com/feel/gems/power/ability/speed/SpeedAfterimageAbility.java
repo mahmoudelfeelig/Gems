@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.speed;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -37,7 +39,8 @@ public final class SpeedAfterimageAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         float momentum = SpeedMomentum.multiplier(player);
-        int duration = Math.max(1, Math.round(GemsBalance.v().speed().afterimageDurationTicks() * momentum));
+        int baseDuration = Math.max(1, Math.round(GemsBalance.v().speed().afterimageDurationTicks() * momentum));
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.SPEED, baseDuration);
         AbilityRuntime.startSpeedAfterimage(player, duration);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ENDERMAN_TELEPORT, 0.7F, 1.5F);
         AbilityFeedback.burst(player, ParticleTypes.CLOUD, 14, 0.35D);

@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.strength;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -54,7 +56,8 @@ public final class FrailerAbility implements GemAbility {
             return false;
         }
 
-        target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, GemsBalance.v().strength().frailerDurationTicks(), 0));
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.STRENGTH, GemsBalance.v().strength().frailerDurationTicks());
+        target.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, duration, 0));
         AbilityFeedback.sound(player, SoundEvents.ENTITY_WITHER_SHOOT, 0.7F, 1.3F);
         if (player.getEntityWorld() instanceof ServerWorld world) {
             AbilityFeedback.burstAt(world, target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.ASH, 14, 0.25D);

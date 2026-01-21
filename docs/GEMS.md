@@ -13,6 +13,10 @@ Passives and abilities are gated by energy. For progression rules, see `docs/PRO
 - Apply a gem augment by right-clicking while the augment is in your hand and the gem is in your other hand.
 - Use the augment screen (default U) while holding a gem to view or remove augments on that specific item.
 - Each augment rolls a rarity on craft; the rolled rarity scales its strength.
+- Augment effects:
+  - Focus: reduces gem ability cooldowns.
+  - Persistence: increases gem ability durations.
+  - Resonance: increases passive amplifier bonuses.
 
 ## Gems
 

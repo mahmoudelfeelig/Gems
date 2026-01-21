@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.sentinel;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -50,7 +52,7 @@ public final class SentinelTauntAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getEntityWorld();
         int radius = GemsBalance.v().sentinel().tauntRadiusBlocks();
-        int durationTicks = GemsBalance.v().sentinel().tauntDurationTicks();
+        int durationTicks = AugmentRuntime.applyDurationMultiplier(player, GemId.SENTINEL, GemsBalance.v().sentinel().tauntDurationTicks());
 
         long endTime = world.getTime() + durationTicks;
         PlayerStateManager.setPersistent(player, TAUNT_ACTIVE_KEY, "true");

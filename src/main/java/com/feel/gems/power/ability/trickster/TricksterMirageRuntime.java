@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.trickster;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.entity.ShadowCloneEntity;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.state.PlayerStateManager;
@@ -168,7 +170,7 @@ public final class TricksterMirageRuntime {
 
     private static void applyBuff(ServerPlayerEntity player) {
         var cfg = GemsBalance.v().trickster();
-        int durationTicks = cfg.mirageBuffDurationTicks();
+        int durationTicks = AugmentRuntime.applyDurationMultiplier(player, GemId.TRICKSTER, cfg.mirageBuffDurationTicks());
         if (durationTicks <= 0) {
             return;
         }

@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.hunter;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.entity.HunterPackEntity;
 import com.feel.gems.entity.ModEntities;
 import com.feel.gems.net.payloads.ShadowCloneSyncPayload;
@@ -53,7 +55,7 @@ public final class HunterCallThePackAbility implements GemAbility {
         var cfg = GemsBalance.v().hunter();
         
         int cloneCount = cfg.sixPackPainCloneCount();
-        int durationTicks = cfg.sixPackPainDurationTicks();
+        int durationTicks = AugmentRuntime.applyDurationMultiplier(player, GemId.HUNTER, cfg.sixPackPainDurationTicks());
         
         // Generate a shared pack ID for health pooling
         UUID packId = UUID.randomUUID();

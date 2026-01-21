@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.wealth;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -47,7 +49,7 @@ public final class FumbleAbility implements GemAbility {
         }
         int radius = GemsBalance.v().wealth().fumbleRadiusBlocks();
         int affected = 0;
-        int duration = GemsBalance.v().wealth().fumbleDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.WEALTH, GemsBalance.v().wealth().fumbleDurationTicks());
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player)) {
             if (other instanceof ServerPlayerEntity otherPlayer) {

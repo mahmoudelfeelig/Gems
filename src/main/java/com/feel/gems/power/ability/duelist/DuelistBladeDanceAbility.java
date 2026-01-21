@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.duelist;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -38,7 +40,7 @@ public final class DuelistBladeDanceAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int durationTicks = GemsBalance.v().duelist().bladeDanceDurationTicks();
+        int durationTicks = AugmentRuntime.applyDurationMultiplier(player, GemId.DUELIST, GemsBalance.v().duelist().bladeDanceDurationTicks());
         long endTime = player.getEntityWorld().getTime() + durationTicks;
 
         PlayerStateManager.setPersistent(player, BLADE_DANCE_ACTIVE_KEY, "true");

@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.spy;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.gem.spy.SpySystem;
@@ -36,7 +38,7 @@ public final class SpyMimicFormAbility implements GemAbility {
             player.sendMessage(Text.translatable("gems.ability.spy.mimic_form.no_mob"), true);
             return false;
         }
-        int duration = GemsBalance.v().spy().mimicFormDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.SPY, GemsBalance.v().spy().mimicFormDurationTicks());
         // Cap duration to ensure form cleanup runs within the expected test window even if config is higher.
         duration = Math.min(duration, 240);
         if (duration <= 0) {

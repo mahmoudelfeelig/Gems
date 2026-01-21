@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.astra;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -54,7 +56,8 @@ public final class TagAbility implements GemAbility {
             player.sendMessage(Text.translatable("gems.message.target_immune"), true);
             return false;
         }
-        target.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, GemsBalance.v().astra().tagDurationTicks(), 0, true, false, false));
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.ASTRA, GemsBalance.v().astra().tagDurationTicks());
+        target.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, duration, 0, true, false, false));
         AbilityFeedback.sound(player, SoundEvents.BLOCK_NOTE_BLOCK_PLING, 0.8F, 1.6F);
         AbilityFeedback.burstAt(player.getEntityWorld(), target.getEntityPos().add(0.0D, 1.0D, 0.0D), ParticleTypes.GLOW, 14, 0.2D);
         player.sendMessage(Text.translatable("gems.ability.astra.tag.tagged", target.getName()), true);

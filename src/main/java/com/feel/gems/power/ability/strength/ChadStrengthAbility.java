@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.strength;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -36,7 +38,8 @@ public final class ChadStrengthAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startChadStrength(player, GemsBalance.v().strength().chadDurationTicks());
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.STRENGTH, GemsBalance.v().strength().chadDurationTicks());
+        AbilityRuntime.startChadStrength(player, duration);
         AbilityFeedback.sound(player, ModSounds.METAL_PIPE, 1.0F, 1.0F);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, 0.9F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.CRIT, 16, 0.35D);

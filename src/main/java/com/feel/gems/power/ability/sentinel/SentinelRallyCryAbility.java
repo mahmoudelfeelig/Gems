@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.sentinel;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -42,7 +44,7 @@ public final class SentinelRallyCryAbility implements GemAbility {
         ServerWorld world = player.getEntityWorld();
         int radius = GemsBalance.v().sentinel().rallyCryRadiusBlocks();
         float healAmount = GemsBalance.v().sentinel().rallyCryHealHearts() * 2.0F; // Convert to half-hearts
-        int resistanceTicks = GemsBalance.v().sentinel().rallyCryResistanceDurationTicks();
+        int resistanceTicks = AugmentRuntime.applyDurationMultiplier(player, GemId.SENTINEL, GemsBalance.v().sentinel().rallyCryResistanceDurationTicks());
 
         Box box = player.getBoundingBox().expand(radius);
         int alliesHealed = 0;

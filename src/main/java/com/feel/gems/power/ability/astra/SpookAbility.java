@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.astra;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -43,7 +45,7 @@ public final class SpookAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getEntityWorld();
-        int duration = GemsBalance.v().astra().spookDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.ASTRA, GemsBalance.v().astra().spookDurationTicks());
         int radius = GemsBalance.v().astra().spookRadiusBlocks();
         int affected = 0;
         Box box = new Box(player.getBlockPos()).expand(radius);

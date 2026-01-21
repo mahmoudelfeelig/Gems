@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.fire;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -36,7 +38,8 @@ public final class CosyCampfireAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startCosyCampfire(player, GemsBalance.v().fire().cosyCampfireDurationTicks());
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.FIRE, GemsBalance.v().fire().cosyCampfireDurationTicks());
+        AbilityRuntime.startCosyCampfire(player, duration);
         AbilityFeedback.sound(player, SoundEvents.BLOCK_CAMPFIRE_CRACKLE, 0.9F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.CAMPFIRE_COSY_SMOKE, 12, 0.25D);
         player.sendMessage(Text.translatable("gems.ability.fire.cosy_campfire.active"), true);

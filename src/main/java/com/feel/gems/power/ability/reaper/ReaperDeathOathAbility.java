@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.reaper;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -51,7 +53,7 @@ public final class ReaperDeathOathAbility implements GemAbility {
             player.sendMessage(Text.translatable("gems.message.target_immune"), true);
             return false;
         }
-        int duration = GemsBalance.v().reaper().deathOathDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.REAPER, GemsBalance.v().reaper().deathOathDurationTicks());
         if (duration <= 0) {
             player.sendMessage(Text.translatable("gems.ability.reaper.death_oath.disabled"), true);
             return false;

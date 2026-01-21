@@ -916,7 +916,7 @@
   "gems.augment.resonance": "Resonance",
   "gems.augment.resonance.desc": "Increases gem passive potency",
   "gems.augment.persistence": "Persistence",
-  "gems.augment.persistence.desc": "Additional cooldown reduction",
+  "gems.augment.persistence.desc": "Increases ability duration",
   "gems.inscription.edge": "Edge",
   "gems.inscription.edge.desc": "Boosts attack damage while holding the legendary",
   "gems.inscription.swift": "Swift",

@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.life;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -36,7 +38,8 @@ public final class LifeCircleAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startLifeCircle(player, GemsBalance.v().life().lifeCircleDurationTicks());
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.LIFE, GemsBalance.v().life().lifeCircleDurationTicks());
+        AbilityRuntime.startLifeCircle(player, duration);
         AbilityFeedback.sound(player, SoundEvents.BLOCK_BEACON_ACTIVATE, 0.8F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.HEART, 16, 0.35D);
         player.sendMessage(Text.translatable("gems.ability.life.life_circle.active"), true);

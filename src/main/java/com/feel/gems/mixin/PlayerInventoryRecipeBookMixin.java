@@ -12,7 +12,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerInventory.class)
 public abstract class PlayerInventoryRecipeBookMixin {
-    private static final String OWNER_KEY = "gemsOwner";
+    private static final java.util.Set<String> OWNER_KEYS = java.util.Set.of(
+            "gemsOwner",
+            "gemsOwnerName",
+            "gemsFirstOwner",
+            "gemsFirstOwnerName",
+            "gemsPrevOwner",
+            "gemsPrevOwnerName",
+            "gemsSignature",
+            "signature",
+            "GemOwner",
+            "GemOwnerEpoch"
+    );
 
     @Inject(method = "getSlotWithStack(Lnet/minecraft/item/ItemStack;)I", at = @At("HEAD"), cancellable = true, require = 0)
     private void gems$getSlotWithStackIgnoreOwner(ItemStack stack, CallbackInfoReturnable<Integer> cir) {
@@ -51,9 +62,14 @@ public abstract class PlayerInventoryRecipeBookMixin {
             return false;
         }
         NbtCompound nbt = custom.copyNbt();
-        if (!nbt.contains(OWNER_KEY)) {
+        boolean hasOwnerKey = false;
+        for (String key : nbt.getKeys()) {
+            if (OWNER_KEYS.contains(key)) {
+                hasOwnerKey = true;
+                continue;
+            }
             return false;
         }
-        return nbt.getKeys().size() == 1;
+        return hasOwnerKey;
     }
 }

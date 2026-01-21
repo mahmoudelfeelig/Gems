@@ -11,6 +11,7 @@ import com.feel.gems.client.screen.LoadoutPresetsScreen;
 import com.feel.gems.client.screen.TrophyNecklaceScreen;
 import com.feel.gems.client.screen.TrackerCompassScreen;
 import com.feel.gems.client.screen.TitleSelectionScreen;
+import com.feel.gems.client.screen.BountyBoardScreen;
 import com.feel.gems.core.GemId;
 import com.feel.gems.net.AbilityCooldownPayload;
 import com.feel.gems.net.AbilityOrderSyncPayload;
@@ -18,6 +19,7 @@ import com.feel.gems.net.AugmentScreenPayload;
 import com.feel.gems.net.InscriptionScreenPayload;
 import com.feel.gems.net.BonusAbilitiesSyncPayload;
 import com.feel.gems.net.BonusSelectionScreenPayload;
+import com.feel.gems.net.BountyBoardPayload;
 import com.feel.gems.net.ChaosSlotPayload;
 import com.feel.gems.net.ChaosStatePayload;
 import com.feel.gems.net.CooldownSnapshotPayload;
@@ -246,6 +248,15 @@ public final class ClientNetworking {
                     MinecraftClient client = context.client();
                     if (client != null) {
                         client.setScreen(new TitleSelectionScreen(payload));
+                    }
+                }));
+
+        // Bounty board screen
+        ClientPlayNetworking.registerGlobalReceiver(BountyBoardPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    MinecraftClient client = context.client();
+                    if (client != null) {
+                        client.setScreen(new BountyBoardScreen(payload));
                     }
                 }));
 

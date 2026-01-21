@@ -1,7 +1,9 @@
 package com.feel.gems.synergy;
 
+import com.feel.gems.GemsMod;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
+import com.feel.gems.stats.GemsStats;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTickScheduler;
 import java.util.*;
@@ -242,6 +244,10 @@ public final class SynergyRuntime {
     ) {
         // Apply the synergy effect
         synergy.effect().apply(participants);
+
+        for (SynergyDefinition.SynergyParticipant p : participants) {
+            GemsStats.recordSynergyTrigger(p.player(), Identifier.of(GemsMod.MOD_ID, synergy.id()));
+        }
 
         // Notify all participants if notifications are enabled
         if (GemsBalance.v().synergies().showNotifications()) {

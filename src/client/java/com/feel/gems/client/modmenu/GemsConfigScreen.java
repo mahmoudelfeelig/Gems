@@ -1999,7 +1999,7 @@ public final class GemsConfigScreen extends Screen {
                 // Abilities
                 y = addIntRow("Shadow Swap cooldown seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.shadowSwapCooldownSeconds, v -> cfg.trickster.shadowSwapCooldownSeconds = v, 0, 3600);
                 logicalY += ROW_H;
-                y = addIntRow("Shadow Swap clone duration seconds", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.shadowSwapCloneDurationSeconds, v -> cfg.trickster.shadowSwapCloneDurationSeconds = v, 0, 120);
+                y = addIntRow("Shadow Swap range blocks", y, labelX, labelW, fieldX, fieldW, () -> cfg.trickster.shadowSwapRangeBlocks, v -> cfg.trickster.shadowSwapRangeBlocks = v, 1, 128);
                 logicalY += ROW_H;
                 y = spacer(y);
                 logicalY += 8;

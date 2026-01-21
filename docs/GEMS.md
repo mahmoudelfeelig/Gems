@@ -131,7 +131,13 @@ Passives:
 - Double Saturation from food.
 
 Abilities:
-- Vitality Vortex: adaptive pulse based on surroundings (Aquatic, Infernal, Sculk, Verdant, End, Default).
+- Vitality Vortex: adaptive pulse based on surroundings; affects nearby living entities (not you) and buffs trusted allies while debuffing enemies.
+  - Aquatic (water nearby or submerged): allies heal + Regen I + Water Breathing + Dolphin's Grace; enemies Slowness II + Mining Fatigue I.
+  - Infernal (Nether or lava nearby): allies heal + Regen I + Fire Resistance + Strength; enemies Wither I + Weakness I.
+  - Sculk (sculk blocks nearby): allies heal + Regen I + Night Vision + Resistance; enemies Darkness + Mining Fatigue II.
+  - Verdant (leaves/flowers/grass/vines nearby): allies heal + Regen II + Absorption + brief Saturation; enemies Poison II + Slowness I.
+  - End (in the End): allies heal + Regen I + Slow Falling + Resistance; enemies Slowness II + Weakness I.
+  - Default: allies heal + Regen II + Absorption; enemies Poison I + Weakness I.
 - Health Drain: siphon health from a target to heal yourself; damage respects armor and enchantments.
 - Life Swap: swap health with a target; requires at least 3 hearts to cast (configurable). If both players stay alive, the original health values are restored after 15 seconds (configurable).
 - Life Circle: boost allies while reducing enemy max health (heals to the new max).
@@ -322,8 +328,8 @@ Passives:
 - Slippery: 25% chance to ignore slowing effects.
 
 Abilities:
-- Shadow Swap: instantly swap places with your shadow clone (must have clone active).
-- Mirage: create 3 illusory copies that mirror your movements for 10s; clones take one hit to dispel.
+- Shadow Swap: instantly swap places with the entity you are looking at (line-of-sight).
+- Mirage: create a single mirage clone at your aim point; it mirrors your movements and breaks on hit or timeout, granting you a brief buff.
 - Glitch Step: short-range teleport that leaves a damaging afterimage at your origin.
 - Puppet Master: briefly control an enemy's movement for 3s (they walk where you aim).
 - Mind Games: reverse an enemy's movement controls for 5s (left becomes right, forward becomes back).

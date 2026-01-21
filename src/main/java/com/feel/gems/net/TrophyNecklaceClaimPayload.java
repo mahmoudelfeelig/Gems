@@ -7,12 +7,18 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 /**
- * C2S: steal (or unsteal) a passive via the Trophy Necklace UI.
+ * C2S: update a Trophy Necklace passive (steal/enable/disable).
  */
 public record TrophyNecklaceClaimPayload(
         Identifier passiveId,
-        boolean steal
+        Action action
 ) implements CustomPayload {
+
+    public enum Action {
+        STEAL,
+        ENABLE,
+        DISABLE
+    }
 
     public static final Id<TrophyNecklaceClaimPayload> ID =
             new Id<>(Identifier.of(GemsMod.MOD_ID, "trophy_necklace_claim"));
@@ -29,13 +35,18 @@ public record TrophyNecklaceClaimPayload(
 
     private static void write(RegistryByteBuf buf, TrophyNecklaceClaimPayload payload) {
         buf.writeIdentifier(payload.passiveId);
-        buf.writeBoolean(payload.steal);
+        buf.writeVarInt(payload.action.ordinal());
     }
 
     private static TrophyNecklaceClaimPayload read(RegistryByteBuf buf) {
         Identifier id = buf.readIdentifier();
-        boolean steal = buf.readBoolean();
-        return new TrophyNecklaceClaimPayload(id, steal);
+        int raw = buf.readVarInt();
+        Action action = Action.STEAL;
+        Action[] values = Action.values();
+        if (raw >= 0 && raw < values.length) {
+            action = values[raw];
+        }
+        return new TrophyNecklaceClaimPayload(id, action);
     }
 }
 

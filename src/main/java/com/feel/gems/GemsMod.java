@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 
 import com.feel.gems.net.ServerBonusNetworking;
+import com.feel.gems.net.ServerBountyNetworking;
 import com.feel.gems.net.ServerPrismNetworking;
 import com.feel.gems.net.ServerTitleSelectionNetworking;
 import com.feel.gems.net.ServerTrophyNecklaceNetworking;
@@ -54,6 +55,7 @@ public final class GemsMod implements ModInitializer {
         ServerAugmentNetworking.register();
         ServerInscriptionNetworking.register();
         ServerTitleSelectionNetworking.register();
+        ServerBountyNetworking.register();
         GemsModEvents.register();
         GemsCommands.register();
     }

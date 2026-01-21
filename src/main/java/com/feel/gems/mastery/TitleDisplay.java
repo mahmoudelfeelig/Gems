@@ -1,6 +1,8 @@
 package com.feel.gems.mastery;
 
 import java.util.List;
+import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -53,6 +55,18 @@ public final class TitleDisplay {
     }
 
     private static TitleInfo titleInfo(ServerPlayerEntity player) {
+        String selectedId = GemMastery.getSelectedTitle(player);
+        if (!selectedId.isEmpty() && selectedId.startsWith("leaderboard:")) {
+            LeaderboardTracker.LeaderboardCategory category = generalFromId(selectedId);
+            boolean forced = GemMastery.isSelectedTitleForced(player);
+            if (category != null && (forced || LeaderboardTracker.holdsTitle(player, category))) {
+                Formatting color = generalTitleColor(category);
+                MutableText title = LeaderboardTracker.getTitleText(category).copy();
+                title.setStyle(title.getStyle().withColor(color));
+                return new TitleInfo(bracket(title, color), color);
+            }
+        }
+
         MasteryReward selected = GemMastery.getSelectedTitleReward(player);
         if (selected != null) {
             Formatting color = titleColorForReward(selected);
@@ -81,16 +95,62 @@ public final class TitleDisplay {
         return null;
     }
 
+    public static void refresh(ServerPlayerEntity player) {
+        if (player == null) {
+            return;
+        }
+        MinecraftServer server = player.getEntityWorld().getServer();
+        if (server == null) {
+            return;
+        }
+        PlayerListS2CPacket packet = new PlayerListS2CPacket(
+                java.util.EnumSet.of(PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME),
+                List.of(player)
+        );
+        for (ServerPlayerEntity viewer : server.getPlayerManager().getPlayerList()) {
+            viewer.networkHandler.sendPacket(packet);
+        }
+    }
+
+    public static void refreshAll(MinecraftServer server) {
+        if (server == null) {
+            return;
+        }
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            refresh(player);
+        }
+    }
+
     private record TitleInfo(Text prefix, Formatting color) {
     }
 
     private static Formatting generalTitleColor(LeaderboardTracker.LeaderboardCategory category) {
+        if (category.gem() != null) {
+            return gemColor(category.gem());
+        }
         return switch (category) {
             case LEAST_DEATHS -> Formatting.AQUA;
             case MOST_KILLS -> Formatting.RED;
             case MOST_HEARTS -> Formatting.DARK_PURPLE;
             case MAX_ENERGY -> Formatting.GOLD;
+            case MOST_SYNERGY_TRIGGERS -> Formatting.DARK_AQUA;
+            case MOST_ABILITY_CASTS -> Formatting.LIGHT_PURPLE;
+            case MOST_DAMAGE_DEALT -> Formatting.DARK_RED;
+            default -> Formatting.WHITE;
         };
+    }
+
+    private static LeaderboardTracker.LeaderboardCategory generalFromId(String id) {
+        if (id == null || !id.startsWith("leaderboard:")) {
+            return null;
+        }
+        String raw = id.substring("leaderboard:".length());
+        for (LeaderboardTracker.LeaderboardCategory category : LeaderboardTracker.LeaderboardCategory.values()) {
+            if (category.name().equalsIgnoreCase(raw)) {
+                return category;
+            }
+        }
+        return null;
     }
 
     private static Formatting gemColor(GemId gem) {

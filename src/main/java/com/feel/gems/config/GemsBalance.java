@@ -667,10 +667,13 @@ public final class GemsBalance {
         cfg.trickster.sleightOfHandChance = v.trickster().sleightOfHandChance();
         cfg.trickster.slipperyChance = v.trickster().slipperyChance();
         cfg.trickster.shadowSwapCooldownSeconds = ticksToSeconds(v.trickster().shadowSwapCooldownTicks());
-        cfg.trickster.shadowSwapCloneDurationSeconds = ticksToSeconds(v.trickster().shadowSwapCloneDurationTicks());
+        cfg.trickster.shadowSwapRangeBlocks = v.trickster().shadowSwapRangeBlocks();
         cfg.trickster.mirageCooldownSeconds = ticksToSeconds(v.trickster().mirageCooldownTicks());
         cfg.trickster.mirageDurationSeconds = ticksToSeconds(v.trickster().mirageDurationTicks());
         cfg.trickster.mirageCloneCount = v.trickster().mirageCloneCount();
+        cfg.trickster.mirageRangeBlocks = v.trickster().mirageRangeBlocks();
+        cfg.trickster.mirageBuffDurationSeconds = ticksToSeconds(v.trickster().mirageBuffDurationTicks());
+        cfg.trickster.mirageBuffAmplifier = v.trickster().mirageBuffAmplifier();
         cfg.trickster.glitchStepCooldownSeconds = ticksToSeconds(v.trickster().glitchStepCooldownTicks());
         cfg.trickster.glitchStepDistanceBlocks = v.trickster().glitchStepDistanceBlocks();
         cfg.trickster.glitchStepAfterimgDamage = v.trickster().glitchStepAfterimgDamage();
@@ -2229,10 +2232,13 @@ public final class GemsBalance {
             float slipperyChance,
             // Abilities
             int shadowSwapCooldownTicks,
-            int shadowSwapCloneDurationTicks,
+            int shadowSwapRangeBlocks,
             int mirageCooldownTicks,
             int mirageDurationTicks,
             int mirageCloneCount,
+            int mirageRangeBlocks,
+            int mirageBuffDurationTicks,
+            int mirageBuffAmplifier,
             int glitchStepCooldownTicks,
             int glitchStepDistanceBlocks,
             float glitchStepAfterimgDamage,
@@ -2249,10 +2255,13 @@ public final class GemsBalance {
                     clampFloat(cfg.sleightOfHandChance, 0.0F, 1.0F),
                     clampFloat(cfg.slipperyChance, 0.0F, 1.0F),
                     secClamped(cfg.shadowSwapCooldownSeconds, 0, 3600),
-                    secClamped(cfg.shadowSwapCloneDurationSeconds, 0, 600),
+                    clampInt(cfg.shadowSwapRangeBlocks, 1, 128),
                     secClamped(cfg.mirageCooldownSeconds, 0, 3600),
                     secClamped(cfg.mirageDurationSeconds, 0, 120),
                     clampInt(cfg.mirageCloneCount, 0, 16),
+                    clampInt(cfg.mirageRangeBlocks, 0, 128),
+                    secClamped(cfg.mirageBuffDurationSeconds, 0, 120),
+                    clampInt(cfg.mirageBuffAmplifier, 0, 4),
                     secClamped(cfg.glitchStepCooldownSeconds, 0, 3600),
                     clampInt(cfg.glitchStepDistanceBlocks, 0, 32),
                     clampFloat(cfg.glitchStepAfterimgDamage, 0.0F, 200.0F),

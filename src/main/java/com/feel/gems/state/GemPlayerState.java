@@ -107,6 +107,7 @@
             data.putString(KEY_ACTIVE_GEM, gem.name());
             addOwnedGem(player, gem);
             if (player instanceof ServerPlayerEntity sp) {
+                com.feel.gems.mastery.TitleDisplay.refresh(sp);
                 var server = sp.getEntityWorld().getServer();
                 if (server != null) {
                     GemsModEvents.unlockStartingRecipes(server, sp);

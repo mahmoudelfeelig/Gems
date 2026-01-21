@@ -1,6 +1,7 @@
 package com.feel.gems.event;
 
 import com.feel.gems.assassin.AssassinState;
+import com.feel.gems.bounty.BountyBoard;
 import com.feel.gems.assassin.AssassinTeams;
 import com.feel.gems.core.GemId;
 import com.feel.gems.item.GemItemGlint;
@@ -76,6 +77,7 @@ public final class GemsPlayerDeath {
             AssassinState.recordKill(killer, finalKill, victimWasAssassin);
 
             GemsStats.recordPlayerKill(killer, victim, killerWasAssassin, victimWasAssassin, finalKill);
+            BountyBoard.handleKill(victim, killer, 0, 0);
 
             if (GemPowers.isPassiveActive(killer, PowerIds.TERROR_BLOOD_PRICE)) {
                 TerrorBloodPrice.onPlayerKill(killer);

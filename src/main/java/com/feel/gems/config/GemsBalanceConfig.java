@@ -863,11 +863,14 @@ public final class GemsBalanceConfig {
 
         // Abilities
         public int shadowSwapCooldownSeconds = 20;
-        public int shadowSwapCloneDurationSeconds = 30;
+        public int shadowSwapRangeBlocks = 32;
 
         public int mirageCooldownSeconds = 30;
         public int mirageDurationSeconds = 10;
-        public int mirageCloneCount = 3;
+        public int mirageCloneCount = 1;
+        public int mirageRangeBlocks = 16;
+        public int mirageBuffDurationSeconds = 6;
+        public int mirageBuffAmplifier = 0;
 
         public int glitchStepCooldownSeconds = 10;
         public int glitchStepDistanceBlocks = 8;

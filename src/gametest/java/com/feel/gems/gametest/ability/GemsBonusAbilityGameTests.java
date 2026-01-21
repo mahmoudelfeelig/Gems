@@ -409,37 +409,48 @@ public final class GemsBonusAbilityGameTests {
     public void bonusCrystalCageBuildsCage(TestContext context) {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = setupPlayer(context);
+        placePlatform(context, 10);
         Vec3d targetPos = origin(context).add(0.0D, 0.0D, 6.0D);
         ZombieEntity target = spawnZombie(world, targetPos);
         if (target == null) {
             context.throwGameTestException("Failed to spawn zombie");
             return;
         }
-        aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
+        target.setAiDisabled(true);
+        target.setNoGravity(true);
+        target.setVelocity(Vec3d.ZERO);
         BlockPos center = target.getBlockPos();
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(20L, () -> {
+            aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
             boolean ok = new BonusCrystalCageAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Crystal Cage did not activate");
             }
-            int amethyst = 0;
-            for (int y = 0; y <= 2; y++) {
-                for (int x = -1; x <= 1; x++) {
-                    for (int z = -1; z <= 1; z++) {
-                        if (Math.abs(x) == 1 || Math.abs(z) == 1 || y == 2) {
-                            if (world.getBlockState(center.add(x, y, z)).isOf(Blocks.AMETHYST_BLOCK)) {
-                                amethyst++;
+        });
+
+        GemsGameTestUtil.assertEventually(
+                context,
+                22L,
+                80L,
+                2L,
+                () -> {
+                    int amethyst = 0;
+                    for (int y = 0; y <= 2; y++) {
+                        for (int x = -1; x <= 1; x++) {
+                            for (int z = -1; z <= 1; z++) {
+                                if (Math.abs(x) == 1 || Math.abs(z) == 1 || y == 2) {
+                                    if (world.getBlockState(center.add(x, y, z)).isOf(Blocks.AMETHYST_BLOCK)) {
+                                        amethyst++;
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            }
-            if (amethyst < 8) {
-                context.throwGameTestException("Crystal Cage did not place enough blocks");
-            }
-            context.complete();
-        });
+                    return amethyst >= 8;
+                },
+                "Crystal Cage did not place enough blocks"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
@@ -454,6 +465,8 @@ public final class GemsBonusAbilityGameTests {
             return;
         }
         target.setAiDisabled(true);
+        target.setNoGravity(true);
+        target.setVelocity(Vec3d.ZERO);
         target.equipStack(
                 net.minecraft.entity.EquipmentSlot.HEAD,
                 new net.minecraft.item.ItemStack(net.minecraft.item.Items.LEATHER_HELMET)
@@ -464,12 +477,14 @@ public final class GemsBonusAbilityGameTests {
             maxHealth.setBaseValue(20.0D);
         }
         player.setHealth(8.0F);
-        float playerBefore = player.getHealth();
-        float targetBefore = target.getHealth();
+        float[] playerBefore = new float[1];
+        float[] targetBefore = new float[1];
 
         context.runAtTick(40L, () -> {
             aimAt(player, world, targetPos.add(0.0D, 1.0D, 0.0D));
             player.setVelocity(Vec3d.ZERO);
+            playerBefore[0] = player.getHealth();
+            targetBefore[0] = target.getHealth();
             boolean ok = new BonusCurseBoltAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Curse Bolt did not activate");
@@ -481,7 +496,7 @@ public final class GemsBonusAbilityGameTests {
                 41L,
                 160L,
                 1L,
-                () -> target.getHealth() < targetBefore && player.getHealth() > playerBefore,
+                () -> target.getHealth() < targetBefore[0] && player.getHealth() > playerBefore[0],
                 "Curse Bolt did not damage target and heal player"
         );
     }

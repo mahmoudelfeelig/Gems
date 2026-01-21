@@ -2,6 +2,8 @@ package com.feel.gems.power.gem.voidgem;
 
 import com.feel.gems.core.GemId;
 import com.feel.gems.mastery.GemMastery;
+import com.feel.gems.power.registry.PowerIds;
+import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -32,8 +34,7 @@ public final class VoidImmunity {
         if (activeGem != GemId.VOID) {
             return false;
         }
-        int energy = GemPlayerState.getEnergy(player);
-        return energy >= 1; // Passives unlock at level 1
+        return GemPowers.isPassiveActive(player, PowerIds.VOID_IMMUNITY);
     }
 
     /**

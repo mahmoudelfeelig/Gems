@@ -119,6 +119,7 @@
         "gems:auto_enchant_looting",
         "gems:luck",
         "gems:hero_of_the_village",
+        "gems:wealth_cured_prices",
         "gems:durability_chip",
         "gems:armor_mend_on_hit",
         "gems:double_debris"

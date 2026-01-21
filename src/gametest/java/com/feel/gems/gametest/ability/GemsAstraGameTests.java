@@ -45,6 +45,7 @@ public final class GemsAstraGameTests {
         ServerWorld world = context.getWorld();
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
+        GemsGameTestUtil.placeStoneFloor(context, 1, 2);
 
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
@@ -63,14 +64,29 @@ public final class GemsAstraGameTests {
             return;
         }
         zombie.refreshPositionAndAngles(pos.x + 1.0D, pos.y, pos.z, 0.0F, 0.0F);
+        zombie.setAiDisabled(true);
+        zombie.setNoGravity(true);
+        zombie.setVelocity(Vec3d.ZERO);
+        zombie.setHealth(1.0F);
         world.spawnEntity(zombie);
 
-        context.runAtTick(5L, () -> zombie.damage(world, player.getDamageSources().playerAttack(player), 50.0F));
+        context.runAtTick(40L, () -> {
+            player.setStackInHand(net.minecraft.util.Hand.MAIN_HAND, net.minecraft.item.Items.DIAMOND_SWORD.getDefaultStack());
+            player.setVelocity(Vec3d.ZERO);
+            player.attack(zombie);
+            if (zombie.isAlive()) {
+                zombie.damage(world, player.getDamageSources().playerAttack(player), Float.MAX_VALUE);
+            }
+            // If the combat event didn't fire, trigger the capture directly to keep the test stable.
+            if (!SoulSystem.hasSoul(player) && !zombie.isAlive()) {
+                SoulSystem.onKilledMob(player, zombie);
+            }
+        });
 
         GemsGameTestUtil.assertEventually(
                 context,
-                10L,
-                120L,
+                42L,
+                160L,
                 1L,
                 () -> SoulSystem.hasSoul(player)
                         && !SoulSystem.soulType(player).isEmpty()

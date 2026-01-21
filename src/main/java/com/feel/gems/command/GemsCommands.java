@@ -1,6 +1,7 @@
 package com.feel.gems.command;
 
 import com.feel.gems.GemsMod;
+import com.feel.gems.GemsModEvents;
 import com.feel.gems.admin.GemsAdmin;
 import com.feel.gems.augment.AugmentDefinition;
 import com.feel.gems.augment.AugmentInstance;
@@ -8,6 +9,7 @@ import com.feel.gems.augment.AugmentRegistry;
 import com.feel.gems.augment.AugmentRuntime;
 import com.feel.gems.augment.AugmentRarity;
 import com.feel.gems.assassin.AssassinState;
+import com.feel.gems.bounty.BountyBoard;
 import com.feel.gems.assassin.AssassinTeams;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.config.GemsDisables;
@@ -18,25 +20,33 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.bonus.BonusClaimsState;
 import com.feel.gems.bonus.BonusPoolRegistry;
+import com.feel.gems.bonus.PrismSelectionsState;
 import com.feel.gems.debug.GemsPerfMonitor;
 import com.feel.gems.debug.GemsStressTest;
 import com.feel.gems.item.GemItem;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.ModItems;
+import com.feel.gems.item.legendary.HuntersTrophyNecklaceItem;
 import com.feel.gems.item.legendary.TrackerCompassItem;
+import com.feel.gems.legendary.LegendaryCooldowns;
 import com.feel.gems.mastery.GemMastery;
+import com.feel.gems.mastery.LeaderboardTracker;
 import com.feel.gems.mastery.MasteryReward;
 import com.feel.gems.mastery.MasteryRewards;
 import com.feel.gems.net.GemStateSync;
+import com.feel.gems.net.ServerBountyNetworking;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.api.GemPassive;
 import com.feel.gems.power.gem.astra.SoulSystem;
 import com.feel.gems.power.gem.flux.FluxCharge;
+import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.power.registry.ModPassives;
+import com.feel.gems.power.runtime.GemAbilityCooldowns;
 import com.feel.gems.power.runtime.GemAbilities;
 import com.feel.gems.power.runtime.GemPowers;
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.state.GemsPersistentDataHolder;
 import com.feel.gems.stats.GemsStats;
 import com.feel.gems.trade.GemTrading;
 import com.feel.gems.trust.GemTrust;
@@ -48,6 +58,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -63,9 +74,15 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.ServerConfigHandler;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
+import net.minecraft.stat.Stat;
+import net.minecraft.stat.StatHandler;
+import net.minecraft.stat.StatType;
 import net.minecraft.util.Identifier;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Formatting;
@@ -88,10 +105,8 @@ public final class GemsCommands {
                         .then(CommandManager.literal("status")
                                 .executes(ctx -> status(ctx.getSource(), ctx.getSource().getPlayerOrThrow())))
                         .then(CommandManager.literal("assassin")
-                                .then(CommandManager.literal("stay")
-                                        .executes(ctx -> assassinStay(ctx.getSource())))
-                                .then(CommandManager.literal("leave")
-                                        .executes(ctx -> assassinLeave(ctx.getSource()))))
+                            .then(CommandManager.literal("leave")
+                                .executes(ctx -> assassinLeave(ctx.getSource()))))
                         .then(CommandManager.literal("reloadBalance")
                                 .requires(src -> src.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(2))))
                                 .executes(ctx -> reloadBalance(ctx.getSource())))
@@ -125,6 +140,20 @@ public final class GemsCommands {
                                 .then(CommandManager.argument("player", StringArgumentType.word())
                                         .suggests((ctx, builder) -> suggestOnlinePlayers(ctx.getSource(), builder))
                                         .executes(ctx -> track(ctx.getSource().getPlayerOrThrow(), StringArgumentType.getString(ctx, "player")))))
+                        .then(CommandManager.literal("bounty")
+                                .executes(ctx -> bountyOpen(ctx.getSource()))
+                                .then(CommandManager.literal("place")
+                                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                                .then(CommandManager.argument("hearts", IntegerArgumentType.integer(0, GemPlayerState.MAX_MAX_HEARTS))
+                                                        .then(CommandManager.argument("energy", IntegerArgumentType.integer(0, GemPlayerState.MAX_ENERGY))
+                                                                .executes(ctx -> bountyPlace(
+                                                                        ctx.getSource(),
+                                                                        EntityArgumentType.getPlayer(ctx, "player"),
+                                                                        IntegerArgumentType.getInteger(ctx, "hearts"),
+                                                                        IntegerArgumentType.getInteger(ctx, "energy")
+                                                                ))))))
+                                .then(CommandManager.literal("list")
+                                        .executes(ctx -> bountyList(ctx.getSource()))))
                         .then(CommandManager.literal("trade")
                                 .then(CommandManager.argument("gem", StringArgumentType.word())
                                         .suggests((ctx, builder) -> suggestGems(builder))
@@ -229,6 +258,9 @@ public final class GemsCommands {
                                                     }
                                                     return 1;
                                                 })))
+                                .then(CommandManager.literal("resetAll")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .executes(ctx -> resetAll(ctx.getSource(), EntityArgumentType.getPlayers(ctx, "players")))))
                                 .then(CommandManager.literal("cooldowns")
                                         .then(CommandManager.argument("players", EntityArgumentType.players())
                                                 .then(CommandManager.argument("disabled", BoolArgumentType.bool())
@@ -613,31 +645,6 @@ public final class GemsCommands {
         return updated > 0 ? 1 : 0;
     }
 
-    private static int assassinStay(ServerCommandSource source) {
-        ServerPlayerEntity player;
-        try {
-            player = source.getPlayerOrThrow();
-        } catch (CommandSyntaxException e) {
-            source.sendError(Text.literal("Only players can use this command."));
-            return 0;
-        }
-        AssassinState.initIfNeeded(player);
-        if (!AssassinState.isChoiceUnlocked(player)) {
-            source.sendError(Text.translatable("gems.assassin.choice_locked", AssassinState.choicePointsRequired()));
-            return 0;
-        }
-        if (AssassinState.isAssassin(player)) {
-            source.sendFeedback(() -> Text.translatable("gems.assassin.choice_already_assassin"), false);
-            return 1;
-        }
-        AssassinState.setAssassin(player, true);
-        GemPlayerState.initIfNeeded(player);
-        resync(player);
-        AssassinTeams.sync(source.getServer(), player);
-        source.sendFeedback(() -> Text.translatable("gems.assassin.choice_set_assassin"), false);
-        return 1;
-    }
-
     private static int assassinLeave(ServerCommandSource source) {
         ServerPlayerEntity player;
         try {
@@ -656,6 +663,9 @@ public final class GemsCommands {
             return 1;
         }
         AssassinState.setAssassin(player, false);
+        AssassinState.resetAssassinPoints(player);
+        GemPlayerState.setMaxHearts(player, GemPlayerState.DEFAULT_MAX_HEARTS);
+        player.setHealth(20.0f); // 10 hearts
         if (player.isSpectator()) {
             player.changeGameMode(GameMode.SURVIVAL);
         }
@@ -826,6 +836,55 @@ public final class GemsCommands {
         return 1;
     }
 
+    private static int bountyOpen(ServerCommandSource source) throws CommandSyntaxException {
+        ServerPlayerEntity player = source.getPlayerOrThrow();
+        ServerBountyNetworking.open(player);
+        return 1;
+    }
+
+    private static int bountyPlace(ServerCommandSource source, ServerPlayerEntity target, int hearts, int energy) throws CommandSyntaxException {
+        ServerPlayerEntity placer = source.getPlayerOrThrow();
+        BountyBoard.PlaceResult result = BountyBoard.placeBounty(placer, target, hearts, energy);
+        if (result == BountyBoard.PlaceResult.SUCCESS) {
+            placer.sendMessage(Text.translatable("gems.bounty.place.success", target.getName().getString(), hearts, energy), true);
+            target.sendMessage(Text.translatable("gems.bounty.placed_on_you", placer.getName().getString(), hearts, energy), false);
+            return 1;
+        }
+        source.sendError(bountyErrorMessage(result));
+        return 0;
+    }
+
+    private static Text bountyErrorMessage(BountyBoard.PlaceResult result) {
+        return switch (result) {
+            case ASSASSIN_BLOCKED -> Text.translatable("gems.bounty.error.assassin_blocked");
+            case INVALID_TARGET -> Text.translatable("gems.bounty.error.invalid_target");
+            case INVALID_AMOUNT -> Text.translatable("gems.bounty.error.invalid_amount");
+            case NOT_HIGHER -> Text.translatable("gems.bounty.error.not_higher");
+            case NO_CHANGE -> Text.translatable("gems.bounty.error.no_change");
+            case INSUFFICIENT_HEARTS -> Text.translatable("gems.bounty.error.insufficient_hearts");
+            case INSUFFICIENT_ENERGY -> Text.translatable("gems.bounty.error.insufficient_energy");
+            default -> Text.translatable("gems.bounty.error.unknown");
+        };
+    }
+
+    private static int bountyList(ServerCommandSource source) {
+        MinecraftServer server = source.getServer();
+        List<BountyBoard.BountyListEntry> entries = BountyBoard.listEntries(server);
+        if (entries.isEmpty()) {
+            source.sendFeedback(() -> Text.translatable("gems.bounty.list.empty"), false);
+            return 1;
+        }
+        entries.sort(Comparator.comparing((BountyBoard.BountyListEntry e) -> e.targetName().toLowerCase(Locale.ROOT))
+                .thenComparing(e -> e.placerName().toLowerCase(Locale.ROOT)));
+        source.sendFeedback(() -> Text.translatable("gems.bounty.list.header", entries.size()), false);
+        for (BountyBoard.BountyListEntry entry : entries) {
+            String line = entry.targetName() + " | " + entry.placerName()
+                    + " | " + entry.hearts() + "H " + entry.energy() + "E";
+            source.sendFeedback(() -> Text.literal(line), false);
+        }
+        return 1;
+    }
+
     private static String passiveName(Identifier id) {
         GemPassive passive = ModPassives.get(id);
         return passive == null ? id.toString() : passive.name();
@@ -907,6 +966,89 @@ public final class GemsCommands {
         resync(player);
         source.sendFeedback(() -> Text.literal("Reset " + player.getName().getString() + " gem state (assigned " + assigned.name() + ")"), true);
         return 1;
+    }
+
+    private static int resetAll(ServerCommandSource source, java.util.Collection<ServerPlayerEntity> players) {
+        MinecraftServer server = source.getServer();
+        for (ServerPlayerEntity player : players) {
+            resetAllForPlayer(server, player);
+        }
+        source.sendFeedback(() -> Text.literal("Reset all player data for " + players.size() + " player(s)."), true);
+        return players.size();
+    }
+
+    private static void resetAllForPlayer(MinecraftServer server, ServerPlayerEntity player) {
+        if (player == null) {
+            return;
+        }
+
+        // Restore anything stolen from others before wiping player data.
+        SpySystem.restoreStolenFromThief(player);
+        HuntersTrophyNecklaceItem.restoreStolenFromThief(player);
+
+        UUID playerId = player.getUuid();
+        if (server != null) {
+            BonusClaimsState.get(server).releaseAllClaims(playerId);
+            PrismSelectionsState.get(server).clearSelections(playerId);
+            BountyBoard.clearForPlayer(server, playerId);
+        }
+
+        GemAbilityCooldowns.clearAll(player);
+        clearItemCooldowns(player);
+        GemTrust.clearRuntimeCache(playerId);
+        LegendaryCooldowns.clearCache(playerId);
+
+        ((GemsPersistentDataHolder) player).gems$setPersistentData(new NbtCompound());
+
+        GemPlayerState.initIfNeeded(player);
+        AssassinState.reset(player);
+        GemPlayerState.applyMaxHearts(player);
+        GemMastery.reset(player);
+        GemsStats.reset(player);
+
+        GemId active = GemPlayerState.getActiveGem(player);
+        ensurePlayerHasItem(player, ModItems.gemItem(active));
+        GemPowers.sync(player);
+        GemItemGlint.sync(player);
+        GemStateSync.send(player);
+        if (server != null) {
+            GemsModEvents.unlockStartingRecipes(server, player);
+            AssassinTeams.sync(server, player);
+        }
+
+        resetVanillaStats(player);
+    }
+
+    private static void resetVanillaStats(ServerPlayerEntity player) {
+        StatHandler handler = player.getStatHandler();
+        for (StatType<?> type : Registries.STAT_TYPE) {
+            resetStatsForType(player, handler, type);
+        }
+    }
+
+    private static void clearItemCooldowns(ServerPlayerEntity player) {
+        var manager = player.getItemCooldownManager();
+        // Avoid hard dependency on a clear() method, which differs by version.
+        try {
+            var method = manager.getClass().getMethod("clear");
+            method.invoke(manager);
+            return;
+        } catch (ReflectiveOperationException ignored) {
+        }
+        for (Item item : Registries.ITEM) {
+            manager.set(item.getDefaultStack(), 0);
+        }
+    }
+
+    private static <T> void resetStatsForType(ServerPlayerEntity player, StatHandler handler, StatType<T> type) {
+        Registry<T> registry = type.getRegistry();
+        if (registry == null) {
+            return;
+        }
+        for (T value : registry) {
+            Stat<T> stat = type.getOrCreateStat(value);
+            handler.setStat(player, stat, 0);
+        }
     }
 
     private static int trade(ServerPlayerEntity player, String rawGem) {
@@ -1060,12 +1202,13 @@ public final class GemsCommands {
 
     private static int titleSet(ServerCommandSource source, Iterable<ServerPlayerEntity> players, String titleId) {
         MasteryReward reward = MasteryRewards.findById(titleId);
-        if (reward == null || reward.type() != MasteryReward.MasteryRewardType.TITLE) {
+        boolean isGeneral = titleId != null && titleId.startsWith("leaderboard:");
+        if ((reward == null || reward.type() != MasteryReward.MasteryRewardType.TITLE) && !isGeneral) {
             source.sendError(Text.translatable("gems.title.admin.invalid", titleId));
             return 0;
         }
         for (ServerPlayerEntity player : players) {
-            GemMastery.setSelectedTitle(player, reward.id(), true);
+            GemMastery.setSelectedTitle(player, isGeneral ? titleId : reward.id(), true);
             source.sendFeedback(() -> Text.translatable("gems.title.admin.set", player.getName().getString(), titleId), true);
         }
         return 1;
@@ -1094,6 +1237,12 @@ public final class GemsCommands {
                     String status = unlocked ? "unlocked" : "locked";
                     lines.add(Text.literal("- " + reward.id() + " (" + status + "): ").append(name));
                 }
+            }
+            for (LeaderboardTracker.LeaderboardCategory category : LeaderboardTracker.LeaderboardCategory.values()) {
+                boolean holds = LeaderboardTracker.holdsTitle(player, category);
+                String status = holds ? "leader" : "locked";
+                lines.add(Text.literal("- leaderboard:" + category.name().toLowerCase(Locale.ROOT) + " (" + status + "): ")
+                        .append(LeaderboardTracker.getTitleText(category)));
             }
             if (lines.isEmpty()) {
                 source.sendFeedback(() -> Text.translatable("gems.title.admin.list_empty"), false);
@@ -1589,6 +1738,9 @@ public final class GemsCommands {
                     builder.suggest(reward.id());
                 }
             }
+        }
+        for (LeaderboardTracker.LeaderboardCategory category : LeaderboardTracker.LeaderboardCategory.values()) {
+            builder.suggest("leaderboard:" + category.name().toLowerCase(Locale.ROOT));
         }
         return builder.buildFuture();
     }

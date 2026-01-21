@@ -214,6 +214,9 @@ public final class LoadoutManager {
      * Get the player's custom ability order for a gem.
      */
     public static List<Identifier> getAbilityOrder(ServerPlayerEntity player, GemId gem) {
+        if (!canUseLoadouts(player)) {
+            return GemRegistry.definition(gem).abilities();
+        }
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         NbtCompound orders = root.getCompound(KEY_ABILITY_ORDER).orElse(null);
         if (orders == null) {
@@ -262,6 +265,9 @@ public final class LoadoutManager {
      * Get the player's HUD layout preferences.
      */
     public static GemLoadout.HudLayout getHudLayout(ServerPlayerEntity player) {
+        if (!canUseLoadouts(player)) {
+            return GemLoadout.HudLayout.defaults();
+        }
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         NbtCompound layout = root.getCompound(KEY_HUD_LAYOUT).orElse(null);
         if (layout == null) {
@@ -316,8 +322,29 @@ public final class LoadoutManager {
     public static void setActivePresetIndex(ServerPlayerEntity player, GemId gem, int index) {
         NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
         NbtCompound active = root.getCompound(KEY_ACTIVE_PRESET).orElse(new NbtCompound());
+        if (index < 0) {
+            active.remove(gem.name());
+            if (active.isEmpty()) {
+                root.remove(KEY_ACTIVE_PRESET);
+            } else {
+                root.put(KEY_ACTIVE_PRESET, active);
+            }
+            return;
+        }
         active.putInt(gem.name(), index);
         root.put(KEY_ACTIVE_PRESET, active);
+    }
+
+    /**
+     * Reset the current gem's loadout to defaults when loadouts are locked.
+     */
+    public static void resetToDefaults(ServerPlayerEntity player) {
+        GemId gem = GemPlayerState.getActiveGem(player);
+        GemDefinition def = GemRegistry.definition(gem);
+        saveAbilityOrder(player, gem, def.abilities());
+        saveHudLayout(player, GemLoadout.HudLayout.defaults());
+        GemPlayerState.setPassivesEnabled(player, true);
+        setActivePresetIndex(player, gem, -1);
     }
 
     // ========== Internal Helpers ==========

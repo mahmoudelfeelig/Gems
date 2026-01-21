@@ -2,6 +2,7 @@ package com.feel.gems.item.legendary;
 
 import com.feel.gems.GemsMod;
 import com.feel.gems.legendary.LegendaryItem;
+import com.feel.gems.util.GemsTooltipFormat;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
@@ -51,8 +52,11 @@ public final class SupremeArmorItem extends Item implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.translatable("item.gems." + piece.id + ".desc"));
-        tooltip.accept(Text.translatable("item.gems.supreme_set_bonus"));
+        GemsTooltipFormat.appendDescription(
+                tooltip,
+                Text.translatable("item.gems." + piece.id + ".desc"),
+                Text.translatable("item.gems.supreme_set_bonus")
+        );
     }
 
     @Override

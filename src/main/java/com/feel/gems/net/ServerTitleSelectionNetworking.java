@@ -1,6 +1,7 @@
 package com.feel.gems.net;
 
 import com.feel.gems.core.GemId;
+import com.feel.gems.mastery.LeaderboardTracker;
 import com.feel.gems.mastery.GemMastery;
 import com.feel.gems.mastery.MasteryReward;
 import com.feel.gems.mastery.MasteryRewards;
@@ -35,6 +36,15 @@ public final class ServerTitleSelectionNetworking {
         String titleId = payload.titleId();
         if (titleId == null || titleId.isBlank()) {
             GemMastery.setSelectedTitle(player, "");
+            open(player);
+            return;
+        }
+        if (titleId.startsWith("leaderboard:")) {
+            LeaderboardTracker.LeaderboardCategory category = parseGeneralCategory(titleId);
+            if (category == null || !LeaderboardTracker.holdsTitle(player, category)) {
+                return;
+            }
+            GemMastery.setSelectedTitle(player, titleId);
             open(player);
             return;
         }
@@ -79,6 +89,34 @@ public final class ServerTitleSelectionNetworking {
                 ));
             }
         }
+        for (LeaderboardTracker.LeaderboardCategory category : LeaderboardTracker.LeaderboardCategory.values()) {
+            String id = "leaderboard:" + category.name().toLowerCase();
+            boolean holds = LeaderboardTracker.holdsTitle(player, category);
+            boolean selectedEntry = id.equals(selected);
+            entries.add(new TitleSelectionScreenPayload.Entry(
+                    id,
+                    -1,
+                    category.translationKey(),
+                    0,
+                    0,
+                    holds,
+                    selectedEntry,
+                    selectedEntry && forced
+            ));
+        }
         return new TitleSelectionScreenPayload(entries);
+    }
+
+    private static LeaderboardTracker.LeaderboardCategory parseGeneralCategory(String id) {
+        if (id == null || !id.startsWith("leaderboard:")) {
+            return null;
+        }
+        String raw = id.substring("leaderboard:".length());
+        for (LeaderboardTracker.LeaderboardCategory category : LeaderboardTracker.LeaderboardCategory.values()) {
+            if (category.name().equalsIgnoreCase(raw)) {
+                return category;
+            }
+        }
+        return null;
     }
 }

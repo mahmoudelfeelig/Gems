@@ -92,8 +92,10 @@ public final class GemsTricksterGameTests {
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
 
+        GemsGameTestUtil.placeStoneFloor(context, 1, 6);
         Vec3d pos = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
         teleport(player, world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        BlockPos marker = BlockPos.ofFloored(context.getAbsolute(new Vec3d(0.5D, 1.0D, 5.5D)));
 
         GemPlayerState.initIfNeeded(player);
         GemPlayerState.setActiveGem(player, GemId.TRICKSTER);
@@ -101,6 +103,8 @@ public final class GemsTricksterGameTests {
         GemPowers.sync(player);
 
         context.runAtTick(5L, () -> {
+            aimAt(player, world, Vec3d.ofCenter(marker));
+            player.setVelocity(Vec3d.ZERO);
             boolean ok = new TricksterMirageAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Mirage did not activate");
@@ -109,13 +113,12 @@ public final class GemsTricksterGameTests {
         });
 
         context.runAtTick(15L, () -> {
-            int count = TricksterMirageRuntime.getMirageCount(player);
-            if (count <= 0) {
-                context.throwGameTestException("Mirage should register clone count in runtime");
+            if (!TricksterMirageRuntime.hasMirages(player)) {
+                context.throwGameTestException("Mirage should register a clone in runtime");
                 return;
             }
-            if (TricksterMirageRuntime.getMiragePositions(player).isEmpty()) {
-                context.throwGameTestException("Mirage should expose clone positions");
+            if (TricksterMirageRuntime.getMiragePosition(player) == null) {
+                context.throwGameTestException("Mirage should expose clone position");
                 return;
             }
             context.complete();
@@ -162,6 +165,7 @@ public final class GemsTricksterGameTests {
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 300)
     public void mindGamesConfusesMobTargets(TestContext context) {
         ServerWorld world = context.getWorld();
+        GemsGameTestUtil.placeStoneFloor(context, 1, 6);
         ServerPlayerEntity player = GemsGameTestUtil.createMockCreativeServerPlayer(context);
         GemsGameTestUtil.forceSurvival(player);
 
@@ -175,15 +179,19 @@ public final class GemsTricksterGameTests {
             return;
         }
         zombie.refreshPositionAndAngles(mobPos.x, mobPos.y, mobPos.z, 0.0F, 0.0F);
+        zombie.setAiDisabled(true);
+        zombie.setNoGravity(true);
+        zombie.setVelocity(Vec3d.ZERO);
         world.spawnEntity(zombie);
-        aimAt(player, world, mobPos.add(0.0D, 1.0D, 0.0D));
 
         GemPlayerState.initIfNeeded(player);
         GemPlayerState.setActiveGem(player, GemId.TRICKSTER);
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(20L, () -> {
+            aimAt(player, world, mobPos.add(0.0D, 1.0D, 0.0D));
+            player.setVelocity(Vec3d.ZERO);
             boolean ok = new TricksterMindGamesAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Mind Games did not activate with a mob target");
@@ -191,17 +199,16 @@ public final class GemsTricksterGameTests {
             }
         });
 
-        context.runAtTick(15L, () -> {
-            if (zombie.getStatusEffect(StatusEffects.SLOWNESS) == null || zombie.getStatusEffect(StatusEffects.NAUSEA) == null) {
-                context.throwGameTestException("Mind Games should apply confusion effects to mobs");
-                return;
-            }
-            if (!TricksterMindGamesRuntime.isMobConfused(zombie)) {
-                context.throwGameTestException("Mind Games should mark mobs as confused in runtime");
-                return;
-            }
-            context.complete();
-        });
+        GemsGameTestUtil.assertEventually(
+                context,
+                22L,
+                120L,
+                2L,
+                () -> zombie.getStatusEffect(StatusEffects.SLOWNESS) != null
+                        && zombie.getStatusEffect(StatusEffects.NAUSEA) != null
+                        && TricksterMindGamesRuntime.isMobConfused(zombie),
+                "Mind Games should apply confusion effects to mobs"
+        );
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 300)

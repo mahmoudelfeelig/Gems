@@ -59,7 +59,8 @@ public final class GemPowers {
             if (!raw.isEmpty()) {
                 ArrayList<Identifier> filtered = new ArrayList<>(raw.size());
                 for (Identifier id : raw) {
-                    if (!GemsDisables.isPassiveDisabledFor(player, id)) {
+                    if (!GemsDisables.isPassiveDisabledFor(player, id)
+                            && !com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
                         filtered.add(id);
                     }
                 }
@@ -139,7 +140,8 @@ public final class GemPowers {
             if (!claimed.isEmpty()) {
                 java.util.HashSet<Identifier> filtered = new java.util.HashSet<>();
                 for (Identifier id : claimed) {
-                    if (!GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                    if (!GemsDisables.isBonusPassiveDisabledFor(player, id)
+                            && !com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
                         filtered.add(id);
                     }
                 }
@@ -201,8 +203,9 @@ public final class GemPowers {
         // Filter out disabled passives
         Set<Identifier> targetPrismPassives = new HashSet<>();
         for (Identifier id : selectedPassives) {
-            if (!GemsDisables.isPassiveDisabledFor(player, id) && 
-                !GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+            if (!GemsDisables.isPassiveDisabledFor(player, id)
+                && !GemsDisables.isBonusPassiveDisabledFor(player, id)
+                && !com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
                 targetPrismPassives.add(id);
             }
         }
@@ -243,6 +246,8 @@ public final class GemPowers {
             return;
         }
 
+        com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.refreshLostPassives(player);
+
         GemId activeGem = GemPlayerState.getActiveGem(player);
         
         // Prism gem uses selected passives instead of definition
@@ -262,6 +267,13 @@ public final class GemPowers {
         }
         for (Identifier passiveId : def.passives()) {
             if (GemsDisables.isPassiveDisabledFor(player, passiveId)) {
+                continue;
+            }
+            if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, passiveId)) {
+                GemPassive passive = ModPassives.get(passiveId);
+                if (passive != null) {
+                    passive.remove(player);
+                }
                 continue;
             }
             GemPassive passive = ModPassives.get(passiveId);
@@ -297,6 +309,13 @@ public final class GemPowers {
                 GemsDisables.isBonusPassiveDisabledFor(player, passiveId)) {
                 continue;
             }
+            if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, passiveId)) {
+                GemPassive passive = ModPassives.get(passiveId);
+                if (passive != null) {
+                    passive.remove(player);
+                }
+                continue;
+            }
             GemPassive passive = ModPassives.get(passiveId);
             if (passive instanceof StatusEffectPassive) {
                 passive.apply(player);
@@ -321,6 +340,13 @@ public final class GemPowers {
             if (GemsDisables.isBonusPassiveDisabledFor(player, passiveId)) {
                 continue;
             }
+            if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, passiveId)) {
+                GemPassive passive = ModPassives.get(passiveId);
+                if (passive != null) {
+                    passive.remove(player);
+                }
+                continue;
+            }
             GemPassive passive = ModPassives.get(passiveId);
             if (passive instanceof StatusEffectPassive) {
                 passive.apply(player);
@@ -341,6 +367,9 @@ public final class GemPowers {
             return false;
         }
         if (AbilityRestrictions.isSuppressed(player)) {
+            return false;
+        }
+        if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, passiveId)) {
             return false;
         }
         GemId activeGem = GemPlayerState.getActiveGem(player);
@@ -436,6 +465,9 @@ public final class GemPowers {
         if (!stolen.contains(passiveId)) {
             return false;
         }
+        if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveDisabled(player, passiveId)) {
+            return false;
+        }
         return !GemsDisables.isPassiveDisabledFor(player, passiveId) && !GemsDisables.isBonusPassiveDisabledFor(player, passiveId);
     }
 
@@ -468,6 +500,9 @@ public final class GemPowers {
             for (Identifier id : selectedPassives) {
                 if (!GemsDisables.isPassiveDisabledFor(player, id) && 
                     !GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                    if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
+                        continue;
+                    }
                     result.add(id);
                 }
             }
@@ -475,11 +510,17 @@ public final class GemPowers {
                 BonusClaimsState claims = BonusClaimsState.get(server);
                 for (Identifier id : claims.getPlayerPassives(player.getUuid())) {
                     if (!GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                        if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
+                            continue;
+                        }
                         result.add(id);
                     }
                 }
             }
             for (Identifier id : com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.getStolenPassives(player)) {
+                if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveDisabled(player, id)) {
+                    continue;
+                }
                 if (!GemsDisables.isPassiveDisabledFor(player, id) && !GemsDisables.isBonusPassiveDisabledFor(player, id)) {
                     result.add(id);
                 }
@@ -494,6 +535,9 @@ public final class GemPowers {
         ArrayList<Identifier> result = new ArrayList<>(allPassives.size());
         for (Identifier id : allPassives) {
             if (!GemsDisables.isPassiveDisabledFor(player, id)) {
+                if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
+                    continue;
+                }
                 result.add(id);
             }
         }
@@ -502,12 +546,18 @@ public final class GemPowers {
             if (server != null) {
                 for (Identifier id : BonusClaimsState.get(server).getPlayerPassives(player.getUuid())) {
                     if (!GemsDisables.isBonusPassiveDisabledFor(player, id)) {
+                        if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveStolenFrom(player, id)) {
+                            continue;
+                        }
                         result.add(id);
                     }
                 }
             }
         }
         for (Identifier id : com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.getStolenPassives(player)) {
+            if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveDisabled(player, id)) {
+                continue;
+            }
             if (!GemsDisables.isPassiveDisabledFor(player, id) && !GemsDisables.isBonusPassiveDisabledFor(player, id)) {
                 result.add(id);
             }
@@ -535,6 +585,9 @@ public final class GemPowers {
         if (!stolen.isEmpty()) {
             java.util.HashSet<Identifier> filtered = new java.util.HashSet<>();
             for (Identifier id : stolen) {
+                if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveDisabled(player, id)) {
+                    continue;
+                }
                 if (!GemsDisables.isPassiveDisabledFor(player, id) && !GemsDisables.isBonusPassiveDisabledFor(player, id)) {
                     filtered.add(id);
                 }
@@ -569,6 +622,9 @@ public final class GemPowers {
             return;
         }
         for (Identifier passiveId : stolen) {
+            if (com.feel.gems.item.legendary.HuntersTrophyNecklaceItem.isPassiveDisabled(player, passiveId)) {
+                continue;
+            }
             if (GemsDisables.isPassiveDisabledFor(player, passiveId) || GemsDisables.isBonusPassiveDisabledFor(player, passiveId)) {
                 continue;
             }

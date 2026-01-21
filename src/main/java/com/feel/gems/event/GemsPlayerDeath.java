@@ -1,7 +1,9 @@
 package com.feel.gems.event;
 
 import com.feel.gems.assassin.AssassinState;
+import com.feel.gems.bounty.BountyBoard;
 import com.feel.gems.assassin.AssassinTeams;
+import com.feel.gems.core.GemId;
 import com.feel.gems.item.GemItemGlint;
 import com.feel.gems.item.GemKeepOnDeath;
 import com.feel.gems.item.GemOwnership;
@@ -49,6 +51,7 @@ public final class GemsPlayerDeath {
         AssassinState.initIfNeeded(victim);
         SpySystem.incrementDeaths(victim);
         boolean skipHeartDrop = GemOwnership.consumeSkipHeartDrop(victim);
+        GemId victimActiveGem = GemPlayerState.getActiveGem(victim);
 
         boolean victimWasAssassin = AssassinState.isAssassin(victim);
         int victimEnergyBefore = GemPlayerState.getEnergy(victim);
@@ -74,6 +77,7 @@ public final class GemsPlayerDeath {
             AssassinState.recordKill(killer, finalKill, victimWasAssassin);
 
             GemsStats.recordPlayerKill(killer, victim, killerWasAssassin, victimWasAssassin, finalKill);
+            BountyBoard.handleKill(victim, killer, 0, 0);
 
             if (GemPowers.isPassiveActive(killer, PowerIds.TERROR_BLOOD_PRICE)) {
                 TerrorBloodPrice.onPlayerKill(killer);
@@ -87,6 +91,9 @@ public final class GemsPlayerDeath {
             // Hunter's Trophy Necklace legendary - permanently gain a random passive
             HuntersTrophyNecklaceItem.onKillPlayer(killer, victim);
 
+            // Using another player's active gem should never let you keep re-killing them.
+            GemOwnership.removeOwnedGemFromInventory(killer, victim.getUuid(), victimActiveGem);
+
             if (victimWasAssassin && killerWasAssassin) {
                 var cfg = com.feel.gems.config.GemsBalance.v().systems();
                 int loss = cfg.assassinVsAssassinVictimHeartsLoss();
@@ -99,6 +106,10 @@ public final class GemsPlayerDeath {
                 }
 
                 int after = AssassinState.addAssassinHearts(victim, -loss);
+                int minHearts = Math.min(5, AssassinState.maxHearts());
+                if (after < minHearts) {
+                    after = AssassinState.setAssassinHearts(victim, minHearts);
+                }
                 if (gain > 0) {
                     AssassinState.addAssassinHearts(killer, gain);
                 }

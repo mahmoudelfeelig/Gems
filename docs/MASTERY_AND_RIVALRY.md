@@ -54,6 +54,8 @@ Each gem has 2 unique epic titles:
 - The screen lists every title with your current progress (`uses / threshold`).
 - Click an unlocked title to equip it or use Clear to remove your selection.
 - Selected titles display in chat and the tab list.
+- Your title color also tints your chat message text; if no aura is selected, your aura color follows your title.
+- Skinshifted chat uses the target's title and color.
 - Admin-forced titles are labeled in the list.
 
 ### General Titles (Leaderboard-Based)
@@ -66,8 +68,14 @@ In addition to gem-specific titles, there are server-wide general titles awarded
 | King Slayer | Most player kills |
 | Titan | Most max hearts |
 | Whale | Maximum energy (10) |
+| Synergy Master | Most synergy triggers |
+| Spell Slinger | Most total ability casts |
+| Worldbreaker | Most total damage dealt |
+| <Gem> Slayer | Most player kills while that gem is active (one leaderboard per gem) |
 
 These titles update every minute based on current server statistics.
+Per-gem leaderboards count player kills only.
+Damage dealt is tracked in health points (1.0 = half-heart).
 
 ## Rivalry System
 

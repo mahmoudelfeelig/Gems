@@ -30,7 +30,18 @@ public final class GemMastery {
     public static void incrementUsage(ServerPlayerEntity player, GemId gem) {
         NbtCompound gemData = getGemMasteryData(player, gem);
         int current = gemData.getInt(KEY_USAGE).orElse(0);
-        gemData.putInt(KEY_USAGE, current + 1);
+        int updated = current + 1;
+        gemData.putInt(KEY_USAGE, updated);
+        if (updated == 100 || updated == 500) {
+            TitleDisplay.refresh(player);
+            return;
+        }
+        for (MasteryReward reward : MasteryRewards.getRewards(gem)) {
+            if (reward.type() == MasteryReward.MasteryRewardType.TITLE && reward.threshold() == updated) {
+                TitleDisplay.refresh(player);
+                break;
+            }
+        }
     }
 
     /**
@@ -50,6 +61,14 @@ public final class GemMastery {
             result.put(gem, getUsage(player, gem));
         }
         return result;
+    }
+
+    public static void reset(ServerPlayerEntity player) {
+        if (player == null) {
+            return;
+        }
+        NbtCompound root = ((GemsPersistentDataHolder) player).gems$getPersistentData();
+        root.remove(KEY_MASTERY);
     }
 
     // ========== Title Selection ==========
@@ -74,6 +93,7 @@ public final class GemMastery {
             mastery.putString(KEY_SELECTED_TITLE, titleId);
             mastery.putBoolean(KEY_SELECTED_TITLE_OVERRIDE, force);
         }
+        TitleDisplay.refresh(player);
     }
 
     /**

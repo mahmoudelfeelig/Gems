@@ -27,6 +27,7 @@ import net.minecraft.world.World;
 public class ShadowCloneEntity extends PathAwareEntity {
     private UUID ownerUuid;
     private String ownerName;
+    private boolean mirageClone;
     
     private int ticksAlive = 0;
     private int nextActionTick = 0;
@@ -79,6 +80,14 @@ public class ShadowCloneEntity extends PathAwareEntity {
     public void setMaxLifetime(int ticks) {
         this.maxLifetimeTicks = ticks;
     }
+
+    public void setMirageClone(boolean mirageClone) {
+        this.mirageClone = mirageClone;
+    }
+
+    public boolean isMirageClone() {
+        return mirageClone;
+    }
     
     public GameProfile getOwnerProfile() {
         if (ownerUuid == null || ownerName == null) {
@@ -101,7 +110,7 @@ public class ShadowCloneEntity extends PathAwareEntity {
             }
             
             // Random item swinging/using animation
-            if (world instanceof ServerWorld && ticksAlive >= nextActionTick) {
+            if (!mirageClone && world instanceof ServerWorld && ticksAlive >= nextActionTick) {
                 performRandomAction();
                 nextActionTick = ticksAlive + 40 + random.nextInt(80); // 2-6 seconds
             }
@@ -126,6 +135,11 @@ public class ShadowCloneEntity extends PathAwareEntity {
     
     @Override
     public boolean damage(ServerWorld world, DamageSource source, float amount) {
+        if (mirageClone) {
+            com.feel.gems.power.ability.trickster.TricksterMirageRuntime.onMirageCloneHit(this);
+            this.discard();
+            return true;
+        }
         // Take damage but don't die - just play hurt effect
         this.playHurtSound(source);
         // Reset health to prevent actual death

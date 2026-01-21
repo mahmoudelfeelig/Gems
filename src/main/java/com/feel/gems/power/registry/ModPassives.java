@@ -196,6 +196,11 @@ public final class ModPassives {
                 4
         ));
         register(new MarkerPassive(
+                PowerIds.WEALTH_CURED_PRICES,
+                "Cured Prices",
+                "Villager trades cost 1 item or 1 emerald while Wealth is active."
+        ));
+        register(new MarkerPassive(
                 PowerIds.DURABILITY_CHIP,
                 "Durability chip",
                 "Does extra armor durability damage per strike."

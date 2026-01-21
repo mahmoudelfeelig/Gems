@@ -39,7 +39,9 @@ public final class GuidebookScreen extends GemsScreenBase {
             new DocEntry("gems", "Gems", "gems.md"),
             new DocEntry("bonus_pool", "Bonus Pool", "bonus_pool.md"),
             new DocEntry("mastery_rivalry", "Mastery & Rivalry", "mastery_and_rivalry.md"),
+            new DocEntry("titles", "Titles", "titles.md"),
             new DocEntry("synergies", "Synergies", "synergies.md"),
+            new DocEntry("bounties", "Bounties", "bounties.md"),
             new DocEntry("legendary", "Legendary Items", "legendary_items.md"),
             new DocEntry("trust", "Trust & Ownership", "trust_and_ownership.md"),
             new DocEntry("controls", "Controls & HUD", "controls_and_hud.md"),
@@ -236,7 +238,7 @@ public final class GuidebookScreen extends GemsScreenBase {
                 continue;
             }
             if (trimmed.startsWith("- ")) {
-                line = "• " + trimmed.substring(2);
+                line = "- " + trimmed.substring(2);
             }
             line = LINK_PATTERN.matcher(line).replaceAll("$1");
             body.add(parseInline(line));

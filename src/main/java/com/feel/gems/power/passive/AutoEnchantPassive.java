@@ -11,6 +11,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 
 
@@ -23,8 +24,6 @@ public final class AutoEnchantPassive implements GemMaintainedPassive {
     private final RegistryKey<Enchantment> enchantmentKey;
     private final int level;
     private final Predicate<ItemStack> predicate;
-
-    private RegistryEntry<Enchantment> cachedEnchantment;
 
     public AutoEnchantPassive(
             Identifier id,
@@ -68,13 +67,16 @@ public final class AutoEnchantPassive implements GemMaintainedPassive {
         if (enchantment == null) {
             return;
         }
-        ensureEnchanted(player.getMainHandStack(), enchantment);
-        ensureEnchanted(player.getOffHandStack(), enchantment);
-        ensureEnchanted(player.getEquippedStack(EquipmentSlot.HEAD), enchantment);
-        ensureEnchanted(player.getEquippedStack(EquipmentSlot.CHEST), enchantment);
-        ensureEnchanted(player.getEquippedStack(EquipmentSlot.LEGS), enchantment);
-        ensureEnchanted(player.getEquippedStack(EquipmentSlot.FEET), enchantment);
-        ensureEnchanted(player.getEquippedStack(EquipmentSlot.BODY), enchantment);
+        if (!(player.getEntityWorld() instanceof ServerWorld world)) {
+            return;
+        }
+        ensureEnchanted(world, player.getMainHandStack(), enchantment);
+        ensureEnchanted(world, player.getOffHandStack(), enchantment);
+        ensureEnchanted(world, player.getEquippedStack(EquipmentSlot.HEAD), enchantment);
+        ensureEnchanted(world, player.getEquippedStack(EquipmentSlot.CHEST), enchantment);
+        ensureEnchanted(world, player.getEquippedStack(EquipmentSlot.LEGS), enchantment);
+        ensureEnchanted(world, player.getEquippedStack(EquipmentSlot.FEET), enchantment);
+        ensureEnchanted(world, player.getEquippedStack(EquipmentSlot.BODY), enchantment);
     }
 
     @Override
@@ -82,10 +84,11 @@ public final class AutoEnchantPassive implements GemMaintainedPassive {
         // Intentionally does not remove enchantments to avoid deleting player-owned enchants.
     }
 
-    private void ensureEnchanted(ItemStack stack, RegistryEntry<Enchantment> enchantment) {
+    private void ensureEnchanted(ServerWorld world, ItemStack stack, RegistryEntry<Enchantment> enchantment) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
+        normalizeEnchantments(world, stack);
         if (!predicate.test(stack)) {
             return;
         }
@@ -115,10 +118,43 @@ public final class AutoEnchantPassive implements GemMaintainedPassive {
         EnchantmentHelper.apply(stack, builder -> builder.set(enchantment, level));
     }
 
-    private RegistryEntry<Enchantment> resolve(ServerPlayerEntity player) {
-        if (cachedEnchantment != null) {
-            return cachedEnchantment;
+    private void normalizeEnchantments(ServerWorld world, ItemStack stack) {
+        var enchants = EnchantmentHelper.getEnchantments(stack);
+        if (enchants.isEmpty()) {
+            return;
         }
+        var registry = world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
+        java.util.HashMap<RegistryEntry<Enchantment>, Integer> normalized = new java.util.HashMap<>();
+        boolean changed = false;
+        for (var entry : enchants.getEnchantmentEntries()) {
+            Enchantment value = entry.getKey().value();
+            var id = registry.getId(value);
+            if (id == null) {
+                changed = true;
+                continue;
+            }
+            var regEntry = registry.getEntry(id);
+            if (regEntry.isEmpty()) {
+                changed = true;
+                continue;
+            }
+            RegistryEntry<Enchantment> canonical = regEntry.get();
+            int level = entry.getIntValue();
+            normalized.merge(canonical, level, Math::max);
+            if (canonical != entry.getKey()) {
+                changed = true;
+            }
+        }
+        if (!changed) {
+            return;
+        }
+        EnchantmentHelper.set(stack, net.minecraft.component.type.ItemEnchantmentsComponent.DEFAULT);
+        for (var entry : normalized.entrySet()) {
+            EnchantmentHelper.apply(stack, builder -> builder.set(entry.getKey(), entry.getValue()));
+        }
+    }
+
+    private RegistryEntry<Enchantment> resolve(ServerPlayerEntity player) {
         if (!(player.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld world)) {
             return null;
         }
@@ -127,8 +163,7 @@ public final class AutoEnchantPassive implements GemMaintainedPassive {
         if (entry.isEmpty()) {
             return null;
         }
-        cachedEnchantment = entry.get();
-        return cachedEnchantment;
+        return entry.get();
     }
 
     public static AutoEnchantPassive fireAspect(Identifier id, String name, String description, int level) {

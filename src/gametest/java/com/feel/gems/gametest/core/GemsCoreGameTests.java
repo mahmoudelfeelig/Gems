@@ -6,6 +6,7 @@ import com.feel.gems.core.GemId;
 import com.feel.gems.core.GemRegistry;
 import com.feel.gems.gametest.util.GemsGameTestUtil;
 import com.feel.gems.item.GemKeepOnDeath;
+import com.feel.gems.item.GemOwnership;
 import com.feel.gems.item.ModItems;
 import com.feel.gems.net.CooldownSnapshotPayload;
 import com.feel.gems.power.registry.PowerIds;
@@ -27,6 +28,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import com.feel.gems.event.GemsPlayerDeath;
 
 
 
@@ -89,6 +91,42 @@ public final class GemsCoreGameTests {
                 context.throwGameTestException("Active gem item should be restored after stash+restore, before=" + astraBefore + " after=" + astraAfterRestore);
             }
 
+            context.complete();
+        });
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
+    public void killingPlayerConsumesTheirActiveGemItem(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity killer = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity victim = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        killer.changeGameMode(GameMode.SURVIVAL);
+        victim.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d base = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        teleport(killer, world, base.x, base.y, base.z, 0.0F, 0.0F);
+        teleport(victim, world, base.x + 2.0D, base.y, base.z, 0.0F, 0.0F);
+
+        context.runAtTick(20L, () -> {
+            killer.getInventory().clear();
+            victim.getInventory().clear();
+            GemPlayerState.initIfNeeded(killer);
+            GemPlayerState.initIfNeeded(victim);
+            GemPlayerState.setActiveGem(victim, GemId.FIRE);
+
+            ItemStack stolen = new ItemStack(ModItems.FIRE_GEM);
+            GemOwnership.tagOwned(stolen, victim.getUuid(), GemPlayerState.getGemEpoch(victim));
+            killer.giveItemStack(stolen);
+
+            if (!GemsGameTestUtil.hasItem(killer, ModItems.FIRE_GEM)) {
+                context.throwGameTestException("Setup error: missing victim active gem item on killer");
+            }
+
+            GemsPlayerDeath.onDeathTail(victim, victim.getDamageSources().playerAttack(killer));
+
+            if (GemsGameTestUtil.hasItem(killer, ModItems.FIRE_GEM)) {
+                context.throwGameTestException("Victim active gem item should be removed after kill");
+            }
             context.complete();
         });
     }

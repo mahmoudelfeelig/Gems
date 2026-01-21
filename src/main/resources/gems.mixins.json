@@ -7,6 +7,7 @@
     "BlockAutoSmeltMixin",
     "ExplosiveProjectileRangeLimitMixin",
     "ExplosiveProjectileTrailMixin",
+    "EnchantmentHelperAmplificationMixin",
     "PersistentProjectileEntityRaidersTrainingMixin",
     "PersistentProjectileEntityLegendaryHitMixin",
     "PersistentProjectileEntityHunterAimMixin",
@@ -33,6 +34,7 @@
     "EnderDragonSoulNoExperienceMixin",
     "LivingEntityCorpseTrackerMixin",
     "LivingEntityDamageScalingMixin",
+    "LivingEntityDamageStatsMixin",
     "LivingEntityImpactAbsorbMixin",
     "LivingEntitySummonFriendlyFireMixin",
     "LivingEntitySummonDeathMixin",
@@ -56,11 +58,13 @@
     "PlayerEntityXpBoostMixin",
     "PlayerEntityHungerResistMixin",
     "ServerPlayerEntityTitleMixin",
+    "VillagerEntityWealthDiscountMixin",
     "MobEntitySoulTargetingMixin",
     "MobEntityHeartLockMixin",
     "MobEntitySummonerLifetimeMixin",
     "SlimeEntitySummonNoSplitMixin",
     "ItemEntityDecoyTrapMixin",
+    "ItemStackOwnerStackingMixin",
     "ItemStackUnbreakableMixin",
     "WorldRiggedBlockUpdateMixin",
     "WitherEntitySoulTargetingMixin",
@@ -70,7 +74,8 @@
     "ServerPlayNetworkHandlerHotbarLockMixin",
     "ServerPlayerInteractionManagerRestrictionsMixin",
     "accessor.MobEntitySelectorsAccessor",
-    "accessor.CraftingScreenHandlerAccessor"
+    "accessor.CraftingScreenHandlerAccessor",
+    "accessor.TradeOfferAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

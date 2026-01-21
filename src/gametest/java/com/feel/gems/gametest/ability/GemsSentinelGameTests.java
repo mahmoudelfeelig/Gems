@@ -112,6 +112,8 @@ public final class GemsSentinelGameTests {
         GemPowers.sync(player);
 
         GemTrust.trust(player, ally.getUuid());
+        GemTrust.trust(ally, player.getUuid());
+        GemTrust.trust(ally, player.getUuid());
         ally.setHealth(6.0F);
 
         context.runAtTick(5L, () -> {
@@ -191,21 +193,25 @@ public final class GemsSentinelGameTests {
         GemPlayerState.setEnergy(player, 5);
         GemPowers.sync(player);
 
-        GemTrust.trust(player, ally.getUuid());
+        context.runAtTick(4L, () -> {
+            GemTrust.trust(player, ally.getUuid());
+            GemTrust.trust(ally, player.getUuid());
+        });
 
-        context.runAtTick(5L, () -> {
+        context.runAtTick(6L, () -> {
             boolean ok = new SentinelInterventionAbility().activate(player);
             if (!ok) {
                 context.throwGameTestException("Intervention did not activate with a trusted ally nearby");
-                return;
-            }
-            if (SentinelInterventionRuntime.getProtector(ally) != player) {
-                context.throwGameTestException("Intervention should mark the sentinel as the ally's protector");
-                return;
             }
         });
 
-        context.runAtTick(15L, () -> {
+        context.runAtTick(12L, () -> {
+            if (SentinelInterventionRuntime.getProtector(ally) != player) {
+                context.throwGameTestException("Intervention should mark the sentinel as the ally's protector");
+            }
+        });
+
+        context.runAtTick(20L, () -> {
             float allyBefore = ally.getHealth();
             float sentinelBefore = player.getHealth();
             ally.damage(world, attacker.getDamageSources().playerAttack(attacker), 4.0F);

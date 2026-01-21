@@ -19,8 +19,6 @@ import net.minecraft.util.math.Vec3d;
  * Shadow Swap - instantly swap places with the target you're looking at.
  */
 public final class TricksterShadowSwapAbility implements GemAbility {
-    private static final double MAX_RANGE = 32.0;
-
     @Override
     public Identifier id() {
         return PowerIds.TRICKSTER_SHADOW_SWAP;
@@ -46,7 +44,8 @@ public final class TricksterShadowSwapAbility implements GemAbility {
         ServerWorld world = player.getEntityWorld();
 
         // Find target entity
-        LivingEntity target = Targeting.raycastLiving(player, MAX_RANGE);
+        double range = GemsBalance.v().trickster().shadowSwapRangeBlocks();
+        LivingEntity target = Targeting.raycastLiving(player, range);
         if (target == null) {
             player.sendMessage(net.minecraft.text.Text.translatable("gems.message.no_target_in_range").formatted(net.minecraft.util.Formatting.RED), true);
             return false;

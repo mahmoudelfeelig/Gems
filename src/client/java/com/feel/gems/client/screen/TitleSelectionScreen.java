@@ -18,6 +18,7 @@ import net.minecraft.util.Formatting;
 
 public final class TitleSelectionScreen extends GemsScreenBase {
     private final List<TitleSelectionScreenPayload.Entry> entries;
+    private Tab tab = Tab.UNLOCKED;
     private int page = 0;
 
     public TitleSelectionScreen(TitleSelectionScreenPayload payload) {
@@ -38,27 +39,42 @@ public final class TitleSelectionScreen extends GemsScreenBase {
         int centerX = this.width / 2;
         int panelW = panelWidth(width);
         int entryX = centerX - panelW / 2;
+        int tabY = SUBTITLE_Y + 12;
 
-        int totalPg = totalPages(entries.size(), ENTRIES_PER_PAGE);
+        ButtonWidget unlockedTab = ButtonWidget.builder(Text.translatable("gems.screen.title_selection.tab.unlocked"), btn -> switchTab(Tab.UNLOCKED))
+                .dimensions(centerX - TAB_WIDTH - TAB_GAP, tabY, TAB_WIDTH, TAB_HEIGHT)
+                .build();
+        ButtonWidget allTab = ButtonWidget.builder(Text.translatable("gems.screen.title_selection.tab.all"), btn -> switchTab(Tab.ALL))
+                .dimensions(centerX + TAB_GAP, tabY, TAB_WIDTH, TAB_HEIGHT)
+                .build();
+        unlockedTab.active = tab != Tab.UNLOCKED;
+        allTab.active = tab != Tab.ALL;
+        addDrawableChild(unlockedTab);
+        addDrawableChild(allTab);
+
+        List<TitleSelectionScreenPayload.Entry> visible = visibleEntries();
+        int totalPg = totalPages(visible.size(), ENTRIES_PER_PAGE);
         page = clampPage(page, totalPg);
 
         int start = page * ENTRIES_PER_PAGE;
-        int end = Math.min(entries.size(), start + ENTRIES_PER_PAGE);
-        int y = CONTENT_START_Y;
+        int end = Math.min(visible.size(), start + ENTRIES_PER_PAGE);
+        int y = tabY + TAB_HEIGHT + SPACING * 2;
 
-        if (entries.isEmpty()) {
+        if (visible.isEmpty()) {
             addDrawableChild(ButtonWidget.builder(Text.translatable("gems.screen.title_selection.none").formatted(Formatting.GRAY), btn -> {})
                     .dimensions(entryX, y, panelW, BUTTON_HEIGHT)
                     .build()).active = false;
         } else {
             for (int i = start; i < end; i++) {
-                TitleSelectionScreenPayload.Entry entry = entries.get(i);
+                TitleSelectionScreenPayload.Entry entry = visible.get(i);
                 int buttonY = y + (i - start) * (BUTTON_HEIGHT + SPACING);
                 Text label = labelFor(entry);
                 ButtonWidget button = addDrawableChild(ButtonWidget.builder(label, btn -> select(entry.id()))
                         .dimensions(entryX, buttonY, panelW, BUTTON_HEIGHT)
                         .build());
-                if (!entry.unlocked() && !entry.selected()) {
+                if (entry.gemOrdinal() < 0) {
+                    button.active = entry.unlocked();
+                } else if (!entry.unlocked() && !entry.selected()) {
                     button.active = false;
                 }
             }
@@ -72,7 +88,7 @@ public final class TitleSelectionScreen extends GemsScreenBase {
                 .dimensions(centerX + SPACING, navY, NAV_BUTTON_WIDTH, BUTTON_HEIGHT)
                 .build();
         prev.active = page > 0;
-        next.active = (page + 1) * ENTRIES_PER_PAGE < entries.size();
+        next.active = (page + 1) * ENTRIES_PER_PAGE < visible.size();
         addDrawableChild(prev);
         addDrawableChild(next);
 
@@ -86,6 +102,18 @@ public final class TitleSelectionScreen extends GemsScreenBase {
     }
 
     private Text labelFor(TitleSelectionScreenPayload.Entry entry) {
+        if (entry.gemOrdinal() < 0) {
+            MutableText label = Text.translatable("gems.screen.title_selection.general").formatted(Formatting.GRAY)
+                    .append(Text.translatable(entry.displayKey()).formatted(Formatting.GOLD));
+            if (entry.selected()) {
+                label.append(Text.translatable("gems.screen.title_selection.selected").formatted(Formatting.GOLD));
+            } else if (entry.unlocked()) {
+                label.append(Text.translatable("gems.screen.title_selection.leader").formatted(Formatting.GOLD));
+            } else {
+                label.append(Text.translatable("gems.screen.title_selection.locked").formatted(Formatting.DARK_GRAY));
+            }
+            return label;
+        }
         GemId gem = safeGem(entry.gemOrdinal());
         String gemName = GemSeerScreenHandler.formatGemName(gem);
 
@@ -107,7 +135,7 @@ public final class TitleSelectionScreen extends GemsScreenBase {
     }
 
     private void changePage(int delta) {
-        int maxPage = Math.max(0, (entries.size() - 1) / ENTRIES_PER_PAGE);
+        int maxPage = Math.max(0, (visibleEntries().size() - 1) / ENTRIES_PER_PAGE);
         page = Math.max(0, Math.min(maxPage, page + delta));
         rebuild();
     }
@@ -128,15 +156,41 @@ public final class TitleSelectionScreen extends GemsScreenBase {
                 this.width / 2, SUBTITLE_Y, COLOR_GRAY);
 
         if (!entries.isEmpty()) {
-            int maxPage = totalPages(entries.size(), ENTRIES_PER_PAGE);
+            int maxPage = totalPages(visibleEntries().size(), ENTRIES_PER_PAGE);
             String pageText = "Page " + (page + 1) + " / " + maxPage;
-            context.drawCenteredTextWithShadow(this.textRenderer, pageText, this.width / 2, SUBTITLE_Y + 10, COLOR_GRAY);
+            int pageY = SUBTITLE_Y + 12 + TAB_HEIGHT + 2;
+            context.drawCenteredTextWithShadow(this.textRenderer, pageText, this.width / 2, pageY, COLOR_GRAY);
         }
+    }
+
+    private void switchTab(Tab next) {
+        if (tab == next) {
+            return;
+        }
+        tab = next;
+        page = 0;
+        rebuild();
+    }
+
+    private List<TitleSelectionScreenPayload.Entry> visibleEntries() {
+        if (tab == Tab.ALL) {
+            return entries;
+        }
+        List<TitleSelectionScreenPayload.Entry> filtered = new ArrayList<>();
+        for (TitleSelectionScreenPayload.Entry entry : entries) {
+            if (entry.unlocked() || entry.selected() || entry.forcedSelected()) {
+                filtered.add(entry);
+            }
+        }
+        return filtered;
     }
 
     private static int sortKey(TitleSelectionScreenPayload.Entry entry) {
         int gem = Math.max(0, entry.gemOrdinal());
         int threshold = Math.max(0, entry.threshold());
+        if (entry.gemOrdinal() < 0) {
+            return -10000 + threshold;
+        }
         return gem * 10000 + threshold;
     }
 
@@ -146,5 +200,10 @@ public final class TitleSelectionScreen extends GemsScreenBase {
             return GemId.ASTRA;
         }
         return values[ordinal];
+    }
+
+    private enum Tab {
+        UNLOCKED,
+        ALL
     }
 }

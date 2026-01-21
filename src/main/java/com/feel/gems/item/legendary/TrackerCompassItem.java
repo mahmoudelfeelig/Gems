@@ -8,6 +8,7 @@ import com.feel.gems.net.TrackerCompassScreenPayload;
 import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.util.GemsNbt;
 import com.feel.gems.util.GemsTime;
+import com.feel.gems.util.GemsTooltipFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -99,7 +100,7 @@ public final class TrackerCompassItem extends CompassItem implements LegendaryIt
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.translatable("item.gems.tracker_compass.desc"));
+        GemsTooltipFormat.appendDescription(tooltip, Text.translatable("item.gems.tracker_compass.desc"));
         NbtComponent data = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (data == null) {
             tooltip.accept(Text.translatable("gems.item.tracker_compass.tooltip.target_none"));

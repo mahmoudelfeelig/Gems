@@ -55,16 +55,25 @@ public final class ServerTrophyNecklaceNetworking {
         if (passiveId == null) {
             return;
         }
-        if (!isOffered(player, passiveId) && !HuntersTrophyNecklaceItem.wasLastOffered(player, passiveId)) {
-            return;
-        }
-
         boolean ok;
-        if (payload.steal()) {
-            UUID source = HuntersTrophyNecklaceItem.getLastTargetUuid(player);
-            ok = HuntersTrophyNecklaceItem.stealPassiveFrom(player, passiveId, source);
-        } else {
-            ok = HuntersTrophyNecklaceItem.unstealPassive(player, passiveId);
+        switch (payload.action()) {
+            case STEAL -> {
+                if (!isOffered(player, passiveId) && !HuntersTrophyNecklaceItem.wasLastOffered(player, passiveId)) {
+                    return;
+                }
+                UUID source = HuntersTrophyNecklaceItem.getLastTargetUuid(player);
+                if (source == null) {
+                    source = HuntersTrophyNecklaceItem.getLastKillTargetUuid(player);
+                }
+                if (source == null) {
+                    player.sendMessage(Text.translatable("gems.item.trophy_necklace.need_kill"), true);
+                    return;
+                }
+                ok = HuntersTrophyNecklaceItem.stealPassiveFrom(player, passiveId, source);
+            }
+            case ENABLE -> ok = HuntersTrophyNecklaceItem.setPassiveEnabled(player, passiveId, true);
+            case DISABLE -> ok = HuntersTrophyNecklaceItem.setPassiveEnabled(player, passiveId, false);
+            default -> ok = false;
         }
         if (ok) {
             com.feel.gems.power.runtime.GemPowers.sync(player);

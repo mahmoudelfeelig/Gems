@@ -27,12 +27,16 @@ public final class GemsStats {
     private static final String KEY_FINAL_DEATHS = "finalDeaths";
 
     private static final String KEY_KILLS_BY_GEM = "killsByGem";
+    private static final String KEY_PLAYER_KILLS_BY_GEM = "playerKillsByGem";
     private static final String KEY_DEATHS_BY_GEM = "deathsByGem";
     private static final String KEY_KILLS_BY_ABILITY = "killsByAbility";
     private static final String KEY_DEATHS_BY_ABILITY = "deathsByAbility";
     private static final String KEY_KILLS_BY_VICTIM_GEM = "killsByVictimGem";
     private static final String KEY_DEATHS_BY_KILLER_GEM = "deathsByKillerGem";
     private static final String KEY_ABILITY_USES = "abilityUses";
+    private static final String KEY_SYNERGY_TRIGGERS = "synergyTriggers";
+    private static final String KEY_SYNERGY_TRIGGERS_BY_ID = "synergyTriggersById";
+    private static final String KEY_DAMAGE_DEALT = "damageDealt";
 
     private GemsStats() {
     }
@@ -43,6 +47,23 @@ public final class GemsStats {
             stats.putString(KEY_LAST_ABILITY, abilityId.toString());
             incrementMap(stats, KEY_ABILITY_USES, abilityId.toString());
         }
+    }
+
+    public static void recordSynergyTrigger(ServerPlayerEntity player, Identifier synergyId) {
+        NbtCompound stats = statsRoot(player);
+        increment(stats, KEY_SYNERGY_TRIGGERS);
+        if (synergyId != null) {
+            incrementMap(stats, KEY_SYNERGY_TRIGGERS_BY_ID, synergyId.toString());
+        }
+    }
+
+    public static void recordDamageDealt(ServerPlayerEntity player, float amount) {
+        if (amount <= 0.0F) {
+            return;
+        }
+        NbtCompound stats = statsRoot(player);
+        double current = stats.getDouble(KEY_DAMAGE_DEALT, 0.0D);
+        stats.putDouble(KEY_DAMAGE_DEALT, current + amount);
     }
 
     public static Identifier lastAbility(ServerPlayerEntity player) {
@@ -77,6 +98,7 @@ public final class GemsStats {
         }
 
         incrementMap(stats, KEY_KILLS_BY_GEM, GemPlayerState.getActiveGem(killer).name());
+        incrementMap(stats, KEY_PLAYER_KILLS_BY_GEM, GemPlayerState.getActiveGem(killer).name());
         incrementMap(stats, KEY_KILLS_BY_VICTIM_GEM, GemPlayerState.getActiveGem(victim).name());
 
         Identifier last = lastAbility(killer);
@@ -104,6 +126,30 @@ public final class GemsStats {
                 incrementMap(stats, KEY_DEATHS_BY_ABILITY, last.toString());
             }
         }
+    }
+
+    public static int deaths(ServerPlayerEntity player) {
+        NbtCompound stats = statsRoot(player);
+        return stats.getInt(KEY_DEATHS, 0);
+    }
+
+    public static int abilityUses(ServerPlayerEntity player) {
+        return sumMap(statsRoot(player), KEY_ABILITY_USES);
+    }
+
+    public static int synergyTriggers(ServerPlayerEntity player) {
+        return statsRoot(player).getInt(KEY_SYNERGY_TRIGGERS, 0);
+    }
+
+    public static double damageDealt(ServerPlayerEntity player) {
+        return statsRoot(player).getDouble(KEY_DAMAGE_DEALT, 0.0D);
+    }
+
+    public static int playerKillsWithGem(ServerPlayerEntity player, com.feel.gems.core.GemId gem) {
+        if (player == null || gem == null) {
+            return 0;
+        }
+        return mapValue(statsRoot(player), KEY_PLAYER_KILLS_BY_GEM, gem.name());
     }
 
     public static void reset(ServerPlayerEntity player) {
@@ -148,6 +194,8 @@ public final class GemsStats {
         int finalKills = stats.getInt(KEY_FINAL_KILLS, 0);
         int finalDeaths = stats.getInt(KEY_FINAL_DEATHS, 0);
         int totalAbilityUses = sumMap(stats, KEY_ABILITY_USES);
+        int synergyTriggers = stats.getInt(KEY_SYNERGY_TRIGGERS, 0);
+        double damageDealt = stats.getDouble(KEY_DAMAGE_DEALT, 0.0D);
 
         List<Text> lines = new ArrayList<>();
         lines.add(Text.literal("Stats for " + player.getName().getString() + ":"));
@@ -155,6 +203,8 @@ public final class GemsStats {
         lines.add(Text.literal("Deaths: " + deaths + " (Player deaths: " + playerDeaths + ")"));
         lines.add(Text.literal("Assassin K/D: " + assassinKills + "/" + assassinDeaths + " | Final K/D: " + finalKills + "/" + finalDeaths));
         lines.add(Text.literal("Ability uses: " + totalAbilityUses));
+        lines.add(Text.literal("Synergy triggers: " + synergyTriggers));
+        lines.add(Text.literal(String.format(java.util.Locale.ROOT, "Damage dealt: %.1f", damageDealt)));
 
         String topAbility = topKey(stats, KEY_ABILITY_USES);
         if (topAbility != null) {
@@ -206,6 +256,14 @@ public final class GemsStats {
         }
         int current = map.getInt(key, 0);
         map.putInt(key, current + 1);
+    }
+
+    private static int mapValue(NbtCompound stats, String mapKey, String key) {
+        NbtCompound map = stats.getCompound(mapKey).orElse(null);
+        if (map == null) {
+            return 0;
+        }
+        return map.getInt(key, 0);
     }
 
     private static String topKey(NbtCompound stats, String mapKey) {

@@ -2,6 +2,7 @@ package com.feel.gems.client.hud;
 
 import com.feel.gems.client.ClientChaosState;
 import com.feel.gems.client.ClientPrismState;
+import com.feel.gems.client.ClientStolenState;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemDefinition;
 import com.feel.gems.core.GemId;
@@ -103,6 +104,7 @@ public final class GemsTooltips {
             lines.add(Text.literal(" - Enchanted diamond tool/armor: +" + flux.chargeEnchantedDiamondItem() + "%").formatted(Formatting.DARK_AQUA));
         }
 
+        appendStolenSections(lines);
     }
 
     private static void appendDynamicSections(GemId gem, GemDefinition def, List<Text> lines) {
@@ -172,6 +174,23 @@ public final class GemsTooltips {
 
         if (!anyAbilities) {
             lines.add(Text.translatable("gems.item.prism.no_selection").formatted(Formatting.GRAY));
+        }
+    }
+
+    private static void appendStolenSections(List<Text> lines) {
+        if (ClientStolenState.hasStolenPassives()) {
+            lines.add(Text.translatable("gems.tooltip.stolen_passives").formatted(Formatting.GOLD));
+            for (Identifier id : ClientStolenState.stolenPassives()) {
+                GemPassive passive = ModPassives.get(id);
+                appendEntry(lines, Formatting.YELLOW, passive != null ? passive.name() : id.toString(), passive != null ? passive.description() : "");
+            }
+        }
+        if (ClientStolenState.hasStolenAbilities()) {
+            lines.add(Text.translatable("gems.tooltip.stolen_abilities").formatted(Formatting.GOLD));
+            for (Identifier id : ClientStolenState.stolenAbilities()) {
+                GemAbility ability = ModAbilities.get(id);
+                appendEntry(lines, Formatting.YELLOW, ability != null ? ability.name() : id.toString(), ability != null ? ability.description() : "");
+            }
         }
     }
 

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EDE",
+    "SHS",
+    "EDE"
+  ],
+  "key": {
+    "E": "minecraft:ender_pearl",
+    "D": "minecraft:diamond",
+    "S": "minecraft:spyglass",
+    "H": "minecraft:player_head"
+  },
+  "result": {
+    "count": 1,
+    "id": "gems:gem_seer"
+  }
+}

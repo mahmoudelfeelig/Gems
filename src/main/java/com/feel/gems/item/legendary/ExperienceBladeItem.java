@@ -4,6 +4,7 @@ import com.feel.gems.GemsMod;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.state.PlayerStateManager;
+import com.feel.gems.util.GemsTooltipFormat;
 import java.util.function.Consumer;
 import java.util.ArrayList;
 import java.util.List;
@@ -180,7 +181,10 @@ public final class ExperienceBladeItem extends Item implements LegendaryItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.translatable("gems.item.experience_blade.tooltip.1").formatted(Formatting.GRAY));
-        tooltip.accept(Text.translatable("gems.item.experience_blade.tooltip.2").formatted(Formatting.DARK_GRAY));
+        GemsTooltipFormat.appendDescription(
+                tooltip,
+                Text.translatable("gems.item.experience_blade.tooltip.1"),
+                Text.translatable("gems.item.experience_blade.tooltip.2")
+        );
     }
 }

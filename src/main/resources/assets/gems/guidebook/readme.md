@@ -6,7 +6,9 @@ Start with Gameplay Overview, then explore the sections below:
 - **Gems** (abilities + passives)
 - **Bonus Pool** (bonus abilities + passives)
 - **Mastery & Rivalry**
+- **Titles**
 - **Synergies**
+- **Bounties**
 - **Legendary Items**
 - **Trust & Ownership**
 - **Controls & HUD**

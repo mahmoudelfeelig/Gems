@@ -208,7 +208,7 @@ This file is the developer-facing source-of-truth for implemented gameplay mecha
 - Duelist: Mirror Match barrier confinement behavior + skin/name copy.
 - Hunter: Origin Tracking (first-owner tracking, offline owner message).
 - Spy: Skinshift (name/skin/chat lock behavior).
-- Sentinel: Lockdown zone blocks movement abilities.
+- Sentinel: Lockdown zone blocks abilities.
 - Trickster: Puppet Master and Mind Games effect enforcement.
 
 ### Non-bonus passives (missing explicit tests)

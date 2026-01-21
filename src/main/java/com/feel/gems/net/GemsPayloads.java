@@ -42,10 +42,13 @@ public final class GemsPayloads {
         PayloadTypeRegistry.playC2S().register(InscriptionRemovePayload.ID, InscriptionRemovePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(TitleSelectionOpenRequestPayload.ID, TitleSelectionOpenRequestPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(TitleSelectionSelectPayload.ID, TitleSelectionSelectPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(BountyBoardOpenRequestPayload.ID, BountyBoardOpenRequestPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(BountyPlacePayload.ID, BountyPlacePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(StateSyncPayload.ID, StateSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(CooldownSnapshotPayload.ID, CooldownSnapshotPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(AbilityCooldownPayload.ID, AbilityCooldownPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ExtraStatePayload.ID, ExtraStatePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(StolenStatePayload.ID, StolenStatePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(AbilityOrderSyncPayload.ID, AbilityOrderSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(HudLayoutPayload.ID, HudLayoutPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(SummonerLoadoutScreenPayload.ID, SummonerLoadoutScreenPayload.CODEC);
@@ -64,6 +67,7 @@ public final class GemsPayloads {
         PayloadTypeRegistry.playS2C().register(AugmentScreenPayload.ID, AugmentScreenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(InscriptionScreenPayload.ID, InscriptionScreenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(TitleSelectionScreenPayload.ID, TitleSelectionScreenPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(BountyBoardPayload.ID, BountyBoardPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ShadowCloneSyncPayload.ID, ShadowCloneSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(TricksterControlPayload.ID, TricksterControlPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(RivalrySyncPayload.ID, RivalrySyncPayload.CODEC);

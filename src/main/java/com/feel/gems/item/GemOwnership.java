@@ -1,6 +1,7 @@
 package com.feel.gems.item;
 
 import com.feel.gems.state.GemPlayerState;
+import com.feel.gems.core.GemId;
 import com.feel.gems.util.GemsNbt;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -158,6 +159,50 @@ public final class GemOwnership {
         }
         UUID stored = GemsNbt.getUuid(custom.copyNbt(), KEY_OWNER);
         return stored != null && stored.equals(owner);
+    }
+
+    public static int removeOwnedGemFromInventory(ServerPlayerEntity holder, UUID owner, GemId gemId) {
+        if (holder == null || owner == null || gemId == null) {
+            return 0;
+        }
+        int removed = 0;
+        var mainStacks = holder.getInventory().getMainStacks();
+        for (int i = 0; i < mainStacks.size(); i++) {
+            ItemStack stack = mainStacks.get(i);
+            if (isOwnedGem(stack, owner, gemId)) {
+                mainStacks.set(i, ItemStack.EMPTY);
+                removed++;
+            }
+        }
+        ItemStack offhand = holder.getOffHandStack();
+        if (isOwnedGem(offhand, owner, gemId)) {
+            holder.equipStack(net.minecraft.entity.EquipmentSlot.OFFHAND, ItemStack.EMPTY);
+            removed++;
+        }
+        net.minecraft.entity.EquipmentSlot[] armorSlots = {
+                net.minecraft.entity.EquipmentSlot.HEAD,
+                net.minecraft.entity.EquipmentSlot.CHEST,
+                net.minecraft.entity.EquipmentSlot.LEGS,
+                net.minecraft.entity.EquipmentSlot.FEET
+        };
+        for (var slot : armorSlots) {
+            ItemStack stack = holder.getEquippedStack(slot);
+            if (isOwnedGem(stack, owner, gemId)) {
+                holder.equipStack(slot, ItemStack.EMPTY);
+                removed++;
+            }
+        }
+        return removed;
+    }
+
+    private static boolean isOwnedGem(ItemStack stack, UUID owner, GemId gemId) {
+        if (stack == null || stack.isEmpty()) {
+            return false;
+        }
+        if (!(stack.getItem() instanceof GemItem gem) || gem.gemId() != gemId) {
+            return false;
+        }
+        return isOwnedBy(stack, owner);
     }
 
     public static void applyOwnerPenalty(ServerPlayerEntity owner) {

@@ -667,10 +667,13 @@ public final class GemsBalance {
         cfg.trickster.sleightOfHandChance = v.trickster().sleightOfHandChance();
         cfg.trickster.slipperyChance = v.trickster().slipperyChance();
         cfg.trickster.shadowSwapCooldownSeconds = ticksToSeconds(v.trickster().shadowSwapCooldownTicks());
-        cfg.trickster.shadowSwapCloneDurationSeconds = ticksToSeconds(v.trickster().shadowSwapCloneDurationTicks());
+        cfg.trickster.shadowSwapRangeBlocks = v.trickster().shadowSwapRangeBlocks();
         cfg.trickster.mirageCooldownSeconds = ticksToSeconds(v.trickster().mirageCooldownTicks());
         cfg.trickster.mirageDurationSeconds = ticksToSeconds(v.trickster().mirageDurationTicks());
         cfg.trickster.mirageCloneCount = v.trickster().mirageCloneCount();
+        cfg.trickster.mirageRangeBlocks = v.trickster().mirageRangeBlocks();
+        cfg.trickster.mirageBuffDurationSeconds = ticksToSeconds(v.trickster().mirageBuffDurationTicks());
+        cfg.trickster.mirageBuffAmplifier = v.trickster().mirageBuffAmplifier();
         cfg.trickster.glitchStepCooldownSeconds = ticksToSeconds(v.trickster().glitchStepCooldownTicks());
         cfg.trickster.glitchStepDistanceBlocks = v.trickster().glitchStepDistanceBlocks();
         cfg.trickster.glitchStepAfterimgDamage = v.trickster().glitchStepAfterimgDamage();
@@ -709,6 +712,17 @@ public final class GemsBalance {
         cfg.synergies.windowSeconds = ticksToSeconds(v.synergies().windowTicks());
         cfg.synergies.cooldownSeconds = ticksToSeconds(v.synergies().cooldownTicks());
         cfg.synergies.showNotifications = v.synergies().showNotifications();
+        java.util.List<GemsBalanceConfig.Synergies.SynergyEntry> defaults =
+                GemsBalanceConfig.Synergies.defaultSynergyEntries();
+        java.util.List<GemsBalanceConfig.Synergies.SynergyEntry> entries = new java.util.ArrayList<>(defaults.size());
+        for (GemsBalanceConfig.Synergies.SynergyEntry def : defaults) {
+            SynergyEntry override = v.synergies().entries().get(def.id);
+            boolean enabled = override == null ? def.enabled : override.enabled();
+            int windowSeconds = override == null ? def.windowSeconds : ticksToSeconds(override.windowTicks());
+            int cooldownSeconds = override == null ? def.cooldownSeconds : ticksToSeconds(override.cooldownTicks());
+            entries.add(new GemsBalanceConfig.Synergies.SynergyEntry(def.id, enabled, windowSeconds, cooldownSeconds));
+        }
+        cfg.synergies.entries = entries;
 
         // Augments
         cfg.augments.gemMaxSlots = v.augments().gemMaxSlots();
@@ -733,6 +747,13 @@ public final class GemsBalance {
             return 0;
         }
         return (int) Math.round(ticks / (double) TICKS_PER_SECOND);
+    }
+
+    private static int secClampedOptional(int seconds, int minSeconds, int maxSeconds) {
+        if (seconds <= 0) {
+            return 0;
+        }
+        return secClamped(seconds, minSeconds, maxSeconds);
     }
 
     public record Values(
@@ -1072,6 +1093,7 @@ public final class GemsBalance {
             int lifeSwapCooldownTicks,
             int lifeSwapRangeBlocks,
             float lifeSwapMinHearts,
+            int lifeSwapReswapTicks,
             int lifeCircleCooldownTicks,
             int lifeCircleDurationTicks,
             int lifeCircleRadiusBlocks,
@@ -1094,6 +1116,7 @@ public final class GemsBalance {
                     secClamped(cfg.lifeSwapCooldownSeconds, 0, 3600),
                     clampInt(cfg.lifeSwapRangeBlocks, 0, 128),
                     clampFloat(cfg.lifeSwapMinHearts, 1.0F, 20.0F),
+                    secClamped(cfg.lifeSwapReswapSeconds, 0, 3600),
                     secClamped(cfg.lifeCircleCooldownSeconds, 0, 3600),
                     secClamped(cfg.lifeCircleDurationSeconds, 0, 120),
                     clampInt(cfg.lifeCircleRadiusBlocks, 0, 32),
@@ -2209,10 +2232,13 @@ public final class GemsBalance {
             float slipperyChance,
             // Abilities
             int shadowSwapCooldownTicks,
-            int shadowSwapCloneDurationTicks,
+            int shadowSwapRangeBlocks,
             int mirageCooldownTicks,
             int mirageDurationTicks,
             int mirageCloneCount,
+            int mirageRangeBlocks,
+            int mirageBuffDurationTicks,
+            int mirageBuffAmplifier,
             int glitchStepCooldownTicks,
             int glitchStepDistanceBlocks,
             float glitchStepAfterimgDamage,
@@ -2229,10 +2255,13 @@ public final class GemsBalance {
                     clampFloat(cfg.sleightOfHandChance, 0.0F, 1.0F),
                     clampFloat(cfg.slipperyChance, 0.0F, 1.0F),
                     secClamped(cfg.shadowSwapCooldownSeconds, 0, 3600),
-                    secClamped(cfg.shadowSwapCloneDurationSeconds, 0, 600),
+                    clampInt(cfg.shadowSwapRangeBlocks, 1, 128),
                     secClamped(cfg.mirageCooldownSeconds, 0, 3600),
                     secClamped(cfg.mirageDurationSeconds, 0, 120),
                     clampInt(cfg.mirageCloneCount, 0, 16),
+                    clampInt(cfg.mirageRangeBlocks, 0, 128),
+                    secClamped(cfg.mirageBuffDurationSeconds, 0, 120),
+                    clampInt(cfg.mirageBuffAmplifier, 0, 4),
                     secClamped(cfg.glitchStepCooldownSeconds, 0, 3600),
                     clampInt(cfg.glitchStepDistanceBlocks, 0, 32),
                     clampFloat(cfg.glitchStepAfterimgDamage, 0.0F, 200.0F),
@@ -3417,16 +3446,78 @@ public final class GemsBalance {
             boolean enabled,
             int windowTicks,
             int cooldownTicks,
-            boolean showNotifications
+            boolean showNotifications,
+            java.util.Map<String, SynergyEntry> entries
     ) {
         static Synergies from(GemsBalanceConfig.Synergies cfg) {
+            java.util.Map<String, SynergyEntry> entries = new java.util.HashMap<>();
+            if (cfg.entries != null) {
+                for (GemsBalanceConfig.Synergies.SynergyEntry entry : cfg.entries) {
+                    if (entry == null || entry.id == null || entry.id.isBlank()) {
+                        continue;
+                    }
+                    entries.put(entry.id, new SynergyEntry(
+                            entry.enabled,
+                            secClampedOptional(entry.windowSeconds, 1, 10),
+                            secClampedOptional(entry.cooldownSeconds, 5, 120)
+                    ));
+                }
+            }
             return new Synergies(
                     cfg.enabled,
                     secClamped(cfg.windowSeconds, 1, 10),
                     secClamped(cfg.cooldownSeconds, 5, 120),
-                    cfg.showNotifications
+                    cfg.showNotifications,
+                    entries
             );
         }
+
+        public boolean isSynergyEnabled(String id) {
+            if (!enabled || id == null) {
+                return false;
+            }
+            SynergyEntry entry = entries.get(id);
+            return entry == null || entry.enabled();
+        }
+
+        public int windowTicksFor(String id, int fallbackTicks) {
+            SynergyEntry entry = entries.get(id);
+            if (entry != null && entry.windowTicks() > 0) {
+                return entry.windowTicks();
+            }
+            if (fallbackTicks > 0) {
+                return fallbackTicks;
+            }
+            return windowTicks;
+        }
+
+        public int cooldownTicksFor(String id, int fallbackTicks) {
+            SynergyEntry entry = entries.get(id);
+            if (entry != null && entry.cooldownTicks() > 0) {
+                return entry.cooldownTicks();
+            }
+            if (fallbackTicks > 0) {
+                return fallbackTicks;
+            }
+            return cooldownTicks;
+        }
+
+        public int maxWindowTicks() {
+            int max = windowTicks;
+            for (SynergyEntry entry : entries.values()) {
+                if (entry.windowTicks() > max) {
+                    max = entry.windowTicks();
+                }
+            }
+            return max;
+        }
+    }
+
+    public record SynergyEntry(
+            boolean enabled,
+            int windowTicks,
+            int cooldownTicks
+    ) {
     }
 
     public record Augments(

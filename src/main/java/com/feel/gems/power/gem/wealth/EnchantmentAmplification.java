@@ -6,6 +6,7 @@ import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
@@ -17,6 +18,7 @@ import net.minecraft.server.world.ServerWorld;
 
 public final class EnchantmentAmplification {
     private static final String CUSTOM_DATA_KEY_AMPLIFY = "gemsAmplify";
+    private static final String CUSTOM_DATA_KEY_BONUS = "bonus";
 
     private EnchantmentAmplification() {
     }
@@ -55,9 +57,13 @@ public final class EnchantmentAmplification {
         }
 
         NbtList originalList = new NbtList();
+        NbtCompound bonus = new NbtCompound();
         for (var entry : enchants.getEnchantmentEntries()) {
             RegistryEntry<Enchantment> enchantment = entry.getKey();
             int level = entry.getIntValue();
+            if (level >= enchantment.value().getMaxLevel() && isOverMaxEligible(enchantment)) {
+                bonus.putInt(enchantment.getIdAsString(), 1);
+            }
 
             NbtCompound e = new NbtCompound();
             e.putString("id", world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getId(enchantment.value()).toString());
@@ -69,6 +75,9 @@ public final class EnchantmentAmplification {
             NbtCompound marker = new NbtCompound();
             marker.putLong("until", until);
             marker.put("enchants", originalList);
+            if (!bonus.isEmpty()) {
+                marker.put(CUSTOM_DATA_KEY_BONUS, bonus);
+            }
             nbt.put(CUSTOM_DATA_KEY_AMPLIFY, marker);
         });
 
@@ -108,5 +117,39 @@ public final class EnchantmentAmplification {
             int clamped = Math.max(1, Math.min(entry.get().value().getMaxLevel(), lvl));
             EnchantmentHelper.apply(stack, builder -> builder.set(entry.get(), clamped));
         }
+    }
+
+    public static int getBonusLevel(ItemStack stack, RegistryEntry<Enchantment> enchantment) {
+        if (stack == null || stack.isEmpty()) {
+            return 0;
+        }
+        NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (custom == null) {
+            return 0;
+        }
+        NbtCompound nbt = custom.copyNbt();
+        NbtCompound marker = nbt.getCompound(CUSTOM_DATA_KEY_AMPLIFY).orElse(null);
+        if (marker == null || marker.isEmpty()) {
+            return 0;
+        }
+        NbtCompound bonus = marker.getCompound(CUSTOM_DATA_KEY_BONUS).orElse(null);
+        if (bonus == null || bonus.isEmpty()) {
+            return 0;
+        }
+        String key = enchantment.getIdAsString();
+        if (key == null || key.isEmpty()) {
+            return 0;
+        }
+        return bonus.getInt(key, 0);
+    }
+
+    private static boolean isOverMaxEligible(RegistryEntry<Enchantment> enchantment) {
+        return enchantment.matchesKey(Enchantments.UNBREAKING)
+                || enchantment.matchesKey(Enchantments.PROTECTION)
+                || enchantment.matchesKey(Enchantments.MENDING)
+                || enchantment.matchesKey(Enchantments.LOOTING)
+                || enchantment.matchesKey(Enchantments.SHARPNESS)
+                || enchantment.matchesKey(Enchantments.EFFICIENCY)
+                || enchantment.matchesKey(Enchantments.FORTUNE);
     }
 }

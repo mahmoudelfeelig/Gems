@@ -1,6 +1,7 @@
 package com.feel.gems.assassin;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.bounty.BountyBoard;
 import com.feel.gems.state.GemsPersistentDataHolder;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -102,6 +103,8 @@ public final class AssassinState {
         nbt.putInt(KEY_A_FINAL_KILLS, 0);
         nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
         nbt.putInt(KEY_A_FINAL_KILLS_VS_NON, 0);
+
+        BountyBoard.voidBountiesForAssassin(player);
     }
 
     public static void reset(ServerPlayerEntity player) {
@@ -127,6 +130,7 @@ public final class AssassinState {
     public static void setAssassin(ServerPlayerEntity player, boolean assassin) {
         initIfNeeded(player);
         NbtCompound nbt = root(player);
+        boolean wasAssassin = nbt.getBoolean(KEY_IS_ASSASSIN, false);
         nbt.putBoolean(KEY_IS_ASSASSIN, assassin);
         if (!assassin) {
             nbt.putBoolean(KEY_ELIMINATED, false);
@@ -134,12 +138,25 @@ public final class AssassinState {
         } else if (nbt.getInt(KEY_ASSASSIN_HEARTS, 0) <= 0) {
             nbt.putInt(KEY_ASSASSIN_HEARTS, maxHearts());
         }
+        if (assassin && !wasAssassin) {
+            BountyBoard.voidBountiesForAssassin(player);
+        }
+    }
+
+    public static void resetAssassinPoints(ServerPlayerEntity player) {
+        initIfNeeded(player);
+        NbtCompound nbt = root(player);
+        nbt.putInt(KEY_A_NORMAL_KILLS, 0);
+        nbt.putInt(KEY_A_FINAL_KILLS, 0);
+        nbt.putInt(KEY_A_NORMAL_KILLS_VS_NON, 0);
+        nbt.putInt(KEY_A_FINAL_KILLS_VS_NON, 0);
     }
 
     public static int setAssassinHearts(ServerPlayerEntity player, int hearts) {
         initIfNeeded(player);
         int clamped = clamp(hearts, 0, maxHearts());
         root(player).putInt(KEY_ASSASSIN_HEARTS, clamped);
+        com.feel.gems.state.GemPlayerState.applyMaxHearts(player);
         return clamped;
     }
 
@@ -170,6 +187,12 @@ public final class AssassinState {
         initIfNeeded(player);
         int next = clamp(getAssassinHearts(player) + delta, 0, maxHearts());
         root(player).putInt(KEY_ASSASSIN_HEARTS, next);
+        com.feel.gems.state.GemPlayerState.applyMaxHearts(player);
+        if (delta > 0) {
+            float maxHealth = player.getMaxHealth();
+            float healed = Math.min(maxHealth, player.getHealth() + (delta * 2.0F));
+            player.setHealth(healed);
+        }
         return next;
     }
 
@@ -230,7 +253,6 @@ public final class AssassinState {
             return;
         }
         player.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.choice_unlocked").formatted(net.minecraft.util.Formatting.GOLD), false);
-        player.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.choice_stay").formatted(net.minecraft.util.Formatting.RED), false);
         player.sendMessage(net.minecraft.text.Text.translatable("gems.assassin.choice_leave").formatted(net.minecraft.util.Formatting.GRAY), false);
     }
 

@@ -3,6 +3,7 @@ package com.feel.gems;
 import com.feel.gems.assassin.AssassinState;
 import com.feel.gems.augment.AugmentRuntime;
 import com.feel.gems.assassin.AssassinTeams;
+import com.feel.gems.bounty.BountyBoard;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.config.GemsDisables;
 import com.feel.gems.core.GemId;
@@ -273,6 +274,7 @@ public final class GemsModEvents {
             LegendaryCrafting.deliverPending(player);
             RecallRelicItem.ensureForceload(player);
             HypnoControl.releaseAll(player);
+            BountyBoard.notifyOnLogin(player);
 
             if (AssassinState.isEliminated(player)) {
                 player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
@@ -378,6 +380,7 @@ public final class GemsModEvents {
                     com.feel.gems.power.ability.hunter.HunterHuntingTrapAbility.checkStep(player);
                     com.feel.gems.power.ability.duelist.DuelistMirrorMatchRuntime.tick(player);
                     com.feel.gems.power.ability.trickster.TricksterPuppetRuntime.tickPuppetedPlayer(player);
+                    com.feel.gems.power.ability.trickster.TricksterMirageRuntime.tickMirage(player);
                     // Trickster mirage particles (every 4 ticks for visual effect without heavy load)
                     if (player.getEntityWorld().getTime() % 4 == 0) {
                         com.feel.gems.power.ability.trickster.TricksterMirageRuntime.tickMirageParticles(player);

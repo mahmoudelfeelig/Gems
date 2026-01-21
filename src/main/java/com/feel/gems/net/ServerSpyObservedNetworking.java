@@ -26,7 +26,7 @@ public final class ServerSpyObservedNetworking {
                 context.server().execute(() -> openScreen(context.player())));
 
         ServerPlayNetworking.registerGlobalReceiver(SpyObservedSelectPayload.ID, (payload, context) ->
-                context.server().execute(() -> handleSelect(context.player(), payload.abilityId())));
+                context.server().execute(() -> handleSelect(context.player(), payload)));
     }
 
     private static void openScreen(ServerPlayerEntity player) {
@@ -40,6 +40,9 @@ public final class ServerSpyObservedNetworking {
             return;
         }
 
+        List<Identifier> stolen = SpySystem.getStolenAbilities(player);
+        java.util.Set<Identifier> stolenSet = new java.util.HashSet<>(stolen);
+
         List<SpyObservedScreenPayload.ObservedEntry> entries = new ArrayList<>();
         for (SpySystem.ObservedAbility abilityInfo : SpySystem.observedAbilities(player)) {
             Identifier id = abilityInfo.id();
@@ -50,8 +53,11 @@ public final class ServerSpyObservedNetworking {
             if (ability == null) {
                 continue;
             }
-            boolean canSteal = SpySystem.canSteal(player, id);
             boolean canEcho = SpySystem.canEcho(player, id);
+            boolean canSteal = SpySystem.canSteal(player, id) && !stolenSet.contains(id);
+            if (!canEcho && !canSteal) {
+                continue;
+            }
             entries.add(new SpyObservedScreenPayload.ObservedEntry(
                     id,
                     ability.name(),
@@ -62,15 +68,41 @@ public final class ServerSpyObservedNetworking {
         }
 
         entries.sort(Comparator.comparing(SpyObservedScreenPayload.ObservedEntry::name));
-        Identifier selected = SpySystem.selectedObservedAbility(player);
-        ServerPlayNetworking.send(player, new SpyObservedScreenPayload(entries, selected));
+
+        List<SpyObservedScreenPayload.StolenEntry> stolenEntries = new ArrayList<>();
+        for (Identifier id : stolen) {
+            if (id == null || GemsDisables.isAbilityDisabled(id)) {
+                continue;
+            }
+            GemAbility ability = ModAbilities.get(id);
+            if (ability == null) {
+                continue;
+            }
+            stolenEntries.add(new SpyObservedScreenPayload.StolenEntry(id, ability.name()));
+        }
+        stolenEntries.sort(Comparator.comparing(SpyObservedScreenPayload.StolenEntry::name));
+
+        Identifier selectedEcho = SpySystem.selectedEchoAbility(player);
+        Identifier selectedSteal = SpySystem.selectedStealAbility(player);
+        Identifier selectedCast = SpySystem.selectedStolenCastAbility(player);
+        ServerPlayNetworking.send(player, new SpyObservedScreenPayload(entries, stolenEntries, selectedEcho, selectedSteal, selectedCast));
     }
 
-    private static void handleSelect(ServerPlayerEntity player, Identifier abilityId) {
+    private static void handleSelect(ServerPlayerEntity player, SpyObservedSelectPayload payload) {
+        if (payload == null) {
+            return;
+        }
+        Identifier abilityId = payload.abilityId();
         if (abilityId == null) {
             return;
         }
-        if (!SpySystem.selectObservedAbility(player, abilityId)) {
+        boolean ok = switch (payload.tab()) {
+            case SpyObservedSelectPayload.TAB_ECHO -> SpySystem.selectEchoAbility(player, abilityId);
+            case SpyObservedSelectPayload.TAB_STEAL -> SpySystem.selectStealAbility(player, abilityId);
+            case SpyObservedSelectPayload.TAB_STOLEN_CAST -> SpySystem.selectStolenCastAbility(player, abilityId);
+            default -> false;
+        };
+        if (!ok) {
             player.sendMessage(Text.translatable("gems.spy.observed.select_failed"), true);
             return;
         }

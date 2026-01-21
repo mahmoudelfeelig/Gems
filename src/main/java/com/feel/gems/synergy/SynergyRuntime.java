@@ -1,7 +1,9 @@
 package com.feel.gems.synergy;
 
+import com.feel.gems.GemsMod;
 import com.feel.gems.config.GemsBalance;
 import com.feel.gems.core.GemId;
+import com.feel.gems.stats.GemsStats;
 import com.feel.gems.trust.GemTrust;
 import com.feel.gems.util.GemsTickScheduler;
 import java.util.*;
@@ -109,7 +111,7 @@ public final class SynergyRuntime {
             return;
         }
 
-        int windowTicks = GemsBalance.v().synergies().windowTicks();
+        int windowTicks = GemsBalance.v().synergies().maxWindowTicks();
         long cutoff = now - windowTicks;
 
         // Remove old casts and collect valid ones
@@ -124,11 +126,25 @@ public final class SynergyRuntime {
             MinecraftServer server,
             long now
     ) {
+        if (!GemsBalance.v().synergies().isSynergyEnabled(synergy.id())) {
+            return;
+        }
+        int windowTicks = GemsBalance.v().synergies().windowTicksFor(synergy.id(), synergy.windowTicks());
+        long cutoff = now - windowTicks;
+        List<RecentCast> recentCasts = new ArrayList<>();
+        for (RecentCast cast : allRecentCasts) {
+            if (cast.castTick() >= cutoff) {
+                recentCasts.add(cast);
+            }
+        }
+        if (recentCasts.size() < 2) {
+            return;
+        }
         Set<GemId> requiredGems = synergy.requiredGems();
 
         // Group casts by gem
         Map<GemId, List<RecentCast>> castsByGem = new EnumMap<>(GemId.class);
-        for (RecentCast cast : allRecentCasts) {
+        for (RecentCast cast : recentCasts) {
             if (requiredGems.contains(cast.gem())) {
                 castsByGem.computeIfAbsent(cast.gem(), k -> new ArrayList<>()).add(cast);
             }
@@ -143,7 +159,7 @@ public final class SynergyRuntime {
         if (synergy.isAbilitySpecific()) {
             Set<Identifier> requiredAbilities = synergy.requiredAbilities().orElse(Set.of());
             Set<Identifier> castAbilities = new HashSet<>();
-            for (RecentCast cast : allRecentCasts) {
+            for (RecentCast cast : recentCasts) {
                 castAbilities.add(cast.abilityId());
             }
             if (!castAbilities.containsAll(requiredAbilities)) {
@@ -210,7 +226,7 @@ public final class SynergyRuntime {
         triggerSynergy(synergy, participants);
 
         // Set cooldown
-        int cooldownTicks = GemsBalance.v().synergies().cooldownTicks();
+        int cooldownTicks = GemsBalance.v().synergies().cooldownTicksFor(synergy.id(), synergy.cooldownTicks());
         cooldowns.put(groupHash, now + cooldownTicks);
 
         // Clear consumed casts
@@ -228,6 +244,10 @@ public final class SynergyRuntime {
     ) {
         // Apply the synergy effect
         synergy.effect().apply(participants);
+
+        for (SynergyDefinition.SynergyParticipant p : participants) {
+            GemsStats.recordSynergyTrigger(p.player(), Identifier.of(GemsMod.MOD_ID, synergy.id()));
+        }
 
         // Notify all participants if notifications are enabled
         if (GemsBalance.v().synergies().showNotifications()) {

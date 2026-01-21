@@ -2,17 +2,21 @@ package com.feel.gems.item.legendary;
 
 import com.feel.gems.legendary.LegendaryItem;
 import com.feel.gems.screen.GemSeerScreenHandler;
+import com.feel.gems.util.GemsTooltipFormat;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.component.type.TooltipDisplayComponent;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
+import java.util.function.Consumer;
 
 /**
  * Gem Seer - A legendary item that reveals information about any online player's gems.
@@ -77,5 +81,10 @@ public final class GemSeerItem extends Item implements LegendaryItem {
     @Override
     public boolean hasGlint(ItemStack stack) {
         return true;
+    }
+
+    @Override
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        GemsTooltipFormat.appendDescription(tooltip, Text.translatable("item.gems.gem_seer.desc"));
     }
 }

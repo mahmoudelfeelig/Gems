@@ -1,5 +1,22 @@
 # Changelog
 
+## V1.4 21.01.2026: Balance, Spy, Mimic, Loadouts, Synergies, Wealth, Tracking, Trophy Necklace, and Docs Updates
+
+- Balance: Life Health Drain now respects armor and enchantments; Heart Lock duration lowered to 4 seconds by default; Life Swap reswaps after 15 seconds if both players survive (configurable).
+- Spy: observed abilities no longer expire; separate Echo, Steal, and Stolen Cast selections; stolen ability selection persists; stolen passives and abilities show in gem tooltips.
+- Mimic Form: bonus stats now scale from the last killed mob's attributes instead of a flat bonus.
+- Mirage: spawns a single clone at your aim point that mirrors your movement, breaks on hit or timeout, and grants a short buff.
+- Loadouts: preset saves apply immediately; active preset tracking updated; ability order and HUD layout revert to defaults when loadouts are locked by low energy.
+- Synergies: per synergy config entries for enable, window, and cooldown; docs list synergies per gem with cooldowns; guidebook updated to match.
+- Leaderboards: added per-gem kill leaders plus synergy triggers, total ability casts, and total damage dealt tracking for general titles.
+- Titles: title colors show in chat and tab; chat text uses the title color; title auras follow the selected title color if no aura is selected; skinshifted chat uses the target's title and color; titles refresh live; title screen now has Unlocked/All tabs and lists general titles.
+- Wealth: Cured Prices trade discounts apply only to active Wealth users, with all trade inputs reduced to one item or one emerald.
+- Tracking: Gem Seer and Tracker Compass support offline player data; bounty tracking falls back to the previous owner if you are the last owner.
+- Trophy Necklace: per kill passive selection with persistent steals; stolen passives return to the victim if they kill you; victims lose stolen passives while they remain stolen; trophy UI shows stolen passives and lets you enable or disable them.
+- Bounties: new bounty board UI and commands; heart and energy bounties with replacement rules and immediate costs; rewards stack on top of normal kill drops; assassin targets void bounties with notifications.
+- Ownership: item owner tags no longer prevent stacks from merging; inventory moves preserve ownership.
+- Docs: gems and legendary items reordered alphabetically; guidebook gem, synergy, bounties, trust, and titles pages updated with current mechanics.
+
 ## V1.3 10.01.2026: New Gems, New Legendary Items, and Combat/UI Fixes
 
 - **New gems**: Void, Chaos, Prism, Duelist, Hunter, Sentinel, and Trickster.

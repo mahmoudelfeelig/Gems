@@ -28,3 +28,8 @@ If another player activates a gem that belongs to you (ownership theft), severe 
 3. **Max hearts reduced by 2** – your maximum health permanently decreases.
 
 This makes guarding your gem critical. Gems in item frames, chests, or dropped on the ground can still be stolen and activated by enemies.
+
+## Item ownership tags and stacking
+
+- Items of the same type can stack even if they have different ownership tags.
+- Moving stacks between inventories preserves ownership without creating ownerless items.

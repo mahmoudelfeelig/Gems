@@ -68,8 +68,14 @@ In addition to gem-specific titles, there are server-wide general titles awarded
 | King Slayer | Most player kills |
 | Titan | Most max hearts |
 | Whale | Maximum energy (10) |
+| Synergy Master | Most synergy triggers |
+| Spell Slinger | Most total ability casts |
+| Worldbreaker | Most total damage dealt |
+| <Gem> Slayer | Most player kills while that gem is active (one leaderboard per gem) |
 
 These titles update every minute based on current server statistics.
+Per-gem leaderboards count player kills only.
+Damage dealt is tracked in health points (1.0 = half-heart).
 
 ## Rivalry System
 

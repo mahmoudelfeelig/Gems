@@ -19,8 +19,9 @@ This doc describes the core progression loop: energy, hearts, and gem swapping.
 - Minimum max hearts is configurable (default 5); maximum total hearts is 20.
 - Heart items cannot be consumed by trusted players (prevents team boosting).
 - Energy upgrade items add a level (up to Legendary +5).
-- Gem Trader swaps only your active gem and consumes the item.
+- Gem Trader swaps only your active gem and consumes the item (your active gem item must be in your inventory).
 - Gem Purchase Token adds any gem to your owned set, activates it, and consumes the token.
+- You do not respawn with your active gem item; only your first join grants a starting gem.
 - All gem and legendary recipes unlock automatically when you join.
 - Players drop their heads on death.
 - Test Dummy spawn egg: spawns a player-sized training dummy for item/ability testing.

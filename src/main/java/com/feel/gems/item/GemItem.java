@@ -49,7 +49,7 @@ public final class GemItem extends Item {
         if (GemOwnership.isInvalidForEpoch(server, stack)) {
             if (ownedByPlayer) {
                 // Refresh epoch for your own stale gem so it can still be activated (common when carrying multiple gems across deaths).
-                GemOwnership.tagOwned(stack, player.getUuid(), GemPlayerState.getGemEpoch(player));
+                GemOwnership.tagOwned(stack, player);
             } else if (GemOwnership.purgeIfInvalid(server, stack)) {
                 player.setStackInHand(hand, ItemStack.EMPTY);
                 player.sendMessage(Text.translatable("gems.item.gem.reclaimed"), true);
@@ -80,7 +80,7 @@ public final class GemItem extends Item {
             } else {
                 // Claim the gem from the item so non-active drops behave like vanilla loot.
                 GemPlayerState.addOwnedGem(player, gemId);
-                GemOwnership.tagOwned(stack, player.getUuid(), GemPlayerState.getGemEpoch(player));
+                GemOwnership.tagOwned(stack, player);
                 ownsGem = true;
             }
         }

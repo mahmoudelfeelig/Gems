@@ -16,7 +16,7 @@ This doc describes the rules around trusting other players and owning gems.
 - Gems are **bound to an owner** when first picked up or crafted.
 - A player can own multiple gems, but only **one gem is active** at a time.
 - Switching your active gem:
-  - **Gem Trader**: swaps only the active gem.
+  - **Gem Trader**: swaps only the active gem (active gem item must be in your inventory).
   - **Gem Purchase Token**: adds a selected gem to your owned set and activates it.
 - When you switch gems, any gem-specific state is cleared.
 

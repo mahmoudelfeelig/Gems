@@ -44,6 +44,7 @@ For config keys, units, and safety clamps, see `balance.md`.
   - `/gems admin resync <players>`
   - `/gems admin reset <player>`
   - `/gems admin setGem <player> <gem>`
+  - `/gems admin reclaimGem <player> <gem>`
   - `/gems admin setEnergy <players> <energy>`
   - `/gems admin setHearts <player> <hearts>`
   - `/gems admin giveItem <player> <itemId>`

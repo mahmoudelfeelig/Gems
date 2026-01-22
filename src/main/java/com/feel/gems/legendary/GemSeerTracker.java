@@ -32,6 +32,7 @@ public final class GemSeerTracker {
     private static final String KEY_ACTIVE_GEM = "active_gem";
     private static final String KEY_ENERGY = "energy";
     private static final String KEY_OWNED = "owned";
+    private static final String KEY_OWNED_COUNTS = "owned_counts";
     private static final String KEY_LAST_SEEN = "last_seen";
 
     private GemSeerTracker() {
@@ -71,6 +72,7 @@ public final class GemSeerTracker {
             String activeGem,
             int energy,
             List<String> ownedGems,
+            Map<String, Integer> ownedCounts,
             long lastSeenTick
     ) {
         static final Codec<Snapshot> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -79,6 +81,7 @@ public final class GemSeerTracker {
                 Codec.STRING.fieldOf(KEY_ACTIVE_GEM).forGetter(Snapshot::activeGem),
                 Codec.INT.fieldOf(KEY_ENERGY).forGetter(Snapshot::energy),
                 Codec.STRING.listOf().optionalFieldOf(KEY_OWNED, List.of()).forGetter(Snapshot::ownedGems),
+                Codec.unboundedMap(Codec.STRING, Codec.INT).optionalFieldOf(KEY_OWNED_COUNTS, Map.of()).forGetter(Snapshot::ownedCounts),
                 Codec.LONG.fieldOf(KEY_LAST_SEEN).forGetter(Snapshot::lastSeenTick)
         ).apply(instance, Snapshot::new));
 
@@ -86,15 +89,18 @@ public final class GemSeerTracker {
             GemId active = GemPlayerState.getActiveGem(player);
             int energy = GemPlayerState.getEnergy(player);
             List<String> owned = new ArrayList<>();
+            Map<String, Integer> counts = new HashMap<>();
             for (GemId gem : GemPlayerState.getOwnedGems(player)) {
                 owned.add(gem.name());
             }
+            countGemItems(player, counts);
             return new Snapshot(
                     player.getUuid(),
                     player.getGameProfile().name(),
                     active.name(),
                     energy,
                     owned,
+                    counts,
                     now
             );
         }
@@ -118,6 +124,34 @@ public final class GemSeerTracker {
                 }
             }
             return state;
+        }
+    }
+
+    private static void countGemItems(ServerPlayerEntity player, Map<String, Integer> counts) {
+        if (player == null || counts == null) {
+            return;
+        }
+        for (var stack : player.getInventory().getMainStacks()) {
+            addCount(counts, stack);
+        }
+        addCount(counts, player.getOffHandStack());
+        addCount(counts, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.HEAD));
+        addCount(counts, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST));
+        addCount(counts, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS));
+        addCount(counts, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.FEET));
+        var ender = player.getEnderChestInventory();
+        for (int i = 0; i < ender.size(); i++) {
+            addCount(counts, ender.getStack(i));
+        }
+    }
+
+    private static void addCount(Map<String, Integer> counts, net.minecraft.item.ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+        if (stack.getItem() instanceof com.feel.gems.item.GemItem gem) {
+            String key = gem.gemId().name();
+            counts.merge(key, stack.getCount(), Integer::sum);
         }
     }
 }

@@ -85,7 +85,7 @@ public final class GemKeepOnDeath {
         root.remove(KEY_KEPT_GEMS);
         for (ItemStack stack : kept) {
             if (!stack.isEmpty()) {
-                GemOwnership.tagOwned(stack, player.getUuid(), GemPlayerState.getGemEpoch(player));
+                GemOwnership.tagOwned(stack, player);
                 player.giveItemStack(stack);
             }
         }

@@ -1,6 +1,7 @@
 package com.feel.gems.mixin;
 
 import com.feel.gems.power.runtime.AbilityRuntime;
+import com.feel.gems.item.GemOwnership;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -20,6 +21,10 @@ public abstract class ItemEntityOwnerTagMixin {
             return;
         }
         ItemEntity self = (ItemEntity) (Object) this;
+        if (GemOwnership.isInvalidForEpoch(serverPlayer.getEntityWorld().getServer(), self.getStack())) {
+            self.discard();
+            return;
+        }
         AbilityRuntime.setOwnerWithName(self.getStack(), serverPlayer.getUuid(), serverPlayer.getName().getString());
     }
 }

@@ -25,7 +25,7 @@
 - Duelist's Rapier: parry window on right-click; successful parry grants guaranteed crit on next hit.
 - Earthsplitter Pick: netherite-tier silk touch pick; right-click toggles 9x9x3 vs 20x2x3 tunnel; respects unbreakable/blacklisted blocks.
 - Experience Blade: consume XP to gain Sharpness (10 levels -> Sharpness II, 20 -> IV, 30 -> VI, max Sharpness XX at 100 levels). Enchantment persists until death.
-- Gem Seer: right-click to open a selection screen of all known players (online or offline); choose one to view their active gem, energy level, and owned gems. No cooldown and not consumed.
+- Gem Seer: right-click to open a selection screen of all known players (online or offline); choose one to view their active gem, energy level, and owned gems with copy counts. No cooldown and not consumed.
 - Gladiator's Mark: brand a player; both you and the marked player deal 50% more damage to each other for 60s.
 - Hunter's Sight Bow: aim assist toward your last hit target (player or mob) within 50 blocks and line of sight; if none, aims toward the closest target in your line of sight.
 - Hunter's Trophy Necklace: right-click a player (or kill a player while wearing it) to open a passive-steal menu; steal multiple passives (up to 10) and keep them across death/logout and gem swaps (the victim can recover stolen passives by killing you, even if they were unselected).

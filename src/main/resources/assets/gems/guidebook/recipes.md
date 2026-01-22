@@ -8,6 +8,7 @@ All recipes unlock automatically when a player joins.
 - Energy Upgrade (`gems:energy_upgrade`): shaped `NEN / EDE / NEN` where `N=netherite_scrap`, `E=emerald_block`, `D=diamond_block`.
 - Gem Trader (`gems:gem_trader`): shaped `DBD / BWB / DBD` where `D=diamond_block`, `B=dragon_breath`, `W=wither_skeleton_skull`.
   - Use: opens a GUI to pick a new gem; consumes 1 Gem Trader and replaces only your active gem with the selected gem (which becomes active).
+  - Requirement: your **active gem item must be in your inventory** (not in chests, ender chests, or pockets) to trade.
 - Gem Purchase Token (`gems:gem_purchase`): shaped `EBE / DND / EBE` where `N=netherite_block`, `B=beacon`, `D=diamond_block`, `E=end_crystal`.
   - Use: opens a GUI to pick any gem; consumes 1 token, adds the gem to your owned set, and sets it active.
 

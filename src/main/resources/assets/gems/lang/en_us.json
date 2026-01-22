@@ -328,13 +328,14 @@
 
   "gems.trade.gem_disabled": "That gem is disabled on this server.",
   "gems.trade.gem_already_active": "That gem is already active.",
+  "gems.trade.need_active_gem": "You must have your active gem in your inventory to trade.",
   "gems.trade.need_gem_trader": "You need a Gem Trader to trade.",
   "gems.trade.need_purchase_token": "You need a Gem Purchase Token to buy a gem.",
   "gems.trade.purchased": "Purchased %s",
   "gems.trade.traded_for": "Traded for %s",
   "gems.trade.unknown_gem": "Unknown gem '%s'",
 
-  "gems.screen.gem_seer.header": "=== Gem Seer: %s ===",
+  "gems.screen.gem_seer.header": "Gem Seer: %s ",
   "gems.screen.gem_seer.active_gem": "Active Gem: ",
   "gems.screen.gem_seer.energy": "Energy: ",
   "gems.screen.gem_seer.owned_gems": "Owned Gems: ",

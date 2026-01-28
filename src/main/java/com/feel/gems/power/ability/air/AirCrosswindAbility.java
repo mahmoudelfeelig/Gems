@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.air;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -57,7 +59,7 @@ public final class AirCrosswindAbility implements GemAbility {
         ServerWorld world = player.getEntityWorld();
         float damage = cfg.crosswindDamage();
         double knockback = cfg.crosswindKnockback();
-        int slowDuration = cfg.crosswindSlownessDurationTicks();
+        int slowDuration = AugmentRuntime.applyDurationMultiplier(player, GemId.AIR, cfg.crosswindSlownessDurationTicks());
         int slowAmp = cfg.crosswindSlownessAmplifier();
         int hits = 0;
         for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player)) {

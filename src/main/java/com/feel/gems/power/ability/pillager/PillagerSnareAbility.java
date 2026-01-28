@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.pillager;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -56,7 +58,7 @@ public final class PillagerSnareAbility implements GemAbility {
             return false;
         }
 
-        int duration = cfg.snareDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.PILLAGER, cfg.snareDurationTicks());
         int slowAmp = cfg.snareSlownessAmplifier();
         if (duration <= 0) {
             player.sendMessage(Text.translatable("gems.ability.pillager.snare.disabled"), true);

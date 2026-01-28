@@ -64,9 +64,12 @@
             if (data.getInt(KEY_MAX_HEARTS).isEmpty()) {
                 data.putInt(KEY_MAX_HEARTS, Math.max(DEFAULT_MAX_HEARTS, minMaxHearts()));
             }
-            if (data.getInt(KEY_GEM_EPOCH).isEmpty()) {
-                data.putInt(KEY_GEM_EPOCH, 0);
-            }
+        if (data.getInt(KEY_GEM_EPOCH).isEmpty()) {
+            data.putInt(KEY_GEM_EPOCH, 0);
+        }
+        if (player instanceof ServerPlayerEntity sp) {
+            com.feel.gems.item.GemOwnership.recordOwnerEpoch(sp.getEntityWorld().getServer(), sp.getUuid(), data.getInt(KEY_GEM_EPOCH, 0));
+        }
             if (data.getBoolean(KEY_PASSIVES_ENABLED).isEmpty()) {
                 data.putBoolean(KEY_PASSIVES_ENABLED, true);
             }
@@ -100,7 +103,6 @@
             if (prev != gem && player instanceof ServerPlayerEntity sp) {
                 com.feel.gems.augment.AugmentRuntime.clearActiveGemAugments(sp);
                 if (prev == GemId.SPY && gem != GemId.SPY) {
-                    com.feel.gems.power.gem.spy.SpySystem.restoreStolenFromThief(sp);
                     com.feel.gems.power.gem.spy.SpySystem.clearOnGemSwitchAway(sp);
                 }
             }
@@ -167,12 +169,15 @@
             return data.getInt(KEY_GEM_EPOCH, 0);
         }
 
-        public static int bumpGemEpoch(PlayerEntity player) {
-            NbtCompound data = root(player);
-            int next = getGemEpoch(player) + 1;
-            data.putInt(KEY_GEM_EPOCH, next);
-            return next;
+    public static int bumpGemEpoch(PlayerEntity player) {
+        NbtCompound data = root(player);
+        int next = getGemEpoch(player) + 1;
+        data.putInt(KEY_GEM_EPOCH, next);
+        if (player instanceof ServerPlayerEntity sp) {
+            com.feel.gems.item.GemOwnership.recordOwnerEpoch(sp.getEntityWorld().getServer(), sp.getUuid(), next);
         }
+        return next;
+    }
 
         public static int setEnergy(PlayerEntity player, int energy) {
             int prev = getEnergy(player);

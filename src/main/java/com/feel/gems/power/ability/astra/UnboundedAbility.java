@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.astra;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -36,7 +38,8 @@ public final class UnboundedAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startUnbounded(player, GemsBalance.v().astra().unboundedDurationTicks());
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.ASTRA, GemsBalance.v().astra().unboundedDurationTicks());
+        AbilityRuntime.startUnbounded(player, duration);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_ENDERMAN_TELEPORT, 0.6F, 1.4F);
         AbilityFeedback.burst(player, ParticleTypes.PORTAL, 14, 0.25D);
         player.sendMessage(Text.translatable("gems.ability.astra.unbounded.active"), true);

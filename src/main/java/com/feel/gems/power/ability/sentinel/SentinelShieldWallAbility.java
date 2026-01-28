@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.sentinel;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -41,7 +43,7 @@ public final class SentinelShieldWallAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getEntityWorld();
-        int durationTicks = GemsBalance.v().sentinel().shieldWallDurationTicks();
+        int durationTicks = AugmentRuntime.applyDurationMultiplier(player, GemId.SENTINEL, GemsBalance.v().sentinel().shieldWallDurationTicks());
         int width = GemsBalance.v().sentinel().shieldWallWidthBlocks();
         int height = GemsBalance.v().sentinel().shieldWallHeightBlocks();
 

@@ -9,6 +9,20 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(TradeOffer.class)
 public interface TradeOfferAccessor {
+    @Accessor("uses")
+    int gems$getUses();
+
+    @Accessor("uses")
+    @Mutable
+    void gems$setUses(int uses);
+
+    @Accessor("maxUses")
+    int gems$getMaxUses();
+
+    @Accessor("maxUses")
+    @Mutable
+    void gems$setMaxUses(int maxUses);
+
     @Accessor("secondBuyItem")
     Optional<TradedItem> gems$getSecondBuyItem();
 

@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.puff;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -53,9 +55,9 @@ public final class PuffGustAbility implements GemAbility {
         }
         double knockback = cfg.gustKnockback();
         double up = cfg.gustUpVelocityY();
-        int slownessDuration = cfg.gustSlownessDurationTicks();
+        int slownessDuration = AugmentRuntime.applyDurationMultiplier(player, GemId.PUFF, cfg.gustSlownessDurationTicks());
         int slownessAmplifier = cfg.gustSlownessAmplifier();
-        int slowFallDuration = cfg.gustSlowFallingDurationTicks();
+        int slowFallDuration = AugmentRuntime.applyDurationMultiplier(player, GemId.PUFF, cfg.gustSlowFallingDurationTicks());
         int hits = 0;
         Box box = new Box(player.getBlockPos()).expand(radius);
         for (LivingEntity other : world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != player)) {

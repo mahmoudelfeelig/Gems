@@ -274,8 +274,13 @@ public final class GemsBalance {
         cfg.wealth.hotbarLockRangeBlocks = v.wealth().hotbarLockRangeBlocks();
         cfg.wealth.amplificationCooldownSeconds = ticksToSeconds(v.wealth().amplificationCooldownTicks());
         cfg.wealth.amplificationDurationSeconds = ticksToSeconds(v.wealth().amplificationDurationTicks());
+        cfg.wealth.amplificationBonusLevels = v.wealth().amplificationBonusLevels();
         cfg.wealth.richRushCooldownSeconds = ticksToSeconds(v.wealth().richRushCooldownTicks());
         cfg.wealth.richRushDurationSeconds = ticksToSeconds(v.wealth().richRushDurationTicks());
+        cfg.wealth.richRushLootRolls = v.wealth().richRushLootRolls();
+        cfg.wealth.richRushWitherSkullGuarantee = v.wealth().richRushWitherSkullGuarantee();
+        cfg.wealth.richRushShulkerShellGuarantee = v.wealth().richRushShulkerShellGuarantee();
+        cfg.wealth.richRushNetherStarGuarantee = v.wealth().richRushNetherStarGuarantee();
         cfg.wealth.pocketsRows = v.wealth().pocketsRows();
 
         cfg.terror.dreadAuraRadiusBlocks = v.terror().dreadAuraRadiusBlocks();
@@ -1317,8 +1322,13 @@ public final class GemsBalance {
             int hotbarLockRangeBlocks,
             int amplificationCooldownTicks,
             int amplificationDurationTicks,
+            int amplificationBonusLevels,
             int richRushCooldownTicks,
             int richRushDurationTicks,
+            int richRushLootRolls,
+            int richRushWitherSkullGuarantee,
+            int richRushShulkerShellGuarantee,
+            int richRushNetherStarGuarantee,
             int pocketsRows
     ) {
         static Wealth from(GemsBalanceConfig.Wealth cfg) {
@@ -1331,8 +1341,13 @@ public final class GemsBalance {
                     clampInt(cfg.hotbarLockRangeBlocks, 0, 128),
                     secClamped(cfg.amplificationCooldownSeconds, 0, 3600),
                     secClamped(cfg.amplificationDurationSeconds, 0, 600),
+                    clampInt(cfg.amplificationBonusLevels, 1, 5),
                     secClamped(cfg.richRushCooldownSeconds, 0, 24 * 3600),
                     secClamped(cfg.richRushDurationSeconds, 0, 24 * 3600),
+                    clampInt(cfg.richRushLootRolls, 1, 20),
+                    clampInt(cfg.richRushWitherSkullGuarantee, 0, 64),
+                    clampInt(cfg.richRushShulkerShellGuarantee, 0, 64),
+                    clampInt(cfg.richRushNetherStarGuarantee, 0, 64),
                     clampInt(cfg.pocketsRows, 1, 6)
             );
         }
@@ -2489,7 +2504,6 @@ public final class GemsBalance {
         public final float hungerResistReductionPercent;
         public final boolean poisonImmunityFull;
         public final int secondWindCooldownSeconds;
-        public final float secondWindHealAmount;
         public final float echoStrikeChancePercent;
         public final float chainBreakerDurationReductionPercent;
         public final float stoneSkinFlatReduction;
@@ -2739,7 +2753,6 @@ public final class GemsBalance {
                 float hungerResistReductionPercent,
                 boolean poisonImmunityFull,
                 int secondWindCooldownSeconds,
-                float secondWindHealAmount,
                 float echoStrikeChancePercent,
                 float chainBreakerDurationReductionPercent,
                 float stoneSkinFlatReduction,
@@ -2987,7 +3000,6 @@ public final class GemsBalance {
             this.hungerResistReductionPercent = hungerResistReductionPercent;
             this.poisonImmunityFull = poisonImmunityFull;
             this.secondWindCooldownSeconds = secondWindCooldownSeconds;
-            this.secondWindHealAmount = secondWindHealAmount;
             this.echoStrikeChancePercent = echoStrikeChancePercent;
             this.chainBreakerDurationReductionPercent = chainBreakerDurationReductionPercent;
             this.stoneSkinFlatReduction = stoneSkinFlatReduction;
@@ -3239,7 +3251,6 @@ public final class GemsBalance {
                     cfg.hungerResistReductionPercent,
                     cfg.poisonImmunityFull,
                     cfg.secondWindCooldownSeconds,
-                    cfg.secondWindHealAmount,
                     cfg.echoStrikeChancePercent,
                     cfg.chainBreakerDurationReductionPercent,
                     cfg.stoneSkinFlatReduction,

@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.reaper;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityRuntime;
@@ -33,7 +35,7 @@ public final class ReaperWitheringStrikesAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int duration = GemsBalance.v().reaper().witheringStrikesDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.REAPER, GemsBalance.v().reaper().witheringStrikesDurationTicks());
         if (duration <= 0) {
             player.sendMessage(Text.translatable("gems.ability.reaper.withering_strikes.disabled"), true);
             return false;

@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.reaper;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -33,7 +35,7 @@ public final class ReaperRetributionAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int duration = GemsBalance.v().reaper().retributionDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.REAPER, GemsBalance.v().reaper().retributionDurationTicks());
         if (duration <= 0) {
             player.sendMessage(Text.translatable("gems.ability.reaper.retribution.disabled"), true);
             return false;

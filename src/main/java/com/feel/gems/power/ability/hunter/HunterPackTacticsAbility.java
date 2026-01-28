@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.hunter;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.gem.hunter.HunterPreyMarkRuntime;
@@ -40,7 +42,7 @@ public final class HunterPackTacticsAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getEntityWorld();
         int radius = GemsBalance.v().hunter().packTacticsRadiusBlocks();
-        int durationTicks = GemsBalance.v().hunter().packTacticsDurationTicks();
+        int durationTicks = AugmentRuntime.applyDurationMultiplier(player, GemId.HUNTER, GemsBalance.v().hunter().packTacticsDurationTicks());
 
         // Need a marked target
         var markedTarget = HunterPreyMarkRuntime.getMarkedTarget(player);

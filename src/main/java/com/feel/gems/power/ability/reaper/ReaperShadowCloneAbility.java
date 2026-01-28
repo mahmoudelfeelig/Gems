@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.reaper;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.entity.ModEntities;
 import com.feel.gems.entity.ShadowCloneEntity;
 import com.feel.gems.net.payloads.ShadowCloneSyncPayload;
@@ -47,7 +49,7 @@ public final class ReaperShadowCloneAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         var cfg = GemsBalance.v().reaper();
-        int duration = cfg.shadowCloneDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.REAPER, cfg.shadowCloneDurationTicks());
         int count = cfg.shadowCloneCount();
         if (duration <= 0 || count <= 0) {
             player.sendMessage(Text.translatable("gems.ability.reaper.shadow_clone.disabled"), true);

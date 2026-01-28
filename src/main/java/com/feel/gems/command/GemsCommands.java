@@ -250,6 +250,14 @@ public final class GemsCommands {
                                                             }
                                                             return 1;
                                                         }))))
+                                .then(CommandManager.literal("reclaimGem")
+                                        .then(CommandManager.argument("players", EntityArgumentType.players())
+                                                .executes(ctx -> {
+                                                    for (ServerPlayerEntity player : EntityArgumentType.getPlayers(ctx, "players")) {
+                                                        reclaimGem(ctx.getSource(), player);
+                                                    }
+                                                    return 1;
+                                                })))
                                 .then(CommandManager.literal("reset")
                                         .then(CommandManager.argument("players", EntityArgumentType.players())
                                                 .executes(ctx -> {
@@ -950,10 +958,43 @@ public final class GemsCommands {
         }
 
         GemPlayerState.initIfNeeded(player);
+        GemId activeBefore = GemPlayerState.getActiveGem(player);
         GemPlayerState.setActiveGem(player, gemId);
+        if (activeBefore != gemId) {
+            MinecraftServer server = source.getServer();
+            if (server != null) {
+                int baseEpoch = GemPlayerState.getGemEpoch(player);
+                int nextEpoch = com.feel.gems.item.GemOwnership.nextGemEpoch(server, player.getUuid(), activeBefore, baseEpoch);
+                com.feel.gems.item.GemOwnership.setGemEpochOverride(server, player.getUuid(), activeBefore, nextEpoch);
+                com.feel.gems.item.GemOwnership.requestDeferredPurge(server, player.getUuid());
+            }
+            com.feel.gems.item.GemOwnership.removeOwnedGemFromInventory(player, player.getUuid(), activeBefore);
+            com.feel.gems.item.GemOwnership.removeOwnedGemFromEnderChest(player, player.getUuid(), activeBefore);
+        }
         ensurePlayerHasItem(player, ModItems.gemItem(gemId));
         resync(player);
         source.sendFeedback(() -> Text.literal("Set " + player.getName().getString() + " active gem to " + gemId.name()), true);
+        return 1;
+    }
+
+    private static int reclaimGem(ServerCommandSource source, ServerPlayerEntity player) {
+        GemPlayerState.initIfNeeded(player);
+        GemId active = GemPlayerState.getActiveGem(player);
+        MinecraftServer server = source.getServer();
+        int baseEpoch = GemPlayerState.getGemEpoch(player);
+        if (server != null) {
+            int nextEpoch = com.feel.gems.item.GemOwnership.nextGemEpoch(server, player.getUuid(), active, baseEpoch);
+            com.feel.gems.item.GemOwnership.setGemEpochOverride(server, player.getUuid(), active, nextEpoch);
+            com.feel.gems.item.GemOwnership.recordOwnerEpoch(server, player.getUuid(), baseEpoch);
+        }
+        com.feel.gems.item.GemOwnership.removeOwnedGemFromInventory(player, player.getUuid(), active);
+        com.feel.gems.item.GemOwnership.removeOwnedGemFromEnderChest(player, player.getUuid(), active);
+        ensurePlayerHasItem(player, ModItems.gemItem(active));
+        if (server != null) {
+            com.feel.gems.item.GemOwnership.requestDeferredPurge(server, player.getUuid());
+        }
+        resync(player);
+        source.sendFeedback(() -> Text.literal("Reclaimed active gem for " + player.getName().getString()), true);
         return 1;
     }
 

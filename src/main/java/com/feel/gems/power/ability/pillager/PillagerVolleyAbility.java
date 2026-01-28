@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.pillager;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.pillager.PillagerVolleyRuntime;
 import com.feel.gems.power.registry.PowerIds;
@@ -33,7 +35,7 @@ public final class PillagerVolleyAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int duration = GemsBalance.v().pillager().volleyDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.PILLAGER, GemsBalance.v().pillager().volleyDurationTicks());
         if (duration <= 0) {
             player.sendMessage(Text.translatable("gems.ability.pillager.volley.disabled"), true);
             return false;

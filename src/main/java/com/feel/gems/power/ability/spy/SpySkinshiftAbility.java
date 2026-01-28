@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.spy;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
@@ -44,7 +46,7 @@ public final class SpySkinshiftAbility implements GemAbility {
             player.sendMessage(Text.translatable("gems.message.target_immune"), true);
             return false;
         }
-        int duration = GemsBalance.v().spy().skinshiftDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.SPY, GemsBalance.v().spy().skinshiftDurationTicks());
         if (duration <= 0) {
             player.sendMessage(Text.translatable("gems.ability.spy.skinshift.disabled"), true);
             return false;

@@ -13,6 +13,13 @@
     "sources": "https://github.com/mahmoudelfeelig/Gems",
     "issues": "https://github.com/mahmoudelfeelig/Gems/issues"
   },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "credits": "https://github.com/mahmoudelfeelig/Gems/blob/main/credits.md"
+      }
+    }
+  },
   "license": "GNU 3.0",
   "environment": "*",
   "entrypoints": {

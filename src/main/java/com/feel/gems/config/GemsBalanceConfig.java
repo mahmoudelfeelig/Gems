@@ -379,9 +379,14 @@ public final class GemsBalanceConfig {
 
         public int amplificationCooldownSeconds = 180;
         public int amplificationDurationSeconds = 45;
+        public int amplificationBonusLevels = 2;
 
         public int richRushCooldownSeconds = 9 * 60;
         public int richRushDurationSeconds = 3 * 60;
+        public int richRushLootRolls = 3;
+        public int richRushWitherSkullGuarantee = 3;
+        public int richRushShulkerShellGuarantee = 3;
+        public int richRushNetherStarGuarantee = 3;
 
         public int pocketsRows = 3;
     }
@@ -651,8 +656,8 @@ public final class GemsBalanceConfig {
         public int maxStolenAbilities = 3;
 
         // Abilities
-        public int mimicFormCooldownSeconds = 60;
-        public int mimicFormDurationSeconds = 12;
+        public int mimicFormCooldownSeconds = 30;
+        public int mimicFormDurationSeconds = 10;
         public float mimicFormBonusMaxHealth = 4.0F;
         public float mimicFormSpeedMultiplier = 1.10F;
 
@@ -868,7 +873,7 @@ public final class GemsBalanceConfig {
         public int mirageCooldownSeconds = 30;
         public int mirageDurationSeconds = 10;
         public int mirageCloneCount = 1;
-        public int mirageRangeBlocks = 16;
+        public int mirageRangeBlocks = 64;
         public int mirageBuffDurationSeconds = 6;
         public int mirageBuffAmplifier = 0;
 
@@ -1350,8 +1355,7 @@ public final class GemsBalanceConfig {
         public boolean poisonImmunityFull = true;
 
         // Second Wind
-        public int secondWindCooldownSeconds = 300;
-        public float secondWindHealAmount = 4.0F;
+        public int secondWindCooldownSeconds = 180;
 
         // Echo Strike
         public float echoStrikeChancePercent = 15.0F;

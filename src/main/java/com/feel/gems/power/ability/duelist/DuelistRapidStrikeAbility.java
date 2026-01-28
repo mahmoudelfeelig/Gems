@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.duelist;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -33,7 +35,7 @@ public final class DuelistRapidStrikeAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int duration = GemsBalance.v().duelist().rapidStrikeDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.DUELIST, GemsBalance.v().duelist().rapidStrikeDurationTicks());
         if (duration <= 0) {
             return false;
         }

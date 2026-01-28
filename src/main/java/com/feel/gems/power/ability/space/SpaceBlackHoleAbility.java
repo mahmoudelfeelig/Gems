@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.space;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.space.SpaceAnomalies;
 import com.feel.gems.power.registry.PowerIds;
@@ -34,7 +36,7 @@ public final class SpaceBlackHoleAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int duration = GemsBalance.v().space().blackHoleDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.SPACE, GemsBalance.v().space().blackHoleDurationTicks());
         if (duration <= 0) {
             player.sendMessage(Text.translatable("gems.ability.space.black_hole.disabled"), true);
             return false;

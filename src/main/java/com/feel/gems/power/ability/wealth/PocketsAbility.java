@@ -5,6 +5,7 @@ import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.screen.PocketsScreenHandler;
 import com.feel.gems.screen.PocketsStorage;
+import com.feel.gems.item.GemOwnership;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -37,6 +38,7 @@ public final class PocketsAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         SimpleInventory pockets = PocketsStorage.load(player);
+        GemOwnership.purgeInventory(player.getEntityWorld().getServer(), pockets);
         NamedScreenHandlerFactory factory = new NamedScreenHandlerFactory() {
             @Override
             public Text getDisplayName() {

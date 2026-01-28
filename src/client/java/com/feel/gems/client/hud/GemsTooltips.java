@@ -12,8 +12,10 @@ import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.api.GemPassive;
 import com.feel.gems.power.registry.ModAbilities;
 import com.feel.gems.power.registry.ModPassives;
+import com.feel.gems.util.GemsNbt;
 import java.util.List;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
@@ -44,6 +46,8 @@ public final class GemsTooltips {
     }
 
     private static final String OWNER_NAME_KEY = "gemsOwnerName";
+    private static final String OWNER_UUID_KEY = "gemsOwner";
+    private static final String PREV_OWNER_NAME_KEY = "gemsPrevOwnerName";
 
     private static void appendOwnerTooltip(ItemStack stack, List<Text> lines) {
         NbtComponent custom = stack.get(DataComponentTypes.CUSTOM_DATA);
@@ -56,7 +60,20 @@ public final class GemsTooltips {
         }
         String ownerName = nbt.getString(OWNER_NAME_KEY).orElse("");
         if (!ownerName.isEmpty()) {
-            lines.add(Text.translatable("gems.item.last_owner", ownerName).formatted(Formatting.GRAY));
+            String displayName = ownerName;
+            String prevOwnerName = nbt.getString(PREV_OWNER_NAME_KEY).orElse("");
+            if (!prevOwnerName.isEmpty()) {
+                MinecraftClient client = MinecraftClient.getInstance();
+                if (client.player != null) {
+                    var ownerUuid = GemsNbt.getUuid(nbt, OWNER_UUID_KEY);
+                    if (ownerUuid != null && ownerUuid.equals(client.player.getUuid())) {
+                        displayName = prevOwnerName;
+                    } else if (ownerUuid == null && ownerName.equalsIgnoreCase(client.player.getName().getString())) {
+                        displayName = prevOwnerName;
+                    }
+                }
+            }
+            lines.add(Text.translatable("gems.item.last_owner", displayName).formatted(Formatting.GRAY));
         }
     }
 

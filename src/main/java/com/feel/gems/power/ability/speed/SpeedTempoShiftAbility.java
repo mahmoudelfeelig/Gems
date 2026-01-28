@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.speed;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -36,7 +38,7 @@ public final class SpeedTempoShiftAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        int duration = GemsBalance.v().speed().tempoShiftDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.SPEED, GemsBalance.v().speed().tempoShiftDurationTicks());
         if (duration <= 0) {
             player.sendMessage(Text.translatable("gems.message.ability_disabled_server"), true);
             return false;

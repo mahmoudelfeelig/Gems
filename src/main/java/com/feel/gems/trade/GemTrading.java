@@ -41,6 +41,12 @@ public final class GemTrading {
             return new Result(false, false, true);
         }
 
+        Item activeItem = ModItems.gemItem(activeBefore);
+        if (!hasGemOnPlayer(player, activeItem)) {
+            player.sendMessage(Text.translatable("gems.trade.need_active_gem"), true);
+            return new Result(false, false, false);
+        }
+
         boolean consumedTrader = consumeTrader(player);
         if (!consumedTrader) {
             player.sendMessage(Text.translatable("gems.trade.need_gem_trader"), true);
@@ -59,7 +65,7 @@ public final class GemTrading {
         GemPowers.sync(player);
         GemStateSync.send(player);
         Item keep = ModItems.gemItem(gemId);
-        Item tradedAway = ModItems.gemItem(activeBefore);
+        Item tradedAway = activeItem;
         removeGemItems(player, tradedAway, keep);
         ensurePlayerHasItem(player, keep);
         GemItemGlint.sync(player);
@@ -167,7 +173,7 @@ public final class GemTrading {
             return;
         }
         ItemStack stack = new ItemStack(item);
-        GemOwnership.tagOwned(stack, player.getUuid(), GemPlayerState.getGemEpoch(player));
+        GemOwnership.tagOwned(stack, player);
         player.giveItemStack(stack);
     }
 
@@ -231,5 +237,26 @@ public final class GemTrading {
             }
             inv.setStack(i, ItemStack.EMPTY);
         }
+    }
+
+    private static boolean hasGemOnPlayer(ServerPlayerEntity player, Item item) {
+        if (item == null) {
+            return false;
+        }
+        for (ItemStack stack : player.getInventory().getMainStacks()) {
+            if (stack.isOf(item)) {
+                return true;
+            }
+        }
+        if (player.getOffHandStack().isOf(item)) {
+            return true;
+        }
+        if (player.getEquippedStack(net.minecraft.entity.EquipmentSlot.HEAD).isOf(item)
+                || player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST).isOf(item)
+                || player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS).isOf(item)
+                || player.getEquippedStack(net.minecraft.entity.EquipmentSlot.FEET).isOf(item)) {
+            return true;
+        }
+        return false;
     }
 }

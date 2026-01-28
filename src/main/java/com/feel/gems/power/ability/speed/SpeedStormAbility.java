@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.speed;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -37,7 +39,8 @@ public final class SpeedStormAbility implements GemAbility {
     @Override
     public boolean activate(ServerPlayerEntity player) {
         float momentum = SpeedMomentum.multiplier(player);
-        int duration = Math.max(1, Math.round(GemsBalance.v().speed().speedStormDurationTicks() * momentum));
+        int baseDuration = Math.max(1, Math.round(GemsBalance.v().speed().speedStormDurationTicks() * momentum));
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.SPEED, baseDuration);
         AbilityRuntime.startSpeedStorm(player, duration, momentum);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_BREEZE_WIND_BURST, 0.9F, 1.0F);
         AbilityFeedback.burst(player, ParticleTypes.CLOUD, 20, 0.45D);

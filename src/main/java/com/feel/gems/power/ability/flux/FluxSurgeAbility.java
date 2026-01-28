@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.flux;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.net.GemExtraStateSync;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.flux.FluxCharge;
@@ -54,7 +56,7 @@ public final class FluxSurgeAbility implements GemAbility {
         FluxCharge.clearIfBelow100(player);
         GemExtraStateSync.send(player);
 
-        int duration = cfg.fluxSurgeDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.FLUX, cfg.fluxSurgeDurationTicks());
         if (duration > 0) {
             int speedAmp = cfg.fluxSurgeSpeedAmplifier();
             int resistAmp = cfg.fluxSurgeResistanceAmplifier();

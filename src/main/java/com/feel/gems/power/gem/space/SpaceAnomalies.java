@@ -1,6 +1,8 @@
 package com.feel.gems.power.gem.space;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.runtime.AbilityFeedback;
 import com.feel.gems.trust.GemTrust;
@@ -44,7 +46,8 @@ public final class SpaceAnomalies {
             return;
         }
         long now = GemsTime.now(world);
-        ACTIVE.add(Anomaly.blackHole(caster.getUuid(), world.getRegistryKey(), pos, now));
+        int duration = AugmentRuntime.applyDurationMultiplier(caster, GemId.SPACE, GemsBalance.v().space().blackHoleDurationTicks());
+        ACTIVE.add(Anomaly.blackHole(caster.getUuid(), world.getRegistryKey(), pos, now, duration));
 
         AbilityFeedback.burstAt(world, pos, ParticleTypes.REVERSE_PORTAL, 18, 0.35D);
         AbilityFeedback.ring(world, pos.add(0.0D, 0.15D, 0.0D), Math.min(6.0D, GemsBalance.v().space().blackHoleRadiusBlocks()), ParticleTypes.REVERSE_PORTAL, 28);
@@ -58,7 +61,8 @@ public final class SpaceAnomalies {
             return;
         }
         long now = GemsTime.now(world);
-        ACTIVE.add(Anomaly.whiteHole(caster.getUuid(), world.getRegistryKey(), pos, now));
+        int duration = AugmentRuntime.applyDurationMultiplier(caster, GemId.SPACE, GemsBalance.v().space().whiteHoleDurationTicks());
+        ACTIVE.add(Anomaly.whiteHole(caster.getUuid(), world.getRegistryKey(), pos, now, duration));
 
         AbilityFeedback.burstAt(world, pos, ParticleTypes.END_ROD, 14, 0.35D);
         AbilityFeedback.burstAt(world, pos, ParticleTypes.CLOUD, 10, 0.45D);
@@ -368,16 +372,14 @@ public final class SpaceAnomalies {
             this.strikeAtTick = strikeAtTick;
         }
 
-        static Anomaly blackHole(UUID caster, net.minecraft.registry.RegistryKey<World> dim, Vec3d center, long now) {
-            int duration = GemsBalance.v().space().blackHoleDurationTicks();
+        static Anomaly blackHole(UUID caster, net.minecraft.registry.RegistryKey<World> dim, Vec3d center, long now, int duration) {
             int radius = GemsBalance.v().space().blackHoleRadiusBlocks();
             float strength = GemsBalance.v().space().blackHolePullStrength();
             float dmg = GemsBalance.v().space().blackHoleDamagePerSecond();
             return new Anomaly(Kind.BLACK_HOLE, caster, dim, center, now, now + duration, duration, radius, strength, dmg, now + 20, null, false, 0);
         }
 
-        static Anomaly whiteHole(UUID caster, net.minecraft.registry.RegistryKey<World> dim, Vec3d center, long now) {
-            int duration = GemsBalance.v().space().whiteHoleDurationTicks();
+        static Anomaly whiteHole(UUID caster, net.minecraft.registry.RegistryKey<World> dim, Vec3d center, long now, int duration) {
             int radius = GemsBalance.v().space().whiteHoleRadiusBlocks();
             float strength = GemsBalance.v().space().whiteHolePushStrength();
             float dmg = GemsBalance.v().space().whiteHoleDamagePerSecond();

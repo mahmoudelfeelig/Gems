@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.strength;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.legendary.LegendaryPlayerTracker;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.spy.SpySystem;
@@ -29,7 +31,7 @@ public final class BountyHuntingAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Consumes an item and tracks its original owner for a short time.";
+        return "Consumes an item and tracks its last owner for a short time (if you're the last owner, it tracks the previous owner instead).";
     }
 
     @Override
@@ -74,7 +76,8 @@ public final class BountyHuntingAbility implements GemAbility {
         }
 
         stack.decrement(1);
-        AbilityRuntime.startBounty(player, targetOwner, GemsBalance.v().strength().bountyDurationTicks());
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.STRENGTH, GemsBalance.v().strength().bountyDurationTicks());
+        AbilityRuntime.startBounty(player, targetOwner, duration);
         AbilityFeedback.sound(player, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.9F, 0.9F);
         AbilityFeedback.burst(player, ParticleTypes.COMPOSTER, 10, 0.25D);
         player.sendMessage(Text.translatable("gems.ability.strength.bounty.tracking", snapshot.name()), true);

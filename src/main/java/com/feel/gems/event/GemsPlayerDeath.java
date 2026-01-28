@@ -50,6 +50,7 @@ public final class GemsPlayerDeath {
         GemPlayerState.initIfNeeded(victim);
         AssassinState.initIfNeeded(victim);
         SpySystem.incrementDeaths(victim);
+        com.feel.gems.power.bonus.BonusPassiveRuntime.resetSecondWind(victim);
         boolean skipHeartDrop = GemOwnership.consumeSkipHeartDrop(victim);
         GemId victimActiveGem = GemPlayerState.getActiveGem(victim);
 
@@ -68,7 +69,9 @@ public final class GemsPlayerDeath {
             LeaderboardTracker.incrementKills(killer);
             boolean killerWasAssassin = AssassinState.isAssassin(killer);
             int killerEnergyBefore = GemPlayerState.getEnergy(killer);
-            GemPlayerState.addEnergy(killer, 1);
+            if (victimEnergyBefore > 0) {
+                GemPlayerState.addEnergy(killer, 1);
+            }
             GemPowers.sync(killer);
             GemItemGlint.sync(killer);
             GemStateSync.send(killer);

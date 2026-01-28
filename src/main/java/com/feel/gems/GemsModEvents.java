@@ -71,12 +71,14 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.mob.WitherSkeletonEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 
@@ -95,7 +97,16 @@ public final class GemsModEvents {
                 SpySystem.recordLastKilledMob(player, living);
 
                 if (!(killedEntity instanceof ServerPlayerEntity)) {
-                    GemsStats.recordMobKill(player);
+                    int mobKillCount = 1;
+                    if (living instanceof WitherSkeletonEntity && AbilityRuntime.isRichRushActive(player)) {
+                        mobKillCount = 20;
+                        int extra = mobKillCount - 1;
+                        if (extra > 0) {
+                            player.getStatHandler().increaseStat(player, Stats.CUSTOM.getOrCreateStat(Stats.MOB_KILLS), extra);
+                            player.getStatHandler().increaseStat(player, Stats.KILLED.getOrCreateStat(living.getType()), extra);
+                        }
+                    }
+                    GemsStats.recordMobKill(player, mobKillCount);
                 }
 
                 // Bonus passives: on kill effects (Bloodthirst, Adrenaline Rush)
@@ -229,6 +240,13 @@ public final class GemsModEvents {
             if (!(player instanceof ServerPlayerEntity sp)) {
                 return ActionResult.PASS;
             }
+            if (world.getBlockState(hitResult.getBlockPos()).getBlock() instanceof net.minecraft.block.EnderChestBlock) {
+                GemOwnership.purgeInventory(sp.getEntityWorld().getServer(), sp.getEnderChestInventory());
+            }
+            var blockEntity = world.getBlockEntity(hitResult.getBlockPos());
+            if (blockEntity instanceof net.minecraft.inventory.Inventory inv) {
+                GemOwnership.purgeInventoryIfPending(world.getServer(), inv);
+            }
             if (com.feel.gems.power.gem.terror.TerrorRemoteChargeRuntime.tryArm(sp, hitResult.getBlockPos())) {
                 com.feel.gems.power.runtime.AbilityFeedback.sound(sp, net.minecraft.sound.SoundEvents.ENTITY_TNT_PRIMED, 0.8F, 1.2F);
                 sp.sendMessage(net.minecraft.text.Text.translatable("gems.terror.remote_charge_armed"), true);
@@ -252,6 +270,8 @@ public final class GemsModEvents {
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
+            var persistent = ((com.feel.gems.state.GemsPersistentDataHolder) player).gems$getPersistentData();
+            boolean grantStarterGem = persistent.getString("activeGem").isEmpty();
             GemPlayerState.initIfNeeded(player);
             AssassinState.initIfNeeded(player);
             if (AssassinState.maybeUnlockChoice(player) && AssassinState.isAssassin(player)) {
@@ -261,7 +281,9 @@ public final class GemsModEvents {
             GemPlayerState.applyMaxHearts(player);
             GemOwnership.consumeOfflinePenalty(player);
             GemKeepOnDeath.restore(player);
-            ensureActiveGemItem(player);
+            if (grantStarterGem) {
+                ensureActiveGemItem(player);
+            }
             GemPowers.sync(player);
             GemItemGlint.sync(player);
             GemStateSync.send(player);
@@ -304,7 +326,6 @@ public final class GemsModEvents {
             }
             GemPlayerState.applyMaxHearts(newPlayer);
             GemKeepOnDeath.restore(newPlayer);
-            ensureActiveGemItem(newPlayer);
             GemPowers.sync(newPlayer);
             GemItemGlint.sync(newPlayer);
             GemStateSync.send(newPlayer);
@@ -352,6 +373,7 @@ public final class GemsModEvents {
                 // Clean up old synergy casts (every 20 ticks)
                 if (s.getTicks() % 20 == 0) {
                     SynergyRuntime.cleanup(s.getOverworld().getTime());
+                    GemOwnership.purgePendingPlayerInventories(s);
                 }
 
                 // Hunting Trap: check mob triggers (players are handled via per-player checkStep).
@@ -476,7 +498,7 @@ public final class GemsModEvents {
             return;
         }
         ItemStack stack = new ItemStack(gemItem);
-        com.feel.gems.item.GemOwnership.tagOwned(stack, player.getUuid(), GemPlayerState.getGemEpoch(player));
+        com.feel.gems.item.GemOwnership.tagOwned(stack, player);
         player.giveItemStack(stack);
     }
 

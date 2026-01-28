@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.astra;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityFeedback;
@@ -36,7 +38,8 @@ public final class AstralCameraAbility implements GemAbility {
 
     @Override
     public boolean activate(ServerPlayerEntity player) {
-        AbilityRuntime.startAstralCamera(player, GemsBalance.v().astra().astralCameraDurationTicks());
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.ASTRA, GemsBalance.v().astra().astralCameraDurationTicks());
+        AbilityRuntime.startAstralCamera(player, duration);
         AbilityFeedback.sound(player, SoundEvents.ITEM_SPYGLASS_USE, 0.9F, 1.2F);
         AbilityFeedback.burst(player, ParticleTypes.END_ROD, 18, 0.25D);
         player.sendMessage(Text.translatable("gems.ability.astra.camera.active"), true);

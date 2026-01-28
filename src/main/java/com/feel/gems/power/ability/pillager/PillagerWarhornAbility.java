@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.pillager;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -45,7 +47,7 @@ public final class PillagerWarhornAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         var cfg = GemsBalance.v().pillager();
         int radius = cfg.warhornRadiusBlocks();
-        int duration = cfg.warhornDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.PILLAGER, cfg.warhornDurationTicks());
         if (radius <= 0 || duration <= 0) {
             player.sendMessage(Text.translatable("gems.ability.pillager.warhorn.disabled"), true);
             return false;

@@ -132,6 +132,7 @@ public final class GemsTradeGameTests {
 
         // Add exactly one gem_trader item and trade again.
         player.giveItemStack(new ItemStack(ModItems.GEM_TRADER));
+        player.giveItemStack(new ItemStack(ModItems.ASTRA_GEM));
         int tradersBefore = GemsGameTestUtil.countItem(player, ModItems.GEM_TRADER);
 
         GemTrading.Result ok = GemTrading.trade(player, GemId.FLUX);

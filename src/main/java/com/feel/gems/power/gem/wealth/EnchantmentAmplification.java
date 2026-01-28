@@ -1,5 +1,6 @@
 package com.feel.gems.power.gem.wealth;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.util.GemsTime;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
@@ -56,13 +57,14 @@ public final class EnchantmentAmplification {
             return;
         }
 
+        int bonusLevels = Math.max(1, GemsBalance.v().wealth().amplificationBonusLevels());
         NbtList originalList = new NbtList();
         NbtCompound bonus = new NbtCompound();
         for (var entry : enchants.getEnchantmentEntries()) {
             RegistryEntry<Enchantment> enchantment = entry.getKey();
             int level = entry.getIntValue();
             if (level >= enchantment.value().getMaxLevel() && isOverMaxEligible(enchantment)) {
-                bonus.putInt(enchantment.getIdAsString(), 1);
+                bonus.putInt(enchantment.getIdAsString(), bonusLevels);
             }
 
             NbtCompound e = new NbtCompound();
@@ -84,7 +86,7 @@ public final class EnchantmentAmplification {
         for (var entry : enchants.getEnchantmentEntries()) {
             RegistryEntry<Enchantment> enchantment = entry.getKey();
             int current = entry.getIntValue();
-            int boosted = Math.min(enchantment.value().getMaxLevel(), current + 1);
+            int boosted = Math.min(enchantment.value().getMaxLevel(), current + bonusLevels);
             if (boosted == current) {
                 continue;
             }

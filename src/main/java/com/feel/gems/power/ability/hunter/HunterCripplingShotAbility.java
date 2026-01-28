@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.hunter;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -39,7 +41,7 @@ public final class HunterCripplingShotAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getEntityWorld();
         int range = GemsBalance.v().hunter().cripplingRangeBlocks();
-        int durationTicks = GemsBalance.v().hunter().cripplingDurationTicks();
+        int durationTicks = AugmentRuntime.applyDurationMultiplier(player, GemId.HUNTER, GemsBalance.v().hunter().cripplingDurationTicks());
 
         // Raycast to find target
         ServerPlayerEntity target = Targeting.raycastPlayer(player, range);

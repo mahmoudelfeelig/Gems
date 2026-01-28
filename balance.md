@@ -4,6 +4,7 @@ Balancing is controlled by `config/gems/balance.json` (generated on first run).
 
 - Apply changes without restart: `/gems reloadBalance` (requires op permission level 2+).
 - If the JSON is invalid, the reload fails and the current balance stays active (the file is not overwritten).
+- Missing keys are filled from defaults on load and the file is rewritten to include new entries when the mod updates.
 - Export the currently-applied (sanitized) values: `/gems dumpBalance` (writes `config/gems/balance.effective.json`).
 
 Player-facing behavior docs live under `docs/` (start at `docs/README.md`). This file focuses on configuration keys, units, and safety constraints.

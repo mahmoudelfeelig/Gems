@@ -24,7 +24,7 @@ public final class SpyStolenCastAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Casts your selected stolen ability. Sneak to cycle selection.";
+        return "Casts your selected stolen ability.";
     }
 
     @Override

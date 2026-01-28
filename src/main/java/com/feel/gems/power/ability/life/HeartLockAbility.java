@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.life;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -46,7 +48,7 @@ public final class HeartLockAbility implements GemAbility {
             player.sendMessage(Text.translatable("gems.message.no_target"), true);
             return false;
         }
-        int duration = GemsBalance.v().life().heartLockDurationTicks();
+        int duration = AugmentRuntime.applyDurationMultiplier(player, GemId.LIFE, GemsBalance.v().life().heartLockDurationTicks());
         if (target instanceof ServerPlayerEntity other) {
             if (GemTrust.isTrusted(player, other)) {
                 player.sendMessage(Text.translatable("gems.message.target_trusted"), true);

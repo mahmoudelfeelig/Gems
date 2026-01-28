@@ -184,7 +184,10 @@ public final class GemSeerScreen extends HandledScreen<GemSeerScreenHandler> {
         boolean first = true;
         for (var gem : info.ownedGems()) {
             if (!first) sb.append(", ");
-            sb.append(GemSeerScreenHandler.formatGemName(gem));
+            sb.append(GemSeerScreenHandler.formatGemName(gem.gem()));
+            if (gem.count() > 1) {
+                sb.append(" x").append(gem.count());
+            }
             first = false;
         }
         return sb.toString();

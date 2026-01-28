@@ -38,7 +38,7 @@ Gems is a PvP-first RPG progression mod built around gem archetypes. Each gem gr
 ## Gem Swapping, Ownership, and Upgrades
 
 - Gems are bound to their owner. You can own multiple gems, but only one is active.
-- Gem Trader swaps only your active gem (owned gems stay owned).
+- Gem Trader swaps only your active gem (active gem item must be in your inventory; owned gems stay owned).
 - Gem Purchase Token lets you pick any gem to add to your owned set and activate.
 - Craft Energy Upgrades to increase gem energy (up to Legendary +5).
 - At Legendary +5, players gain an enchant glint. If a Legendary +5 player kills a non-broken player, the victim drops an upgrade item that anyone can consume for a level (not usable by Legendary +5).
@@ -55,7 +55,7 @@ Legendary items are unique, server-wide crafts designed to create objectives, co
 
 ### Legendary item list
 
-- Gem Seer: view any known player's gem info and status.
+- Gem Seer: view any known player's gem info, including owned gem copy counts.
 - Tracker Compass: pick a player (including offline) and track current or last-known coords, respawn coords, and direction.
 - Recall Relic: mark your location, then teleport back later (consumes the mark). Persists through use and has a cooldown; chunks are forceloaded while marked.
 - Hypno Staff: hold a beam on a mob to temporarily convert it (bosses excluded). Controlled mobs follow summon-style AI priorities.

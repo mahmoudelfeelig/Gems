@@ -2,10 +2,13 @@ package com.feel.gems.screen;
 
 import com.feel.gems.core.GemId;
 import com.feel.gems.legendary.GemSeerTracker;
+import com.feel.gems.item.GemItem;
 import com.feel.gems.power.gem.spy.SpySystem;
 import com.feel.gems.state.GemPlayerState;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.Map;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -29,13 +32,16 @@ import java.util.UUID;
 public final class GemSeerScreenHandler extends ScreenHandler {
     private final List<PlayerInfo> playerInfos = new ArrayList<>();
     
+    public record OwnedGem(GemId gem, int count) {
+    }
+
     public record PlayerInfo(
             UUID uuid,
             String name,
             boolean online,
             GemId activeGem,
             int energy,
-            List<GemId> ownedGems
+            List<OwnedGem> ownedGems
     ) {}
 
     public record OpeningData(List<PlayerInfo> playerInfos) {
@@ -53,10 +59,11 @@ public final class GemSeerScreenHandler extends ScreenHandler {
                 buf.writeBoolean(info.online());
                 buf.writeString(info.activeGem().name(), 32);
                 buf.writeVarInt(info.energy());
-                List<GemId> owned = info.ownedGems() == null ? List.of() : info.ownedGems();
+                List<OwnedGem> owned = info.ownedGems() == null ? List.of() : info.ownedGems();
                 buf.writeVarInt(owned.size());
-                for (GemId gem : owned) {
-                    buf.writeString(gem.name(), 32);
+                for (OwnedGem gem : owned) {
+                    buf.writeString(gem.gem().name(), 32);
+                    buf.writeVarInt(Math.max(1, gem.count()));
                 }
             }
         }
@@ -77,9 +84,11 @@ public final class GemSeerScreenHandler extends ScreenHandler {
                 int ownedSize = buf.readVarInt();
                 if (ownedSize < 0) ownedSize = 0;
                 if (ownedSize > 64) ownedSize = 64;
-                List<GemId> owned = new ArrayList<>(ownedSize);
+                List<OwnedGem> owned = new ArrayList<>(ownedSize);
                 for (int j = 0; j < ownedSize; j++) {
-                    owned.add(safeGemId(buf.readString(32), GemId.PUFF));
+                    GemId gem = safeGemId(buf.readString(32), GemId.PUFF);
+                    int count = Math.max(1, buf.readVarInt());
+                    owned.add(new OwnedGem(gem, count));
                 }
                 players.add(new PlayerInfo(uuid, name, online, activeGem, energy, owned));
             }
@@ -154,9 +163,12 @@ public final class GemSeerScreenHandler extends ScreenHandler {
         if (!info.ownedGems.isEmpty()) {
             StringBuilder owned = new StringBuilder();
             boolean first = true;
-            for (GemId gem : info.ownedGems) {
+            for (OwnedGem gem : info.ownedGems) {
                 if (!first) owned.append(", ");
-                owned.append(formatGemName(gem));
+                owned.append(formatGemName(gem.gem()));
+                if (gem.count() > 1) {
+                    owned.append(" x").append(gem.count());
+                }
                 first = false;
             }
             viewer.sendMessage(Text.translatable("gems.screen.gem_seer.owned_gems").formatted(Formatting.GRAY)
@@ -243,7 +255,7 @@ public final class GemSeerScreenHandler extends ScreenHandler {
                 boolean online = true;
                 GemId activeGem = GemPlayerState.getActiveGem(target);
                 int energy = GemPlayerState.getEnergy(target);
-                List<GemId> ownedGems = new ArrayList<>(GemPlayerState.getOwnedGems(target));
+                List<OwnedGem> ownedGems = toOwnedList(countGemItems(target));
                 infos.add(new PlayerInfo(target.getUuid(), target.getName().getString(), online, activeGem, energy, ownedGems));
             }
             infos.sort(Comparator.comparing(info -> info.name().toLowerCase(Locale.ROOT)));
@@ -262,13 +274,62 @@ public final class GemSeerScreenHandler extends ScreenHandler {
             }
             boolean online = server.getPlayerManager().getPlayer(snapshot.uuid()) != null;
             GemId activeGem = OpeningData.safeGemId(snapshot.activeGem(), GemId.PUFF);
-            List<GemId> owned = new ArrayList<>();
-            for (String raw : snapshot.ownedGems()) {
-                owned.add(OpeningData.safeGemId(raw, GemId.PUFF));
+            Map<GemId, Integer> counts = new EnumMap<>(GemId.class);
+            if (snapshot.ownedCounts() != null && !snapshot.ownedCounts().isEmpty()) {
+                for (var entry : snapshot.ownedCounts().entrySet()) {
+                    GemId gem = OpeningData.safeGemId(entry.getKey(), GemId.PUFF);
+                    int count = Math.max(1, entry.getValue());
+                    counts.merge(gem, count, Integer::sum);
+                }
+            } else {
+                for (String raw : snapshot.ownedGems()) {
+                    counts.merge(OpeningData.safeGemId(raw, GemId.PUFF), 1, Integer::sum);
+                }
             }
-            infos.add(new PlayerInfo(snapshot.uuid(), snapshot.name(), online, activeGem, snapshot.energy(), owned));
+            infos.add(new PlayerInfo(snapshot.uuid(), snapshot.name(), online, activeGem, snapshot.energy(), toOwnedList(counts)));
         }
         infos.sort(Comparator.comparing(info -> info.name().toLowerCase(Locale.ROOT)));
         return new OpeningData(Collections.unmodifiableList(infos));
+    }
+
+    private static Map<GemId, Integer> countGemItems(ServerPlayerEntity player) {
+        Map<GemId, Integer> counts = new EnumMap<>(GemId.class);
+        if (player == null) {
+            return counts;
+        }
+        for (ItemStack stack : player.getInventory().getMainStacks()) {
+            addGemCount(counts, stack);
+        }
+        addGemCount(counts, player.getOffHandStack());
+        addGemCount(counts, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.HEAD));
+        addGemCount(counts, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST));
+        addGemCount(counts, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS));
+        addGemCount(counts, player.getEquippedStack(net.minecraft.entity.EquipmentSlot.FEET));
+        var ender = player.getEnderChestInventory();
+        for (int i = 0; i < ender.size(); i++) {
+            addGemCount(counts, ender.getStack(i));
+        }
+        return counts;
+    }
+
+    private static void addGemCount(Map<GemId, Integer> counts, ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+        if (stack.getItem() instanceof GemItem gem) {
+            counts.merge(gem.gemId(), stack.getCount(), Integer::sum);
+        }
+    }
+
+    private static List<OwnedGem> toOwnedList(Map<GemId, Integer> counts) {
+        if (counts == null || counts.isEmpty()) {
+            return List.of();
+        }
+        List<OwnedGem> list = new ArrayList<>(counts.size());
+        for (var entry : counts.entrySet()) {
+            list.add(new OwnedGem(entry.getKey(), Math.max(1, entry.getValue())));
+        }
+        list.sort(Comparator.comparing(gem -> gem.gem().name().toLowerCase(Locale.ROOT)));
+        return list;
     }
 }

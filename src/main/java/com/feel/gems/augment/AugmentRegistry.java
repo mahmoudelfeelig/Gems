@@ -55,7 +55,7 @@ public final class AugmentRegistry {
                 "gems.augment.persistence",
                 "gems.augment.persistence.desc",
                 Set.of("persistence"),
-                List.of(new AugmentModifier(AugmentModifierType.COOLDOWN_MULTIPLIER, 0.05f))
+                List.of(new AugmentModifier(AugmentModifierType.DURATION_MULTIPLIER, 0.05f))
         ));
 
         // Legendary inscriptions

@@ -1,6 +1,8 @@
 package com.feel.gems.power.ability.trickster;
 
 import com.feel.gems.config.GemsBalance;
+import com.feel.gems.augment.AugmentRuntime;
+import com.feel.gems.core.GemId;
 import com.feel.gems.power.api.GemAbility;
 import com.feel.gems.power.gem.voidgem.VoidImmunity;
 import com.feel.gems.power.registry.PowerIds;
@@ -51,7 +53,7 @@ public final class TricksterPuppetMasterAbility implements GemAbility {
     public boolean activate(ServerPlayerEntity player) {
         ServerWorld world = player.getEntityWorld();
         int range = GemsBalance.v().trickster().puppetMasterRangeBlocks();
-        int durationTicks = GemsBalance.v().trickster().puppetMasterDurationTicks();
+        int durationTicks = AugmentRuntime.applyDurationMultiplier(player, GemId.TRICKSTER, GemsBalance.v().trickster().puppetMasterDurationTicks());
 
         // Raycast to find target (any living entity), fallback to nearest if raycast misses.
         LivingEntity target = Targeting.raycastLiving(player, range);

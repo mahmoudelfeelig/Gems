@@ -2,6 +2,7 @@ package com.feel.gems.augment;
 
 public enum AugmentModifierType {
     COOLDOWN_MULTIPLIER,
+    DURATION_MULTIPLIER,
     PASSIVE_AMP_BONUS,
     LEGENDARY_ATTACK_DAMAGE,
     LEGENDARY_ATTACK_SPEED,

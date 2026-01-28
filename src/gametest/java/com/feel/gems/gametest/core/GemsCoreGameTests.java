@@ -131,6 +131,44 @@ public final class GemsCoreGameTests {
         });
     }
 
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 120)
+    public void killingZeroEnergyPlayerDoesNotGrantEnergy(TestContext context) {
+        ServerWorld world = context.getWorld();
+        ServerPlayerEntity killer = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        ServerPlayerEntity victim = GemsGameTestUtil.createMockCreativeServerPlayer(context);
+        killer.changeGameMode(GameMode.SURVIVAL);
+        victim.changeGameMode(GameMode.SURVIVAL);
+
+        Vec3d base = context.getAbsolute(new Vec3d(0.5D, 2.0D, 0.5D));
+        teleport(killer, world, base.x, base.y, base.z, 0.0F, 0.0F);
+        teleport(victim, world, base.x + 2.0D, base.y, base.z, 0.0F, 0.0F);
+
+        context.runAtTick(20L, () -> {
+            GemsGameTestUtil.resetPlayerForTest(killer);
+            GemsGameTestUtil.resetPlayerForTest(victim);
+            GemPlayerState.initIfNeeded(killer);
+            GemPlayerState.initIfNeeded(victim);
+            GemPlayerState.setEnergy(killer, GemPlayerState.MAX_ENERGY);
+            GemPlayerState.setEnergy(victim, 0);
+
+            GemsPlayerDeath.onDeathTail(victim, victim.getDamageSources().playerAttack(killer));
+
+            if (GemPlayerState.getEnergy(killer) != GemPlayerState.MAX_ENERGY) {
+                context.throwGameTestException("Killing a 0-energy player should not grant energy");
+                return;
+            }
+            int upgradesDropped = world.getEntitiesByClass(net.minecraft.entity.ItemEntity.class,
+                    new net.minecraft.util.math.Box(base, base.add(1.0D, 1.0D, 1.0D)).expand(3.0D),
+                    e -> e.getStack().isOf(ModItems.ENERGY_UPGRADE)).size();
+            int upgradesInInv = GemsGameTestUtil.countItem(killer, ModItems.ENERGY_UPGRADE);
+            if (upgradesDropped + upgradesInInv > 0) {
+                context.throwGameTestException("Killing a 0-energy player should not drop energy upgrades");
+                return;
+            }
+            context.complete();
+        });
+    }
+
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void abilityDisablesClearAndCooldownSnapshotPersists(TestContext context) {
         ServerWorld world = context.getWorld();

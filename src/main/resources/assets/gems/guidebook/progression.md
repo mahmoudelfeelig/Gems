@@ -9,7 +9,7 @@ This doc describes the core progression loop: energy, hearts, and gem swapping.
 - Passives are active at energy 1+ (unless you toggle them off in client config). At energy 0, passives and abilities are disabled.
 - Abilities unlock by energy: 2-4 unlock in order, 5+ unlock all remaining abilities.
 - Energy levels 6-10 are buffer only (no new powers).
-- Player-vs-player kills grant +1 energy. Death (any cause) loses 1 energy.
+- Player-vs-player kills grant +1 energy if the victim has more than 0 energy. Death (any cause) loses 1 energy.
 - Legendary +5 gives a glint. If a Legendary +5 player kills a non-broken player, the victim drops an upgrade item.
 - Upgrade items cannot be used by Legendary +5 players.
 

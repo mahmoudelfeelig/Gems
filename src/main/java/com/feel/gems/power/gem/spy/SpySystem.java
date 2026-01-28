@@ -479,6 +479,10 @@ public final class SpySystem {
             spy.sendMessage(Text.translatable("gems.message.ability_disabled_server"), true);
             return false;
         }
+        if (!isEchoableAbility(abilityId)) {
+            spy.sendMessage(Text.translatable("gems.spy.cannot_steal_spy"), true);
+            return false;
+        }
         if (!canSteal(spy, abilityId) || isAbilityStolen(spy, abilityId)) {
             spy.sendMessage(Text.translatable("gems.spy.not_enough_observation"), true);
             return false;
@@ -594,11 +598,6 @@ public final class SpySystem {
 
     public static void clearOnGemSwitchAway(ServerPlayerEntity player) {
         NbtCompound nbt = persistent(player);
-        nbt.remove(KEY_STOLEN);
-        nbt.remove(KEY_STOLEN_SELECTED);
-        nbt.remove(KEY_STOLEN_CAST_SELECTED);
-        nbt.remove(KEY_OBSERVED_ECHO_SELECTED);
-        nbt.remove(KEY_OBSERVED_STEAL_SELECTED);
         clearMimicForm(player);
         clearSkinshift(player);
         ACTIVE_SPIES.remove(player.getUuid());
@@ -627,7 +626,6 @@ public final class SpySystem {
 
         for (Identifier abilityId : recovered) {
             removeStolenAbility(victim, abilityId);
-            addStolenAbility(killer, abilityId);
         }
         com.feel.gems.net.StolenStateSync.send(killer);
         com.feel.gems.net.StolenStateSync.send(victim);

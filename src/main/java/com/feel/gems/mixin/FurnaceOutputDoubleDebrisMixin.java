@@ -1,5 +1,6 @@
 package com.feel.gems.mixin;
 
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.runtime.GemPowers;
@@ -34,6 +35,19 @@ public abstract class FurnaceOutputDoubleDebrisMixin {
         }
         if (!stack.isOf(Items.NETHERITE_SCRAP)) {
             return;
+        }
+
+        if (AbilityRuntime.isRichRushActive(serverPlayer)) {
+            int rolls = Math.max(1, GemsBalance.v().wealth().richRushLootRolls());
+            int extraCount = (rolls - 1) * stack.getCount();
+            if (extraCount > 0) {
+                ItemStack extraRich = new ItemStack(Items.NETHERITE_SCRAP, extraCount);
+                AbilityRuntime.setOwnerWithName(extraRich, serverPlayer.getUuid(), ownerName);
+                boolean inserted = serverPlayer.getInventory().insertStack(extraRich);
+                if (!inserted && !extraRich.isEmpty()) {
+                    serverPlayer.dropItem(extraRich, false);
+                }
+            }
         }
 
         // Duplicate the entire stack count, not just one item.

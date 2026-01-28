@@ -1,8 +1,14 @@
 package com.feel.gems.mixin;
 
 import com.feel.gems.power.runtime.AbilityRuntime;
+import com.feel.gems.config.GemsBalance;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.mob.ShulkerEntity;
+import net.minecraft.entity.boss.WitherEntity;
+import net.minecraft.entity.mob.WitherSkeletonEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -37,11 +43,35 @@ public abstract class LivingEntityRichRushLootMixin {
         if (!AbilityRuntime.isRichRushActive(player)) {
             return;
         }
+        LivingEntity self = (LivingEntity) (Object) this;
+        int rolls = GemsBalance.v().wealth().richRushLootRolls();
+        if (rolls < 1) {
+            rolls = 1;
+        }
         try {
             gems$inDoubleLoot.set(Boolean.TRUE);
-            dropLoot(world, source, true);
+            for (int i = 1; i < rolls; i++) {
+                dropLoot(world, source, true);
+            }
         } finally {
             gems$inDoubleLoot.set(Boolean.FALSE);
+        }
+        if (self instanceof WitherSkeletonEntity) {
+            int count = GemsBalance.v().wealth().richRushWitherSkullGuarantee();
+            if (count > 0) {
+                self.dropStack(world, new ItemStack(Items.WITHER_SKELETON_SKULL, count));
+            }
+        } else if (self instanceof ShulkerEntity) {
+            int count = GemsBalance.v().wealth().richRushShulkerShellGuarantee();
+            if (count > 0) {
+                self.dropStack(world, new ItemStack(Items.SHULKER_SHELL, count));
+            }
+        } else if (self instanceof WitherEntity) {
+            int count = GemsBalance.v().wealth().richRushNetherStarGuarantee();
+            int extra = Math.max(0, count - 1);
+            if (extra > 0) {
+                self.dropStack(world, new ItemStack(Items.NETHER_STAR, extra));
+            }
         }
     }
 }

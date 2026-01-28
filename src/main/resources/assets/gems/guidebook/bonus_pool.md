@@ -86,7 +86,7 @@ At energy 10/10, any gem holder can claim up to 2 bonus abilities and 2 bonus pa
 - XP Boost: gain 25% bonus XP from all sources.
 - Hunger Resist: 50% slower hunger depletion.
 - Poison Immunity: immune to Poison effects.
-- Second Wind: survive one killing blow per 5 minutes, restore to half health.
+- Second Wind: survive one killing blow per 3 minutes, restore to half max health.
 - Echo Strike: 15% chance for melee attacks to hit twice.
 - Chain Breaker: break free from roots/slows 50% faster.
 - Stone Skin: flat 1 damage reduction from all sources.

@@ -1,5 +1,10 @@
 # Changelog
 
+## V1.5 28.01.2026: Bug fixes
+- Fixed a bug that would let you duplicate ores when rich rush is active
+- Fixed a bug where second wind would only reset after death
+- 
+
 ## V1.4.1 22.01.2026: Bug fixes and minor improvements
 - Fixed bugs that would essentially let you dupe your gems
 - Changed persistence augments to extend the duration of abilities instead of reducing the cooldowns

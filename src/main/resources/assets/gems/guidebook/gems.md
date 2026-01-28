@@ -125,7 +125,7 @@ Passives and abilities are gated by energy. See the Progression section for deta
 - Net Shot: fire a net that slows and grounds enemies (disables flight/elytra).
 - Crippling Shot: ranged attack that reduces target's movement speed by 50% for 8s.
 - Pack Tactics: nearby trusted allies deal 20% more damage to your marked target for 10s.
-- Origin Tracking: track the original owner of an item (who first crafted or found it); works on offline targets using last-known data.
+- Origin Tracking: track the first owner of an item (who originally crafted or found it); works on offline targets if the server has last-known data for them.
 - Six-Pack Pain: summon 6 player clones that share a health pool (120 HP total) for 10s. They attack untrusted players and hostile mobs. When hit, you get regeneration + a random buff, and the attacker gets debuffed.
 
 ### Life Gem
@@ -284,7 +284,7 @@ Observed menu:
 **Abilities:**
 - Nullify: remove active effects from enemies in a radius.
 - Frailer: apply Weakness to a target.
-- Bounty Hunting: consume an item to track its owner temporarily (falls back to the previous owner if you're the last owner; works with offline targets using last-known data).
+- Bounty Hunting: consume an item to track its last owner temporarily (falls back to the previous owner if you're the last owner; works on offline targets if the server has last-known data for them).
 - Chad Strength: every Nth hit deals bonus damage.
 
 ### Summoner Gem
@@ -358,5 +358,5 @@ Summoned/controlled AI priority (Summoner, Astra Soul Release, Hypno Staff):
 - Pockets: extra inventory (rows configurable in balance).
 - Fumble: disable offhand use and eating for enemies.
 - Hotbar Lock: lock an enemy to their current hotbar slot.
-- Amplification: temporarily boosts enchant effectiveness; if Unbreaking, Protection, Mending, Looting, Sharpness, Efficiency, or Fortune are already maxed, they count as +1 level while Amplification is active.
-- Rich Rush: boosts mob drops and ore yields.
+- Amplification: temporarily boosts enchant effectiveness by +N levels (configurable; default +2). If Unbreaking, Protection, Mending, Looting, Sharpness, Efficiency, or Fortune are already maxed, they count as +N levels while Amplification is active.
+- Rich Rush: rolls mob/ore loot multiple times (configurable) and can guarantee rare drops like Wither Skeleton skulls, Shulker shells, and Nether Stars while active.

@@ -53,6 +53,7 @@ public final class GemsAstraGameTests {
         GemPlayerState.initIfNeeded(player);
         GemPlayerState.setActiveGem(player, GemId.ASTRA);
         GemPlayerState.setEnergy(player, 5);
+        GemPlayerState.setPassivesEnabled(player, true);
         GemPowers.sync(player);
 
         player.setHealth(Math.max(2.0F, player.getHealth() - 4.0F));
@@ -76,6 +77,9 @@ public final class GemsAstraGameTests {
             player.attack(zombie);
             if (zombie.isAlive()) {
                 zombie.damage(world, player.getDamageSources().playerAttack(player), Float.MAX_VALUE);
+            }
+            if (zombie.isAlive()) {
+                zombie.kill(world);
             }
             // If the combat event didn't fire, trigger the capture directly to keep the test stable.
             if (!SoulSystem.hasSoul(player) && !zombie.isAlive()) {

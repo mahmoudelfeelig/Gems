@@ -363,6 +363,7 @@
   "gems.spy.not_enough_observation": "Not enough observation to steal that ability.",
   "gems.spy.stolen_slots_full": "Stolen ability slots are full.",
   "gems.spy.already_stole": "You already stole that ability.",
+  "gems.spy.cannot_steal_spy": "You cannot steal spy abilities.",
   "gems.spy.ability_was_stolen": "One of your abilities was stolen! Kill the thief or wait for them to switch gems to recover it.",
   "gems.spy.stole_ability": "Stole ability: %s",
   "gems.spy.selected_stolen": "Selected stolen ability: %s",

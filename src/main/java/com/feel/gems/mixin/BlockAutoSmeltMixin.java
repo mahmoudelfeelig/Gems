@@ -1,6 +1,7 @@
 package com.feel.gems.mixin;
 
 import com.feel.gems.power.gem.fire.AutoSmeltCache;
+import com.feel.gems.config.GemsBalance;
 import com.feel.gems.power.registry.PowerIds;
 import com.feel.gems.power.runtime.AbilityRuntime;
 import com.feel.gems.power.runtime.GemPowers;
@@ -66,9 +67,10 @@ public abstract class BlockAutoSmeltMixin {
                 }
             }
 
-            if (richRush && isOre(state)) {
+            if (richRush && isOre(state) && !hasSilkTouch(world, tool)) {
+                int rolls = Math.max(1, GemsBalance.v().wealth().richRushLootRolls());
                 ItemStack doubled = next.copy();
-                doubled.setCount(next.getCount() * 2);
+                doubled.setCount(next.getCount() * rolls);
                 next = doubled;
                 changed = true;
             }
@@ -94,6 +96,19 @@ public abstract class BlockAutoSmeltMixin {
                 || state.isIn(BlockTags.IRON_ORES)
                 || state.isIn(BlockTags.LAPIS_ORES)
                 || state.isIn(BlockTags.REDSTONE_ORES);
+    }
+
+    private static boolean hasSilkTouch(ServerWorld world, ItemStack tool) {
+        if (tool == null || tool.isEmpty() || world == null) {
+            return false;
+        }
+        var entry = world.getRegistryManager()
+                .getOptionalEntry(net.minecraft.enchantment.Enchantments.SILK_TOUCH)
+                .orElse(null);
+        if (entry == null) {
+            return false;
+        }
+        return net.minecraft.enchantment.EnchantmentHelper.getLevel(entry, tool) > 0;
     }
 
     private static void splitAndAdd(List<ItemStack> out, ItemStack stack) {

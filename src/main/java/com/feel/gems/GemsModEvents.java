@@ -71,12 +71,14 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.mob.WitherSkeletonEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 
@@ -95,7 +97,16 @@ public final class GemsModEvents {
                 SpySystem.recordLastKilledMob(player, living);
 
                 if (!(killedEntity instanceof ServerPlayerEntity)) {
-                    GemsStats.recordMobKill(player);
+                    int mobKillCount = 1;
+                    if (living instanceof WitherSkeletonEntity && AbilityRuntime.isRichRushActive(player)) {
+                        mobKillCount = 20;
+                        int extra = mobKillCount - 1;
+                        if (extra > 0) {
+                            player.getStatHandler().increaseStat(player, Stats.CUSTOM.getOrCreateStat(Stats.MOB_KILLS), extra);
+                            player.getStatHandler().increaseStat(player, Stats.KILLED.getOrCreateStat(living.getType()), extra);
+                        }
+                    }
+                    GemsStats.recordMobKill(player, mobKillCount);
                 }
 
                 // Bonus passives: on kill effects (Bloodthirst, Adrenaline Rush)

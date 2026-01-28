@@ -31,7 +31,7 @@ public final class BountyHuntingAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Consumes an item and tracks its original owner for a short time.";
+        return "Consumes an item and tracks its last owner for a short time (if you're the last owner, it tracks the previous owner instead).";
     }
 
     @Override

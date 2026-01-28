@@ -35,7 +35,7 @@ public final class HunterOriginTrackingAbility implements GemAbility {
 
     @Override
     public String description() {
-        return "Track the original owner of an item (who first crafted or found it).";
+        return "Track the first owner of an item (who originally crafted or found it).";
     }
 
     @Override

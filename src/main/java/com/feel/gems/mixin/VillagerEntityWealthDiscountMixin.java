@@ -18,6 +18,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(VillagerEntity.class)
 public final class VillagerEntityWealthDiscountMixin {
+    private static final int GEMS_WEALTH_MAX_USES = 999999;
+
     @Unique
     private TradeOfferList gems$wealthOffersBackup;
 
@@ -44,6 +46,13 @@ public final class VillagerEntityWealthDiscountMixin {
                 TradedItem original = second.get();
                 TradedItem adjusted = new TradedItem(original.item(), 1, original.components());
                 ((TradeOfferAccessor) offer).gems$setSecondBuyItem(Optional.of(adjusted));
+            }
+            TradeOfferAccessor accessor = (TradeOfferAccessor) offer;
+            if (accessor.gems$getMaxUses() < GEMS_WEALTH_MAX_USES) {
+                accessor.gems$setMaxUses(GEMS_WEALTH_MAX_USES);
+                if (accessor.gems$getUses() < 0) {
+                    accessor.gems$setUses(0);
+                }
             }
         }
     }

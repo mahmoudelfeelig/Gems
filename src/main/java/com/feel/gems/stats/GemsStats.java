@@ -76,13 +76,20 @@ public final class GemsStats {
     }
 
     public static void recordMobKill(ServerPlayerEntity killer) {
+        recordMobKill(killer, 1);
+    }
+
+    public static void recordMobKill(ServerPlayerEntity killer, int count) {
+        if (count <= 0) {
+            return;
+        }
         NbtCompound stats = statsRoot(killer);
-        increment(stats, KEY_KILLS);
-        increment(stats, KEY_MOB_KILLS);
-        incrementMap(stats, KEY_KILLS_BY_GEM, GemPlayerState.getActiveGem(killer).name());
+        increment(stats, KEY_KILLS, count);
+        increment(stats, KEY_MOB_KILLS, count);
+        incrementMap(stats, KEY_KILLS_BY_GEM, GemPlayerState.getActiveGem(killer).name(), count);
         Identifier last = lastAbility(killer);
         if (last != null) {
-            incrementMap(stats, KEY_KILLS_BY_ABILITY, last.toString());
+            incrementMap(stats, KEY_KILLS_BY_ABILITY, last.toString(), count);
         }
     }
 
@@ -248,6 +255,14 @@ public final class GemsStats {
         stats.putInt(key, current + 1);
     }
 
+    private static void increment(NbtCompound stats, String key, int delta) {
+        if (delta <= 0) {
+            return;
+        }
+        int current = stats.getInt(key, 0);
+        stats.putInt(key, current + delta);
+    }
+
     private static void incrementMap(NbtCompound stats, String mapKey, String key) {
         NbtCompound map = stats.getCompound(mapKey).orElse(null);
         if (map == null) {
@@ -256,6 +271,19 @@ public final class GemsStats {
         }
         int current = map.getInt(key, 0);
         map.putInt(key, current + 1);
+    }
+
+    private static void incrementMap(NbtCompound stats, String mapKey, String key, int delta) {
+        if (delta <= 0) {
+            return;
+        }
+        NbtCompound map = stats.getCompound(mapKey).orElse(null);
+        if (map == null) {
+            map = new NbtCompound();
+            stats.put(mapKey, map);
+        }
+        int current = map.getInt(key, 0);
+        map.putInt(key, current + delta);
     }
 
     private static int mapValue(NbtCompound stats, String mapKey, String key) {

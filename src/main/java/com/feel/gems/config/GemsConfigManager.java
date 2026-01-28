@@ -3,6 +3,10 @@ package com.feel.gems.config;
 import com.feel.gems.GemsMod;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.io.Reader;
@@ -60,7 +64,12 @@ public final class GemsConfigManager {
         }
 
         try (Reader reader = Files.newBufferedReader(path)) {
-            GemsBalanceConfig cfg = GSON.fromJson(reader, GemsBalanceConfig.class);
+            JsonElement existing = JsonParser.parseReader(reader);
+            JsonElement merged = mergeWithDefaults(existing, GSON.toJsonTree(new GemsBalanceConfig()));
+            GemsBalanceConfig cfg = GSON.fromJson(merged, GemsBalanceConfig.class);
+            if (!merged.equals(existing)) {
+                writeJson(path, merged);
+            }
             return new LoadResult(LoadStatus.LOADED, path, cfg, null);
         } catch (JsonSyntaxException e) {
             String error = "Failed to parse config " + path + " (keeping file, not overwriting).";
@@ -71,6 +80,34 @@ public final class GemsConfigManager {
             GemsMod.LOGGER.error(error, e);
             return new LoadResult(LoadStatus.ERROR, path, fallbackToDefaults ? new GemsBalanceConfig() : null, error);
         }
+    }
+
+    private static JsonElement mergeWithDefaults(JsonElement existing, JsonElement defaults) {
+        if (existing == null || existing.isJsonNull()) {
+            return defaults;
+        }
+        if (defaults == null || defaults.isJsonNull()) {
+            return existing;
+        }
+        if (existing.isJsonObject() && defaults.isJsonObject()) {
+            JsonObject merged = new JsonObject();
+            JsonObject existingObj = existing.getAsJsonObject();
+            JsonObject defaultObj = defaults.getAsJsonObject();
+            for (var entry : existingObj.entrySet()) {
+                merged.add(entry.getKey(), entry.getValue());
+            }
+            for (var entry : defaultObj.entrySet()) {
+                String key = entry.getKey();
+                JsonElement existingValue = merged.get(key);
+                if (existingValue == null || existingValue instanceof JsonNull) {
+                    merged.add(key, entry.getValue());
+                } else {
+                    merged.add(key, mergeWithDefaults(existingValue, entry.getValue()));
+                }
+            }
+            return merged;
+        }
+        return existing;
     }
 
     private static Path configPath() {
@@ -102,6 +139,20 @@ public final class GemsConfigManager {
         }
         try (Writer writer = Files.newBufferedWriter(path)) {
             GSON.toJson(cfg, writer);
+        } catch (IOException e) {
+            GemsMod.LOGGER.error("Failed to write config {}", path, e);
+        }
+    }
+
+    private static void writeJson(Path path, JsonElement element) {
+        try {
+            Files.createDirectories(path.getParent());
+        } catch (IOException e) {
+            GemsMod.LOGGER.error("Failed to create config directory {}", path.getParent(), e);
+            return;
+        }
+        try (Writer writer = Files.newBufferedWriter(path)) {
+            GSON.toJson(element, writer);
         } catch (IOException e) {
             GemsMod.LOGGER.error("Failed to write config {}", path, e);
         }
